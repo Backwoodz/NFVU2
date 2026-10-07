@@ -8,10 +8,14 @@ using UnityEngine;
 
 namespace Rachel350Z {
 // Disposable local prototype. No ZNetView: never use in multiplayer or persist into saves.
-[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.1.5")]
+[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.1.9")]
 public class Plugin : BaseUnityPlugin {
     GameObject car; Rigidbody body; WheelCollider[] wheels; Transform[] visuals;
     Material[] vehicleMaterials;
+    Texture2D[] vehicleTextures;
+    Transform[] brakeVisuals;
+    bool originalWheels;
+    float wheelVisualLift, frontWheelVisualOffset, rearWheelVisualOffset;
     PhysicsMaterial chassisMaterial;
     VehicleHandling handling;
     VehicleOrbitCamera orbitCamera;
@@ -87,31 +91,41 @@ public class Plugin : BaseUnityPlugin {
         Vector3 origin=local.transform.position+local.transform.forward*5+Vector3.up*3;
         if(Physics.Raycast(origin,Vector3.down,out var hit,15,~0,QueryTriggerInteraction.Ignore))origin=hit.point+Vector3.up*.7f;
         car=new GameObject("350Z_Local_Prototype");car.transform.SetPositionAndRotation(origin,Quaternion.Euler(0,local.transform.eulerAngles.y,0));
-        vehicleMaterials=VehicleMaterials.Create(local, message=>Logger.LogInfo(message));
+        originalWheels=model.schemaVersion==2;
+        wheelVisualLift=model.wheelVisualLift;frontWheelVisualOffset=model.frontWheelVisualOffset;rearWheelVisualOffset=model.rearWheelVisualOffset;
+        vehicleMaterials=originalWheels?VehicleMaterials.CreateForModel(local,model,message=>Logger.LogInfo(message),out vehicleTextures):VehicleMaterials.Create(local, message=>Logger.LogInfo(message));
         var paint=vehicleMaterials[0];var dark=vehicleMaterials[1];
-        foreach(var p in model.parts) {
-            var obj=new GameObject(p.name);obj.transform.SetParent(car.transform,false);
-            var mesh=new Mesh{name=p.name,vertices=p.vertices.Select(v=>new Vector3(v.x,v.y,v.z)).ToArray(),triangles=p.indices};vehicleMeshes.Add(mesh);mesh.RecalculateNormals();mesh.RecalculateBounds();
-            // Game shaders may read UV0, tangents and vertex colour even for a solid tint.
-            mesh.uv=new Vector2[p.vertices.Length];
-            mesh.tangents=Enumerable.Repeat(new Vector4(1,0,0,1),p.vertices.Length).ToArray();
-            mesh.colors=Enumerable.Repeat(Color.white,p.vertices.Length).ToArray();
-            obj.AddComponent<MeshFilter>().sharedMesh=mesh;obj.AddComponent<MeshRenderer>().sharedMaterial=p.name.Contains("BASE")?dark:paint;
-        }
+        foreach(var p in model.parts.Where(p=>!originalWheels||p.group=="body")) AddVisual(p,car.transform,model,paint,dark);
         // A shorter, raised hull catches fewer small rocks with its bumper corners.
         var box=car.AddComponent<BoxCollider>();box.center=new Vector3(0,.76f,0);box.size=new Vector3(1.62f,.8f,3.8f);
         chassisMaterial=new PhysicsMaterial("350Z_Chassis"){dynamicFriction=.08f,staticFriction=.08f,bounciness=0,frictionCombine=PhysicsMaterialCombine.Minimum};box.sharedMaterial=chassisMaterial;
         body=car.AddComponent<Rigidbody>();body.mass=1450;body.interpolation=RigidbodyInterpolation.Interpolate;body.collisionDetectionMode=CollisionDetectionMode.ContinuousDynamic;
-        wheels=new WheelCollider[4];visuals=new Transform[4];
+        wheels=new WheelCollider[4];visuals=new Transform[4];brakeVisuals=new Transform[4];
         for(int i=0;i<4;i++) {
             var wheel=new GameObject("Wheel"+i);wheel.transform.SetParent(car.transform,false);wheel.transform.localPosition=new Vector3(i%2==0?-.8f:.8f,.34f,i<2?1.3f:-1.35f);
             var wc=wheel.AddComponent<WheelCollider>();wc.radius=.34f;wheels[i]=wc;
-            var visual=GameObject.CreatePrimitive(PrimitiveType.Cylinder);Destroy(visual.GetComponent<Collider>());visual.transform.SetParent(car.transform,false);visual.transform.localScale=new Vector3(.68f,.12f,.68f);visual.GetComponent<Renderer>().sharedMaterial=dark;visuals[i]=visual.transform;
+            if(originalWheels) {
+                var visual=new GameObject("OriginalWheel"+i);visual.transform.SetParent(car.transform,false);visuals[i]=visual.transform;
+                var brakeVisual=new GameObject("OriginalBrake"+i);brakeVisual.transform.SetParent(car.transform,false);brakeVisuals[i]=brakeVisual.transform;
+                foreach(var p in model.parts.Where(p=>p.group=="wheel")) AddVisual(p,visual.transform,model,paint,dark);
+                foreach(var p in model.parts.Where(p=>p.group=="brake")) AddVisual(p,brakeVisual.transform,model,paint,dark);
+            } else {
+                var visual=GameObject.CreatePrimitive(PrimitiveType.Cylinder);Destroy(visual.GetComponent<Collider>());visual.transform.SetParent(car.transform,false);visual.transform.localScale=new Vector3(.68f,.12f,.68f);visual.GetComponent<Renderer>().sharedMaterial=dark;visuals[i]=visual.transform;
+            }
         }
         handling=new VehicleHandling(body,wheels,terrainMode.Value,message=>Logger.LogInfo(message));
         vehicleAudio=VehicleAudio.Create(car,body,wheels,message=>Logger.LogInfo(message));
         Logger.LogInfo("350Z spawned: "+model.parts.Length+" meshes, 4 wheels. Terrain assistance: "+terrainMode.Value);
         status="350Z bereit. F7: einsteigen | F9: Gelände/Straße | F8: entfernen";
+    }
+    void AddVisual(ModelPart p, Transform parent, ModelData model, Material paint, Material dark) {
+        var obj=new GameObject(p.name);obj.transform.SetParent(parent,false);
+        var mesh=new Mesh{name=p.name,vertices=p.vertices.Select(v=>new Vector3(v.x,v.y,v.z)).ToArray(),triangles=p.indices};vehicleMeshes.Add(mesh);
+        if(p.normals!=null)mesh.normals=p.normals.Select(v=>new Vector3(v.x,v.y,v.z)).ToArray();else mesh.RecalculateNormals();
+        mesh.uv=p.uv!=null?p.uv.Select(v=>new Vector2(v.u,v.v)).ToArray():new Vector2[p.vertices.Length];
+        mesh.colors=Enumerable.Repeat(Color.white,p.vertices.Length).ToArray();
+        mesh.RecalculateTangents();mesh.RecalculateBounds();
+        obj.AddComponent<MeshFilter>().sharedMesh=mesh;obj.AddComponent<MeshRenderer>().sharedMaterial=model.schemaVersion==2?vehicleMaterials[p.material]:(p.name.Contains("BASE")?dark:paint);
     }
     void Enter(MonoBehaviour local) {
         if(Multiplayer())return;
@@ -133,7 +147,14 @@ public class Plugin : BaseUnityPlugin {
         if(driving&&player!=null)player.transform.position=car.transform.TransformPoint(new Vector3(0,.8f,.3f));
     }
     void LateUpdate() {
-        if(wheels!=null && visuals!=null)for(int i=0;i<4;i++)if(wheels[i]!=null && visuals[i]!=null){wheels[i].GetWorldPose(out var pos,out var rot);visuals[i].SetPositionAndRotation(pos,rot*Quaternion.Euler(0,0,90));}
+        if(wheels!=null && visuals!=null)for(int i=0;i<4;i++)if(wheels[i]!=null && visuals[i]!=null){
+            wheels[i].GetWorldPose(out var pos,out var rot);
+            // Offset the complete wheel and brake together. Apply outside the
+            // spinning transform so the fitted hub cannot orbit its axle.
+            if(originalWheels)pos+=car.transform.up*wheelVisualLift+car.transform.forward*(i<2?frontWheelVisualOffset:rearWheelVisualOffset);
+            visuals[i].SetPositionAndRotation(pos,rot*(originalWheels?Quaternion.Euler(0,i%2==0?180:0,0):Quaternion.Euler(0,0,90)));
+            if(originalWheels && brakeVisuals[i]!=null)brakeVisuals[i].SetPositionAndRotation(pos,car.transform.rotation*Quaternion.Euler(0,wheels[i].steerAngle+(i%2==0?180:0),0));
+        }
         if(driving)orbitCamera.LateFrame();
         if(vehicleAudio!=null)try {
             vehicleAudio.Tick(driving,throttle,brake>0,honking,audioBlocked,terrainMode.Value,soundVolume.Value);
@@ -157,8 +178,9 @@ public class Plugin : BaseUnityPlugin {
         if(player!=null||driving)Exit();if(car!=null)Destroy(car);
         foreach(var mesh in vehicleMeshes)if(mesh!=null)Destroy(mesh);vehicleMeshes.Clear();
         if(vehicleMaterials!=null)foreach(var material in vehicleMaterials)if(material!=null)Destroy(material);
+        if(vehicleTextures!=null)foreach(var texture in vehicleTextures)if(texture!=null)Destroy(texture);
         if(chassisMaterial!=null)Destroy(chassisMaterial);
-        orbitCamera?.End();handling=null;chassisMaterial=null;vehicleMaterials=null;car=null;body=null;wheels=null;visuals=null;
+        orbitCamera?.End();handling=null;chassisMaterial=null;vehicleMaterials=null;vehicleTextures=null;car=null;body=null;wheels=null;visuals=null;brakeVisuals=null;originalWheels=false;
     }
     void OnDestroy(){Cleanup();}
     void OnGUI(){if(ready&&LocalPlayer()!=null){

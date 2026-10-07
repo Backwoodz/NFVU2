@@ -4,6 +4,39 @@ using UnityEngine;
 
 namespace Rachel350Z {
 public static class VehicleMaterials {
+    public static Material[] CreateForModel(MonoBehaviour local, ModelData model, Action<string> log, out Texture2D[] textures) {
+        textures = new Texture2D[model.textures.Length];
+        var templates = Create(local, log);
+        var result = new Material[model.materials.Length];
+        try {
+            for (int i = 0; i < textures.Length; i++) {
+                var data = model.textures[i];
+                var texture = new Texture2D(data.width, data.height, TextureFormat.RGBA32, true) { name = data.name, wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Trilinear, anisoLevel = 4 };
+                textures[i] = texture;
+                // Original PNG/image rows are top-down; Unity raw upload is bottom-up.
+                var pixels = new byte[data.rgba.Length]; int stride = data.width * 4;
+                for (int row = 0; row < data.height; row++) Array.Copy(data.rgba, row * stride, pixels, (data.height - 1 - row) * stride, stride);
+                // body.json contains level 0 only. LoadRawTextureData expects
+                // bytes for the entire allocated mip chain; SetPixelData targets
+                // just the supplied level, then Apply generates the smaller mips.
+                texture.SetPixelData<byte>(pixels, 0);
+                texture.Apply(true, true);
+            }
+            for (int i = 0; i < result.Length; i++) {
+                var data = model.materials[i]; var c = data.color;
+                var material = Clone(templates[0], "350Z_" + data.name, new Color(c[0], c[1], c[2], c[3])); result[i] = material;
+                foreach (var property in new[] { "_MainTex", "_BaseMap", "_Albedo" })
+                    if (data.texture >= 0 && material.HasTexture(property)) material.SetTexture(property, textures[data.texture]);
+                if (material.HasFloat("_Metallic")) material.SetFloat("_Metallic", data.metallic);
+                foreach (var property in new[] { "_Glossiness", "_Smoothness" }) if (material.HasFloat(property)) material.SetFloat(property, data.smoothness);
+            }
+            return result;
+        } catch {
+            foreach (var m in result) if (m != null) UnityEngine.Object.Destroy(m);
+            foreach (var t in textures) if (t != null) UnityEngine.Object.Destroy(t);
+            textures = null; throw;
+        } finally { foreach (var m in templates) UnityEngine.Object.Destroy(m); }
+    }
     // Materials loaded by the game retain their actual asset-bundle shader
     // references; Shader.Find by an assumed name does not provide that guarantee.
     public static Material[] Create(MonoBehaviour local, Action<string> log) {

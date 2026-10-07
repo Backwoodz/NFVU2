@@ -10,6 +10,7 @@ __pycache__/
 *.user
 *.suo
 .vs/
+.idea/
 .env
 .env.*
 

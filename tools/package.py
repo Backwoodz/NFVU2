@@ -2,7 +2,7 @@ from pathlib import Path
 import zipfile
 from project import BASE,OUTPUT
 
-target=OUTPUT/'NFVU2-v0.1.5.zip'
+target=OUTPUT/'NFVU2-v0.1.9.zip'
 with zipfile.ZipFile(target,'w',zipfile.ZIP_DEFLATED) as archive:
     for name in ('Rachel350Z.dll','body.json'):
         archive.write(OUTPUT/'mod'/name,'BepInEx/plugins/Rachel350Z/'+name)

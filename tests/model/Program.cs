@@ -20,10 +20,15 @@ class Program {
     }
     static void Main(string[] args) {
         var model=ModelFile.Load(args[0]);
-        if(model.parts.Length!=16 || model.parts.Sum(p=>p.indices.Length/3)!=3449 ||
-           model.parts[0].name!="350Z_BASE_A" || Math.Abs(model.parts[0].vertices[0].x-.7669976f)>.000001f)
-            throw new Exception("Model data did not deserialize correctly");
-        Console.WriteLine("PASS installed model: "+model.parts.Length+" parts, "+model.parts.Sum(p=>p.vertices.Length)+" vertices, 3449 triangles");checks++;
+        Check(model.schemaVersion==2 && model.preset=="DDAY_PLAYER_CAR","original beginning-of-game preset");
+        Check(model.parts.Any(p=>p.name.StartsWith("350Z_KITW02_BODY_A")) && model.parts.Any(p=>p.name.StartsWith("SPOILER_STYLE02_A")),"widebody and spoiler imported");
+        Check(model.parts.Any(p=>p.group=="wheel") && model.parts.Any(p=>p.group=="brake"),"original rim and brake geometry");
+        var tyre=model.parts.Single(p=>p.group=="wheel" && model.materials[p.material].name.StartsWith("78743ca1_"));
+        double tyreRadius=tyre.indices.Select(i=>tyre.vertices[i]).Max(v=>Math.Sqrt(v.y*v.y+v.z*v.z));
+        Check(Math.Abs(tyreRadius-.35)<.00001,"visible tyre is 70 cm across, excluding backing geometry");
+        Check(model.textures.Any(t=>t.name=="rachel_paint" && t.width==512 && t.height==512),"original vinyl atlas present");
+        Check(model.parts.All(p=>p.normals.Length==p.vertices.Length && p.uv.Length==p.vertices.Length),"authored UVs and normals retained");
+        Console.WriteLine("PASS model: "+model.parts.Length+" slices, "+model.parts.Sum(p=>p.indices.Length/3)+" triangles");checks++;
         ExpectInvalid<InvalidDataException>("missing-parts","{}");
         ExpectInvalid<InvalidDataException>("empty-file","");
         ExpectInvalid<JsonException>("truncated-json","{\"parts\":[");
@@ -35,6 +40,18 @@ class Program {
         doc=JObject.Parse(File.ReadAllText(args[0]));
         doc["parts"][0]["vertices"][0]["x"]=1000;
         ExpectInvalid<InvalidDataException>("invalid-coordinate",doc.ToString());
+        doc=JObject.Parse(File.ReadAllText(args[0]));doc["parts"][0]["material"]=999;
+        ExpectInvalid<InvalidDataException>("invalid-material-index",doc.ToString());
+        doc=JObject.Parse(File.ReadAllText(args[0]));doc["parts"][0]["uv"]=new JArray();
+        ExpectInvalid<InvalidDataException>("missing-uvs",doc.ToString());
+        doc=JObject.Parse(File.ReadAllText(args[0]));doc["textures"][0]["width"]=2049;
+        ExpectInvalid<InvalidDataException>("oversized-texture",doc.ToString());
+        doc=JObject.Parse(File.ReadAllText(args[0]));doc["textures"][0]["rgba"]="AA==";
+        ExpectInvalid<InvalidDataException>("truncated-texture",doc.ToString());
+        doc=JObject.Parse(File.ReadAllText(args[0]));doc["materials"][0]["texture"]=999;
+        ExpectInvalid<InvalidDataException>("invalid-texture-index",doc.ToString());
+        doc=JObject.Parse(File.ReadAllText(args[0]));doc["frontWheelVisualOffset"]=10;
+        ExpectInvalid<InvalidDataException>("invalid-visual-wheel-offset",doc.ToString());
         Check(DrivingMath.DirectionBrake(10,-1) && DrivingMath.TorqueFactor(10,-1,true)==0,"reverse input brakes forward motion");
         Check(DrivingMath.DirectionBrake(-5,1) && DrivingMath.TorqueFactor(-5,1,true)==0,"forward input brakes reverse motion");
         Check(!DrivingMath.DirectionBrake(0,-1) && DrivingMath.TorqueFactor(0,-1,true)==1,"reverse engages at standstill");

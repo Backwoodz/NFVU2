@@ -1,6 +1,7 @@
 from project import BASE, LOCAL, OUTPUT, disc_root, vgmstream_path
 import json, math, re, struct
 from pathlib import Path
+from nfs_formats import bin_hash
 
 def chunks(data, start=0, end=None, depth=0):
     end = len(data) if end is None else end
@@ -39,12 +40,13 @@ def parse(path):
     for a,b in objects(data):
         table = dict(leaves(data,a,b))
         header = unpad(table.get(0x134011,b''))
-        names = re.findall(rb'350Z_[A-Z0-9_]+', header)
+        names = re.findall(rb'[A-Z0-9][A-Z0-9_]{4,}', header)
+        names = [n for n in names if b'_' in n]
         if not names: continue
         name = max(names,key=len).decode()
         if len(name)==24:
             key=struct.unpack_from('<I',header,16)[0]
-            for suffix in ('A','B','C','D','_A','_B','_C','_D','R_A','R_B','R_C','R_D','T_A','T_B','T_C'):
+            for suffix in ('A','B','C','D','_A','_B','_C','_D','R_A','R_B','R_C','R_D','T_A','T_B','T_C','T_D','HT_A','HT_B','HT_C','HT_D','FT_A','FT_B','FT_C','FT_D','LEFT_A','RIGHT_A','RIGHT_B','RIGHT_C','R_A'):
                 candidate=name+suffix
                 h=0xffffffff
                 for c in candidate.encode():h=(h*33+c)&0xffffffff
@@ -54,11 +56,25 @@ def parse(path):
         if not vb or len(vb)%36 or len(ib)%2: continue
         vertices = [struct.unpack_from('<3f',vb,i) for i in range(0,len(vb),36)]
         uv = [struct.unpack_from('<2f',vb,i+28) for i in range(0,len(vb),36)]
+        normals = [struct.unpack_from('<3f',vb,i+12) for i in range(0,len(vb),36)]
         indices = list(struct.unpack('<'+'H'*(len(ib)//2),ib))
         indices = indices[:len(indices)//3*3]
         if any(i>=len(vertices) for i in indices): raise ValueError('invalid index '+name)
         if any(not math.isfinite(v) or abs(v)>100 for xyz in vertices for v in xyz): raise ValueError('invalid position '+name)
-        result.append({'name':name,'vertices':vertices,'uv':uv,'indices':indices})
+        slots = lambda ident: [struct.unpack_from('<I',table[ident],i)[0] for i in range(0,len(table.get(ident,b'')),8)]
+        textures,materials=slots(0x134012),slots(0x134013)
+        sm=unpad(table.get(0x134b02,b''),True); slices=[]; position=0
+        if len(sm)%60: raise ValueError('Invalid material records '+name)
+        for i in range(0,len(sm),60):
+            count,tex,mat,start=[struct.unpack_from('<I',sm,i+j)[0] for j in (12,28,32,52)]
+            if start!=position or count%3 or start+count>len(indices) or tex>=len(textures) or mat>=len(materials):
+                raise ValueError('Invalid material partition '+name)
+            slices.append({'indices':indices[start:start+count],'textureKey':textures[tex],'materialKey':materials[mat]});position+=count
+        if position!=len(indices): raise ValueError('Incomplete material partition '+name)
+        sockets={}; socket_data=unpad(table.get(0x13401a,b''))
+        for i in range(0,len(socket_data),80):
+            sockets[struct.unpack_from('<I',socket_data,i)[0]]=struct.unpack_from('<16f',socket_data,i+16)
+        result.append({'name':name,'key':struct.unpack_from('<I',header,16)[0], 'vertices':vertices,'normals':normals,'uv':uv,'indices':indices,'slices':slices,'sockets':sockets})
     return result
 
 if __name__ == '__main__':

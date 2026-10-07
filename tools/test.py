@@ -1,4 +1,4 @@
-import argparse,shutil,subprocess
+import argparse,shutil,subprocess,sys
 from project import BASE,LOCAL,OUTPUT,valheim_dir
 from build import build
 from build_support import compile_cs,test_refs,runtime_config
@@ -6,6 +6,8 @@ from build_support import compile_cs,test_refs,runtime_config
 def main():
     parser=argparse.ArgumentParser();parser.add_argument('--skip-build',action='store_true');parser.add_argument('--handling-only',action='store_true');args=parser.parse_args()
     if not args.handling_only and not args.skip_build:build()
+    if not args.handling_only:
+        subprocess.run([sys.executable,'-m','unittest','discover','-s',str(BASE/'tests'),'-p','test_asset_import.py'],check=True)
     references,tfm,version=test_refs()
     for suite in (['handling'] if args.handling_only else ['model','handling','audio']):
         out=OUTPUT/'tests'/suite;out.mkdir(parents=True,exist_ok=True)

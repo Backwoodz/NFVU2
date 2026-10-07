@@ -9,9 +9,13 @@
 
 ## Rachels Fahrzeug
 
-- Bodykit, Spoiler und Originalfelgen identifizieren und übernehmen.
-- Originaltexturen und Vinyl-Farben decodieren und korrekt darstellen.
-- Innenraum, Beleuchtung und Fahrersitz ergänzen.
+- Darstellung von 0.1.9 vom Nutzer in Valheim bestätigt: Widebody 02, Spoiler 02,
+  Carbonhaube, Originalfelgen und Drachenvinyl sind aus `DDAY_PLAYER_CAR` importiert.
+- Lackreflexionen und Felgentönung mit dem Originalspiel vergleichen.
+- Radfreigang bei Lenkeinschlag und Einfedern in beiden Fahrmodi prüfen.
+- Scheibentransparenz, Leuchtenabdeckungen, Kennzeichen, Innenraum und Fahrersitz ergänzen.
+- Alle offenen Darstellungsschritte abschließen, bevor die vollständige
+  Rachel-Rekonstruktion als fertig bezeichnet wird.
 
 ## Fahrgefühl
 

@@ -35,7 +35,7 @@ def main():
                     name = item.filename.replace('\\', '/')
                     inventory.append({'disc': disc.label, 'name': name, 'size': item.file_size})
                     upper = name.upper()
-                    wanted = any(s in upper for s in ('/350Z/', '/WHEELS/', '/GLOBAL/')) or upper.startswith(('CARS/350Z/', 'CARS/WHEELS/', 'GLOBAL/'))
+                    wanted = upper.startswith(('CARS/350Z/', 'CARS/WHEELS/', 'CARS/SPOILER/', 'CARS/BRAKES/', 'CARS/EXHAUST/', 'GLOBAL/'))
                     if not wanted or item.is_dir() or upper.endswith(('.EXE', '.DLL')): continue
                     target = (base / name).resolve()
                     if not target.is_relative_to(base): raise ValueError('unsafe archive path')

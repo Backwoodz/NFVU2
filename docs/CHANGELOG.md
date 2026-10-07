@@ -1,5 +1,47 @@
 # Versionsgeschichte
 
+## 0.1.9 — Textur-Upload beim Spawnen
+
+Der Spieltest von 0.1.8 scheiterte mit `LoadRawTextureData: not enough data provided`.
+Die Texturen besitzen eine Mipmap-Kette, die Modelldatei enthält jedoch nur Stufe 0.
+`SetPixelData<byte>(pixels, 0)` lädt jetzt gezielt diese Stufe; `Apply(true, true)`
+erzeugt anschließend die kleineren Stufen. Der Nutzer hat die Darstellung
+anschließend in Valheim bestätigt.
+
+## 0.1.8 — Tatsächlichen Reifendurchmesser korrigiert
+
+Der Import verwendete bisher die Diagonale einer quadratischen Felgen-Rückfläche
+als Radius. Damit waren die sichtbaren Reifen von 0.1.7 nur etwa 52 cm groß,
+obwohl 72 cm angegeben wurden. Gemessen wird jetzt ausschließlich die originale
+Reifenoberfläche: vorne und hinten tatsächlich 70 cm Durchmesser, etwa 35 %
+größer als zuvor. Die überstehenden Rückflächen-Dreiecke werden ausgelassen.
+Zwei Regressionstests prüfen den Quellradius und den exportierten Reifen.
+Die Vorschau enthält zusätzlich eine Seitenansicht und eine tiefe perspektivische
+Ansicht für den Vergleich mit dem Referenzbild. Der Unity-Spieltest steht aus.
+
+## 0.1.7 — Radproportionen und Einbauposition
+
+Radskalierung erhöht (Durchmesserangabe später in 0.1.8 korrigiert), Räder weiter nach außen
+gesetzt und längs in den Widebody-Radhäusern zentriert. Rad- und Bremsdarstellung
+folgen gemeinsam dem Fahrwerk; ihre Versätze rotieren nicht mit den Rädern.
+Die Karosseriedarstellung sitzt 4 cm höher, um den größeren Rädern Platz zu geben.
+Collider, Antrieb und Federungsparameter bleiben auf dem bisherigen Stand.
+Die externe Vorschau zeigt eine angenäherte eingefederte Stellung anstelle der
+Collider-Aufhängungspunkte. Freigang bei Lenkeinschlag und Einfedern muss noch
+in Valheim geprüft werden.
+
+## 0.1.6 — Rachels Originalteile und Vinyl
+
+Die ursprüngliche Voreinstellung `DDAY_PLAYER_CAR` aus `GlobalB.lzc` bestimmt
+Widebody 02, Carbonhaube 07, Spoiler 02, Leuchten, Racing-Hart-Räder und
+Endrohre. Originale UVs, Normalen, Materialbereiche, Texturen und das
+`350Z_ART_F_6`-Vinyl einschließlich Maskenpalette werden lokal aufbereitet.
+Räder folgen den bisherigen WheelCollidern; Bremssättel drehen nicht mit.
+Fahrphysik und Sound bleiben unverändert. Modell und Texturen sind weiterhin
+ignorierte lokale Daten. Build, 83 Mod-Prüfungen und drei Asset-Prüfungen bestanden; externe Vorschau
+gerendert. Der Unity-Spieltest steht aus. Lack/Felgentönung sind angenähert;
+Scheibentransparenz, Leuchtenabdeckungen und Kennzeichen bleiben offen.
+
 ## 0.1.5 — Fahrzeug-Sound
 
 Originale NFSU2-Aufnahmen für Beschleunigen und Gaswegnehmen, jeweils acht

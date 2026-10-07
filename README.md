@@ -2,13 +2,21 @@
 
 **Need for Valheim: Underground 2** — ein privater Fahrzeug-Mod-Prototyp für Valheim.
 
-Aktueller Stand: **0.1.5**. Ein aus eigenen NFS-Underground-2-Dateien ausgelesener
+Aktueller Stand: **0.1.9**. Ein aus eigenen NFS-Underground-2-Dateien ausgelesener
 Nissan 350Z lässt sich in einer lokalen Valheim-Einzelspielerwelt spawnen und fahren.
 Mauskamera, Gelände-/Straßenmodus und Fahrzeug-Sound sind im Spiel bestätigt.
 Der Sound benötigt noch Feinschliff.
 
-Das Fahrzeug verwendet vorläufig die Serienkarosserie, grüne Ersatzmaterialien
-und einfache Testräder. Rachels Vinyls, Tuningteile und Originalfelgen fehlen noch.
+Die Darstellung verwendet jetzt die Originalvoreinstellung `DDAY_PLAYER_CAR`:
+Widebody-Kit 02, Carbonhaube 07, Spoiler 02, Racing-Hart-Felgen 07,
+Leuchten und Doppel-Endrohre sowie das originale Drachenvinyl mit Farbpalette.
+Lack und Felgentönung sind für Valheim angenähert. Scheiben sind vorerst dunkel
+und undurchsichtig, transparente Leuchtenabdeckungen fehlen. Die Darstellung
+von 0.1.9 wurde nach der Textur-Upload-Korrektur vom Nutzer in Valheim bestätigt.
+Die Räder sind optisch auf das Widebody abgestimmt; die Vorschau verwendet eine
+angenäherte eingefederte Stellung. Die tatsächliche Federstellung bestimmt Unity.
+Der sichtbare Reifendurchmesser beträgt 70 cm. Seit 0.1.8 misst der Import die
+Reifenoberfläche statt der größeren quadratischen Fläche hinter der Felge.
 Die Fahrphysik nutzt Unity WheelCollider. Eine Bridge zu einem parallel laufenden
 NFS-Prozess ist eine mögliche spätere Forschungsaufgabe und noch nicht implementiert.
 
@@ -57,6 +65,7 @@ Alle folgenden Befehle im Projektverzeichnis ausführen:
 python -m pip install -r requirements.txt
 python tools/extract_assets.py
 python tools/export_geometry.py
+python tools/export_rachel.py
 python tools/extract_audio.py
 python tools/decode_audio.py
 python tools/prepare_audio.py
@@ -79,7 +88,8 @@ Sie verwenden den mitgelieferten C#-Compiler direkt und benötigen keinen
 NuGet-Download. `src/NFVU2.csproj` dient zusätzlich als Projektdatei für Editoren;
 dafür `ValheimDir` beziehungsweise die Umgebungsvariable `NFVU2_VALHEIM` setzen.
 
-Aktuell: 17 Modell-/Steuerprüfungen, 23 Antriebsprüfungen und 33 Audio-Prüfungen.
+Aktuell: 29 Modell-/Steuerprüfungen, 23 Antriebsprüfungen, 33 Audio-Prüfungen
+und vier Prüfungen der Originalasset-Verarbeitung.
 Die Antriebsprüfungen verwenden kontrollierte API-Antworten. Sie ersetzen keinen
 Unity-Fahrtest; auch die Audio-Prüfungen spielen nichts in Valheim ab.
 
@@ -97,7 +107,11 @@ python tools/render_audio_preview.py
 
 ## Installieren
 
-Valheim regulär schließen. `artifacts/mod/Rachel350Z.dll` und `body.json` nach
+Valheim regulär schließen und `python tools/install.py` ausführen. Das Werkzeug
+prüft den laufenden Prozess, sichert die installierten Dateien in `artifacts/backups/`
+und verifiziert beide kopierten Dateien mit SHA-256.
+
+Alternativ `artifacts/mod/Rachel350Z.dll` und `body.json` nach
 `<Valheim>/BepInEx/plugins/Rachel350Z/` kopieren. Der bestehende Plugin-Name und die
 Konfigurationskennung bleiben für die bisherige Installation erhalten.
 
