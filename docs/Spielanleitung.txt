@@ -1,0 +1,123 @@
+350Z-Prototyp 0.1.5 – lokaler Test für Valheim
+
+Stand: 7. Oktober 2026
+Gebaut gegen die auf diesem Rechner vorhandenen Valheim-Assemblies:
+Valheim 1.0.17, Unity 6000.0.75f1.
+
+STATUS
+Der Original-350Z wurde aus den bereitgestellten CD-Abbildern ausgelesen.
+16 Karosserieteile sind in diesem Testmodell enthalten.
+Der Nutzer hat mit Version 0.1.2 das Spawnen, Fahren und Ein-/Aussteigen
+im Spiel bestätigt. Der Lader verwendet Newtonsoft.Json und die Darstellung
+ein kopiertes Valheim-Material mit dem bereits geladenen Shader.
+Der Nutzer hat mit Version 0.1.4 das Fahren und den gut funktionierenden
+Geländemodus bestätigt. Maussteuerung und Fahrmoduswechsel sind ebenfalls
+im Spiel bestätigt. Diese Antriebssteuerung ist in Version 0.1.5 unverändert.
+Version 0.1.5 ergänzt räumlichen Fahrzeug-Sound mit Originalaufnahmen aus
+NFS Underground 2, berechneter Motordrehzahl und hörbaren Gangwechseln.
+33 Audio-Prüfungen, 23 Prüfungen der Antriebssteuerung mit simulierten
+API-Antworten und 17 Prüfungen der Modelldaten/Steuerberechnungen bestehen.
+Das neue Audio muss noch im Spiel gehört und bestätigt werden. Die Tests
+führen keine Unity-Wiedergabe und keine Unity-Physik aus.
+Die PNG-Vorschau ist eine externe 3D-Darstellung, kein Valheim-Screenshot.
+
+Dies ist vorläufig die Serienkarosserie mit grünen Ersatzmaterialien und
+einfachen Testrädern. Rachels Vinyls, Tuningteile und Originalfelgen fehlen.
+Die Fahrmechanik nutzt Unity WheelCollider und selbst festgelegte Parameter;
+die originale Underground-2-Fahrphysik wird nicht ausgeführt.
+
+BEDIENUNG IN EINER SEPARATEN EINZELSPIELER-TESTWELT
+F6: Ein temporäres Fahrzeug vor der Spielfigur erzeugen.
+F7: In Fahrzeugnähe einsteigen / wieder aussteigen.
+W / S: Gas / zunächst bremsen, dann rückwärts fahren.
+A / D: Lenken.
+Leertaste: Bremsen.
+H halten: Hupe.
+F8: Fahrzeug entfernen.
+Maus bewegen: während der Fahrt rund um das Auto schauen.
+Mausrad: Kameraabstand zwischen 3 und 10 Metern einstellen.
+Mittlere Maustaste: Kamera hinter dem Wagen zentrieren.
+F9: Geländemodus / Straßenmodus wechseln.
+
+GELÄNDE UND KAMERA
+Der Geländemodus ist anfangs aktiviert: 40 cm Federweg, zusätzlicher
+Vorderradantrieb, mehr Reifengrip und reduzierte Höchstgeschwindigkeit.
+Im Straßenmodus bleiben Heckantrieb und 24 cm Federweg erhalten.
+Beide Modi haben weich ansprechendes Gas, geschwindigkeitsabhängige Lenkung,
+eine Traktionsregelung ab 2 m/s und einen niedrigeren Schwerpunkt. Der angehobene,
+kürzere Kollisionskörper soll sich seltener an kleinen Steinen festsetzen.
+Dies sind Spielhilfen des Prototyps, keine originalen 350Z-Fahrzeugdaten.
+
+Die Kamera hält den Horizont ruhig und weicht Hindernissen durch Verkürzen
+des Abstands aus. In Menüs und bei Alt-Tab wird die Maus freigegeben; beim
+Aussteigen wird die normale Spielkamera wieder aktiviert.
+Empfindlichkeit, invertierte Y-Achse und der bevorzugte Fahrmodus stehen
+nach dem ersten Start in BepInEx/config/local.rachel350z.prototype.cfg.
+
+FAHRZEUG-SOUND
+Beim Einsteigen startet das Motorgeräusch, beim Aussteigen blendet es aus.
+Gasgeben, Rollenlassen, Rückwärtsfahren und die berechneten Schaltvorgänge
+verändern den Klang. Mit gehaltener Bremse und W lässt sich im Stand Gas geben.
+Alle Geräusche kommen räumlich vom Auto und werden mit der Entfernung leiser.
+Rollgeräusche hängen von Geschwindigkeit und Radkontakt ab; Reifengeräusche
+von Schlupf und Tempo. Im Geländemodus ist das Reifenquietschen dezenter.
+In Menüs und beim Wechsel aus dem Spiel wird der Fahrzeug-Sound pausiert.
+
+Die Originalaufnahmen für Beschleunigen und Gaswegnehmen wurden jeweils
+in acht Drehzahlbereiche aufgeteilt. Die Hupe ist eigens synthetisiert.
+Dies verwendet originale Tonaufnahmen mit einer eigenen Wiedergabelogik;
+die NFS-Audio-Engine läuft nicht mit. Die genaue Sound-Zuordnung von Rachels
+Tuning-Konfiguration ist noch nicht nachgewiesen.
+Alle 19 Tondateien sind in Rachel350Z.dll eingebettet; zusätzliche Kopien
+von WAV-Dateien im Plugin-Verzeichnis sind nicht erforderlich.
+
+Lautstärke: Im Abschnitt [Audio] der Mod-Konfiguration steht Volume = 0.8.
+Werte zwischen 0 und 1 sind möglich; 0 schaltet alle Fahrzeuggeräusche stumm.
+Die Konfiguration wird nach dem ersten Start mit dieser Version ergänzt.
+Die Mod nutzt die geladene SFX-Mixergruppe, wenn sie gefunden wird, ansonsten
+die normale AudioListener-Ausgabe. Details stehen im Spielprotokoll.
+Die Datei 350Z-Soundvorschau.wav ist eine extern berechnete Hörprobe mit
+denselben Tonaufnahmen und Drehzahlwerten, keine Aufnahme aus Valheim.
+
+Der Mod verweigert Fahrzeugerzeugung in Mehrspieler-Sitzungen.
+Das Auto wird nicht in der Welt gespeichert. Die Spielfigur und Kamera
+werden während der Fahrt vom Prototyp gesteuert.
+
+MANUELLE INSTALLATION
+Das Valheim-spezifische BepInExPack 5.4.2351 wird benötigt.
+Rachel350Z.dll und body.json gehören zusammen in:
+<Valheim-Ordner>\BepInEx\plugins\Rachel350Z\
+
+TEST
+Valheim starten und eine neue lokale Testwelt mit Testcharakter öffnen.
+Auf möglichst ebener Fläche F6 drücken, kurz warten und mit F7 einsteigen.
+W für einige Sekunden halten, dann bremsen und erneut anfahren. Mit S
+aus dem Stillstand rückwärts fahren. Mit F9 beide Antriebsmodi prüfen.
+Leerlauf, Beschleunigen, Gaswegnehmen und Hupe auf H anhören. Im Menü und
+nach dem Aussteigen muss der Motor pausieren beziehungsweise verstummen.
+Gas, Bremse, Lenkung und Aussteigen prüfen; die Kamera rundherum
+bewegen und an einer Wand sowie beim Öffnen des Menüs testen. Auf derselben
+unebenen Strecke beide Fahrmodi mit F9 vergleichen. Anschließend F8 drücken.
+Falls keine Bedienleiste erscheint oder Fehler auftreten, liegt das Protokoll
+in <Valheim-Ordner>\BepInEx\LogOutput.log.
+Während der ersten acht Sekunden mit Gas pro Einstieg protokolliert die Mod
+Eingaben, Radkontakt, Motorleistung, Bremskraft und Geschwindigkeit.
+
+ENTFERNEN
+Bei geschlossenem Spiel den Ordner BepInEx\plugins\Rachel350Z entfernen.
+Der übrige Mod-Loader kann für andere Mods bestehen bleiben.
+
+WEITERE ARBEIT
+1. Fahrzeug-Sound im Spiel prüfen und Lautstärke/Klang abstimmen.
+2. Rachels tatsächliche Tuning-Konfiguration und Vinyl-Farben identifizieren.
+3. Originaltexturen, Felgen und Spoiler übertragen.
+4. Fahrgefühl, Sounds und Kameraführung abstimmen.
+
+QUELLEN FÜR DIE ENTWICKLUNG
+https://github.com/whoismept/OpenUG2/blob/main/docs/FORMATS.md
+https://thunderstore.io/c/valheim/p/denikson/BepInExPack_Valheim/
+https://github.com/vgmstream/vgmstream
+Weitere Audioquellen und Verarbeitung: AUDIO-QUELLEN.txt.
+
+Die aus deinen Spieldateien abgeleiteten Modelle sind für diesen lokalen
+Prototyp bestimmt. Es wurde kein NFS-Installer oder Crack ausgeführt.

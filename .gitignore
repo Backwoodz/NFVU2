@@ -1,0 +1,33 @@
+# Local game assets, tools, build products and machine settings
+.local/
+artifacts/
+config.local.json
+bin/
+obj/
+__pycache__/
+*.pyc
+*.rsp
+*.user
+*.suo
+.vs/
+.env
+.env.*
+
+# Original game data and generated distributables must stay local
+*.dll
+*.exe
+*.bin
+*.BIN
+*.cue
+*.iso
+*.abk
+*.gin
+*.wav
+*.ogg
+*.mp3
+*.zip
+*.obj
+*.blend
+*.blend1
+body.json
+*.log

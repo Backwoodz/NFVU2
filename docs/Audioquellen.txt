@@ -1,0 +1,37 @@
+350Z-Fahrzeug-Sound – Version 0.1.5
+
+Die folgenden Originalaufnahmen wurden aus den vom Nutzer bereitgestellten
+NFS Underground 2-CD-Abbildern auf Laufwerk F: extrahiert:
+
+Beschleunigen:
+SOUND/ENGINE/GIN_350Z_Jason_shrt2.gin
+Gaswegnehmen:
+SOUND/ENGINE/GIN_Nissan_350ZX_Jason_DCL.gin
+Rollgeräusch:
+SOUND/IG_GLOBAL/ROADNOISE_00_MB.abk, Unterstream 4
+Reifenrutschen:
+SOUND/SKIDS/SKID_PAV_MB.abk, Unterstream 1
+
+Decodierung mit dem unveränderten offiziellen vgmstream-CLI r2117:
+https://github.com/vgmstream/vgmstream/releases/tag/r2117
+GIN-Formatparser:
+https://github.com/vgmstream/vgmstream/blob/master/src/meta/gin.c
+
+Für die Motorwiedergabe wurden die decodierten Aufnahmen anhand der
+Drehzahl-/Zyklusmarken aus den GIN-Dateien in acht Schleifen aufgeteilt.
+Die Schleifen wurden zeitlich angepasst, an den Übergängen überblendet,
+von Gleichanteilen befreit und in ihrer Lautstärke angeglichen.
+Beschleunigen und Gaswegnehmen verwenden getrennte Aufnahmen.
+Die zwei jeweils benachbarten Drehzahlbereiche werden weich gemischt.
+
+Die Hupe ist eine neu synthetisierte Zweiklang-Hupe bei 420/500 Hz und
+keine aus NFS extrahierte Aufnahme. Es wurde keine NFS-Musik übernommen.
+
+Die Mod verwendet eine eigene Drehzahl-/Schaltlogik für den Sound.
+Sie führt die originale NFS-Fahrphysik oder -Audio-Engine nicht aus.
+Die genaue Zuordnung zu Rachels Tuning-Sound ist nicht nachgewiesen.
+Die Originalaufnahmen sind anhand ihrer 350Z-Dateinamen ausgewählt.
+
+Die Datei 350Z-Soundvorschau.wav zeigt eine extern berechnete Fahrt:
+Leerlauf, Beschleunigen mit Schalten, Gaswegnehmen, Hupe und Ausblenden.
+Sie ist keine Aufnahme aus dem Spiel.
