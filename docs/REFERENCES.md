@@ -78,3 +78,19 @@ Subwoofer in 0.11.0: [Unity OnAudioFilterRead](https://docs.unity3d.com/6000.0/D
 für die Analyse der interleavten Samples auf dem Audiothread. Der Callback
 ändert keine Samples und ruft keine Unity-API auf; Basshüllkurve und
 Membranverformung sind eigene NFVU2-Implementierungen.
+# Hummer H2 in 0.12.0
+
+- Lokale NFSU2-CDs: `CARS/HUMMER/GEOMETRY.BIN`, `TEXTURES.BIN`,
+  `CARS/WHEELS/GEOMETRY_SPINNER.BIN`, gemeinsame Reifen-/Bremsentexturen.
+  `SPINNER_STYLE01_26_34_A` und separates `SPINNER_STYLE01_26_34_SPIN_A`.
+- Rad-Locators aus HUMMER in `GLOBAL/GlobalB.lzc`, bei 0x120 + n*0x30
+  relativ zum Modellnamen. Import prüft Achsabstand/Spurweite vor Verwendung.
+- [CarTypeMapping/HUMMER](https://github.com/nlgxzef/NFSU2CarSoundTuner/blob/master/CarSoundData/CarTypeMapping/HUMMER.ini),
+  [CarDataMapping/14](https://github.com/nlgxzef/NFSU2CarSoundTuner/blob/master/CarSoundData/CarDataMapping/14.ini),
+  [EngineData/38](https://github.com/nlgxzef/NFSU2CarSoundTuner/blob/master/CarSoundData/EngineData/38.ini):
+  Serien-H2 verwendet `GIN_Hummer.gin`, `UseDualGinsu=0`, 1000–4782 U/min.
+  Lokale GIN-Grain-Tabelle: Aufnahmebereich ca. 1266.9–4782.7 U/min.
+  Unterhalb der Aufnahmegrenze werden deren Körner auf Ziel-RPM resampelt.
+- Gelber Lack, Spinner-Nachlauf, Reifenbreite, akustische Schaltzeiten,
+  Fahrphysik und Lichtprojektion sind NFVU2-Anpassungen. Keine vollständige
+  Übernahme des originalen NFS-Fahrwerks oder Audiosystems behauptet.

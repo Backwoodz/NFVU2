@@ -3,9 +3,11 @@ using UnityEngine;
 
 namespace Rachel350Z {
 public partial class Plugin {
-    ConfigEntry<float> frontCamber,rearCamber,frontWheelOffset,rearWheelOffset,rimInches;
+    ConfigEntry<float> rimInches;
+    ConfigEntry<float> h2RimInches;
 
     void InitializeWheelTuning() {
+        h2RimInches=Config.Bind("Hummer.Wheels","RimInches",26f,new ConfigDescription("H2 spinner rim diameter, tyre diameter unchanged.",new AcceptableValueRange<float>(22,28)));
         frontCamber=WheelSetting("FrontCamber",0,-15,10,"Front visual camber in degrees. Negative tilts the top inward.");
         rearCamber=WheelSetting("RearCamber",0,-15,10,"Rear visual camber in degrees. Negative tilts the top inward.");
         frontWheelOffset=WheelSetting("FrontOffsetCm",0,-10,20,"Front visual offset per wheel in centimetres. Positive moves outward.");
@@ -13,7 +15,7 @@ public partial class Plugin {
         rimInches=WheelSetting("RimInches",20,16,22,"Nominal rim diameter relative to the original NFS 20-inch wheel. Tyre outside diameter stays fixed.");
     }
     ConfigEntry<float> WheelSetting(string key,float value,float min,float max,string description) =>
-        Config.Bind("Wheels",key,value,new ConfigDescription(description,new AcceptableValueRange<float>(min,max)));
+        BindVehicle("Wheels",key,value,new ConfigDescription(description,new AcceptableValueRange<float>(min,max)));
 
     void DrawWheelMenu() {
         GUI.enabled=originalWheels;
@@ -21,10 +23,10 @@ public partial class Plugin {
         WheelSlider(rearCamber,"Sturz hinten",201,-15,10,.5f,"°");
         WheelSlider(frontWheelOffset,"Radversatz vorne",262,-10,20,.5f," cm / Rad");
         WheelSlider(rearWheelOffset,"Radversatz hinten",323,-10,20,.5f," cm / Rad");
-        WheelSlider(rimInches,"Felgengröße",384,16,22,.5f," Zoll");
+        WheelSlider(IsHummer?h2RimInches:rimInches,"Felgengröße",384,IsHummer?22:16,IsHummer?28:22,.5f," Zoll");
         if(GUI.Button(new Rect(25,446,510,32),"Räder zurücksetzen")) {
             frontCamber.Value=rearCamber.Value=0;
-            frontWheelOffset.Value=rearWheelOffset.Value=0;rimInches.Value=20;
+            frontWheelOffset.Value=rearWheelOffset.Value=0;if(IsHummer)h2RimInches.Value=26;else rimInches.Value=20;
         }
         GUI.enabled=true;
         GUI.Label(new Rect(25,483,510,36),originalWheels?
@@ -56,6 +58,12 @@ public partial class Plugin {
         var mirror=Quaternion.Euler(0,index%2==0?180:0,0);
         visuals[index].SetPositionAndRotation(pos,steering*tilt*Quaternion.Inverse(steering)*rot*mirror);
         if(brakeVisuals[index]!=null)brakeVisuals[index].SetPositionAndRotation(pos,steering*tilt*mirror);
+        if(current.spinners!=null&&current.spinners[index]!=null) {
+            var motion=current.spinnerMotion[index];motion.Step(Time.deltaTime,wheels[index].rpm);
+            current.spinners[index].SetPositionAndRotation(pos,steering*tilt*Quaternion.AngleAxis(motion.Angle,Vector3.right)*mirror);
+            float scale=WheelFitMath.Sanitize(h2RimInches.Value,22,28,26)/26;
+            current.spinners[index].localScale=new Vector3(1,scale,scale);
+        }
     }
 }
 }

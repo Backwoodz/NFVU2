@@ -83,6 +83,18 @@ class HandlingTests {
             var controller=new VehicleHandling(body,wheels,true);controller.Step(true,1,0,0);
             Check(wheels.All(w=>!float.IsNaN(w.motorTorque)&&!float.IsInfinity(w.motorTorque)&&w.motorTorque>0),"nonfinite slip cannot poison motor torque: "+invalid);
         }
+        foreach(bool terrain in new[]{false,true}) {
+            var body=new Rigidbody{mass=2900};var wheels=Wheels(true);
+            var controller=new VehicleHandling(body,wheels,terrain);HummerTuning.Configure(body,wheels);
+            Check(wheels.All(w=>w.suspensionSpring.spring==(terrain?84000:96000))&&body.centerOfMass.y==.2f,"H2 supports its heavier body without altering 350Z defaults, terrain="+terrain);
+            for(int i=0;i<100;i++){controller.Step(true,1,0,0);HummerTuning.AfterStep(wheels);}
+            float torque=wheels.Sum(w=>w.motorTorque);
+            Check(Math.Abs(torque-(terrain?3840:2640)*2.35f)<1,"H2 torque scaling does not accumulate between ticks, terrain="+terrain);
+            controller.Step(false,0,0,0);HummerTuning.AfterStep(wheels);
+            Check(wheels.All(w=>w.motorTorque==0&&w.brakeTorque==6400),"parked H2 holds all wheels, terrain="+terrain);
+            controller.SetTerrainMode(terrain);HummerTuning.Configure(body,wheels);
+            Check(wheels.All(w=>w.suspensionSpring.spring==(terrain?84000:96000)),"H2 mode reapplication keeps spring values stable, terrain="+terrain);
+        }
         Console.WriteLine(checks+" controller checks; "+failures+" failed. These checks do not simulate Unity physics.");
         Environment.ExitCode=failures==0?0:1;
     }

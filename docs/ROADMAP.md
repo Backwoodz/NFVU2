@@ -1,5 +1,24 @@
 # Nächste Aufgaben
 
+## Hummer und Garage in 0.12.0
+
+- F9 ohne Auto → Garage: 350Z und gelben H2 nacheinander spawnen; beide bleiben
+  bestehen, kein Überlappen. Enge Stellen/Hänge müssen einen anderen Platz
+  oder eine verständliche Meldung ergeben. Maximal vier Autos.
+- Zwischen beiden Autos laufen: F7/F9 treffen das nähere; Fahrt, Ausstieg,
+  Kamera und Spielersteuerung prüfen. F8 entfernt genau eines, Weltwechsel alle.
+- H2: Beschleunigen, Bremsen, Rückwärtsfahrt, Gelände, Federweg und Seitenneigung.
+  Eigener Hummer-Sound, vier Gänge, Radio und gemeinsame Musikdämpfung prüfen.
+- Spinner: verzögertes Hochlaufen, Nachlauf nach Stopp, Rückwärtsfahrt und
+  Sturz/Radversatz/22–28-Zoll-Regler. Bremssättel bleiben fest.
+- Gelb, Chrom, Radpassform, Heckschrift, rote Rück-/Bremslichter und weiße
+  Rückfahrlichter im Spiel prüfen. Vorschau benutzt angenäherte Federstellung.
+- H2-/350Z-Einstellungen getrennt speichern; beim Weiterlaufen behalten beide
+  ihre Radio- und Motorzustände. Zwei gleichzeitig laufende Radios sind hörbar.
+- Regression: 350Z-Ausbau/Subwoofer, Türanimationen, Drift, Nitro, Turret,
+  Lasereinstellungen und Explosivmunition mit H2 daneben testen.
+- H2-Motorraum/Kofferraum, Türen, Nitro und Turret sind noch nicht eingerichtet.
+
 ## Laser und Subwoofer in 0.11.0
 
 - Laser bei Tag/Nacht prüfen: Standardstärke 200 Prozent, Bereich 25–400,

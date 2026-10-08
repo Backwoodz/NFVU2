@@ -17,6 +17,8 @@ public sealed class VehicleRadio : IDisposable {
     UnityWebRequest request;
     RadioPlaybackState state;
     ValheimMusicDucking musicDucking;
+    bool manageGameMusic;
+    public bool CabinAudible {get;private set;}
     string[] files=new string[0],titles=new string[0];
     Action<string> log;
     int loadedRevision=-1,loadingRevision=-1;
@@ -32,8 +34,8 @@ public sealed class VehicleRadio : IDisposable {
     public IReadOnlyList<string> TrackTitles {get{return Array.AsReadOnly(titles);}}
     public bool Paused {get{return state!=null&&state.Paused;}}
     public string Status {get;private set;}="Keine Musik importiert";
-    public static VehicleRadio Create(MonoBehaviour owner,GameObject car,Action<string> log) {
-        var radio=new VehicleRadio {owner=owner,log=log};
+    public static VehicleRadio Create(MonoBehaviour owner,GameObject car,Action<string> log,bool manageGameMusic=true) {
+        var radio=new VehicleRadio {owner=owner,log=log,manageGameMusic=manageGameMusic};
         try {radio.Initialize(car);return radio;}
         catch(Exception e){radio.Dispose();log("350Z radio unavailable: "+e.Message);return null;}
     }
@@ -47,7 +49,7 @@ public sealed class VehicleRadio : IDisposable {
         source.minDistance=2;source.maxDistance=28;source.rolloffMode=AudioRolloffMode.Linear;
         cabinFilter=root.AddComponent<AudioLowPassFilter>();cabinFilter.cutoffFrequency=22000;
         bassTap=root.AddComponent<RadioBassTap>();bassTap.SampleRate=AudioSettings.outputSampleRate;
-        musicDucking=new ValheimMusicDucking(log);
+        if(manageGameMusic)musicDucking=new ValheimMusicDucking(log);
         Status=Count>0?"Bereit":"Keine Musik importiert";
         log("350Z radio ready: "+Count+" local tracks (streamed stereo).");
     }
@@ -61,7 +63,8 @@ public sealed class VehicleRadio : IDisposable {
     public void Tick(bool driving,bool blocked,float volume,bool enabled=true,bool parkedRunning=false,
                      float leftDoorOpen=0,float rightDoorOpen=0,float hatchOpen=0) {
         UpdatePlayback(driving,blocked,volume,enabled,parkedRunning,leftDoorOpen,rightDoorOpen,hatchOpen);
-        if(!disposed)musicDucking.Tick(driving&&source!=null&&source.isPlaying&&source.volume>.001f&&!blocked);
+        CabinAudible=!disposed&&driving&&source!=null&&source.isPlaying&&source.volume>.001f&&!blocked;
+        if(!disposed)musicDucking?.Tick(CabinAudible);
         if(!disposed&&bassTap!=null) {
             float dt=Mathf.Min(Time.unscaledDeltaTime,.1f);
             bassTap.SampleRate=AudioSettings.outputSampleRate;

@@ -8,6 +8,8 @@ OPTIONAL=(('radio', 'radio', {'.wav','.ogg','.json'}),
           ('audio-turbo', 'audio/turbo', {'.wav','.json'}),
           ('audio-effects', 'audio/effects', {'.wav','.json'}),
           ('hud', 'hud', {'.json'}),
+          ('hummer', 'hummer', {'.json'}),
+          ('audio-hummer', 'audio/hummer', {'.wav','.json'}),
           ('turret', 'turret', {'.json','.wav'}))
 
 def asset_files(folder,extensions):

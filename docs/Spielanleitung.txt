@@ -1,4 +1,22 @@
-350Z-Prototyp 0.11.0 – lokaler Test für Valheim
+NFVU2 0.12.0 – 350Z und Hummer H2, lokaler Test für Valheim
+
+NEU: HUMMER H2 UND GARAGE
+F9 → Garage: Nissan 350Z oder Hummer H2 wählen und spawnen.
+F6 verwendet dieselbe Auswahl. Vor dem Spawnen aussteigen.
+Bestehende Autos bleiben stehen; bis zu vier Fahrzeuge gleichzeitig.
+Die Garage lässt sich auch ohne Auto öffnen. Freie Fläche vor dir suchen.
+Zum gewünschten Auto gehen: F7 steigt ins nächste Auto innerhalb von 5 m,
+F9 zeigt dessen Einstellungen. F8 entfernt nur dieses Auto.
+Fahrzeuge werden beim Weltwechsel entfernt und nicht gespeichert.
+
+H2: gelbe Serienkarosserie, große 26-Zoll-Chromspinner und eigener SUV-Sound.
+Die Spinner drehen nach dem Anhalten weiter und kommen allmählich zur Ruhe.
+F9 → Räder: 22–28 Zoll, Sturz und Radversatz. Reifen bleiben gleich groß.
+Fahrmodus, Licht, Neon, Räder und Radio werden für H2/350Z getrennt gespeichert.
+Mehrere Autos desselben Modells teilen ihre Einstellungen.
+Beim H2 sind Motorraum-/Kofferraumausbau, Türanimationen, Nitro und Turret
+vorerst nicht eingerichtet. Der H2 ist fahrbereit, sein Motor läuft normal.
+Bei aktivem Weiterlaufen können Motor und Musik beider Autos draußen spielen.
 
 NEU: LASER UND SUBWOOFER
 F9 → Turret → Laser einstellen: Stärke von 25 bis 400 Prozent, Farbvorlagen

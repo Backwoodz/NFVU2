@@ -7,7 +7,10 @@ using UnityEngine.Audio;
 
 namespace Rachel350Z {
 public sealed class VehicleAudio : IDisposable {
-    readonly EngineSoundModel model=new EngineSoundModel();
+    readonly EngineSoundModel model;
+    readonly bool suv;
+    readonly int[] bands;
+    VehicleAudio(bool hummer=false){suv=hummer;model=new EngineSoundModel(hummer);bands=hummer?EngineSoundModel.HummerBands:EngineSoundModel.Bands;}
     readonly TurboSoundModel turboModel=new TurboSoundModel();
     public float Rpm => model.Rpm;
     public float Load => model.Load;
@@ -24,8 +27,8 @@ public sealed class VehicleAudio : IDisposable {
     AudioMixerGroup mixer;
     float roadLevel,skidLevel,hornLevel;
     bool paused,playing,disposed;
-    public static VehicleAudio Create(GameObject car,Rigidbody body,WheelCollider[] wheels,Action<string> log) {
-        var audio=new VehicleAudio();
+    public static VehicleAudio Create(GameObject car,Rigidbody body,WheelCollider[] wheels,Action<string> log,bool hummer=false) {
+        var audio=new VehicleAudio(hummer);
         try {audio.Initialize(car,body,wheels,log);return audio;}
         catch(Exception e){audio.Dispose();log("350Z audio unavailable: "+e);return null;}
     }
@@ -33,15 +36,21 @@ public sealed class VehicleAudio : IDisposable {
         body=carBody;wheels=carWheels;
         root=new GameObject("350Z_Sound");root.transform.SetParent(car.transform,false);root.transform.localPosition=new Vector3(0,.65f,0);
         mixer=Resources.FindObjectsOfTypeAll<AudioMixerGroup>().FirstOrDefault(g=>g.name.Equals("SFX",StringComparison.OrdinalIgnoreCase));
-        power=new AudioSource[EngineSoundModel.Bands.Length];coast=new AudioSource[power.Length];
+        power=new AudioSource[bands.Length];coast=new AudioSource[power.Length];
         for(int i=0;i<power.Length;i++) {
-            power[i]=CreateSource("engine_on_"+EngineSoundModel.Bands[i]+".wav",80);
-            coast[i]=CreateSource("engine_off_"+EngineSoundModel.Bands[i]+".wav",80);
+            if(suv) {
+                var path=Path.Combine(Path.GetDirectoryName(typeof(VehicleAudio).Assembly.Location),"audio","hummer","engine_"+bands[i]+".wav");
+                var data=WavPcm16.Read(File.OpenRead(path));
+                power[i]=CreateSource("h2_power_"+bands[i],80,data);coast[i]=CreateSource("h2_coast_"+bands[i],80,data);
+            } else {
+                power[i]=CreateSource("engine_on_"+bands[i]+".wav",80);
+                coast[i]=CreateSource("engine_off_"+bands[i]+".wav",80);
+            }
         }
         road=CreateSource("road.wav",160);skid=CreateSource("skid.wav",120);horn=CreateSource("horn.wav",60);
         reverseWhine=CreateSource("reverse_whine_synth",110,ReverseGearSound.Create());reverseWhine.dopplerLevel=0;
-        LoadTurbo(log);
-        log("350Z audio ready: "+clips.Count+" clips; original NFSU2 350Z power/coast and tyre sounds; synthesized horn and reverse-gear whine. Mixer: "+(mixer!=null?mixer.name:"AudioListener master"));
+        if(!suv)LoadTurbo(log);
+        log((suv?"H2 original GIN_Hummer engine; ":"350Z original engine; ")+"audio ready: "+clips.Count+" clips; original engine and tyre recordings; synthesized horn and reverse-gear whine. Mixer: "+(mixer!=null?mixer.name:"AudioListener master"));
     }
     void LoadTurbo(Action<string> log) {
         var folder=Path.Combine(Path.GetDirectoryName(typeof(VehicleAudio).Assembly.Location),"audio","turbo");
@@ -97,11 +106,11 @@ public sealed class VehicleAudio : IDisposable {
         float powerMix=Mathf.Lerp(.85f,.15f+.85f*model.Load,Mathf.Clamp01(speed/2));
         float engineGain=volume*model.Level*(.5f+.3f*model.Load)*model.ShiftGain;
         for(int i=0;i<power.Length;i++) {
-            float gain=EngineSoundModel.BandGain(model.Rpm,i);
-            float pitch=Mathf.Clamp(model.Rpm/EngineSoundModel.Bands[i],.5f,2);
+            float gain=EngineSoundModel.BandGain(model.Rpm,i,bands);
+            float pitch=Mathf.Clamp(model.Rpm/bands[i],.5f,2);
             power[i].pitch=pitch;coast[i].pitch=pitch;
             power[i].volume=gain*engineGain*Mathf.Sqrt(powerMix);
-            coast[i].volume=gain*engineGain*Mathf.Sqrt(1-powerMix);
+            coast[i].volume=gain*engineGain*Mathf.Sqrt(1-powerMix)*(suv?.65f:1);
         }
         int grounded=0;float slip=0;
         foreach(var wheel in wheels)if(wheel.GetGroundHit(out var hit)) {

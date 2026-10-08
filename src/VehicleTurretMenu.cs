@@ -12,7 +12,6 @@ public partial class Plugin {
     ConfigEntry<string> turretAmmo;
     ConfigEntry<float> laserStrength,laserRed,laserGreen,laserBlue;
     bool laserSettingsOpen;
-    VehicleTurret turret;
     Hud crosshairHud;
     GameObject[] savedCrosshairs;
     bool[] savedCrosshairActive;
@@ -56,9 +55,9 @@ public partial class Plugin {
         if(turret!=null)try {turret.Tick(turretEnabled.Value,driving&&!audioBlocked&&!menuOpen&&Application.isFocused,
             Input.GetMouseButton(1),player as Character,soundVolume.Value*turretVolume.Value,turretLaser.Value,turretAmmo.Value=="Explosiv",laserStrength.Value,LaserColor);}
         catch(Exception e){turret.Dispose();turret=null;Logger.LogWarning("350Z turret disabled: "+e);}
-        UpdateGameCrosshair();
     }
     void DrawTurretMenu() {
+        if(IsHummer){GUI.Label(new Rect(25,150,510,80),"Der Dach-Turret ist aktuell nur beim 350Z eingerichtet.",labelStyle);return;}
         if(laserSettingsOpen){DrawLaserSettings();return;}
         GUI.enabled=turret!=null;
         turretEnabled.Value=GUI.Toggle(new Rect(25,145,510,32),turretEnabled.Value," Rust AutoTurret mit AK auf dem Dach");

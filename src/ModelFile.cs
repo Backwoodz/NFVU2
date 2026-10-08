@@ -96,7 +96,7 @@ public static class ModelFile {
                 if (!string.IsNullOrEmpty(part.lightRole) && part.lightRole != "headlight" && part.lightRole != "taillight" && part.lightRole != "brakelight" && part.lightRole != "reverse")
                     throw new InvalidDataException("Invalid light surface role");
                 if (part.material < 0 || part.material >= model.materials.Length ||
-                    (part.group != "body" && part.group != "wheel" && part.group != "brake" && part.group != "audio") ||
+                    (part.group != "body" && part.group != "wheel" && part.group != "brake" && part.group != "audio" && part.group != "spinner") ||
                     part.uv == null || part.uv.Length != part.vertices.Length || part.normals == null || part.normals.Length != part.vertices.Length)
                     throw new InvalidDataException("Invalid visual mesh attributes");
                 foreach (var uv in part.uv) if (!ValidCoordinate(uv.u) || !ValidCoordinate(uv.v)) throw new InvalidDataException("Invalid UV");

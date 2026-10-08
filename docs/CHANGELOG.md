@@ -1,5 +1,39 @@
 # Versionsgeschichte
 
+## 0.12.0 — Hummer H2, Spinner und Garage
+
+Originaler H2 aus den eigenen NFSU2-Dateien: Serienkarosserie in Gelb,
+26-Zoll-SPINNER_STYLE01 mit separatem Originaleinsatz, 34 cm breite Reifen
+und für den schwereren SUV angepasste Federung, Bremsen und Anfahrkraft.
+Die Einsätze beschleunigen verzögert und laufen nach dem Anhalten aus.
+Felgengröße 22–28 Zoll; Reifenaußendurchmesser bleibt erhalten.
+Originale Radpositionen aus dem HUMMER-Global-Datensatz, NFVU2-Fahrphysik.
+Rückleuchten mit passender Serien-Textur und getrennten roten/weißen Flächen;
+die zwei Atlasbereiche des hinteren HUMMER-Schriftzugs werden gemeinsam gespiegelt.
+
+Eigener Serien-Sound aus GIN_Hummer.gin: acht Drehzahlbereiche, 1000–4782 U/min
+und vier akustische Vorwärtsgänge. Der originale Stock-Datensatz verwendet
+keinen zweiten Ginsu-Schubkanal; die Mod nimmt denselben Hummer-Sound leiser
+beim Gaswegnehmen. Keine umbenannten oder tiefer gepitchten 350Z-Aufnahmen.
+
+F9 → Garage ist auch ohne Auto erreichbar. Modellauswahl und Spawnknopf;
+F6 spawnt die gespeicherte Auswahl. Bis zu vier unabhängige temporäre Autos,
+Freiplatzsuche nebeneinander, kein Ersetzen des vorherigen Autos.
+F7/F9 wählen zu Fuß das nächste Auto, F8 löscht nur dieses. Während der Fahrt
+bleibt die Auswahl beim Fahrerauto. Spawnen erst nach dem Aussteigen.
+Modell-/Ladefehler beim Spawnen erhalten die bereits vorhandenen Autos.
+
+Pro Auto getrennte Physik, Meshes, Materialien, Audio, Radio, Nitro- und
+Turret-Zustände; zentrale Kamera-/Spielersteuerung und Musikdämpfung.
+Licht, Radio, Räder und Fahrmodus haben separate H2-Konfigurationseinträge,
+vorhandene 350Z-Einträge bleiben gültig. Autos desselben Modells teilen
+Einstellungen. Kamera/Tacho bleiben gemeinsam. H2-Kamera höher und weiter weg.
+
+Beim H2 zunächst kein Motorraum-/Kofferraumausbau, keine Türanimationen,
+kein Nitro/Turret. Radio, Licht, Neon, Burnout und Aufprallsystem werden
+wiederverwendet. Kein Speichern der Fahrzeuge, weiterhin lokaler Einzelspieler.
+Automatische Prüfungen und Blender-Vorschauen ersetzen keinen Unity-Spieltest.
+
 ## 0.11.0 — Kräftiger, einstellbarer Laser und bewegte Subwoofer
 
 Breiterer Laser mit hellem Kern und größerem Treffpunkt. Unter F9 → Turret →

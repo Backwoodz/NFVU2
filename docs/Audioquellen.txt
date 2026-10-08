@@ -99,3 +99,12 @@ autoturret-reload-full und autoturret-turn-on.
 UnityPy exportiert die Originalsamples; Mono-Downmix für räumliche Quellen.
 Schussrhythmus, Nachladezeit und Lautstärken sind NFVU2-Anpassungen.
 Seit 0.10.0 zusätzlich `explosive-ammo-close` aus Rust für Explosivtreffer.
+HUMMER H2 (0.12.0)
+Original: SOUND/ENGINE/GIN_Hummer.gin aus den eigenen NFSU2-CDs.
+Serienzuordnung: HUMMER -> CarDataMapping 14 -> EngineData 38,
+UseDualGinsu=0, 1000–4782 U/min. Acht lokale PCM-Loops für Unity;
+Gaswegnehmen verwendet denselben Sound mit geringerer Last/Lautstärke.
+Keine separate Hummer-Schubaufnahme behauptet. Vier akustische Gänge
+und Schaltzeitpunkte sind für Valheim angepasst. Reifen/Hupe/Rückwärtsheulen
+werden mit dem bestehenden System geteilt. H2-Motorloops werden extern
+in audio/hummer installiert; Originaldateien bleiben im ignorierten .local.

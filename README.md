@@ -2,7 +2,7 @@
 
 **Need for Valheim: Underground 2** — ein privater Fahrzeug-Mod-Prototyp für Valheim.
 
-Aktueller Stand: **0.11.0**, gebaut und automatisiert geprüft; Spieltest noch offen.
+Aktueller Stand: **0.12.0**, gebaut und automatisiert geprüft; Spieltest noch offen.
 Die vorherige Version 0.2.1 ist vom Nutzer in Valheim bestätigt. Ein aus eigenen NFS-Underground-2-Dateien ausgelesener
 Nissan 350Z lässt sich in einer lokalen Valheim-Einzelspielerwelt spawnen und fahren.
 Mauskamera, Gelände-/Straßenmodus und Fahrzeug-Sound sind im Spiel bestätigt.
@@ -46,6 +46,18 @@ Kratern bei direkten Bodentreffern. Valheims Grabtiefengrenze bleibt erhalten.
 0.11.0 verstärkt den Laser und ergänzt unter Turret → Laser einstellen Stärke,
 Farbvorlagen und freie RGB-Farben. Subwoofer-Membranen reagieren auf den Bass
 des laufenden Radios, auch beim Weiterlaufen nach dem Aussteigen.
+0.12.0 ergänzt einen gelben Hummer H2 mit originalen 26-Zoll-Spinnerfelgen,
+frei nachlaufenden Einsätzen und eigenem Hummer-Motorsound. F9 → Garage wählt
+das Fahrzeug für den Spawnknopf oder F6. Bis zu vier Autos können gleichzeitig
+stehen und gefahren werden; ein Spawn ersetzt kein bestehendes Fahrzeug.
+Zu Fuß beziehen sich F7/F9 auf das nächste Auto innerhalb von fünf Metern,
+F8 entfernt nur dieses. Die Garage ist auch ohne Auto erreichbar.
+Licht-, Radio-, Rad- und Fahreinstellungen sind nach Fahrzeugmodell getrennt;
+Kamera und Tacho bleiben gemeinsame Einstellungen. Gleichartige Autos teilen
+ihre Konfiguration, besitzen aber eigene Physik, Musik und Laufzeitzustände.
+Der H2 hat zunächst keinen Motorraum-/Kofferraumausbau, keine Türanimationen,
+keinen Dach-Turret und kein Nitro. Der Fahrmotor ist selbstverständlich aktiv.
+Fahrzeuge sind weiterhin temporär und werden nicht mit der Welt gespeichert.
 
 
 Die Darstellung verwendet jetzt die Originalvoreinstellung `DDAY_PLAYER_CAR`:
@@ -68,7 +80,7 @@ NFS-Prozess ist eine mögliche spätere Forschungsaufgabe und noch nicht impleme
 
 | Taste | Funktion |
 |---|---|
-| F6 | Fahrzeug erstellen |
+| F6 | In der Garage ausgewähltes Fahrzeug zusätzlich erstellen |
 | F7 | Ein-/aussteigen |
 | W / S | Gas / bremsen und rückwärts fahren |
 | W + S halten | Im Stand Burnout; während der Fahrt zunächst bremsen |
@@ -79,7 +91,7 @@ NFS-Prozess ist eine mögliche spätere Forschungsaufgabe und noch nicht impleme
 | F9 | Fahrzeugmenü einschließlich Fahrmodus sowie Anzeige/Kamera |
 | Linke Maustaste halten | Bei Vorwärtsfahrt mit Gas: Nitro; im Stand: Purge |
 | H halten | Hupe |
-| F8 | Fahrzeug entfernen |
+| F8 | Aktuelles bzw. nächstes Fahrzeug innerhalb von 5 m entfernen |
 
 ## Projektstruktur
 
@@ -112,6 +124,8 @@ python -m pip install -r requirements.txt
 python tools/extract_assets.py
 python tools/export_geometry.py
 python tools/export_rachel.py
+python tools/export_hummer.py
+python tools/prepare_hummer_audio.py
 python tools/export_hud.py
 python tools/extract_audio.py
 python tools/decode_audio.py
@@ -137,6 +151,11 @@ werden. Turbo-Samples liegen separat
 unter `.local/audio-turbo/`, Nitro-/Purge-Sounds unter `.local/audio-effects/`;
 Build, Paket und Installer übernehmen die Medienordner.
 Die 19 kurzen Motor-/Fahrgeräusche bleiben in der DLL eingebettet.
+Der H2-Import verwendet dieselben lokalen CD-Abbilder und den vorhandenen
+Geometrie-/Texturleser. Er erzeugt `.local/hummer/h2.json` und acht originale
+Motorloops unter `.local/audio-hummer/`. Build und Installer übernehmen diese
+als `hummer/` und `audio/hummer/` neben der unverändert benannten DLL.
+`tools/render_hummer.py` erstellt mit Blender eine lokale Vorschau.
 
 ### Optionaler Rust-Import
 

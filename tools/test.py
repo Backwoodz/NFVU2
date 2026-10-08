@@ -4,16 +4,18 @@ from build import build
 from build_support import compile_cs,test_refs,runtime_config
 
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('--skip-build',action='store_true');parser.add_argument('--handling-only',action='store_true');args=parser.parse_args()
+    suites=['model','handling','audio','radio','nitro','impact','showroom','driving','turret','terrain','hummer']
+    parser=argparse.ArgumentParser();parser.add_argument('--skip-build',action='store_true');parser.add_argument('--handling-only',action='store_true')
+    parser.add_argument('--suite',action='append',choices=suites,help='Run only these C# suites; repeat to combine.')
+    args=parser.parse_args()
     if not args.handling_only and not args.skip_build:build()
-    if not args.handling_only:
+    if not args.handling_only and not args.suite:
         subprocess.run([sys.executable,'-m','unittest','discover','-s',str(BASE/'tests'),'-p','test_*.py'],check=True)
     references,tfm,version=test_refs()
-    suites=['model','handling','audio','radio','nitro','impact','showroom','driving','turret','terrain']
-    for suite in (['handling'] if args.handling_only else suites):
+    for suite in (['handling'] if args.handling_only else args.suite or suites):
         out=OUTPUT/'tests'/suite;out.mkdir(parents=True,exist_ok=True)
         sources=list((BASE/'tests'/suite).glob('*.cs'));refs=list(references);arguments=[]
-        if suite=='handling':sources.extend(BASE/'src'/name for name in ('DrivingMath.cs','VehicleHandling.cs','VehicleDriftTuning.cs'))
+        if suite=='handling':sources.extend(BASE/'src'/name for name in ('DrivingMath.cs','VehicleHandling.cs','VehicleDriftTuning.cs','HummerTuning.cs'))
         elif suite=='impact':sources.extend(BASE/'src'/name for name in ('VehicleImpactRules.cs','VehicleImpact.cs'))
         elif suite=='terrain':sources.extend(BASE/'src'/name for name in ('TurretTerrain.cs','TurretState.cs'))
         else:
@@ -27,6 +29,9 @@ def main():
         if suite=='driving':
             jsondll=out/'Newtonsoft.Json.dll';shutil.copy2(valheim_dir()/'valheim_Data/Managed/Newtonsoft.Json.dll',jsondll);refs.append(jsondll)
             arguments=[str(LOCAL/'hud/hud.json')]
+        if suite=='hummer':
+            jsondll=out/'Newtonsoft.Json.dll';shutil.copy2(valheim_dir()/'valheim_Data/Managed/Newtonsoft.Json.dll',jsondll);refs.append(jsondll)
+            arguments=[str(LOCAL/'hummer/h2.json'),str(LOCAL/'audio-hummer')]
         if suite=='turret':
             jsondll=out/'Newtonsoft.Json.dll';shutil.copy2(valheim_dir()/'valheim_Data/Managed/Newtonsoft.Json.dll',jsondll);refs.append(jsondll)
             arguments=[str(LOCAL/'turret')]

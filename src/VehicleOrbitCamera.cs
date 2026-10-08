@@ -13,6 +13,7 @@ public sealed class VehicleOrbitCamera {
     readonly ChaseCameraState chase=new ChaseCameraState();
     bool dynamicMode=true;
     bool active,hadInput;
+    bool suv;
     CursorLockMode oldLock;
     bool oldVisible;
     public VehicleOrbitCamera(Action<string> log) {
@@ -26,12 +27,13 @@ public sealed class VehicleOrbitCamera {
             log("350Z orbit camera uses legacy mouse input fallback.");
         }
     }
-    public void Begin(Transform target) {
+    public void Begin(Transform target,bool hummer=false) {
+        suv=hummer;
         vehicle=target;camera=Camera.main;
         oldLock=Cursor.lockState;oldVisible=Cursor.visible;active=true;hadInput=false;
-        yaw=0;pitch=18;distance=6;smoothedDistance=distance;
+        yaw=0;pitch=18;distance=suv?7.5f:6;smoothedDistance=distance;
         chase.Reset(vehicle.eulerAngles.y);
-        smoothedPivot=vehicle.position+Vector3.up*1.05f;
+        smoothedPivot=vehicle.position+Vector3.up*(suv?1.5f:1.05f);
     }
     public void InputFrame(bool enabled,float sensitivity,bool invert) {
         if(!active)return;
@@ -60,7 +62,7 @@ public sealed class VehicleOrbitCamera {
             Mathf.Atan2(velocity.x,velocity.z)*Mathf.Rad2Deg,speed,Vector3.Dot(velocity,vehicle.forward),followRate);
         float blend=1-Mathf.Exp(-14*Time.deltaTime);
         var lookAhead=dynamicMode?Vector3.ClampMagnitude(new Vector3(velocity.x,0,velocity.z)*.08f,1.25f):Vector3.zero;
-        smoothedPivot=Vector3.Lerp(smoothedPivot,vehicle.position+Vector3.up*(turretAim?TurretAimSettings.PivotHeight(pitch):1.05f)+lookAhead,blend);
+        smoothedPivot=Vector3.Lerp(smoothedPivot,vehicle.position+Vector3.up*(turretAim?TurretAimSettings.PivotHeight(pitch):suv?1.5f:1.05f)+lookAhead,blend);
         var rotation=Quaternion.Euler(pitch,dynamicMode?chase.Yaw:vehicle.eulerAngles.y+yaw,0);
         var direction=rotation*Vector3.back;
         float clear=turretAim?Mathf.Max(distance,TurretAimSettings.CameraMinDistance):distance;

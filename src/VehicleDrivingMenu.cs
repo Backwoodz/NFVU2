@@ -3,14 +3,13 @@ using BepInEx.Configuration;
 using UnityEngine;
 namespace Rachel350Z {
 public partial class Plugin {
-    ConfigEntry<bool> driftMode,dynamicCamera,hudEnabled,hudMph;
+    ConfigEntry<bool> dynamicCamera,hudEnabled,hudMph;
     ConfigEntry<int> hudDesign;
     ConfigEntry<float> cameraFollow,hudScale;
     ConfigEntry<string> hudColor;
-    VehicleDashboard dashboard;
     static readonly string[] GaugeNames={"NFSU2 01","NFSU2 02","NFSU2 03","NFSU2 04","NFSU2 05","NFSU2 06","NFSU2 07","NFSU2 08","NFSU2 09","NFSU2 10","NFSU2 11"};
     void InitializeDrivingMenu() {
-        driftMode=Config.Bind("Driving","DriftMode",false,"Optional drift setup: rear drive, lower rear lateral grip and rear handbrake on Space.");
+        driftMode=BindVehicle("Driving","DriftMode",false,"Optional drift setup: rear drive, lower rear lateral grip and rear handbrake on Space.");
         dynamicCamera=Config.Bind("Camera","DynamicFollow",true,"Let camera heading trail corners and partly follow travel direction; mouse look holds before recentering while moving.");
         cameraFollow=Config.Bind("Camera","FollowSpeed",2.5f,new ConfigDescription("Heading follow response; lower values create more corner lag.",new AcceptableValueRange<float>(1,6)));
         hudEnabled=Config.Bind("HUD","Enabled",true,"Show the vehicle gauges while driving.");
@@ -20,8 +19,8 @@ public partial class Plugin {
         hudColor=Config.Bind("HUD","Color","Cyan",new ConfigDescription("Gauge accent colour.",new AcceptableValueList<string>(ColorNames)));
         if(driftMode.Value)terrainMode.Value=false;
     }
-    void ApplyDriveMode(){if(driftMode.Value)handling?.SetDriftMode();else handling?.SetTerrainMode(terrainMode.Value);}
-    string DriveModeName=>driftMode.Value?"Drift / Heckantrieb":terrainMode.Value?"Gelände / Allradhilfe":"Straße / Heckantrieb";
+    void ApplyDriveMode(){if(driftMode.Value&&!IsHummer)handling?.SetDriftMode();else handling?.SetTerrainMode(terrainMode.Value);if(IsHummer&&body!=null)HummerTuning.Configure(body,wheels);}
+    string DriveModeName=>driftMode.Value&&!IsHummer?"Drift / Heckantrieb":terrainMode.Value?"Gelände / Allradhilfe":"Straße / Heckantrieb";
     void DrawDrivingDisplayMenu() {
         hudEnabled.Value=GUI.Toggle(new Rect(25,142,250,28),hudEnabled.Value," Tacho anzeigen");
         hudMph.Value=GUI.Toggle(new Rect(310,142,210,28),hudMph.Value," MPH statt KM/H");
@@ -41,8 +40,9 @@ public partial class Plugin {
         float speed=body.linearVelocity.magnitude,rpm=vehicleAudio?.Rpm??950;
         int gear=vehicleAudio?.Gear??(throttle<0?-1:1);
         float charge=vehicleNitro?.State.Charge??0;
-        if(dashboard==null){GUI.Box(new Rect(Screen.width-280,Screen.height-165,265,65),Mathf.RoundToInt(HudMath.Speed(speed,hudMph.Value))+(hudMph.Value?" MPH":" KM/H")+" | "+(gear<0?"R":"G "+gear)+"\nNOS "+(nitroEnabled.Value?Mathf.RoundToInt(charge*100)+" %":"AUS"));return;}
-        dashboard.Draw(hudDesign.Value,hudScale.Value,NeonColors[Math.Max(0,Array.IndexOf(ColorNames,hudColor.Value))],hudMph.Value,speed,rpm,gear,charge,nitroEnabled.Value,vehicleNitro!=null&&vehicleNitro.State.Boosting);
+        bool nos=vehicleNitro!=null&&nitroEnabled.Value;
+        if(dashboard==null){GUI.Box(new Rect(Screen.width-280,Screen.height-165,265,65),Mathf.RoundToInt(HudMath.Speed(speed,hudMph.Value))+(hudMph.Value?" MPH":" KM/H")+" | "+(gear<0?"R":"G "+gear)+"\nNOS "+(nos?Mathf.RoundToInt(charge*100)+" %":"AUS"));return;}
+        dashboard.Draw(hudDesign.Value,hudScale.Value,NeonColors[Math.Max(0,Array.IndexOf(ColorNames,hudColor.Value))],hudMph.Value,speed,rpm,gear,charge,nos,vehicleNitro!=null&&vehicleNitro.State.Boosting);
     }
 }
 }
