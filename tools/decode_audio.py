@@ -1,14 +1,20 @@
 from project import BASE, LOCAL, OUTPUT, disc_root, vgmstream_path
 from pathlib import Path
-import json, struct, subprocess, wave
+import argparse, json, struct, subprocess, wave
 
 base=BASE
-exe=vgmstream_path()
+parser=argparse.ArgumentParser()
+parser.add_argument('--turbo-only',action='store_true')
+parser.add_argument('--decoder',type=Path,help='Optional local vgmstream-cli executable')
+args=parser.parse_args()
+exe=args.decoder or vgmstream_path()
+if not exe.is_file():raise SystemExit('vgmstream decoder missing; configure its local path or pass --decoder.')
 source=LOCAL/'nfs-assets/SOUND'
 out=LOCAL/'audio-decoded';out.mkdir(exist_ok=True)
 inventory=[]
 for path in sorted(source.rglob('*')):
     if path.suffix.lower() not in ('.gin','.abk') or '/GLOBAL/' in path.as_posix():continue
+    if args.turbo_only and path.parent.name.upper()!='TURBO':continue
     def metadata(index=1):
         return json.loads(subprocess.check_output([str(exe),'-m','-I','-s',str(index),str(path)],text=True))
     info=metadata(); count=max(1,info['streamInfo']['total'])
@@ -28,5 +34,6 @@ for path in sorted(source.rglob('*')):
             entry['table_a']=a;entry['table_b']=b
             print(' A:',a[:8],a[-8:],'B:',b[:8],b[-8:])
         inventory.append(entry)
-(out/'inventory.json').write_text(json.dumps(inventory,indent=2))
+(out/('turbo-inventory.json' if args.turbo_only else 'inventory.json')).write_text(json.dumps(inventory,indent=2),encoding='utf-8')
+if not inventory:raise SystemExit('No source audio found. Run tools/extract_audio.py first.')
 print('Decoded',len(inventory),'original sounds.')

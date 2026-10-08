@@ -18,6 +18,8 @@ ASSETS=LOCAL/'nfs-assets'
 PAINT=(15,108,49)
 # Visual fit to KITW02's wheel arches. Collider radius/axles remain untouched.
 WHEEL_RADIUS=.35
+WHEEL_WIDTH=.28
+BRAKE_RADIUS=.19
 WHEEL_LIFT=WHEEL_RADIUS-.34
 BODY_LIFT=.04
 FRONT_WHEEL_OFFSET=.075
@@ -32,6 +34,67 @@ def wheel_source_radius(part):
     radius=max(math.hypot(part['vertices'][i][0],part['vertices'][i][2]) for i in ids)
     if not math.isfinite(radius) or not .1 < radius < 1: raise ValueError('Invalid source tyre radius')
     return radius
+
+
+def wheel_geometry(part):
+    ids={i for s in part['slices'] if s['materialKey']==0x78743ca1 for i in s['indices']}
+    axial=[part['vertices'][i][1] for i in ids]
+    width=max(axial)-min(axial)
+    if not .05 < width < .5:raise ValueError('Invalid original tyre width')
+    radial_scale=WHEEL_RADIUS/wheel_source_radius(part)
+    axial_scale=WHEEL_WIDTH/width
+    outer_face=.165*radial_scale
+    vertices=[{'x':outer_face-(v[1]-min(axial))*axial_scale,'y':v[2]*radial_scale,'z':v[0]*radial_scale} for v in part['vertices']]
+    normals=[]
+    for nx,ny,nz in part['normals']:
+        n=(-ny/axial_scale,nz/radial_scale,nx/radial_scale)
+        length=math.sqrt(sum(c*c for c in n))
+        normals.append(dict(zip(('x','y','z'),(c/length for c in n))) if length else {'x':0,'y':1,'z':0})
+    return vertices,normals
+
+
+def sport_brake_geometry(part):
+    # Original STYLE03 uses an alpha-masked square for the drilled rotor.
+    # Rebuild only that square as a round, thin rotor so opaque Unity materials
+    # cannot expose black square corners; keep its original atlas and caliper.
+    part={**part,'vertices':part['vertices'][:],'normals':part['normals'][:],'uv':part['uv'][:],
+          'slices':[s for s in part['slices'] if s['materialKey']!=0xb1aae6bb]}
+    indices=[];count=64
+    for back,axial in ((False,-.008),(True,.006)):
+        center=len(part['vertices'])
+        part['vertices'].append((0,axial,0));part['normals'].append((0,1 if back else -1,0));part['uv'].append((.5,.5))
+        for i in range(count):
+            a=2*math.pi*i/count;x=.18*math.cos(a);z=.18*math.sin(a)
+            part['vertices'].append((x,axial,z));part['normals'].append((0,1 if back else -1,0));part['uv'].append((.5+x/.36,.5-z/.36))
+        for i in range(count):
+            tri=[center,center+1+i,center+1+(i+1)%count]
+            indices.extend(tri[::-1] if back else tri)
+    part['slices'].append({'materialKey':0xb1aae6bb,'textureKey':bin_hash('BRAKE_STYLE03'),'indices':indices})
+    return part
+
+
+def rear_lens_sections(part,family,section):
+    """Restore only identified lower lenses, not entire clear headlamp covers."""
+    if section['materialKey']!=0x33a26cb6:return [(section,'')]
+    triangles=[section['indices'][i:i+3] for i in range(0,len(section['indices']),3)]
+    if family=='350Z_STYLE04_BRAKELIGHT':
+        ids=[i for tri in triangles if max(part['vertices'][j][2] for j in tri)<.62 for i in tri]
+        return [({**section,'indices':ids},'rear_amber_trim')] if ids else []
+    if family=='350Z_KITW02_BODY':
+        result=[]
+        for side in (-1,1):
+            for role in ('reverse','rear_amber_trim'):
+                ids=[]
+                for tri in triangles:
+                    vs=[part['vertices'][j] for j in tri]
+                    if max(v[0] for v in vs)>-1.8 or side*sum(v[1] for v in vs)<=0:continue
+                    # Inner versus outer subdivision follows the stock combined
+                    # bumper-lamp arrangement; exact NFS atlas mapping unresolved.
+                    inner=sum(abs(v[1]) for v in vs)/3<.59
+                    if inner==(role=='reverse'):ids.extend(tri)
+                if ids:result.append(({**section,'indices':ids},role))
+        return result
+    return []
 
 
 def main():
@@ -63,7 +126,8 @@ def main():
     rim=pick(parse(ASSETS/'CARS/WHEELS/GEOMETRY_RACINGHART.BIN'),'RACINGHART_STYLE07_20_26')
     source_radius=wheel_source_radius(rim)
     selected.append((rim,'wheel',None,'RACINGHART_STYLE07_20_26'))
-    selected.append((pick(car,'350Z_KIT00_FRONT_BRAKE'),'brake',None,'350Z_KIT00_FRONT_BRAKE'))
+    brakes=pick(parse(ASSETS/'CARS/BRAKES/GEOMETRY.BIN'),'BRAKE_STYLE03')
+    selected.append((sport_brake_geometry(brakes),'brake',None,'BRAKE_STYLE03'))
     packs=[TexturePack(ASSETS/'CARS/350Z/TEXTURES.BIN'),TexturePack(ASSETS/'CARS/WHEELS/TEXTURES.BIN'),TexturePack(global_path)]
     vinyls=TexturePack(ASSETS/'CARS/350Z/VINYLS.BIN')
     _,vinyl,_=vinyls.decode(bin_hash('350Z_ART_F_6'))
@@ -83,6 +147,10 @@ def main():
             image.save(out/(name+'.png'))
         return texture_ids[name]
     vinyl_id=texture('rachel_paint',paint_image)
+    _,plate_image,_=packs[2].decode(bin_hash('LICENSE_PLATE'))
+    plate_id=texture('original_license_plate',plate_image)
+    _,neon_image,_=packs[0].decode(bin_hash('350Z_NEON'))
+    neon_id=texture('350Z_NEON',neon_image)
     def source_texture(key):
         for pack in packs:
             if key in pack.slots or key in pack.records:
@@ -92,8 +160,8 @@ def main():
                 image=image.convert('RGB').convert('RGBA')
                 return texture(f'tex_{key:08x}',image)
         return -1
-    def material(key,tex,group,hood):
-        identity=(key,tex,group,hood)
+    def material(key,tex,group,hood,appearance=''):
+        identity=(key,tex,group,hood,appearance)
         if identity in material_ids:return material_ids[identity]
         color=[1.,1.,1.,1.];metal=.05;smooth=.45
         if key==0xd6d6080a:
@@ -108,6 +176,12 @@ def main():
         elif key in (0x78743ca1,0x12c9453c,0x0fedee40,0x010cb64a,0x2787edab,0x3ed70c43):
             color=[.16,.16,.18,1.] if tex>=0 else [.035,.035,.045,1.];smooth=.15
         elif tex<0:color=[.12,.12,.14,1.]
+        if group=='brake':
+            if key==0xd6640dff:color=[.8,.025,.018,1.];metal=.45;smooth=.65;tex=-1
+            elif key==0xb1aae6bb:color=[.9,.92,.95,1.];metal=.75;smooth=.6
+            else:color=[.7,.73,.78,1.];metal=.75;smooth=.55
+        if appearance=='reverse':color=[.88,.92,1.,1.];metal=.05;smooth=.8;tex=-1
+        elif appearance=='rear_amber_trim' and tex<0:color=[1.,.3,.025,1.];metal=.05;smooth=.7
         desc={'name':f'{key:08x}_{len(materials)}','color':color,'metallic':metal,'smoothness':smooth,'texture':tex}
         material_ids[identity]=len(materials);materials.append(desc);return len(materials)-1
     parts=[]
@@ -119,17 +193,22 @@ def main():
             x,y,z=v
         return {'x':y,'y':z+(0 if normal else BODY_LIFT),'z':x}
     for p,group,matrix,family in selected:
-        for number,s in enumerate(p['slices']):
+        sections=[entry for section in p['slices'] for entry in rear_lens_sections(p,family,section)]
+        for number,(s,lens_role) in enumerate(sections):
             key=s['materialKey']
-            if key in (0xa6348ee3,0xd79597d6,0x33a26cb6):continue # clear lens cover; render its detailed housing instead
-            tex=-1 if key==0xd6d6080a else source_texture(s['textureKey'])
+            if key in (0xa6348ee3,0xd79597d6):continue # full clear covers still omitted
+            texture_key=s['textureKey']
+            if family=='350Z_STYLE04_BRAKELIGHT' and texture_key in (bin_hash('BRAKELIGHT_LEFT'),bin_hash('BRAKELIGHT_RIGHT')):
+                texture_key=bin_hash('350Z_STYLE04_BRAKELIGHT_OFF')
+            tex=-1 if key==0xd6d6080a else source_texture(texture_key)
             if group in ('wheel','brake'):
                 # Source wheel axis +Y becomes Unity +X; the disk extends
                 # inward from its outer face. No WheelCollider changes.
-                scale=WHEEL_RADIUS/source_radius if group=='wheel' else 1
-                offset=.165 if group=='wheel' else -.035
-                vertices=[{'x':(-v[1]+offset)*scale,'y':v[2]*scale,'z':v[0]*scale} for v in p['vertices']]
-                normals=[{'x':-v[1],'y':v[2],'z':v[0]} for v in p['normals']]
+                if group=='wheel':vertices,normals=wheel_geometry(p)
+                else:
+                    scale=BRAKE_RADIUS/.18
+                    vertices=[{'x':(-v[1]+.04)*scale,'y':v[2]*scale,'z':v[0]*scale} for v in p['vertices']]
+                    normals=[{'x':-v[1],'y':v[2],'z':v[0]} for v in p['normals']]
             else:
                 vertices=[transform(v,matrix,'EXHAUST' in family) for v in p['vertices']]
                 normals=[transform(v,matrix,'EXHAUST' in family,True) for v in p['normals']]
@@ -148,15 +227,44 @@ def main():
                 m=matrix;determinant=m[0]*(m[5]*m[10]-m[6]*m[9])-m[4]*(m[1]*m[10]-m[2]*m[9])+m[8]*(m[1]*m[6]-m[2]*m[5])
             if group in ('wheel','brake') or determinant<0:
                 for i in range(0,len(ids),3):ids[i+1],ids[i+2]=ids[i+2],ids[i+1]
-            parts.append({'name':family+f'_A_slice{number}_{len(parts)}','group':group,'vertices':vertices,'normals':normals,
+            role='reverse' if lens_role=='reverse' else ''
+            if 'HEADLIGHT' in family and key==0x9c645529:role='headlight'
+            if 'BRAKELIGHT' in family and key==0x05bc3a3c:role='taillight'
+            if 'TRUNK' in family and key==0x05bc3a3c:role='brakelight'
+            parts.append({'name':family+f'_A_slice{number}_{len(parts)}','group':group,'lightRole':role,
+                          'rotatesWithWheel':group=='brake' and key==0xb1aae6bb,'vertices':vertices,'normals':normals,
                           'uv':[{'u':u,'v':1-v} for u,v in p['uv']], 'indices':ids,
-                          'material':material(key,tex,group,'HOOD' in family)})
-    model={'schemaVersion':2,'preset':'DDAY_PLAYER_CAR','wheelVisualLift':WHEEL_LIFT,
+                          'material':material(key,tex,group,'HOOD' in family,lens_role)})
+    # Shared plate geometry was not identified. This small authored rectangle
+    # uses the original fixed UNDRGND 2 texture at the rear-centre kit socket.
+    # The socket's purpose is inferred from its position/orientation, not its hash.
+    plate_socket=pick(car,'350Z_KITW02_BODY')['sockets'][0xc805f7e0]
+    plate_vertices=[transform((v,u,.008),plate_socket) for u,v in [(-.16,-.08),(-.16,.08),(.16,.08),(.16,-.08)]]
+    plate_normal=transform((0,0,1),plate_socket,normal=True)
+    plate_material=len(materials)
+    materials.append({'name':'original_license_plate','color':[1.,1.,1.,1.],'metallic':.05,'smoothness':.3,'texture':plate_id})
+    parts.append({'name':'NFVU2_license_plate_rectangle','group':'body','lightRole':'','vertices':plate_vertices,
+                  'normals':[plate_normal]*4,'uv':[{'u':0,'v':0},{'u':0,'v':1},{'u':1,'v':1},{'u':1,'v':0}],
+                  'indices':[0,1,2,0,2,3],'material':plate_material})
+    lights=[]
+    def lamp(role,position,direction):lights.append({'role':role,'position':position,'direction':direction})
+    # Original headlamp locator translations; projection direction is adapted for Valheim.
+    head_sockets=pick(car,'350Z_STYLE02_HEADLIGHT_LEFT')['sockets']
+    for key in (0x9db90133,0xd09091c6):
+        lamp('headlight',transform((0,0,0),head_sockets[key]),{'x':0,'y':-.12,'z':1})
+    for side in (-1,1):lamp('taillight',{'x':side*.62,'y':.71,'z':-1.97},{'x':0,'y':0,'z':-1})
+    for side in (-1,1):lamp('reverse',{'x':side*.49,'y':.45,'z':-2.11},{'x':0,'y':-.12,'z':-1})
+    lamp('plate',transform((.10,0,.045),plate_socket),transform((-.5,0,-1),plate_socket,normal=True))
+    model={'schemaVersion':2,'preset':'DDAY_PLAYER_CAR','wheelVisualLift':WHEEL_LIFT,'lights':lights,'neonTexture':neon_id,
            'frontWheelVisualOffset':FRONT_WHEEL_OFFSET,'rearWheelVisualOffset':REAR_WHEEL_OFFSET,
            'previewHubHeight':.20,'parts':parts,'materials':materials,'textures':textures}
     (out/'body.json').write_text(json.dumps(model,separators=(',',':')),encoding='utf-8')
     (out/'provenance.json').write_text(json.dumps({'preset':model['preset'],'verifiedFields':expected,'paint':'METAL_L2_COLOR10; calibrated Valheim RGB','vinyl':'350Z_ART_F_6 + mask; original embedded RGBA palettes','parts':families,
-        'visualFit':{'wheelRadius':WHEEL_RADIUS,'bodyLift':BODY_LIFT,'frontOffset':FRONT_WHEEL_OFFSET,'rearOffset':REAR_WHEEL_OFFSET,'preview':'approximate terrain-mode loaded suspension; not a Unity simulation'}},indent=2),encoding='utf-8')
+        'licensePlate':{'texture':'original LICENSE_PLATE / UNDRGND 2','geometry':'NFVU2 rectangle; shared original mesh not identified','placement':'rear-centre kit socket 0xc805f7e0; purpose inferred from geometry'},
+        'neon':{'texture':'original 350Z_NEON','projectionAndPulse':'NFVU2 Unity implementation; not recovered NFS timing'},
+        'rearLenses':{'upperStrip':'original STYLE04 amber textured trim; passive','bumper':'original lens triangles split into inner reverse and outer amber, split inferred from stock layout; not recovered NFS atlas mapping'},
+        'sportBrakes':{'source':'BRAKE_STYLE03_A + original BRAKE_STYLE03 rotor atlas','adaptation':'38cm round opaque rotor replaces alpha-masked square; original caliper geometry painted red; visual only'},
+        'visualFit':{'wheelRadius':WHEEL_RADIUS,'wheelWidth':WHEEL_WIDTH,'wheelWidthFit':'outer face retained, widened inward; inverse-transpose normals','brakeRadius':BRAKE_RADIUS,'bodyLift':BODY_LIFT,'frontOffset':FRONT_WHEEL_OFFSET,'rearOffset':REAR_WHEEL_OFFSET,'preview':'approximate terrain-mode loaded suspension; not a Unity simulation'}},indent=2),encoding='utf-8')
     print(f'Rachel preset: {len(parts)} material slices, {sum(len(p["indices"])//3 for p in parts)} triangles, {len(textures)} textures')
 
 

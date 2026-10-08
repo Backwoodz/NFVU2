@@ -42,8 +42,12 @@ for location,energy,size in (((2,3,6),1700,5),((-4,-3,4),1200,4),((3,-4,3),850,3
 # NFS image. Keep a true side elevation as a separate wheel-fit check.
 bpy.ops.object.camera_add(location=(-5,6,2.15));camera=bpy.context.object;camera.rotation_euler=(Vector((0,0,.50))-camera.location).to_track_quat('-Z','Y').to_euler();camera.data.type='PERSP';camera.data.lens=48
 s=bpy.context.scene;s.camera=camera;s.render.engine='CYCLES';s.cycles.samples=32;s.render.resolution_x=1200;s.render.resolution_y=800;s.render.resolution_percentage=100;s.world.color=(.2,.2,.2)
-s.view_settings.view_transform='AgX';s.render.filepath=str(OUTPUT/'rachel-vorschau.png')
+try:s.view_settings.view_transform='AgX'
+except TypeError:s.view_settings.view_transform='Filmic'
+s.render.filepath=str(OUTPUT/'rachel-vorschau.png')
 bpy.ops.wm.save_as_mainfile(filepath=str(LOCAL/'rachel-preview.blend'));bpy.ops.render.render(write_still=True)
 camera.location=(5,-6,2.15);camera.rotation_euler=(Vector((0,0,.50))-camera.location).to_track_quat('-Z','Y').to_euler();s.render.filepath=str(OUTPUT/'rachel-hinten.png');bpy.ops.render.render(write_still=True)
 camera.location=(-7,0,.55);camera.rotation_euler=(Vector((0,0,.55))-camera.location).to_track_quat('-Z','Y').to_euler();camera.data.type='ORTHO';camera.data.ortho_scale=5.1
 s.render.filepath=str(OUTPUT/'rachel-seite.png');bpy.ops.render.render(write_still=True)
+camera.location=(3.4,1.9,.7);camera.rotation_euler=(Vector((.8,axles[0],hub))-camera.location).to_track_quat('-Z','Y').to_euler();camera.data.ortho_scale=1.05
+s.render.filepath=str(OUTPUT/'rachel-rad-detail.png');bpy.ops.render.render(write_still=True)

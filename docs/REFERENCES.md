@@ -9,6 +9,11 @@
   Spezifikation für die lokale Vinyl-Decodierung.
 - [vgmstream r2117](https://github.com/vgmstream/vgmstream/releases/tag/r2117): unveränderter externer Audio-Decoder.
 - [vgmstream-GIN-Parser](https://github.com/vgmstream/vgmstream/blob/master/src/meta/gin.c): GIN-Header und Audiocodec.
+- [NFSU2CarSoundTuner](https://github.com/nlgxzef/NFSU2CarSoundTuner): rekonstruierte Motor-/Turbo-Tabellen; kein Beleg einer vollständigen Trigger-Zustandsmaschine.
+- [XtraTrax-Importer](https://github.com/RadeonChan/XtraTrax/blob/main/patcher.py): SDAT.VIV/BIG4 und MPF/MUS-Musikcontainer.
+- [vgmstream-MPF/MUS-Parser](https://github.com/vgmstream/vgmstream/blob/master/src/meta/ea_schl_map_mpf_mus.c): Substream-Decodierung.
+- [NFSU2TraxRenamer](https://github.com/nlgxzef/NFSU2TraxRenamer): originale 27 EA-Trax-Titel; konkrete Quellrevisionen und Dateiprüfsummen stehen in `tools/music_titles.json`.
+- [Nissan 350Z Werkstatthandbuch 2004, LT-109](https://manuals.plus/m/9e82ecaf8253036632c55385423e37081480f44596e1ec36936b69de0ec59c91.pdf): Rückfahr- und Blinkerleuchten in der hinteren Stoßstange, Brems-/Rücklicht oben; Originaldokument auf einem Spiegelserver.
 - [BepInExPack Valheim](https://thunderstore.io/c/valheim/p/denikson/BepInExPack_Valheim/): Mod-Lader.
 - [Unity WheelCollider](https://docs.unity3d.com/6000.0/Documentation/Manual/WheelColliderTutorial.html): Fahrzeugphysik.
 - [Unity AudioSource](https://docs.unity3d.com/6000.0/Documentation/ScriptReference/AudioSource.html): räumliche Audiowiedergabe.

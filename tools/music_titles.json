@@ -1,0 +1,298 @@
+{
+  "schema": 1,
+  "source": "MusicSFx.mpf",
+  "map_sha256": "010c929e17524d5cfcd54377d14d75de06028a318abf427bb19c122bcd3b0cf5",
+  "sources": [
+    "https://raw.githubusercontent.com/nlgxzef/NFSU2TraxRenamer/3a83934f634eefc59626c3bca1d7c5cacb37cc21/NFSU2TraxRenamer.ini",
+    "https://raw.githubusercontent.com/nlgxzef/NFSU2TraxRenamer/3a83934f634eefc59626c3bca1d7c5cacb37cc21/dllmain.cpp",
+    "https://raw.githubusercontent.com/RadeonChan/XtraTrax/9caf0bfdf520cabaa8553ad108aafe0694a579dd/plugin/NativeTrax.c",
+    "https://raw.githubusercontent.com/RadeonChan/XtraTrax/9caf0bfdf520cabaa8553ad108aafe0694a579dd/patcher.py"
+  ],
+  "derivation": "Original 27 EA Trax metadata rows correspond to MPF events 0..26. For this verified MPF, each event +0x1c selects a setup node; node +0x12 selects the playback node, whose first u16 is the one-based sample number. Artist/title strings also verified in the local original CD executable. WAV SHA-256 values are from vgmstream r2117 PCM16 decoding, preventing application to replaced or differently ordered audio.",
+  "tracks": [
+    {
+      "subsong": 2,
+      "event": 6,
+      "artist": "Fluke",
+      "song": "Switch/Twitch",
+      "sha256": "5c1e283106fef2619ca12b391700d1d638fb4565971bce2158e81592e6d3a710",
+      "seconds": 253.653
+    },
+    {
+      "subsong": 3,
+      "event": 16,
+      "artist": "The Bronx",
+      "song": "Notice of Eviction",
+      "sha256": "033d5438f4cc139195fb5d9563f5d82cc828cc986cfd8ba542623464d776335b",
+      "seconds": 135.965
+    },
+    {
+      "subsong": 4,
+      "event": 1,
+      "artist": "Capone",
+      "song": "I Need Speed",
+      "sha256": "53898a6e0e77420daa052ab8f9277ed97b5c7e074f0938aa0e204959d2b6a652",
+      "seconds": 207.482
+    },
+    {
+      "subsong": 5,
+      "event": 14,
+      "artist": "Rise Against",
+      "song": "Give it All",
+      "sha256": "514108a7dd18f988aee2502ee96271812744d22299a00cdd3e964a6ccb960a39",
+      "seconds": 168.771
+    },
+    {
+      "subsong": 6,
+      "event": 15,
+      "artist": "Killradio",
+      "song": "Scavenger",
+      "sha256": "c5c08d7daa3fe5d4067f2d2e9f6373fd32c9d515a16aad4ca590225c8683d3a6",
+      "seconds": 157.684
+    },
+    {
+      "subsong": 7,
+      "event": 20,
+      "artist": "Septembre",
+      "song": "I Am Weightless",
+      "sha256": "c5f679877a05b4fb173669155ab97c54c4e0fd24753e36d41ae63b5bcccdd74d",
+      "seconds": 145.586
+    },
+    {
+      "subsong": 8,
+      "event": 3,
+      "artist": "Sly Boogy",
+      "song": "That'z My Name",
+      "sha256": "38e24483e190ec8219a00b7e29c9a8040b686d2ca7bdc96268e7b4b77bf9bc46",
+      "seconds": 209.639
+    },
+    {
+      "subsong": 9,
+      "event": 13,
+      "artist": "Killing Joke",
+      "song": "The Death & Resurrection Show",
+      "sha256": "03e06e36f5243d9c30b88f730c664afd1ccc08e481f5fb92a01e6645af0169c7",
+      "seconds": 301.188
+    },
+    {
+      "subsong": 10,
+      "event": 21,
+      "artist": "Helmet",
+      "song": "Crashing Foreign Cars",
+      "sha256": "f47c31a046ec55622d3b5c021e470d1ed28bea779144682d58e988bfa1c1291d",
+      "seconds": 150.788
+    },
+    {
+      "subsong": 11,
+      "event": 22,
+      "artist": "Cirrus",
+      "song": "Back on a Mission",
+      "sha256": "6030c1888e1731b943aad6dd7421c780ac67f060d2782f726a14ce774b291efd",
+      "seconds": 214.743
+    },
+    {
+      "subsong": 18,
+      "event": 23,
+      "artist": "SpiderBait",
+      "song": "Black Betty",
+      "sha256": "a7edd621122c14868e3dd558079bde699d142b954b7534708affc3598de20d97",
+      "seconds": 205.989
+    },
+    {
+      "subsong": 19,
+      "event": 7,
+      "artist": "Christopher Lawrence",
+      "song": "Rush Hour",
+      "sha256": "49aa1ee28e078ad35111b8552ca5a2038d2593d09d157fcdb3016ea6a255e70d",
+      "seconds": 244.444
+    },
+    {
+      "subsong": 20,
+      "event": 8,
+      "artist": "Felix Da Housecat",
+      "song": "Rocket Ride (Soulwax Remix)",
+      "sha256": "6493fc36a031b0988bae2dec2a2303b2460181e648b208415813d5894125d455",
+      "seconds": 182.87
+    },
+    {
+      "subsong": 21,
+      "event": 25,
+      "artist": "Snapcase",
+      "song": "Skeptic",
+      "sha256": "1a8f56f5e4fb61eb25c9bc163b3c52857fc22a69580cb90a4aa0e1260fecbb69",
+      "seconds": 142.976
+    },
+    {
+      "subsong": 22,
+      "event": 24,
+      "artist": "Skindred",
+      "song": "Nobody",
+      "sha256": "3a21faddd001d1bb72abdbf83d8b7e32f6b3a6044794ee82b4bffe9604892955",
+      "seconds": 196.093
+    },
+    {
+      "subsong": 23,
+      "event": 5,
+      "artist": "Terror Squad",
+      "song": "Lean Back",
+      "sha256": "2d5162f428db87a82e967349d7c8b21bf81c071055534504b62c446c7a5ed91e",
+      "seconds": 253.36
+    },
+    {
+      "subsong": 30,
+      "event": 12,
+      "artist": "Sonic Animation",
+      "song": "E-Ville",
+      "sha256": "df8706014c1308bfaede49cf0fba705d39d14048e4ac735ea797ce8645024262",
+      "seconds": 270.217
+    },
+    {
+      "subsong": 31,
+      "event": 17,
+      "artist": "Ministry",
+      "song": "No W",
+      "sha256": "a5340a65766f16beb2d63bb41b00d25c165a2b638bea4128a48236afbebf6ae6",
+      "seconds": 171.007
+    },
+    {
+      "subsong": 32,
+      "event": 26,
+      "artist": "Unwritten Law",
+      "song": "The Celebration Song",
+      "sha256": "5680f9377a062ef588c49817f5096b314c344cff31691b81a02ef8cd3a5183d3",
+      "seconds": 222.318
+    },
+    {
+      "subsong": 33,
+      "event": 10,
+      "artist": "FREELAND",
+      "song": "Mind Killer (Jagz Kooner Remix)",
+      "sha256": "39ccf97f61bd934f57ad5926d1019531f006f55f4cb2971eabbefc1b3b9b91b3",
+      "seconds": 344.984
+    },
+    {
+      "subsong": 34,
+      "event": 11,
+      "artist": "Paul Van Dyk",
+      "song": "Nothing But You (Cirrus Remix)",
+      "sha256": "91f22c1ec09cd5c679a21b4e3c97ebde4fd73ed6e542ecd774bf4974e99adabb",
+      "seconds": 241.746
+    },
+    {
+      "subsong": 35,
+      "event": 2,
+      "artist": "Chingy",
+      "song": "I Do",
+      "sha256": "bb6926838b6ea259066d156a247b2e00c21bbafb93ce2d88144e825a533c7e7f",
+      "seconds": 237.131
+    },
+    {
+      "subsong": 36,
+      "event": 19,
+      "artist": "Mudvayne",
+      "song": "Determined",
+      "sha256": "f33ba2388a2afdfd2c5a866b0eb80795e38c912ae2a93982574462489b00eecd",
+      "seconds": 157.828
+    },
+    {
+      "subsong": 37,
+      "event": 18,
+      "artist": "Queens of the Stone Age",
+      "song": "In My Head",
+      "sha256": "d8a3762fc123492a9aaeb4d103acd16e40c764fc2d6b274a7edb5c73b8d8a3c0",
+      "seconds": 241.346
+    },
+    {
+      "subsong": 38,
+      "event": 9,
+      "artist": "Sin",
+      "song": "Hard EBM",
+      "sha256": "f35fe96f858213dd74e8fc4b6955bf02996f053cab80a8433824366a2ddae917",
+      "seconds": 220.118
+    },
+    {
+      "subsong": 39,
+      "event": 0,
+      "artist": "Snoop Dogg feat. The Doors",
+      "song": "Riders on the Storm (Fredwreck Remix)",
+      "sha256": "cd1304eb3a4833f858d8f5960994cb22b5b75cb45d278e3cb3392b6fe3aa03a0",
+      "seconds": 373.641
+    },
+    {
+      "subsong": 40,
+      "event": 4,
+      "artist": "Xzibit",
+      "song": "LAX",
+      "sha256": "febc1f769404bde8862d2cb81b50df68258ecbca0110d2c87a8c69d88d0582a3",
+      "seconds": 198.185
+    }
+  ],
+  "excluded_streams": [
+    {
+      "subsong": 1,
+      "sha256": "35467d21453b3ffae9f03fe8c098ef6b1f5b32b0f189fceb74159b0ecd50f590"
+    },
+    {
+      "subsong": 12,
+      "sha256": "656510231bfe06ecc4c933112ab240bb5f76281e58db446c809e6fc4458929d9"
+    },
+    {
+      "subsong": 13,
+      "sha256": "96d9326c8a2c0207ae56771c9404d947a55aa04e7cb2320d9c957e8b482acbb9"
+    },
+    {
+      "subsong": 14,
+      "sha256": "ed93ee4d4b7fd34f5c0edf9b167064c6a4a8349b65855907d5f3014f3e06f69a"
+    },
+    {
+      "subsong": 15,
+      "sha256": "59bbd7f57c53ff1e7abdbfbf54eb1469c16434f1980f2c372ca7c5953a4db204"
+    },
+    {
+      "subsong": 16,
+      "sha256": "de8b8d33b1b50c8e25825eb5c7f9000eef2bb5b339bbf5a897a3de611ee89765"
+    },
+    {
+      "subsong": 17,
+      "sha256": "4823fdaa27b3fad52c345eafa739c9e3e05edda3e0d0b369d8e137fdcf641fbb"
+    },
+    {
+      "subsong": 24,
+      "sha256": "7f2c849f5f235c946df1695f33635977781ac363ec9dd8e387d8ad65f62030f4"
+    },
+    {
+      "subsong": 25,
+      "sha256": "a5a36023030746e44de0b9f8403d74ac450bddc5bb87c35cbf8ad001d9a6e8e5"
+    },
+    {
+      "subsong": 26,
+      "sha256": "d33abb310e353911d635616745cf79ec7c06a79c3ae2a3db14b4759fea110090"
+    },
+    {
+      "subsong": 27,
+      "sha256": "296b4b03369bda8006dbc73d685d84359ab8a1f55e894484375f834b2907708e"
+    },
+    {
+      "subsong": 28,
+      "sha256": "8c025c5e062f1d227ef33c4185faaf7bc0a76f7749aeeb9ef8bba58ab55f2e82"
+    },
+    {
+      "subsong": 29,
+      "sha256": "24d929ab6dcbfa078922dc34a006e48241ea5fe2a2bf8a90168d451ffcc24521"
+    },
+    {
+      "subsong": 41,
+      "sha256": "f4758481b44cd39944b44c9973fbb38c0945c46c0b1d248fe5d17ad9aa615a1a"
+    },
+    {
+      "subsong": 42,
+      "sha256": "b3c9b91aa0ca7f268249064c6a4369e661fcffda802ec2abbe3639d9abcccea9"
+    },
+    {
+      "subsong": 43,
+      "sha256": "f4e8727f46ad9066d402cfa07392989ae2a7f0fee7db95921c5d21fa95ac3512"
+    }
+  ],
+  "exclusion_reason": "These 16 streams are not referenced by the 27 EA Trax song events. The container also includes ambient audio; individual non-song titles/authors are not verified. Retain locally for research, exclude from the radio playlist.",
+  "container_reference": "https://racingsoundtracks.com/game/need-for-speed-underground-2"
+}

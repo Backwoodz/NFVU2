@@ -1,7 +1,7 @@
-350Z-Fahrzeug-Sound – Version 0.1.5
+350Z-Fahrzeug-Sound – Version 0.2.1
 
-Die folgenden Originalaufnahmen wurden aus den vom Nutzer bereitgestellten
-NFS Underground 2-CD-Abbildern auf Laufwerk F: extrahiert:
+Die folgenden Originalaufnahmen wurden aus den lokal bereitgestellten
+NFS Underground 2-CD-Abbildern extrahiert:
 
 Beschleunigen:
 SOUND/ENGINE/GIN_350Z_Jason_shrt2.gin
@@ -25,7 +25,30 @@ Beschleunigen und Gaswegnehmen verwenden getrennte Aufnahmen.
 Die zwei jeweils benachbarten Drehzahlbereiche werden weich gemischt.
 
 Die Hupe ist eine neu synthetisierte Zweiklang-Hupe bei 420/500 Hz und
-keine aus NFS extrahierte Aufnahme. Es wurde keine NFS-Musik übernommen.
+keine aus NFS extrahierte Aufnahme.
+
+Turbo:
+SOUND/TURBO/TURBO_MED_2_MB.abk, Unterstreams 1 (Aufladung),
+2/3 (zwei Blow-off-Varianten). Das Rollen-Mapping ist vorläufig; die Trigger
+sind eigene NFVU2-Logik mit Last-/Drehzahlaufbau und einmaligem Ablassen.
+Die Originaltabellen kennen getrennte Aufladung, Low-/High-Boost-Blow-off und
+0,5 s ChargeTime. Rachels tatsächliche Performance-Stufe bleibt zu prüfen.
+https://github.com/nlgxzef/NFSU2CarSoundTuner
+Originalbank-Prüfsumme und Decoderherkunft stehen im lokal erzeugten Manifest.
+
+Radio:
+SDATA/SDAT.VIV enthält pfdata/MusicSFx.mpf und MusicSFx.mus.
+vgmstream decodiert die Streams als Stereo-PCM. Seit 0.2.1 enthält die Playlist
+27 verifizierte EA-Trax-Songs mit Künstler und Titel. Die Zuordnung folgt der
+originalen Songtabelle und den MPF-Ereignissen/Playback-Nodes; die Titelstrings
+wurden zusätzlich in der lokalen Original-EXE geprüft (ohne sie auszuführen).
+tools/music_titles.json enthält Quellen, MPF-Hash und die SHA-256-Werte
+der decodierten WAVs. Falsche oder geänderte Audioinhalte werden nicht automatisch
+mit diesen Namen versehen. Die übrigen 16 zuvor importierten Streams gehören
+nicht zu den 27 EA-Trax-Ereignissen; sie bleiben lokal, aber außerhalb der Playlist.
+https://github.com/nlgxzef/NFSU2TraxRenamer
+https://github.com/RadeonChan/XtraTrax/blob/main/patcher.py
+https://github.com/vgmstream/vgmstream/blob/master/src/meta/ea_schl_map_mpf_mus.c
 
 Die Mod verwendet eine eigene Drehzahl-/Schaltlogik für den Sound.
 Sie führt die originale NFS-Fahrphysik oder -Audio-Engine nicht aus.

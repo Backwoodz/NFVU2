@@ -1,10 +1,57 @@
 from project import BASE, LOCAL, OUTPUT, disc_root, vgmstream_path
 from pathlib import Path
-import hashlib, json, wave
+import argparse, hashlib, json, wave
 import numpy as np
 
 base=BASE
+parser=argparse.ArgumentParser()
+parser.add_argument('--turbo-only',action='store_true')
+parser.add_argument('--turbo-bank',choices=('0','1','2'),default='2')
+parser.add_argument('--charge-stream',type=int,default=1)
+parser.add_argument('--low-stream',type=int,default=2)
+parser.add_argument('--high-stream',type=int,default=3)
+args=parser.parse_args()
 decoded=LOCAL/'audio-decoded'
+if args.turbo_only:
+    source_inventory=decoded/'turbo-inventory.json'
+    if not source_inventory.is_file():source_inventory=decoded/'inventory.json'
+    inventory=json.loads(source_inventory.read_text(encoding='utf-8'))
+    out=LOCAL/'audio-turbo';out.mkdir(exist_ok=True)
+    manifest=[]
+    for name,index in [('charge.wav',args.charge_stream),('blowoff_low.wav',args.low_stream),('blowoff_high.wav',args.high_stream)]:
+        stem=f'TURBO_MED_{args.turbo_bank}_MB'
+        row=next((r for r in inventory if r['wav']==f'{stem}_{index}.wav'),None)
+        if row is None:raise SystemExit(f'Missing decoded {stem} substream {index}. Run turbo extraction and decoding first.')
+        with wave.open(str(decoded/row['wav']),'rb') as w:
+            if w.getnchannels()!=1 or w.getsampwidth()!=2:raise ValueError('Expected original mono PCM16 turbo sample')
+            rate=w.getframerate();samples=np.frombuffer(w.readframes(w.getnframes()),dtype='<i2').astype(float)/32768
+        if not 0<len(samples)<=15*rate:raise ValueError('Invalid turbo sample duration')
+        if name=='charge.wav':
+            loop=row['metadata'].get('loopingInfo')
+            if not loop:raise ValueError('Charge source must have a verified loop in vgmstream metadata')
+            samples=samples[loop['start']:loop['end']]
+            n=min(round(rate*.012),len(samples)//8);t=np.linspace(0,1,n)
+            samples=np.concatenate((samples[n:-n],samples[-n:]*(1-t)+samples[:n]*t))
+        else:
+            if row['metadata'].get('loopingInfo'):raise ValueError('Blow-off source must be a non-looping substream')
+            n=min(round(rate*.004),len(samples)//8)
+            samples[:n]*=np.linspace(0,1,n);samples[-n:]*=np.linspace(1,0,n)
+        samples-=np.mean(samples)
+        peak=float(np.max(np.abs(samples)));rms=float(np.sqrt(np.mean(samples*samples)))
+        if rms<.0001:raise ValueError('Silent turbo sample')
+        samples*=min(.18/rms,.82/peak)
+        with wave.open(str(out/name),'wb') as w:
+            w.setparams((1,2,rate,len(samples),'NONE','not compressed'));w.writeframes(np.rint(samples*32767).astype('<i2').tobytes())
+        original=LOCAL/'nfs-assets'/row['source']
+        manifest.append({'file':name,'source':row['source'],'source_sha256':hashlib.sha256(original.read_bytes()).hexdigest(),
+                         'decoder_version':row['metadata'].get('version'),'subsong':index,'sample_rate':rate,'samples':len(samples),
+                         'peak':float(np.max(np.abs(samples))),'rms':float(np.sqrt(np.mean(samples*samples))),
+                         'sha256':hashlib.sha256((out/name).read_bytes()).hexdigest()})
+    (out/'manifest.json').write_text(json.dumps({'bank':f'TURBO_MED_{args.turbo_bank}_MB.abk','files':manifest,
+        'provenance':'Original local NFSU2 samples decoded with vgmstream. Role assignments are configurable approximations from loop/one-shot metadata, pending listening comparison. Boost envelopes and event triggers are our own acoustic approximation.',
+        'mapping_reference':'https://github.com/nlgxzef/NFSU2CarSoundTuner/blob/master/CarSoundData/CarDataMapping/02.ini'},indent=2),encoding='utf-8')
+    print('Prepared 3 original turbo clips in .local/audio-turbo; role assignment needs in-game listening verification.')
+    raise SystemExit(0)
 out=LOCAL/'audio-assets';out.mkdir(exist_ok=True)
 inventory=json.loads((decoded/'inventory.json').read_text())
 anchors=[1400,2100,2800,3500,4300,5100,5900,6500]

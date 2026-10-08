@@ -36,6 +36,28 @@ class AudioTests {
         bool shifted=false;float priorRpm=model.Rpm;
         for(int i=0;i<1000;i++){float speed=Math.Min(34,i*.04f);int gear=model.Gear;model.Step(1f/60,true,speed,WheelRpm(speed),1,false);if(model.Gear>gear)shifted=true;CheckFinite(model);}
         Check(shifted&&model.Gear>=3,"automatic upshifts during acceleration");
+        var terrainModel=new EngineSoundModel();var streetModel=new EngineSoundModel();int terrainShifts=0,streetShifts=0;
+        for(int i=0;i<720;i++) {
+            float speed=Math.Min(16,i/60f*2);int terrainGear=terrainModel.Gear,streetGear=streetModel.Gear;
+            terrainModel.Step(1f/60,true,speed,WheelRpm(speed),1,false,true);
+            streetModel.Step(1f/60,true,speed,WheelRpm(speed),1,false,false);
+            if(terrainModel.Gear>terrainGear)terrainShifts++;
+            if(streetModel.Gear>streetGear)streetShifts++;
+        }
+        Check(terrainShifts>=3&&terrainModel.Gear>=4,"short terrain acceleration reaches four audible gears below 60 km/h");
+        Check(streetShifts>=2&&streetModel.Gear<terrainModel.Gear,"street sound profile keeps longer gears than terrain");
+        int steadyGear=terrainModel.Gear;
+        for(int i=0;i<600;i++)terrainModel.Step(1f/60,true,16,WheelRpm(16),.5f,false,true);
+        Check(terrainModel.Gear==steadyGear&&!terrainModel.IsShifting,"steady cruising does not hunt between gears");
+        var spinningModel=new EngineSoundModel();
+        for(int i=0;i<300;i++)spinningModel.Step(1f/60,true,3,2000,1,false,true);
+        Check(spinningModel.Gear==1&&spinningModel.Rpm>4000,"wheelspin raises RPM without false upshifts at walking speed");
+        var shiftModel=new EngineSoundModel();
+        for(int i=0;i<60;i++)shiftModel.Step(.01f,true,0,0,0,false);
+        shiftModel.Step(.01f,true,7,WheelRpm(7),1,false);
+        Check(shiftModel.IsShifting&&shiftModel.Gear==2,"terrain upshift is audible on a short low-speed run");
+        for(int i=0;i<16;i++)shiftModel.Step(.01f,true,7,WheelRpm(7),1,false);
+        Check(!shiftModel.IsShifting,"upshift interruption ends within 160 milliseconds");
         for(int i=0;i<120;i++)model.Step(1f/60,true,0,0,0,false);
         Check(model.Gear==1&&model.Rpm==950,"return to first gear and idle after stopping");
         for(int i=0;i<120;i++)model.Step(1f/60,true,-4,WheelRpm(-4),-1,false);
@@ -43,13 +65,37 @@ class AudioTests {
         for(int i=0;i<60;i++)model.Step(1f/60,false,0,0,0,false);
         Check(model.Level==0&&model.Load==0,"sound fades out after exit");
         model.Step(.016f,true,float.NaN,float.PositiveInfinity,float.NaN,false);CheckFinite(model);Check(true,"invalid wheel samples cannot poison audio state");
+        var turbo=new TurboSoundModel();
+        for(int i=0;i<120;i++)turbo.Step(1f/60,true,950,1,false,false);
+        turbo.Step(1f/60,true,950,0,false,false);
+        Check(turbo.Charge==0&&turbo.BlowOff==0,"idle throttle release produces no turbo or blow-off");
+        for(int i=0;i<60;i++)turbo.Step(1f/60,true,5900,1,false,false);
+        Check(turbo.Charge>.9f,"turbo charge builds under sustained high engine load");
+        turbo.Step(1f/60,true,5900,0,false,false);
+        Check(turbo.BlowOff==2&&turbo.Charge<.2f,"high-boost throttle release emits one blow-off and consumes charge");
+        bool repeated=false;
+        for(int i=0;i<120;i++){turbo.Step(1f/60,true,5900,0,false,false);repeated|=turbo.BlowOff!=0;}
+        Check(!repeated,"coasting does not repeat blow-off events");
+        for(int i=0;i<60;i++)turbo.Step(1f/60,true,3200,1,false,false);
+        turbo.Step(1f/60,true,3200,1,true,false);
+        Check(turbo.BlowOff==1,"shift at modest boost emits the low-boost variant");
+        turbo.Step(1f/60,true,3200,1,true,false);
+        Check(turbo.BlowOff==0,"holding the shift window does not retrigger blow-off");
+        turbo.Step(1f/60,true,6500,1,false,true);
+        Check(turbo.Charge==0&&turbo.BlowOff==0,"reverse suppresses turbo charge and release");
+        for(int i=0;i<60;i++)turbo.Step(1f/60,true,5900,1,false,false);
+        turbo.Step(1f/60,false,5900,0,false,false);
+        Check(turbo.Charge==0&&turbo.BlowOff==0,"exit resets turbo without a spurious release");
+        turbo.Step(float.NaN,true,float.PositiveInfinity,float.NaN,false,false);
+        Check(!float.IsNaN(turbo.Charge)&&turbo.BlowOff==0,"invalid samples cannot poison turbo state");
         using(var writer=new StreamWriter(args[0])){
-            writer.WriteLine("time,rpm,load,level,shift,speed,gear");model=new EngineSoundModel();
+            writer.WriteLine("time,rpm,load,level,shift,speed,gear,turbo,blowoff");model=new EngineSoundModel();turbo=new TurboSoundModel();
             for(int i=0;i<900;i++){
-                float t=i/60f;float speed=t<2?0:t<10?(t-2)*3.8f:Math.Max(0,30.4f-(t-10)*8);
+                float t=i/60f;float speed=t<2?0:t<10?(t-2)*2:Math.Max(0,16-(t-10)*5);
                 float gas=t>=2&&t<10?1:0;
                 model.Step(1f/60,t<14,speed,WheelRpm(speed),gas,false);
-                writer.WriteLine(string.Join(",",new[]{t,model.Rpm,model.Load,model.Level,model.ShiftGain,speed,(float)model.Gear}.Select(v=>v.ToString("R",CultureInfo.InvariantCulture))));
+                turbo.Step(1f/60,t<14,model.Rpm,gas,model.IsShifting,false);
+                writer.WriteLine(string.Join(",",new[]{t,model.Rpm,model.Load,model.Level,model.ShiftGain,speed,(float)model.Gear,turbo.Charge,(float)turbo.BlowOff}.Select(v=>v.ToString("R",CultureInfo.InvariantCulture))));
             }
         }
         Console.WriteLine(checks+" audio checks passed against the compiled plugin. Unity playback still requires an in-game check.");

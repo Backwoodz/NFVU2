@@ -10,10 +10,11 @@ public sealed class EngineSoundModel {
     public float Level {get;private set;}
     public float ShiftGain {get;private set;}=1;
     public int Gear {get;private set;}=1;
+    public bool IsShifting => shiftRemaining>0;
     float shiftRemaining,cooldown;
     static float Move(float a,float b,float step)=>Math.Abs(b-a)<=step?b:a+Math.Sign(b-a)*step;
     static float Safe(float value)=>float.IsNaN(value)||float.IsInfinity(value)?0:value;
-    public void Step(float dt,bool driving,float forwardSpeed,float wheelRpm,float throttle,bool brake) {
+    public void Step(float dt,bool driving,float forwardSpeed,float wheelRpm,float throttle,bool brake,bool terrain=true) {
         dt=DrivingMath.Clamp(Safe(dt),0,.1f);forwardSpeed=Safe(forwardSpeed);wheelRpm=Safe(wheelRpm);throttle=DrivingMath.Clamp(Safe(throttle),-1,1);
         Level=Move(Level,driving?1:0,dt*3);
         cooldown=Math.Max(0,cooldown-dt);shiftRemaining=Math.Max(0,shiftRemaining-dt);
@@ -23,11 +24,17 @@ public sealed class EngineSoundModel {
         if(!driving){Gear=1;shiftRemaining=cooldown=0;}
         else if(reverse)Gear=-1;
         else if(Gear<1 || speed<.5f)Gear=1;
-        float rawRpm=rpmAtWheel*(Gear<0?3.44f:Ratios[Gear-1])*3.54f;
+        // Compress the audible gears for short Valheim runs. This final drive is
+        // acoustic only: neither wheel torque nor actual vehicle speed changes.
+        float acousticDrive=3.54f*(terrain?2.4f:1.65f);
+        float rawRpm=rpmAtWheel*(Gear<0?3.44f:Ratios[Gear-1])*(Gear<0?3.54f:acousticDrive);
         if(driving && Gear>0 && speed>2 && cooldown==0) {
-            if(rawRpm>5600 && Gear<6){Gear++;shiftRemaining=.22f;cooldown=.7f;}
-            else if(rawRpm<1700 && Gear>1){Gear--;shiftRemaining=.15f;cooldown=.7f;}
-            rawRpm=rpmAtWheel*Ratios[Gear-1]*3.54f;
+            // Wheelspin can raise the note, but cannot race through the gears
+            // while the car barely moves or a wheel is airborne.
+            float shiftRpm=rollingRpm*Ratios[Gear-1]*acousticDrive;
+            if(shiftRpm>5600 && Gear<6){Gear++;shiftRemaining=.14f;cooldown=.45f;}
+            else if(shiftRpm<2000 && Gear>1){Gear--;shiftRemaining=.12f;cooldown=.45f;}
+            rawRpm=rpmAtWheel*Ratios[Gear-1]*acousticDrive;
         }
         float input=driving&&!DrivingMath.DirectionBrake(forwardSpeed,throttle)?Math.Abs(throttle):0;
         float target=driving?Math.Max(950+input*(brake?3300:1700),rawRpm):950;

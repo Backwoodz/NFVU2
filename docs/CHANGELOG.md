@@ -1,5 +1,51 @@
 # Versionsgeschichte
 
+## 0.2.1 — Heckleuchten, breitere Reifen, Sportbremsen und Songtitel
+
+Der Nutzer bestätigt die grundsätzliche Funktion von 0.2.0 in Valheim.
+Fehlende orange Streifen unter den STYLE04-Rückleuchten und die Einsätze der
+Heckstoßstange werden wieder importiert. Die inneren Stoßstangenflächen leuchten
+bei eingelegter Rückwärtsrichtung weiß und beleuchten den Boden dahinter.
+S beim Vorwärtsfahren bleibt zunächst Bremsen; Aussteigen beendet Rückfahrlicht.
+Die Aufteilung der Stoßstangenflächen ist eine dokumentierte Annäherung.
+Orange Streifen sind passiv; eine Blinkersteuerung ist noch nicht implementiert.
+
+Reifenbreite von etwa 19,5 auf 28 cm erhöht; 70-cm-Durchmesser, äußere Position
+und Fahrwerk beibehalten. Originale STYLE03-Sportbremse mit roten Sätteln und
+38-cm-Scheibe. Die Rotorfläche wurde wegen der ursprünglich quadratischen
+Alpha-Maske rund nachgebildet; ihr Originalatlas bleibt erhalten.
+Scheiben drehen mit dem Rad, Bremssättel folgen nur der Lenkung.
+
+Das Radio zeigt 27 echte Künstler-/Songnamen aus der EA-Trax-Tabelle.
+MPF-Ereignisse, originale EXE-Strings und WAV-Prüfsummen sichern die Zuordnung.
+16 weitere Containerstreams bleiben lokal, erscheinen aber nicht mehr als Songs
+im Radio. Build/Paket/Installer übernehmen nur die aktive Playlist.
+Die Änderungen wurden extern gerendert und mit 176 automatisierten Prüfungen
+getestet. Der Nutzer bestätigt anschließend auch die Funktion in Valheim.
+
+## 0.2.0 — Fahrzeugmenü, Radio und Beleuchtung
+
+F9 öffnet ein skalierbares Fahrzeugmenü für Fahrmodus, Radio, Licht und Neon.
+Eingabe-/Kamerasperre und Audio-Pause sind getrennt; das Radio bleibt beim
+Bedienen hörbar. Türen/Kofferraum sind ausdrücklich noch deaktivierte Vorbereitung.
+Lokale Stereo-Musik wird bedarfsgerecht geladen, mit Titelauswahl, Vor/Zurück,
+Pause und Lautstärke. Originalmusik kommt aus SDAT.VIV; die 43 importierten
+Musikstreams haben bis zur gesicherten Zuordnung neutrale Titelnummern.
+
+Front-, Rück- und Kennzeichenlicht schalten beim Einstieg ein und beim Ausstieg
+aus. Bremslicht reagiert zusätzlich auf Bremsen. Die originale LICENSE_PLATE-
+Textur liegt auf eigener Rechteckgeometrie; ihre Platzierung ist angenähert.
+Originale 350Z_NEON-Maske mit bodenangepasster Projektion, Farbwahl und eigener
+Pulsanimation. Shaderwirkung und Lichtstärken sind noch in Valheim zu prüfen.
+
+Die akustischen Übersetzungen schalten im Gelände früher; Schaltunterbrechungen
+betragen 140/120 ms. Radschlupf erhöht den Ton, ohne die Gangauswahl hochzuzählen.
+Originale TURBO_MED_2-Aufnahmen ergänzen Aufladung und Blow-off; Zuordnung und
+Auslösung sind eine dokumentierte Annäherung. VehicleHandling bleibt getrennt.
+Installer/Paket unterstützen die externen Medien, Dateisicherungen, SHA-256 und
+Rücksicherung bei Kopierfehlern. Der Nutzer hat die grundsätzliche Funktion
+anschließend in Valheim bestätigt; Nachbesserungen sind in 0.2.1 beschrieben.
+
 ## 0.1.9 — Textur-Upload beim Spawnen
 
 Der Spieltest von 0.1.8 scheiterte mit `LoadRawTextureData: not enough data provided`.

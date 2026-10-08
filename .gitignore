@@ -23,6 +23,11 @@ __pycache__/
 *.iso
 *.abk
 *.gin
+*.mus
+*.mpf
+*.viv
+*.lzc
+*.csi
 *.wav
 *.ogg
 *.mp3

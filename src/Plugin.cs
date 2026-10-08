@@ -8,8 +8,8 @@ using UnityEngine;
 
 namespace Rachel350Z {
 // Disposable local prototype. No ZNetView: never use in multiplayer or persist into saves.
-[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.1.9")]
-public class Plugin : BaseUnityPlugin {
+[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.2.1")]
+public partial class Plugin : BaseUnityPlugin {
     GameObject car; Rigidbody body; WheelCollider[] wheels; Transform[] visuals;
     Material[] vehicleMaterials;
     Texture2D[] vehicleTextures;
@@ -20,6 +20,9 @@ public class Plugin : BaseUnityPlugin {
     VehicleHandling handling;
     VehicleOrbitCamera orbitCamera;
     VehicleAudio vehicleAudio;
+    VehicleLighting vehicleLighting;
+    VehicleNeon vehicleNeon;
+    VehicleRadio vehicleRadio;
     bool audioBlocked, honking;
     ConfigEntry<bool> terrainMode, invertMouseY;
     ConfigEntry<float> mouseSensitivity, soundVolume;
@@ -32,11 +35,12 @@ public class Plugin : BaseUnityPlugin {
     void Awake() {
         var asm=AppDomain.CurrentDomain.GetAssemblies().FirstOrDefault(a=>a.GetType("Player")!=null);
         playerType=asm?.GetType("Player");netType=asm?.GetType("ZNet");
-        terrainMode=Config.Bind("Driving","TerrainMode",true,"F9 toggles terrain suspension, traction and front-wheel assistance. Off uses rear-wheel drive.");
+        terrainMode=Config.Bind("Driving","TerrainMode",true,"Terrain suspension, traction and front-wheel assistance. Change in the vehicle menu; off uses rear-wheel drive.");
         mouseSensitivity=Config.Bind("Camera","MouseSensitivity",.15f,new ConfigDescription("Orbit sensitivity in degrees per mouse pixel.",new AcceptableValueRange<float>(.02f,1f)));
         invertMouseY=Config.Bind("Camera","InvertMouseY",false,"Invert vertical mouse look while driving.");
         soundVolume=Config.Bind("Audio","Volume",.8f,new ConfigDescription("Vehicle sound volume. 0 mutes engine, tyres and horn; 1 is full volume.",new AcceptableValueRange<float>(0,1)));
         orbitCamera=new VehicleOrbitCamera(message=>Logger.LogInfo(message));
+        InitializeMenu();
         ready=playerType!=null;Logger.LogInfo("350Z prototype loaded. Single-player, temporary vehicle only.");
     }
     MonoBehaviour LocalPlayer() => playerType?.GetField("m_localPlayer",BindingFlags.Public|BindingFlags.NonPublic|BindingFlags.Static)?.GetValue(null) as MonoBehaviour;
@@ -68,17 +72,15 @@ public class Plugin : BaseUnityPlugin {
         if(!ready)return;
         var local=LocalPlayer();
         if(local==null){Cleanup();return;}
-        if(driving && (local!=player || Multiplayer())){Cleanup();return;}
+        if((driving && local!=player) || (car!=null && Multiplayer())){Cleanup();return;}
         audioBlocked=UIVisible()||!Application.isFocused;
-        if(audioBlocked){throttle=steer=0;brake=1;honking=false;orbitCamera.InputFrame(false,mouseSensitivity.Value,invertMouseY.Value);return;}
+        if(audioBlocked){CloseVehicleMenu();BlockDrivingInput();return;}
         try {
+            if(menuOpen && !CanUseVehicleMenu(local))CloseVehicleMenu();
+            if(menuKey.Value.IsDown() && CanUseVehicleMenu(local))SetVehicleMenu(!menuOpen);
+            if(menuOpen){BlockDrivingInput();return;}
             if(Input.GetKeyDown(KeyCode.F6)) { if(Multiplayer()){status="Nur in einer lokalen Einzelspieler-Testwelt verwenden.";return;} Spawn(local); }
             if(Input.GetKeyDown(KeyCode.F8))Cleanup();
-            if(Input.GetKeyDown(KeyCode.F9) && handling!=null) {
-                terrainMode.Value=!terrainMode.Value;handling.SetTerrainMode(terrainMode.Value);
-                status="F9: "+(terrainMode.Value?"Geländemodus mit Allradhilfe":"Straßenmodus mit Heckantrieb")+" | F7: einsteigen";
-                Logger.LogInfo("350Z terrain assistance: "+terrainMode.Value);
-            }
             if(Input.GetKeyDown(KeyCode.F7)) { if(driving)Exit();else if(car!=null && Vector3.Distance(local.transform.position,car.transform.position)<5)Enter(local); }
             if(driving){throttle=(Input.GetKey(KeyCode.W)?1:0)-(Input.GetKey(KeyCode.S)?1:0);steer=(Input.GetKey(KeyCode.D)?1:0)-(Input.GetKey(KeyCode.A)?1:0);brake=Input.GetKey(KeyCode.Space)?1:0;honking=Input.GetKey(KeyCode.H);orbitCamera.InputFrame(true,mouseSensitivity.Value,invertMouseY.Value);}
         }catch(Exception e){Logger.LogError(e);Cleanup();status="Fehler – siehe BepInEx/LogOutput.log";}
@@ -107,16 +109,22 @@ public class Plugin : BaseUnityPlugin {
             if(originalWheels) {
                 var visual=new GameObject("OriginalWheel"+i);visual.transform.SetParent(car.transform,false);visuals[i]=visual.transform;
                 var brakeVisual=new GameObject("OriginalBrake"+i);brakeVisual.transform.SetParent(car.transform,false);brakeVisuals[i]=brakeVisual.transform;
-                foreach(var p in model.parts.Where(p=>p.group=="wheel")) AddVisual(p,visual.transform,model,paint,dark);
-                foreach(var p in model.parts.Where(p=>p.group=="brake")) AddVisual(p,brakeVisual.transform,model,paint,dark);
+                foreach(var p in model.parts.Where(p=>p.group=="wheel"||(p.group=="brake"&&p.rotatesWithWheel))) AddVisual(p,visual.transform,model,paint,dark);
+                foreach(var p in model.parts.Where(p=>p.group=="brake"&&!p.rotatesWithWheel)) AddVisual(p,brakeVisual.transform,model,paint,dark);
             } else {
                 var visual=GameObject.CreatePrimitive(PrimitiveType.Cylinder);Destroy(visual.GetComponent<Collider>());visual.transform.SetParent(car.transform,false);visual.transform.localScale=new Vector3(.68f,.12f,.68f);visual.GetComponent<Renderer>().sharedMaterial=dark;visuals[i]=visual.transform;
             }
         }
         handling=new VehicleHandling(body,wheels,terrainMode.Value,message=>Logger.LogInfo(message));
         vehicleAudio=VehicleAudio.Create(car,body,wheels,message=>Logger.LogInfo(message));
+        try {vehicleLighting=VehicleLighting.Create(car,model,message=>Logger.LogInfo(message));}
+        catch(Exception e){Logger.LogWarning("350Z lighting unavailable: "+e);}
+        try {vehicleNeon=VehicleNeon.Create(car,model,message=>Logger.LogInfo(message));}
+        catch(Exception e){Logger.LogWarning("350Z neon unavailable: "+e);}
+        ApplyNeonSettings();
+        vehicleRadio=VehicleRadio.Create(this,car,message=>Logger.LogWarning(message));
         Logger.LogInfo("350Z spawned: "+model.parts.Length+" meshes, 4 wheels. Terrain assistance: "+terrainMode.Value);
-        status="350Z bereit. F7: einsteigen | F9: Gelände/Straße | F8: entfernen";
+        status="350Z bereit. F7: einsteigen | "+menuKey.Value+": Fahrzeugmenü | F8: entfernen";
     }
     void AddVisual(ModelPart p, Transform parent, ModelData model, Material paint, Material dark) {
         var obj=new GameObject(p.name);obj.transform.SetParent(parent,false);
@@ -129,6 +137,7 @@ public class Plugin : BaseUnityPlugin {
     }
     void Enter(MonoBehaviour local) {
         if(Multiplayer())return;
+        CloseVehicleMenu();
         player=local;playerBody=player.GetComponent<Rigidbody>();if(playerBody==null){player=null;return;}
         lastExitPosition=player.transform.position;playerEnabled=player.enabled;playerKinematic=playerBody.isKinematic;
         playerRenderers=player.GetComponentsInChildren<Renderer>();renderStates=playerRenderers.Select(r=>r.enabled).ToArray();
@@ -156,6 +165,15 @@ public class Plugin : BaseUnityPlugin {
             if(originalWheels && brakeVisuals[i]!=null)brakeVisuals[i].SetPositionAndRotation(pos,car.transform.rotation*Quaternion.Euler(0,wheels[i].steerAngle+(i%2==0?180:0),0));
         }
         if(driving)orbitCamera.LateFrame();
+        if(vehicleLighting!=null)try {
+            float speed=Vector3.Dot(body.linearVelocity,car.transform.forward);
+            vehicleLighting.Tick(driving,driving&&(brake>0||DrivingMath.DirectionBrake(speed,throttle)),speed,throttle);
+        }
+        catch(Exception e){vehicleLighting.Dispose();vehicleLighting=null;Logger.LogWarning("350Z lighting disabled: "+e);}
+        if(vehicleNeon!=null)try {vehicleNeon.Tick(driving,Time.deltaTime);}
+        catch(Exception e){vehicleNeon.Dispose();vehicleNeon=null;Logger.LogWarning("350Z neon disabled: "+e);}
+        if(vehicleRadio!=null)try {vehicleRadio.Tick(driving,audioBlocked,radioVolume.Value,radioEnabled.Value);}
+        catch(Exception e){vehicleRadio.Dispose();vehicleRadio=null;Logger.LogWarning("350Z radio disabled: "+e);}
         if(vehicleAudio!=null)try {
             vehicleAudio.Tick(driving,throttle,brake>0,honking,audioBlocked,terrainMode.Value,soundVolume.Value);
         } catch(Exception e) {
@@ -163,6 +181,7 @@ public class Plugin : BaseUnityPlugin {
         }
     }
     void Exit() {
+        CloseVehicleMenu();
         driving=false;throttle=steer=0;brake=1;honking=false;
         orbitCamera?.End();
         if(player!=null){player.transform.position=lastExitPosition;
@@ -174,6 +193,10 @@ public class Plugin : BaseUnityPlugin {
         player=null;gameCamera=null;status="F6: 350Z erstellen | F7: einsteigen | F8: entfernen";
     }
     void Cleanup(){
+        CloseVehicleMenu();
+        vehicleRadio?.Dispose();vehicleRadio=null;
+        vehicleLighting?.Dispose();vehicleLighting=null;
+        vehicleNeon?.Dispose();vehicleNeon=null;
         vehicleAudio?.Dispose();vehicleAudio=null;
         if(player!=null||driving)Exit();if(car!=null)Destroy(car);
         foreach(var mesh in vehicleMeshes)if(mesh!=null)Destroy(mesh);vehicleMeshes.Clear();
@@ -182,10 +205,6 @@ public class Plugin : BaseUnityPlugin {
         if(chassisMaterial!=null)Destroy(chassisMaterial);
         orbitCamera?.End();handling=null;chassisMaterial=null;vehicleMaterials=null;vehicleTextures=null;car=null;body=null;wheels=null;visuals=null;brakeVisuals=null;originalWheels=false;
     }
-    void OnDestroy(){Cleanup();}
-    void OnGUI(){if(ready&&LocalPlayer()!=null){
-        var text=driving?(terrainMode.Value?"Gelände / Allradhilfe":"Straße / Heckantrieb")+" | WASD: fahren | Leertaste: bremsen | H: Hupe | F7: aussteigen\nMaus: umschauen | Mausrad: Zoom | Mittelklick: zentrieren | F9: Fahrmodus":status;
-        GUI.Box(new Rect(15,Screen.height-80,Mathf.Min(920,Screen.width-30),60),text);
-    }}
+    void OnDestroy(){Cleanup();DisposeMenu();}
 }
 }

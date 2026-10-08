@@ -1,16 +1,19 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.IO;
 using UnityEngine;
 using UnityEngine.Audio;
 
 namespace Rachel350Z {
 public sealed class VehicleAudio : IDisposable {
     readonly EngineSoundModel model=new EngineSoundModel();
+    readonly TurboSoundModel turboModel=new TurboSoundModel();
     readonly List<AudioClip> clips=new List<AudioClip>();
     readonly List<AudioSource> sources=new List<AudioSource>();
     AudioSource[] power,coast;
     AudioSource road,skid,horn;
+    AudioSource turboCharge,turboLow,turboHigh;
     GameObject root;
     Rigidbody body;
     WheelCollider[] wheels;
@@ -32,10 +35,32 @@ public sealed class VehicleAudio : IDisposable {
             coast[i]=CreateSource("engine_off_"+EngineSoundModel.Bands[i]+".wav",80);
         }
         road=CreateSource("road.wav",160);skid=CreateSource("skid.wav",120);horn=CreateSource("horn.wav",60);
+        LoadTurbo(log);
         log("350Z audio ready: "+clips.Count+" clips; original NFSU2 350Z power/coast and tyre sounds; synthesized horn. Mixer: "+(mixer!=null?mixer.name:"AudioListener master"));
     }
-    AudioSource CreateSource(string name,int priority) {
-        var data=WavPcm16.Read(typeof(VehicleAudio).Assembly.GetManifestResourceStream("Rachel350Z.Audio."+name));
+    void LoadTurbo(Action<string> log) {
+        var folder=Path.Combine(Path.GetDirectoryName(typeof(VehicleAudio).Assembly.Location),"audio","turbo");
+        var names=new[]{"charge.wav","blowoff_low.wav","blowoff_high.wav"};
+        if(!names.All(name=>File.Exists(Path.Combine(folder,name)))) {
+            log("350Z turbo unavailable: optional audio/turbo clips missing. Engine audio remains available.");return;
+        }
+        // Validate the complete optional set before creating any sources.
+        int firstSource=sources.Count,firstClip=clips.Count;
+        try {
+            var data=names.Select(name=>WavPcm16.Read(File.OpenRead(Path.Combine(folder,name)))).ToArray();
+            turboCharge=CreateSource(names[0],95,data[0]);
+            turboLow=CreateSource(names[1],90,data[1]);turboLow.loop=false;
+            turboHigh=CreateSource(names[2],90,data[2]);turboHigh.loop=false;
+            log("350Z turbo: local samples loaded; acoustic boost/event approximation enabled.");
+        }catch(Exception e){
+            for(int i=sources.Count-1;i>=firstSource;i--){UnityEngine.Object.Destroy(sources[i]);sources.RemoveAt(i);}
+            for(int i=clips.Count-1;i>=firstClip;i--){UnityEngine.Object.Destroy(clips[i]);clips.RemoveAt(i);}
+            turboCharge=turboLow=turboHigh=null;
+            log("350Z optional turbo clips rejected: "+e.Message);
+        }
+    }
+    AudioSource CreateSource(string name,int priority,WavData data=null) {
+        if(data==null)data=WavPcm16.Read(typeof(VehicleAudio).Assembly.GetManifestResourceStream("Rachel350Z.Audio."+name));
         var clip=AudioClip.Create("350Z_"+name,data.Samples.Length/data.Channels,data.Channels,data.SampleRate,false);
         clips.Add(clip);
         if(!clip.SetData(data.Samples,0))throw new InvalidOperationException("Could not load audio: "+name);
@@ -55,8 +80,9 @@ public sealed class VehicleAudio : IDisposable {
         float dt=Mathf.Min(Time.unscaledDeltaTime,.1f);
         float forward=Vector3.Dot(body.linearVelocity,body.transform.forward),speed=body.linearVelocity.magnitude;
         float wheelRpm=(Mathf.Abs(wheels[2].rpm)+Mathf.Abs(wheels[3].rpm))*.5f;
-        model.Step(dt,driving,forward,wheelRpm,throttle,braking);
-        if(model.Level>.001f && !playing){foreach(var source in sources)source.Play();playing=true;}
+        model.Step(dt,driving,forward,wheelRpm,throttle,braking,terrain);
+        turboModel.Step(dt,driving,model.Rpm,braking?0:Mathf.Max(0,throttle),model.IsShifting,model.Gear<0);
+        if(model.Level>.001f && !playing){foreach(var source in sources)if(source.loop)source.Play();playing=true;}
         else if(model.Level<=.001f && playing){foreach(var source in sources)source.Stop();playing=false;}
         if(!playing)return;
         volume=Mathf.Clamp01(volume);
@@ -82,6 +108,16 @@ public sealed class VehicleAudio : IDisposable {
         road.volume=volume*model.Level*roadLevel*.24f;road.pitch=Mathf.Lerp(.8f,1.4f,Mathf.Clamp01(speed/25));
         skid.volume=volume*model.Level*skidLevel*(terrain?.18f:.48f);skid.pitch=1;
         horn.volume=volume*model.Level*hornLevel*.8f;
+        if(turboCharge!=null) {
+            turboCharge.volume=volume*model.Level*turboModel.Charge*.24f;
+            turboCharge.pitch=Mathf.Lerp(.85f,1.2f,turboModel.Charge);
+            if(turboLow!=null)turboLow.volume=volume*model.Level*.55f;
+            if(turboHigh!=null)turboHigh.volume=volume*model.Level*.7f;
+            if(turboModel.BlowOff!=0) {
+                var source=turboModel.BlowOff==2?turboHigh:turboLow;
+                if(source!=null){source.Stop();source.Play();}
+            }
+        }
     }
     public void Dispose() {
         if(disposed)return;disposed=true;

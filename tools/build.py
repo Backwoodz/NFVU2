@@ -5,7 +5,7 @@ from build_support import standard_refs,compile_cs
 def build():
     game=valheim_dir();managed=game/'valheim_Data/Managed'
     refs=standard_refs()
-    for name in ('UnityEngine','UnityEngine.CoreModule','UnityEngine.PhysicsModule','UnityEngine.VehiclesModule','UnityEngine.InputLegacyModule','UnityEngine.IMGUIModule','UnityEngine.AudioModule','Newtonsoft.Json'):
+    for name in ('UnityEngine','UnityEngine.CoreModule','UnityEngine.PhysicsModule','UnityEngine.VehiclesModule','UnityEngine.InputLegacyModule','UnityEngine.IMGUIModule','UnityEngine.AudioModule','UnityEngine.UnityWebRequestModule','UnityEngine.UnityWebRequestAudioModule','UnityEngine.TextRenderingModule','Newtonsoft.Json'):
         refs.append(managed/(name+'.dll'))
     refs.append(game/'BepInEx/core/BepInEx.dll')
     missing=[str(p) for p in refs if not p.exists()]
@@ -17,6 +17,9 @@ def build():
     output=OUTPUT/'mod/Rachel350Z.dll'
     compile_cs(output,sorted((BASE/'src').glob('*.cs')),refs,audio,library=True)
     shutil.copy2(model,output.parent/'body.json')
+    # Long stereo songs and optional original turbo clips stay external.
+    from mod_files import sync_optional_assets
+    sync_optional_assets(LOCAL,output.parent)
     print('Built:',output)
     return output
 

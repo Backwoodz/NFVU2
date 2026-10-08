@@ -4,6 +4,48 @@ using UnityEngine;
 
 namespace Rachel350Z {
 public static class VehicleMaterials {
+    public static void SetEmission(Material material, Color color) {
+        if (material.HasColor("_EmissionColor")) {
+            material.EnableKeyword("_EMISSION");
+            material.SetColor("_EmissionColor", color);
+            // Imported materials start with a black emission map.
+            if (material.HasTexture("_EmissionMap")) material.SetTexture("_EmissionMap", Texture2D.whiteTexture);
+        }
+    }
+    public static Texture2D CreateEffectTexture(ModelTexture data) {
+        var texture = new Texture2D(data.width, data.height, TextureFormat.RGBA32, false) {
+            name = data.name + "_Effect", wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear
+        };
+        try {
+            var pixels = new byte[data.rgba.Length]; int stride = data.width * 4;
+            for (int row = 0; row < data.height; row++) Array.Copy(data.rgba, row * stride, pixels, (data.height - 1 - row) * stride, stride);
+            // The original neon mask is opaque black outside its white pools.
+            // Use luminance as alpha too, for transparent-shader fallback.
+            int peak = 1;
+            for (int i = 0; i < pixels.Length; i += 4) peak = Math.Max(peak, Math.Max(pixels[i], Math.Max(pixels[i + 1], pixels[i + 2])));
+            for (int i = 0; i < pixels.Length; i += 4) {
+                byte mask = (byte)(255 * Math.Max(pixels[i], Math.Max(pixels[i + 1], pixels[i + 2])) / peak);
+                pixels[i] = pixels[i + 1] = pixels[i + 2] = mask; pixels[i + 3] = mask;
+            }
+            texture.SetPixelData<byte>(pixels, 0); texture.Apply(false, true); return texture;
+        } catch { UnityEngine.Object.Destroy(texture); throw; }
+    }
+    public static Material CreateGlowMaterial(Texture2D texture) {
+        var shader = Resources.FindObjectsOfTypeAll<Material>()
+            .Where(m => m != null && m.shader != null && m.shader.isSupported && m.HasTexture("_MainTex") &&
+                m.shader.name.IndexOf("additive", StringComparison.OrdinalIgnoreCase) >= 0 &&
+                m.shader.name.IndexOf("particle", StringComparison.OrdinalIgnoreCase) >= 0)
+            .Select(m => m.shader).FirstOrDefault();
+        if (shader == null) foreach (var name in new[] { "Legacy Shaders/Particles/Additive", "Particles/Additive", "Unlit/Transparent", "Sprites/Default" }) {
+            var candidate = Shader.Find(name); if (candidate != null && candidate.isSupported) { shader = candidate; break; }
+        }
+        if (shader == null) throw new InvalidOperationException("No supported textured glow shader loaded");
+        var material = new Material(shader) { name = "350Z_NeonMask", renderQueue = 3000 };
+        material.SetTexture("_MainTex", texture);
+        if (material.HasFloat("_ZWrite")) material.SetFloat("_ZWrite", 0);
+        if (material.HasFloat("_Cull")) material.SetFloat("_Cull", 0);
+        return material;
+    }
     public static Material[] CreateForModel(MonoBehaviour local, ModelData model, Action<string> log, out Texture2D[] textures) {
         textures = new Texture2D[model.textures.Length];
         var templates = Create(local, log);

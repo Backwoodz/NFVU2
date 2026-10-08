@@ -7,8 +7,10 @@ public sealed class ModelData {
     public int schemaVersion; public string preset;
     public float wheelVisualLift, frontWheelVisualOffset, rearWheelVisualOffset;
     public ModelPart[] parts; public ModelMaterial[] materials; public ModelTexture[] textures;
+    public ModelLight[] lights; public int neonTexture = -1;
 }
-public sealed class ModelPart { public string name, group; public int material; public ModelVertex[] vertices, normals; public ModelUV[] uv; public int[] indices; }
+public sealed class ModelPart { public string name, group, lightRole; public bool rotatesWithWheel; public int material; public ModelVertex[] vertices, normals; public ModelUV[] uv; public int[] indices; }
+public sealed class ModelLight { public string role; public ModelVertex position, direction; }
 public struct ModelVertex { public float x, y, z; }
 public struct ModelUV { public float u, v; }
 public sealed class ModelMaterial { public string name; public float[] color; public float metallic, smoothness; public int texture; }
@@ -41,6 +43,16 @@ public static class ModelFile {
                     !Unit(material.metallic) || !Unit(material.smoothness)) throw new InvalidDataException("Invalid material");
                 foreach (var c in material.color) if (!Unit(c)) throw new InvalidDataException("Invalid material color");
             }
+            if (model.neonTexture < -1 || model.neonTexture >= model.textures.Length) throw new InvalidDataException("Invalid neon texture");
+            if (model.lights != null) {
+                if (model.lights.Length > 16) throw new InvalidDataException("Too many vehicle lights");
+                foreach (var light in model.lights) {
+                    if (light == null || (light.role != "headlight" && light.role != "taillight" && light.role != "plate" && light.role != "reverse") ||
+                        !ValidVector(light.position) || !ValidVector(light.direction)) throw new InvalidDataException("Invalid vehicle light");
+                    var d = light.direction;
+                    if (d.x*d.x+d.y*d.y+d.z*d.z < .001f) throw new InvalidDataException("Zero light direction");
+                }
+            }
         }
         foreach (var part in model.parts) {
             if (part == null || string.IsNullOrWhiteSpace(part.name) || part.vertices == null ||
@@ -54,6 +66,9 @@ public static class ModelFile {
                 if (index < 0 || index >= part.vertices.Length)
                     throw new InvalidDataException("350Z model has an out-of-range triangle index: " + part.name);
             if (model.schemaVersion == 2) {
+                if (part.rotatesWithWheel && part.group != "brake") throw new InvalidDataException("Only brake rotors may opt into wheel rotation");
+                if (!string.IsNullOrEmpty(part.lightRole) && part.lightRole != "headlight" && part.lightRole != "taillight" && part.lightRole != "brakelight" && part.lightRole != "reverse")
+                    throw new InvalidDataException("Invalid light surface role");
                 if (part.material < 0 || part.material >= model.materials.Length ||
                     (part.group != "body" && part.group != "wheel" && part.group != "brake") ||
                     part.uv == null || part.uv.Length != part.vertices.Length || part.normals == null || part.normals.Length != part.vertices.Length)
@@ -64,6 +79,7 @@ public static class ModelFile {
         }
         return model;
     }
+    static bool ValidVector(ModelVertex v) => ValidCoordinate(v.x) && ValidCoordinate(v.y) && ValidCoordinate(v.z);
     static bool ValidCoordinate(float value) => !float.IsNaN(value) && !float.IsInfinity(value) && Math.Abs(value) <= 100f;
     static bool Unit(float value) => ValidCoordinate(value) && value >= 0 && value <= 1;
 }
