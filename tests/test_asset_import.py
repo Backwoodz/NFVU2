@@ -79,14 +79,25 @@ class AssetImportTests(unittest.TestCase):
         parts=parse(LOCAL/'nfs-assets/CARS/350Z/GEOMETRY.BIN')
         tail=next(p for p in parts if p['key']==bin_hash('350Z_STYLE04_BRAKELIGHT_A'))
         sections=[entry for s in tail['slices'] if s['materialKey']==0x33a26cb6 for entry in rear_lens_sections(tail,'350Z_STYLE04_BRAKELIGHT',s)]
-        self.assertEqual([role for _,role in sections],['rear_amber_trim']*2)
-        self.assertEqual([len(s['indices'])//3 for s,_ in sections],[5,5])
+        self.assertEqual([role for _,role in sections],['rear_amber_trim','rear_lens_detail']*2)
+        self.assertEqual([len(s['indices'])//3 for s,_ in sections],[5,6,5,6])
         body=next(p for p in parts if p['key']==bin_hash('350Z_KITW02_BODY_A'))
         sections=[entry for s in body['slices'] if s['materialKey']==0x33a26cb6 for entry in rear_lens_sections(body,'350Z_KITW02_BODY',s)]
         self.assertEqual(sum(role=='reverse' for _,role in sections),2)
         self.assertEqual(sum(role=='rear_amber_trim' for _,role in sections),2)
         self.assertEqual(sum(len(s['indices'])//3 for s,_ in sections),12)
         self.assertTrue(all(body['vertices'][i][0]<-1.8 for s,_ in sections for i in s['indices']))
+
+    def test_upper_rear_lens_inserts_have_no_missing_or_duplicated_triangles(self):
+        tail=next(p for p in parse(LOCAL/'nfs-assets/CARS/350Z/GEOMETRY.BIN') if p['key']==bin_hash('350Z_STYLE04_BRAKELIGHT_A'))
+        for source in tail['slices']:
+            if source['materialKey']!=0x33a26cb6:continue
+            sections=rear_lens_sections(tail,'350Z_STYLE04_BRAKELIGHT',source)
+            triangles=lambda ids:[tuple(ids[i:i+3]) for i in range(0,len(ids),3)]
+            self.assertCountEqual(triangles(source['indices']),[t for s,_ in sections for t in triangles(s['indices'])])
+            upper=next(s for s,role in sections if role=='rear_lens_detail')
+            self.assertGreater(min(tail['vertices'][i][2] for i in upper['indices']),.62)
+            self.assertEqual(upper['textureKey'],source['textureKey'])
 
     def test_original_plate_and_neon_are_decodable(self):
         global_pack=TexturePack(LOCAL/'global-decompressed.bin')

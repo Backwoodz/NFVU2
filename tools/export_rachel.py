@@ -114,12 +114,17 @@ def sport_brake_geometry(part):
 
 
 def rear_lens_sections(part,family,section):
-    """Restore only identified lower lenses, not entire clear headlamp covers."""
+    """Keep the complete opaque rear lens inserts, without clear outer covers."""
     if section['materialKey']!=0x33a26cb6:return [(section,'')]
     triangles=[section['indices'][i:i+3] for i in range(0,len(section['indices']),3)]
     if family=='350Z_STYLE04_BRAKELIGHT':
-        ids=[i for tri in triangles if max(part['vertices'][j][2] for j in tri)<.62 for i in tri]
-        return [({**section,'indices':ids},'rear_amber_trim')] if ids else []
+        # This material contains both the lower amber strip and the upper
+        # reflector surround. Dropping the latter opens holes into the trunk.
+        result=[]
+        for lower,role in ((True,'rear_amber_trim'),(False,'rear_lens_detail')):
+            ids=[i for tri in triangles if (max(part['vertices'][j][2] for j in tri)<.62)==lower for i in tri]
+            if ids:result.append(({**section,'indices':ids},role))
+        return result
     if family=='350Z_KITW02_BODY':
         result=[]
         for side in (-1,1):
@@ -354,7 +359,7 @@ def main():
                     'interior':'simplified original BASE/DOOR_PANEL/DOOR_SILL geometry; full detailed cockpit not present in imported car meshes',
                     'neon':'NFVU2 light strips, point light, tint and visual pulse; not original neon geometry or beat analysis',
                     'defaults':'NFVU2 choice: KIT02 with four SPEAKER1 subwoofers; not asserted to be Rachel preset equipment'},
-        'rearLenses':{'upperStrip':'original STYLE04 amber textured trim; passive','bumper':'original lens triangles split into inner reverse and outer amber, split inferred from stock layout; not recovered NFS atlas mapping'},
+        'rearLenses':{'upperHousing':'complete original STYLE04 opaque lens inserts including upper reflector surrounds; clear outer covers still omitted','upperStrip':'original STYLE04 amber textured trim; passive','bumper':'original lens triangles split into inner reverse and outer amber, split inferred from stock layout; not recovered NFS atlas mapping'},
         'sportBrakes':{'source':'BRAKE_STYLE03_A + original BRAKE_STYLE03 rotor atlas','adaptation':'38cm round opaque rotor replaces alpha-masked square; original caliper geometry painted red; visual only'},
         'wheelFinish':{'source':'original RACINGHART_STYLE07 geometry; its shared wheel material split at existing radial loops','adaptation':'chrome-coloured outer ring, gold-bronze star; reduced metallic plus subtle runtime ambient fill for Valheim'},
         'nitroEffects':{'textures':'original InGameCommon SFX_FIREB and SFX_SMOKE_B_CS; runtime tint/animation adapted','exhaust':'four original STYLE08 mouth-loop centres, offset 6mm outward','purge':'mod-authored bumper pair and measured hood surface pair; original nozzle sockets not identified'},

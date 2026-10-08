@@ -1,5 +1,13 @@
 # Nächste Aufgaben
 
+## Rückleuchten-Korrektur in 0.7.1
+
+Die oberen STYLE04-Einsätze waren im Import ausgelassen und sind wieder
+enthalten. Beide Seiten mit offenem/geschlossenem Kofferraum und aktivem
+Neon im Spiel prüfen: kein Durchblick durch die Leuchten; untere orange
+Streifen sowie Rück-/Brems-/Rückfahrlicht weiterhin korrekt.
+Originalgeometrie und externe Vorschau geprüft; Unity-Spieltest offen.
+
 ## Kofferraumausbau, Türen und Motorraum in 0.7.0
 
 Umgesetzt: vier originale Kofferraumgehäuse, Auswahl pro Einbauplatz,

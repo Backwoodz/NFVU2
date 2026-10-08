@@ -1,5 +1,16 @@
 # Versionsgeschichte
 
+## 0.7.1 — Fehlende obere Rückleuchten-Einsätze
+
+Der Import hat vom geteilten STYLE04-Leuchtenmaterial nur die unteren
+orangefarbenen Streifen übernommen. Die sechs oberen Dreiecke je Seite
+fehlten; dadurch war Kofferraum-Neon durch die Rückleuchten sichtbar.
+Beide oberen Einsätze werden jetzt mit Originalgeometrie und Originaltextur
+übernommen. Die separat modellierten klaren Außenabdeckungen bleiben offen.
+Neonposition, Lichtsteuerung und Fahrverhalten bleiben unverändert.
+Regression prüft den vollständigen, duplikatfreien Erhalt der Dreiecke.
+Blender-Vorschau geprüft; die Darstellung in Valheim noch bestätigen.
+
 ## 0.7.0 — Kofferraumausbauten, Türanimationen und Motorraum
 
 F9 → Ausbau: Serie und drei originale 350Z-Gehäuse mit 2/4/6 Plätzen.
