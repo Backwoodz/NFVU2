@@ -9,9 +9,10 @@ public sealed class WavData {
 public static class WavPcm16 {
     // Read the bounded PCM16 resources bundled with this plugin, without a
     // web request or dependence on platform audio-file decoders.
-    public static WavData Read(Stream stream) {
+    public static WavData Read(Stream stream,int maxSeconds=15) {
         if(stream==null)throw new InvalidDataException("Missing embedded audio resource");
         using(var r=new BinaryReader(stream)) {
+            if(maxSeconds<1||maxSeconds>60)throw new InvalidDataException("Invalid WAV duration limit");
             if(!stream.CanSeek || stream.Length<44 || stream.Length>16000000)throw new InvalidDataException("Invalid WAV size");
             if(r.ReadUInt32()!=0x46464952)throw new InvalidDataException("Missing RIFF header");
             long end=8L+r.ReadUInt32();
@@ -31,7 +32,7 @@ public static class WavPcm16 {
                 }
                 stream.Position=next;
             }
-            if(rate==0 || pcm==null || pcm.Length<align || pcm.Length%align!=0 || pcm.Length>rate*align*15)
+            if(rate==0 || pcm==null || pcm.Length<align || pcm.Length%align!=0 || pcm.Length>rate*align*maxSeconds)
                 throw new InvalidDataException("Invalid WAV samples");
             var samples=new float[pcm.Length/2];
             for(int i=0;i<samples.Length;i++)samples[i]=(short)(pcm[2*i]|pcm[2*i+1]<<8)/32768f;

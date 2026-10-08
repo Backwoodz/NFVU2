@@ -91,3 +91,11 @@ Die Originalaufnahmen sind anhand ihrer 350Z-Dateinamen ausgewählt.
 Die Datei 350Z-Soundvorschau.wav zeigt eine extern berechnete Fahrt:
 Leerlauf, Beschleunigen mit Schalten, Gaswegnehmen, Hupe und Ausblenden.
 Sie ist keine Aufnahme aus dem Spiel.
+
+RUST-TURRET (0.9.0, optional)
+Aus der eigenen Rust-Installation: ak47-gunshot-body-01 bis -03,
+ak47-gunshot-tail-outdoor-01, autoturret-movement-loop,
+autoturret-reload-full und autoturret-turn-on.
+UnityPy exportiert die Originalsamples; Mono-Downmix für räumliche Quellen.
+Schussrhythmus, Nachladezeit und Lautstärken sind NFVU2-Anpassungen.
+Seit 0.10.0 zusätzlich `explosive-ammo-close` aus Rust für Explosivtreffer.

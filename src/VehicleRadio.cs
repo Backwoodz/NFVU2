@@ -22,6 +22,10 @@ public sealed class VehicleRadio : IDisposable {
     int loadedRevision=-1,loadingRevision=-1;
     bool disposed,sourcePaused,started;
     float gain,startedAt,outsideBlend;
+    RadioBassTap bassTap;
+    readonly BassMotion bassMotion=new BassMotion();
+    int bassSequence;float bassStale;
+    public float SubwooferOffset=>bassMotion.Offset;
     public int Count {get{return titles.Length;}}
     public int CurrentIndex {get{return state==null?-1:state.Index;}}
     public string CurrentTitle {get{return CurrentIndex>=0?titles[CurrentIndex]:"Keine Musik verfügbar";}}
@@ -42,6 +46,7 @@ public sealed class VehicleRadio : IDisposable {
         source.spatialBlend=0;source.dopplerLevel=0;source.volume=0;source.priority=128;
         source.minDistance=2;source.maxDistance=28;source.rolloffMode=AudioRolloffMode.Linear;
         cabinFilter=root.AddComponent<AudioLowPassFilter>();cabinFilter.cutoffFrequency=22000;
+        bassTap=root.AddComponent<RadioBassTap>();bassTap.SampleRate=AudioSettings.outputSampleRate;
         musicDucking=new ValheimMusicDucking(log);
         Status=Count>0?"Bereit":"Keine Musik importiert";
         log("350Z radio ready: "+Count+" local tracks (streamed stereo).");
@@ -57,6 +62,13 @@ public sealed class VehicleRadio : IDisposable {
                      float leftDoorOpen=0,float rightDoorOpen=0,float hatchOpen=0) {
         UpdatePlayback(driving,blocked,volume,enabled,parkedRunning,leftDoorOpen,rightDoorOpen,hatchOpen);
         if(!disposed)musicDucking.Tick(driving&&source!=null&&source.isPlaying&&source.volume>.001f&&!blocked);
+        if(!disposed&&bassTap!=null) {
+            float dt=Mathf.Min(Time.unscaledDeltaTime,.1f);
+            bassTap.SampleRate=AudioSettings.outputSampleRate;
+            int sequence=bassTap.Sequence;bassStale=sequence!=bassSequence?0:bassStale+dt;bassSequence=sequence;
+            bool playing=enabled&&(driving||parkedRunning)&&!blocked&&!Paused&&source!=null&&source.isPlaying&&volume>.001f&&bassStale<.2f;
+            bassMotion.Step(dt,bassTap.Energy*Mathf.Clamp01(volume),playing);
+        }
     }
     void UpdatePlayback(bool driving,bool blocked,float volume,bool enabled,bool parkedRunning,
                         float leftDoorOpen,float rightDoorOpen,float hatchOpen) {
@@ -113,6 +125,7 @@ public sealed class VehicleRadio : IDisposable {
         if(request!=null){request.Abort();request.Dispose();request=null;}
     }
     void ReleaseClip() {
+        bassMotion.Reset();bassStale=1;if(bassTap!=null)bassTap.ResetRequested=true;
         if(source!=null){source.Stop();source.clip=null;}
         if(clip!=null)UnityEngine.Object.Destroy(clip);
         clip=null;loadedRevision=-1;started=false;sourcePaused=false;

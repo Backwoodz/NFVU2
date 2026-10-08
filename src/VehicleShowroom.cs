@@ -12,6 +12,7 @@ public sealed class VehicleShowroom : IDisposable {
     readonly Func<ModelPart,Transform,Transform> create;
     readonly Transform[] moving=new Transform[4];
     readonly List<GameObject> equipment=new List<GameObject>();
+    readonly List<SubwooferVisual>[] woofers=new List<SubwooferVisual>[6];
     readonly List<Renderer> strips=new List<Renderer>();
     readonly List<Material> ownedMaterials=new List<Material>();
     readonly Dictionary<string,ModelAnimation> animations;
@@ -68,13 +69,20 @@ public sealed class VehicleShowroom : IDisposable {
             int choice=i<sockets.Length?Mathf.Clamp(options[i],0,Choices(layout,i).Length-1):-1;
             if(!newLayout&&selected[i]==choice)continue;
             selected[i]=choice;
+            if(woofers[i]!=null){foreach(var woofer in woofers[i])woofer.Dispose();woofers[i]=null;}
             while(equipment.Count<=i)equipment.Add(null);
             if(equipment[i]!=null){equipment[i].SetActive(false);UnityEngine.Object.Destroy(equipment[i]);equipment[i]=null;}
             if(choice<0)continue;
             var component=Choices(layout,i)[choice];var socket=sockets[i];
             var root=new GameObject("350Z_AudioSlot"+i);root.transform.SetParent(equipmentRoot,false);
             root.transform.localPosition=V(socket.position);root.transform.localRotation=Quaternion.LookRotation(V(socket.forward),V(socket.up));equipment[i]=root;
-            foreach(var part in model.parts.Where(p=>p.group=="audio"&&p.option==component.id))create(part,root.transform);
+            var parts=model.parts.Where(p=>p.group=="audio"&&p.option==component.id).ToArray();
+            float radius=component.kind=="speaker"?parts.SelectMany(p=>p.vertices).Max(v=>Mathf.Max(Mathf.Abs(v.x),Mathf.Abs(v.y))):0;
+            if(radius>0)woofers[i]=new List<SubwooferVisual>();
+            foreach(var part in parts) {
+                var node=create(part,root.transform);
+                if(radius>0)woofers[i].Add(new SubwooferVisual(node,part,radius));
+            }
         }
     }
     public void Tick(float dt,bool movingCar,int doorStyle,bool powered,bool neonEnabled,bool pulsing,Color color) {
@@ -99,8 +107,12 @@ public sealed class VehicleShowroom : IDisposable {
         trunkLight.enabled=active&&State.Progress[3]>.01f;trunkLight.color=color;trunkLight.intensity=gain*State.Progress[3]*1.4f;
     }
     static Vector3 V(ModelVertex v)=>new Vector3(v.x,v.y,v.z);
+    public void TickSubwoofers(float offset) {
+        foreach(var slot in woofers)if(slot!=null)foreach(var woofer in slot)woofer.Tick(offset);
+    }
     static Quaternion Q(ModelRotation q)=>new Quaternion(q.x,q.y,q.z,q.w);
     public void Dispose() {
+        foreach(var slot in woofers)if(slot!=null)foreach(var woofer in slot)woofer.Dispose();
         // Meshes/materials of imported parts belong to Plugin, as before.
         foreach(var root in moving)if(root!=null){root.localPosition=Vector3.zero;root.localRotation=Quaternion.identity;}
         foreach(var material in ownedMaterials)if(material!=null)UnityEngine.Object.Destroy(material);

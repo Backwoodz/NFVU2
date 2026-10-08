@@ -58,3 +58,23 @@
 Externe Bibliotheken und Werkzeuge behalten ihre jeweiligen Lizenzen. Sie werden
 hier nicht als Quellcode oder Binärdateien mitgeliefert. Die Originalspielinhalte
 werden aus den lokalen Dateien des Nutzers aufbereitet.
+
+Rust-Import in 0.9.0: [UnityPy 1.25.4](https://github.com/K0lb3/UnityPy) zum
+Lesen der lokal installierten Unity-Objekte, Meshkanäle, Texturen und Audioclips.
+Quellprefabs: `assets/prefabs/npc/autoturret/autoturret_deployed.prefab` und
+`assets/prefabs/weapons/ak47u/ak47u.worldmodel.prefab`. Der Import übernimmt
+LOD0 und Haupttexturen, keine Rust-Assemblies. WAVs werden für räumliche
+Wiedergabe nach Mono gemischt. Die konkrete Assetliste und Anpassungen stehen
+zusätzlich in der ignorierten `.local/turret/provenance.json`.
+
+0.10.0 ergänzt `assets/prefabs/weapon mods/lasersight/lasersight.entity.prefab`
+und den Clip `explosive-ammo-close`. Montagesitz und Strahldarstellung sind
+eigene Anpassungen. Valheims Terrain-API (`TerrainComp.DoOperation`,
+`Heightmap.GetAndCreateTerrainCompiler`) wurde in der lokal installierten
+Assembly mit ILSpyCmd 8.2 gelesen. Die Mod nutzt deren Speichern, Gras- und
+Mesh-Neuberechnung; dekompilierte Spielquellen bleiben ausschließlich in `.local/`.
+
+Subwoofer in 0.11.0: [Unity OnAudioFilterRead](https://docs.unity3d.com/6000.0/Documentation/ScriptReference/MonoBehaviour.OnAudioFilterRead.html)
+für die Analyse der interleavten Samples auf dem Audiothread. Der Callback
+ändert keine Samples und ruft keine Unity-API auf; Basshüllkurve und
+Membranverformung sind eigene NFVU2-Implementierungen.

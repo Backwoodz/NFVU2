@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Rachel350Z {
 // Disposable local prototype. No ZNetView: never use in multiplayer or persist into saves.
-[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.8.0")]
+[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.11.0")]
 public partial class Plugin : BaseUnityPlugin {
     GameObject car; Rigidbody body; WheelCollider[] wheels; Transform[] visuals;
     Material[] vehicleMaterials;
@@ -147,6 +147,7 @@ public partial class Plugin : BaseUnityPlugin {
         try {vehicleNeon=VehicleNeon.Create(car,model,message=>Logger.LogInfo(message));}
         catch(Exception e){Logger.LogWarning("350Z neon unavailable: "+e);}
         ApplyNeonSettings();
+        SpawnTurret(local);
         vehicleRadio=VehicleRadio.Create(this,car,message=>Logger.LogWarning(message));
         if(model.animations!=null) {
             showroom=new VehicleShowroom(car,model,(part,parent)=>AddVisual(part,parent,model,paint,dark),dark);
@@ -207,7 +208,8 @@ public partial class Plugin : BaseUnityPlugin {
         if(wheels!=null && visuals!=null)for(int i=0;i<4;i++)if(wheels[i]!=null && visuals[i]!=null){
             UpdateWheelVisual(i);
         }
-        if(driving)orbitCamera.LateFrame(body.linearVelocity,dynamicCamera.Value,cameraFollow.Value,audioBlocked||menuOpen);
+        if(driving)orbitCamera.LateFrame(body.linearVelocity,dynamicCamera.Value,cameraFollow.Value,audioBlocked||menuOpen,turret!=null&&turretEnabled.Value);
+        TickTurret();
         if(vehicleLighting!=null)try {
             vehicleLighting.SetHeadlights(headlightPreset.Value,headlightStrength.Value);
             float speed=Vector3.Dot(body.linearVelocity,car.transform.forward);
@@ -222,6 +224,8 @@ public partial class Plugin : BaseUnityPlugin {
                 showroom?.State.Progress[1]??0,showroom?.State.Progress[0]??0,showroom?.State.Progress[3]??0);
         }
         catch(Exception e){vehicleRadio.Dispose();vehicleRadio=null;Logger.LogWarning("350Z radio disabled: "+e);}
+        if(showroom!=null)try {showroom.TickSubwoofers(vehicleRadio?.SubwooferOffset??0);}
+        catch(Exception e){showroom.Dispose();showroom=null;Logger.LogWarning("350Z subwoofer visuals disabled: "+e);}
         if(vehicleAudio!=null)try {
             vehicleAudio.Tick(driving,throttle,brake>0||burnoutHeld&&!burnout,honking,audioBlocked,terrainMode.Value,soundVolume.Value,burnout,ParkedRunning);
         } catch(Exception e) {
@@ -241,6 +245,7 @@ public partial class Plugin : BaseUnityPlugin {
         catch(Exception e){effectsAudio.Dispose();effectsAudio=null;Logger.LogWarning("350Z effect sounds disabled: "+e);}
     }
     void Exit() {
+        RestoreGameCrosshair();
         CloseVehicleMenu();
         driving=false;throttle=steer=0;brake=1;honking=false;burnoutHeld=false;
         vehicleImpact?.Step(null,false);
@@ -255,7 +260,9 @@ public partial class Plugin : BaseUnityPlugin {
         player=null;gameCamera=null;status="F6: 350Z erstellen | F7: einsteigen | F8: entfernen";
     }
     void Cleanup(){
+        RestoreGameCrosshair();
         CloseVehicleMenu();
+        turret?.Dispose();turret=null;
         dashboard?.Dispose();dashboard=null;
         showroom?.Dispose();showroom=null;audioMeshes.Clear();
         burnoutHeld=false;burnoutEffects?.Dispose();burnoutEffects=null;

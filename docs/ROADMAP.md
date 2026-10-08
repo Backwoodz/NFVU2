@@ -1,5 +1,55 @@
 # Nächste Aufgaben
 
+## Laser und Subwoofer in 0.11.0
+
+- Laser bei Tag/Nacht prüfen: Standardstärke 200 Prozent, Bereich 25–400,
+  Farbvorlagen und freie RGB-Werte, Speichern, Ausschalten, Wandabschattung.
+- Musik mit Bass bei offener Heckklappe: Membran schwingt, Rand/Gehäuse bleiben
+  fest; vier Subwoofer-Modelle und alle Slotgrößen/Ausbauten durchwechseln.
+- Pause, Titelwechsel, Radio aus, Lautstärke null, Fokusverlust, Ein-/Ausstieg
+  und Weiterlaufen prüfen; bei fehlender/ladender Musik keine Dauerbewegung.
+- Anlage mehrfach umbauen und Fahrzeug neu spawnen: keine fremden Meshänderungen
+  und keine zurückbleibenden animierten Meshkopien.
+- Signaltests prüfen Bass/Treble, Stereo und Stillstand. DSP-Callback, sichtbarer
+  Hub und Shaderhelligkeit benötigen zusätzlich den Unity-Spieltest.
+
+## Laser und Explosivmunition in 0.10.0
+
+- Zielvisier oberhalb des Autos bei Zoom, Rundumblick, steilem Blick nach unten,
+  Hanglage und Kamerahindernissen prüfen; orange bei verdecktem/noch nachlaufendem Lauf.
+- Lasermodell, roter Strahl und Punkt mit Rückstoß sowie Menüschalter prüfen.
+- Normal/Explosiv im Menü wechseln, Nachladen und Maustastensperre beibehalten.
+- Explosionen an Gegnern/Deckung, Lautstärke und viele Treffer hintereinander testen.
+- Boden direkt treffen: kleine Senke bei jedem Treffer, weitere Vertiefung,
+  Grasentfernung, Kachelgrenzen, Kollision und Erhalt nach Welt-Neuladen prüfen.
+- Fels-/Wand-/Gegnertreffer dürfen den Boden darunter nicht verändern.
+- Terrain-API lokal geprüft; Adaptertests ersetzen keinen Unity-Spieltest.
+- Keine Löcher/Tunnel unter überhängendem Terrain: Valheim verändert ein Höhenfeld.
+
+## Zielmarkierung und Montage in 0.9.1
+
+- Fadenkreuz auf dem tatsächlichen Auftreffpunkt bei freiem Blick, Hindernissen,
+  Kameradrehung, Zoom, Kurven und Neigegrenzen prüfen; keine feste Zusatzmarkierung.
+- Tiefer/hinten versetzte Stützen auf dem Dach im Spiel von allen Seiten prüfen.
+- Munitionsanzeige links unten mit ein-/ausgeschaltetem Tacho prüfen.
+
+## Dach-Turret in 0.9.0
+
+- F9 → Turret: Aktivierung neben/im Auto, gespeicherter Zustand, Entfernen und
+  erneutes Spawnen; Dachposition und Materialien bei Tag/Nacht prüfen.
+- Kamera rundum und in der Höhe drehen; Neigegrenzen, Nachlauf, Zielpunkt
+  und orange Markierung bei vom eigenen Fahrzeug blockiertem Lauf prüfen.
+- RMB: Einzelschüsse, Dauerfeuer, 30 Schuss, 2,5 s automatisches Nachladen,
+  Schuss-/Nachlade-/Servosounds und separate Lautstärke prüfen.
+- Gegner vor/hinter Fels oder Gebäude: nur erster Festkörper zählt; keine
+  Schäden an Spielern, gezähmten Tieren oder Bauwerken. Eigenes Auto blockiert.
+- Menü, Pause, Alt-Tab, Ausstieg und Wiedereinstieg mit gehaltener Maustaste:
+  kein Schuss bis nach Loslassen. Nitro links gleichzeitig prüfen.
+- Automatische Prüfungen und Blender-Vorschau ersetzen keinen Unity-Spieltest.
+  Original sind Meshes, Texturen, Gelenkpunkte und Samples; Waffenmontage,
+  Rückstoß, Mündungsfeuer, Treffer und Nachladen sind eigene Anpassungen.
+  Keine automatische Zielsuche, kein vollständiges Rust-Animationssystem.
+
 ## Tachos, Kamera und Drift in 0.8.0
 
 - Alle elf Designs, Farbe, Größen, KM/H/MPH und gespeicherte Auswahl prüfen.

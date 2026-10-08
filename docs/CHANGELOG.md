@@ -1,5 +1,79 @@
 # Versionsgeschichte
 
+## 0.11.0 — Kräftiger, einstellbarer Laser und bewegte Subwoofer
+
+Breiterer Laser mit hellem Kern und größerem Treffpunkt. Unter F9 → Turret →
+Laser einstellen: 25–400 Prozent Stärke (Standard 200), sieben Farbvorlagen
+und RGB-Regler. Farbe und Stärke werden gespeichert und gelten für Strahl
+und Punkt; Hindernisse stoppen den Laser weiterhin.
+
+Das Radio analysiert den Bassanteil der tatsächlich wiedergegebenen Samples
+ohne sie zu verändern. Getrennte Kanalanalyse vermeidet Auslöschung bei
+gegenphasigem Stereo. Die Basshüllkurve steuert eine sichtbare Membranschwingung
+bis 14 mm Hub in beide Richtungen. Gehäuse und Außenrand bleiben fest.
+Jeder Lautsprecherplatz besitzt eigene animierte Meshkopien; Verstärker und
+LCDs bewegen sich nicht. Gilt auch für das Radio nach dem Aussteigen.
+Pause, ausgeschaltetes Radio, Lautstärke null und ausbleibende Audiodaten
+lassen die Bewegung ausklingen; Titelwechsel setzt die Auslenkung zurück.
+Die Bewegung ist eine Bassvisualisierung, keine samplegenaue Lautsprechersimulation.
+
+## 0.10.0 — Freie Zielsicht, Rust-Laser und Explosivmunition
+
+Im Turret-Modus höherer Kameradrehpunkt, bei steilem Blick nach unten zusätzlich
+angehoben. Visier bei 62 Prozent der Bildhöhe über der unteren Bildschirmkante;
+der Lauf richtet sich auf den Weltpunkt dahinter aus. Orange zeigt Nachlauf,
+Neigegrenze oder blockierenden Fahrzeugrumpf. Normale Fahrkamera bei abgeschaltetem
+Turret unverändert. Munitionsart und Vorrat links unten.
+
+Originales Rust-Lasersight-Entity-Modell samt beiden Materialbereichen und
+Emitterpunkt lokal importiert und unter der AK montiert. Roter Strahl und
+Treffpunkt folgen dem Lauf und enden an Hindernissen; im Menü abschaltbar.
+F9 → Turret: Normal/Explosiv. Explosiv ergänzt den direkten Treffer um kleinen
+Flächenschaden gegen Gegner mit Entfernungsabfall und Deckungsprüfung sowie
+einen gepoolten Partikel-/Lichtblitz und Rusts `explosive-ammo-close`-Sound.
+
+Jeder direkte Bodentreffer mit Explosivmunition senkt eine runde Fläche von
+1,4 m Radius im Zentrum um bis zu 18 cm ab, entfernt Gras und speichert über
+Valheims Terrain-Compiler. Wiederholte Treffer graben weiter bis zum normalen
+Grablimit. Treffer auf Felsen, Gebäude oder Kreaturen graben nicht darunter.
+Krater bleiben in der Welt, auch nachdem das temporäre Auto entfernt wurde.
+Modelle/Samples original; Laserstrahl, Partikel, Wirkung und Krater sind NFVU2.
+Zusätzliche Tests für Terrain-Treffer, Kachelgrenzen, Besitzer und Wiederholung.
+
+## 0.9.1 — Zielmarkierung und Dachmontage korrigiert
+
+Das Geschütz folgt der Kamerablickrichtung vom Lauf aus. Der bisherige
+Bildschirmmittelpunkt zielte bei der Orbitkamera auf den Bereich des Autos.
+Ein einziges, kontrastreiches Fadenkreuz zeigt nun den projizierten tatsächlichen
+Auftreffpunkt; Nachlauf und Neigegrenzen bleiben sichtbar. Munition links unten.
+Valheims eigenes Mittelkreuz und Bogenvisier werden während der Turret-Steuerung
+ausgeblendet; beim Ausstieg, Abschalten und Entfernen wiederhergestellt.
+Turret um 20 cm nach hinten und 7,5 cm tiefer versetzt, damit die Stützen in
+der gekrümmten Dachfläche sitzen. Geometrievorschau aktualisiert.
+
+## 0.9.0 — Rust-AutoTurret mit AK auf dem Dach
+
+Neuer F9-Reiter „Turret“, standardmäßig ausgeschaltet, mit gespeichertem
+Ein-/Ausschalter und separater Lautstärke. Lokaler Import der originalen
+AutoTurret-/AK-Weltmodelle, fünf Diffustexturen und sieben Rust-Sounds.
+Originale Dreh-/Neigepunkte, AK aufrecht mit nach vorne gerichtetem Lauf;
+auf die Dachfläche skaliert. Das Abdeckblech der leeren Waffenaufnahme entfällt.
+
+Mausblick steuert Drehung und Neigung mit begrenztem Nachlauf. Zielmarkierung
+zeigt den tatsächlichen Auftreffpunkt. Rechte Maustaste hält Dauerfeuer:
+30 Schuss, 2,5 Sekunden Nachladen, unbegrenzte Reservemunition. Raycast bis
+150 m, 35 Stichschaden vor Valheims Widerständen an gegnerischen Kreaturen.
+Felsen, Gebäude und eigene Karosserie blockieren. Kein Beschuss von Spielern,
+gezähmten Tieren oder Bauwerken. Schussvarianten, Außennachhall, Servoloop,
+Aktivierungs- und Nachladegeräusche werden räumlich abgespielt.
+
+Eigene Rückstoßanimation, Mündungsfeuer, Lichtblitz und kurze Leuchtspur.
+Keine Übernahme von Rust-Skripten oder Charakteranimationen. Schießen nur
+am Fahrersitz; nach Fokusverlust, Menü oder Ausstieg ist Loslassen erforderlich.
+Fehlende/fehlerhafte optionale Assets deaktivieren nur den Turret. Fahrwerk,
+Nitro und bestehende Bedienung bleiben erhalten. Build und automatisierte
+Prüfungen sowie Blender-Geometrievorschau; Unity-Spieltest noch offen.
+
 ## 0.8.0 — NFS-Tachos, dynamische Kamera und Driftsetup
 
 Elf Original-Designs aus HUD_CustomTextures_00 bis 10 mit 7500-RPM-Skala und

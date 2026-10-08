@@ -1,4 +1,31 @@
-350Z-Prototyp 0.7.0 – lokaler Test für Valheim
+350Z-Prototyp 0.11.0 – lokaler Test für Valheim
+
+NEU: LASER UND SUBWOOFER
+F9 → Turret → Laser einstellen: Stärke von 25 bis 400 Prozent, Farbvorlagen
+oder eigene RGB-Farbe. Standardmäßig kräftigerer Strahl mit hellem Kern.
+Die Subwoofer-Membranen bewegen sich automatisch zum Bass des Radios.
+Zum Anschauen Heckklappe öffnen und Musik starten; auch draußen mit
+„Beim Aussteigen weiterlaufen lassen“. Bei Pause/Radio aus kommen sie zur Ruhe.
+
+NEU: RUST-TURRET
+F9 → Turret → „Rust AutoTurret mit AK auf dem Dach“ einschalten.
+Im Fahrersitz folgt das Geschütz dem Mausblick. Rechte Maustaste halten:
+Dauerfeuer, 30 Schuss, danach automatisches Nachladen. Vorrat unbegrenzt.
+Die Zielkamera liegt höher, das Fadenkreuz oberhalb des Autos.
+Der Lauf zielt auf den Weltpunkt hinter dem Visier. Orange bedeutet:
+Der Lauf richtet sich noch aus, ist an der Neigegrenze oder wird vom Auto verdeckt.
+Rust-Lasermodul im Turret-Menü ein-/ausschalten; Strahl und Punkt zeigen den Laufweg.
+Munition im selben Menü zwischen Normal und Explosiv wechseln, Vorrat links unten.
+Explosiv verursacht Flächenschaden an Gegnern und gräbt bei jedem direkten
+Bodentreffer eine kleine Mulde. Weitere Treffer vertiefen sie bis zum Grablimit.
+Die Krater bleiben in der Welt gespeichert. Wände und Felsen schützen den Boden
+dahinter; Schüsse darauf graben nicht durch diese Hindernisse.
+Gegner können getroffen werden; feste Hindernisse stoppen die Schüsse.
+Im Menü, bei Fokusverlust und außerhalb des Autos schießt das Geschütz nicht.
+Anschließend rechte Maustaste einmal loslassen, bevor erneut gefeuert wird.
+Lautstärke unter Turret; wirkt zusammen mit der Fahrzeug-Soundlautstärke.
+Originale Rust-Modelle und Sounds, für NFVU2 animierter Rückstoß und Effekte.
+Die neue Funktion benötigt noch einen Spieltest.
 
 Die Funktionen von 0.2.0 sind vom Nutzer grundsätzlich in Valheim bestätigt.
 Auch die Nachbesserungen von 0.2.1 wurden vom Nutzer in Valheim bestätigt.

@@ -13,6 +13,7 @@ public sealed class ModelData {
     public ModelAnimation[] animations;
     public ModelTrunkLayout[] trunkLayouts;
     public ModelAudioComponent[] audioComponents;
+    public TurretRig turretRig;
 }
 public sealed class ModelAnimation { public string name; public ModelVertex pivot; public ModelAnimationFrame[] frames; }
 public sealed class ModelAnimationFrame { public ModelRotation rotation; public ModelVertex offset; }

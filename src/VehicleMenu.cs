@@ -28,6 +28,7 @@ public partial class Plugin {
         InitializeWheelTuning();
         InitializeShowroomMenu();
         InitializeDrivingMenu();
+        InitializeTurretMenu();
         keepRunning=Config.Bind("Vehicle","KeepRunningAfterExit",true,"After driving, keep the engine idling, enabled neon and muffled spatial radio running outside. Can be toggled beside the car.");
         headlightPreset=Config.Bind("Lights","HeadlightPreset","Serie",new ConfigDescription("Front headlight colour preset. Names follow NFSU2; RGB values are adapted for Unity.",new AcceptableValueList<string>(VehicleLighting.HeadlightPresets)));
         headlightStrength=Config.Bind("Lights","HeadlightStrength",1f,new ConfigDescription("Front headlight strength multiplier: 0 to 3. Rear, reverse and plate lights are independent.",new AcceptableValueRange<float>(0,3)));
@@ -83,6 +84,7 @@ public partial class Plugin {
         var text=driving?DriveModeName+" | WASD: fahren | Leertaste: "+(driftMode.Value?"Handbremse":"bremsen")+" | H: Hupe | F7: aussteigen\nMaus: umschauen | Mausrad: Zoom | "+menuKey.Value+": Fahrzeugmenü":status;
         GUI.Box(new Rect(15,Screen.height-80,Mathf.Min(920,Screen.width-30),60),text);
         DrawDashboard();
+        DrawTurretAim();
         if(driving&&!hudEnabled.Value&&vehicleNitro!=null&&nitroEnabled.Value)
             GUI.Box(new Rect(15,Screen.height-120,310,32),"LMB: Nitro / Purge  |  Tank "+Mathf.RoundToInt(vehicleNitro.State.Charge*100)+" %");
         if(!menuOpen||audioBlocked)return;
@@ -95,8 +97,8 @@ public partial class Plugin {
             GUI.Label(new Rect(22,15,480,36),"NFVU2  /  350Z",titleStyle);
             if(GUI.Button(new Rect(513,17,28,28),"×")){CloseVehicleMenu();return;}
             GUI.Label(new Rect(23,55,510,25),driving?"Fahrzeug bremst · Radio bleibt bedienbar":"Fahrzeugsteuerung",mutedStyle);
-            menuTab=GUI.SelectionGrid(new Rect(22,86,516,46),menuTab,new[]{"Fahrzeug","Radio","Licht","Neon","Nitro","Räder","Türen","Ausbau","Anzeige"},5);
-            switch(menuTab){case 0:DrawCarMenu();break;case 1:DrawRadioMenu();break;case 2:DrawLightsMenu();break;case 3:DrawNeonMenu();break;case 4:DrawNitroMenu();break;case 5:DrawWheelMenu();break;case 6:DrawBodyMenu();break;case 7:DrawTrunkMenu();break;case 8:DrawDrivingDisplayMenu();break;}
+            menuTab=GUI.SelectionGrid(new Rect(22,86,516,46),menuTab,new[]{"Fahrzeug","Radio","Licht","Neon","Nitro","Räder","Türen","Ausbau","Anzeige","Turret"},5);
+            switch(menuTab){case 0:DrawCarMenu();break;case 1:DrawRadioMenu();break;case 2:DrawLightsMenu();break;case 3:DrawNeonMenu();break;case 4:DrawNitroMenu();break;case 5:DrawWheelMenu();break;case 6:DrawBodyMenu();break;case 7:DrawTrunkMenu();break;case 8:DrawDrivingDisplayMenu();break;case 9:DrawTurretMenu();break;}
             GUI.Label(new Rect(23,522,516,28),menuKey.Value+": schließen  ·  Einstellungen werden gespeichert",mutedStyle);
         } finally {GUI.matrix=oldMatrix;GUI.enabled=oldEnabled;}
     }

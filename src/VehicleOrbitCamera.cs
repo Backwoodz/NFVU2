@@ -50,7 +50,7 @@ public sealed class VehicleOrbitCamera {
         hadInput=true;
         if(Input.GetMouseButtonDown(2)){yaw=0;pitch=18;distance=6;chase.Reset(vehicle.eulerAngles.y);}
     }
-    public void LateFrame(Vector3 velocity,bool dynamicFollow,float followRate,bool blocked) {
+    public void LateFrame(Vector3 velocity,bool dynamicFollow,float followRate,bool blocked,bool turretAim=false) {
         if(!active||vehicle==null)return;
         if(camera==null)camera=Camera.main;
         if(camera==null)return;
@@ -60,11 +60,11 @@ public sealed class VehicleOrbitCamera {
             Mathf.Atan2(velocity.x,velocity.z)*Mathf.Rad2Deg,speed,Vector3.Dot(velocity,vehicle.forward),followRate);
         float blend=1-Mathf.Exp(-14*Time.deltaTime);
         var lookAhead=dynamicMode?Vector3.ClampMagnitude(new Vector3(velocity.x,0,velocity.z)*.08f,1.25f):Vector3.zero;
-        smoothedPivot=Vector3.Lerp(smoothedPivot,vehicle.position+Vector3.up*1.05f+lookAhead,blend);
+        smoothedPivot=Vector3.Lerp(smoothedPivot,vehicle.position+Vector3.up*(turretAim?TurretAimSettings.PivotHeight(pitch):1.05f)+lookAhead,blend);
         var rotation=Quaternion.Euler(pitch,dynamicMode?chase.Yaw:vehicle.eulerAngles.y+yaw,0);
         var direction=rotation*Vector3.back;
-        float clear=distance;
-        foreach(var hit in Physics.SphereCastAll(smoothedPivot,.22f,direction,distance,Physics.DefaultRaycastLayers,QueryTriggerInteraction.Ignore)) {
+        float clear=turretAim?Mathf.Max(distance,TurretAimSettings.CameraMinDistance):distance;
+        foreach(var hit in Physics.SphereCastAll(smoothedPivot,.22f,direction,clear,Physics.DefaultRaycastLayers,QueryTriggerInteraction.Ignore)) {
             if(hit.collider==null || hit.collider.transform.IsChildOf(vehicle))continue;
             clear=Mathf.Min(clear,Mathf.Max(.45f,hit.distance-.12f));
         }

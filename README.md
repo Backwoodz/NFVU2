@@ -2,7 +2,7 @@
 
 **Need for Valheim: Underground 2** — ein privater Fahrzeug-Mod-Prototyp für Valheim.
 
-Aktueller Stand: **0.8.0**, gebaut und automatisiert geprüft; Spieltest noch offen.
+Aktueller Stand: **0.11.0**, gebaut und automatisiert geprüft; Spieltest noch offen.
 Die vorherige Version 0.2.1 ist vom Nutzer in Valheim bestätigt. Ein aus eigenen NFS-Underground-2-Dateien ausgelesener
 Nissan 350Z lässt sich in einer lokalen Valheim-Einzelspielerwelt spawnen und fahren.
 Mauskamera, Gelände-/Straßenmodus und Fahrzeug-Sound sind im Spiel bestätigt.
@@ -32,6 +32,21 @@ damit die offenen Sichtlinien vom Heck zum Kofferraum-Neon.
 und klarer werden; die räumliche Klangquelle wandert zur jeweiligen Öffnung.
 0.8.0 ergänzt elf originale NFSU2-Tacho-Designs mit NOS-Bogen, eine dynamische
 Verfolgerkamera und ein separat wählbares Driftsetup mit Hinterrad-Handbremse.
+0.9.0 ergänzt unter F9 → Turret einen zuschaltbaren Rust-AutoTurret mit AK
+auf dem Dach. Mausblick richtet ihn aus, gehaltene rechte Maustaste feuert.
+Originale lokale Modelle und Sounds; Dreh-/Neigeanimation, Rückstoß,
+Mündungsfeuer und Trefferlogik sind Anpassungen dieser Mod.
+0.9.1 setzt den Turret tiefer und weiter hinten aufs Dach. Ein einzelnes
+Fadenkreuz folgt dem tatsächlichen Auftreffpunkt in Kamerablickrichtung;
+die Munitionsanzeige steht links unten.
+0.10.0 hebt die Zielkamera über das Auto und setzt das Visier oberhalb der
+Bildschirmmitte. Originales Rust-Lasermodul, roter Zielstrahl und unter F9 →
+Turret wählbare Explosivmunition mit Flächenschaden und kleinen, gespeicherten
+Kratern bei direkten Bodentreffern. Valheims Grabtiefengrenze bleibt erhalten.
+0.11.0 verstärkt den Laser und ergänzt unter Turret → Laser einstellen Stärke,
+Farbvorlagen und freie RGB-Farben. Subwoofer-Membranen reagieren auf den Bass
+des laufenden Radios, auch beim Weiterlaufen nach dem Aussteigen.
+
 
 Die Darstellung verwendet jetzt die Originalvoreinstellung `DDAY_PLAYER_CAR`:
 Widebody-Kit 02, Carbonhaube 07, Spoiler 02, Racing-Hart-Felgen 07,
@@ -122,6 +137,26 @@ werden. Turbo-Samples liegen separat
 unter `.local/audio-turbo/`, Nitro-/Purge-Sounds unter `.local/audio-effects/`;
 Build, Paket und Installer übernehmen die Medienordner.
 Die 19 kurzen Motor-/Fahrgeräusche bleiben in der DLL eingebettet.
+
+### Optionaler Rust-Import
+
+In der ignorierten `config.local.json` den Schlüssel `rust_dir` auf die eigene
+Rust-Installation setzen. Der Import liest deren Bundles unverändert und legt
+nur die ausgewählten Modelle, Texturen und acht Sounds in `.local/turret/` ab:
+
+```powershell
+python -m pip install --target .local/tools/unitypy UnityPy==1.25.4 numpy
+python tools/export_rust_turret.py
+python tools/build.py
+python tools/test.py --skip-build
+python tools/install.py
+```
+
+Rust wird zum Import benötigt, nicht während der Fahrt. Ohne importierte Assets
+bleibt der Turret-Menüpunkt mit Erklärung deaktiviert. Der Reader unterstützt
+die lokal geprüften UnityFS-Bundles mit unkomprimierten Nutzdaten; andere
+Bundlevarianten werden abgelehnt. Originaldateien, Werkzeuge, Exporte und
+lokale Pakete bleiben ignoriert und gehören nicht ins Git-Repository.
 
 ## Bauen und prüfen
 

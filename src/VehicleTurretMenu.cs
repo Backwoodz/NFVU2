@@ -1,0 +1,120 @@
+using System;
+using System.IO;
+using System.Reflection;
+using BepInEx.Configuration;
+using UnityEngine;
+
+namespace Rachel350Z {
+public partial class Plugin {
+    ConfigEntry<bool> turretEnabled;
+    ConfigEntry<float> turretVolume;
+    ConfigEntry<bool> turretLaser;
+    ConfigEntry<string> turretAmmo;
+    ConfigEntry<float> laserStrength,laserRed,laserGreen,laserBlue;
+    bool laserSettingsOpen;
+    VehicleTurret turret;
+    Hud crosshairHud;
+    GameObject[] savedCrosshairs;
+    bool[] savedCrosshairActive;
+    static readonly FieldInfo[] CrosshairFields={typeof(Hud).GetField("m_crosshair"),typeof(Hud).GetField("m_crosshairBow")};
+    void RestoreGameCrosshair() {
+        if(savedCrosshairs!=null)for(int i=0;i<savedCrosshairs.Length;i++)
+            if(savedCrosshairs[i]!=null)savedCrosshairs[i].SetActive(savedCrosshairActive[i]);
+        crosshairHud=null;savedCrosshairs=null;savedCrosshairActive=null;
+    }
+    void UpdateGameCrosshair() {
+        if(!driving||turret==null||!turret.Enabled){RestoreGameCrosshair();return;}
+        var hud=Hud.instance;
+        if(hud==null){RestoreGameCrosshair();return;}
+        if(savedCrosshairs==null||crosshairHud!=hud) {
+            RestoreGameCrosshair();crosshairHud=hud;
+            savedCrosshairs=new GameObject[CrosshairFields.Length];savedCrosshairActive=new bool[CrosshairFields.Length];
+            for(int i=0;i<CrosshairFields.Length;i++) {
+                var component=CrosshairFields[i]?.GetValue(hud) as Component;
+                if(component==null)continue;
+                savedCrosshairs[i]=component.gameObject;savedCrosshairActive[i]=component.gameObject.activeSelf;
+            }
+        }
+        // Hud.UpdateCrosshair can re-enable these every Update; suppress after it in LateUpdate.
+        foreach(var obj in savedCrosshairs)if(obj!=null)obj.SetActive(false);
+    }
+    void InitializeTurretMenu() {
+        turretEnabled=Config.Bind("Turret","Enabled",false,"Mount the optional local Rust AutoTurret with AK on the roof. Right mouse while seated fires toward the camera aim.");
+        turretVolume=Config.Bind("Turret","Volume",.7f,new ConfigDescription("Turret sound volume, multiplied by Audio.Volume.",new AcceptableValueRange<float>(0,1)));
+        turretLaser=Config.Bind("Turret","Laser",true,"Original Rust laser module with visible beam and impact dot.");
+        laserStrength=Config.Bind("Turret","LaserStrength",2f,new ConfigDescription("Laser brightness and beam width multiplier.",new AcceptableValueRange<float>(.25f,4)));
+        laserRed=Config.Bind("Turret","LaserRed",1f,new ConfigDescription("Laser red channel.",new AcceptableValueRange<float>(0,1)));
+        laserGreen=Config.Bind("Turret","LaserGreen",.03f,new ConfigDescription("Laser green channel.",new AcceptableValueRange<float>(0,1)));
+        laserBlue=Config.Bind("Turret","LaserBlue",.02f,new ConfigDescription("Laser blue channel.",new AcceptableValueRange<float>(0,1)));
+        turretAmmo=Config.Bind("Turret","Ammo","Normal",new ConfigDescription("Explosiv adds blast damage and persistent small craters on terrain hits, within Valheim's dig limit.",new AcceptableValueList<string>("Normal","Explosiv")));
+    }
+    void SpawnTurret(MonoBehaviour local) {
+        var folder=Path.Combine(Path.GetDirectoryName(Info.Location),"turret");
+        if(File.Exists(Path.Combine(folder,"turret.json")))turret=VehicleTurret.Create(car,local,folder,message=>Logger.LogWarning(message));
+    }
+    void TickTurret() {
+        if(turret!=null)try {turret.Tick(turretEnabled.Value,driving&&!audioBlocked&&!menuOpen&&Application.isFocused,
+            Input.GetMouseButton(1),player as Character,soundVolume.Value*turretVolume.Value,turretLaser.Value,turretAmmo.Value=="Explosiv",laserStrength.Value,LaserColor);}
+        catch(Exception e){turret.Dispose();turret=null;Logger.LogWarning("350Z turret disabled: "+e);}
+        UpdateGameCrosshair();
+    }
+    void DrawTurretMenu() {
+        if(laserSettingsOpen){DrawLaserSettings();return;}
+        GUI.enabled=turret!=null;
+        turretEnabled.Value=GUI.Toggle(new Rect(25,145,510,32),turretEnabled.Value," Rust AutoTurret mit AK auf dem Dach");
+        GUI.Label(new Rect(25,185,510,50),"Mausblick: zielen · Rechte Maustaste: schießen\n30 Schuss · automatisches Nachladen",labelStyle);
+        GUI.enabled=turret!=null&&turret.LaserAvailable;
+        turretLaser.Value=GUI.Toggle(new Rect(25,242,280,28),turretLaser.Value," Rust-Lasermodul");
+        if(GUI.Button(new Rect(320,240,215,30),"Laser einstellen"))laserSettingsOpen=true;
+        GUI.enabled=turret!=null&&turret.ExplosiveAvailable;
+        int ammo=turretAmmo.Value=="Explosiv"?1:0;
+        int next=GUI.Toolbar(new Rect(25,285,510,32),ammo,new[]{"Normale Munition","Explosivmunition"});
+        if(next!=ammo)turretAmmo.Value=next==1?"Explosiv":"Normal";
+        GUI.enabled=turret!=null;
+        GUI.Label(new Rect(25,337,510,25),"Lautstärke  "+Mathf.RoundToInt(turretVolume.Value*100)+" %",labelStyle);
+        turretVolume.Value=GUI.HorizontalSlider(new Rect(25,373,510,22),turretVolume.Value,0,1);
+        GUI.enabled=true;
+        GUI.Label(new Rect(25,415,510,90),turret==null?"Rust-Assets fehlen oder konnten nicht geladen werden. Lokal mit tools/export_rust_turret.py importieren.":!turret.ExplosiveAvailable?"Für Laser und Explosivmunition die Rust-Assets erneut importieren.":turretAmmo.Value=="Explosiv"?"Explosiv: Flächenschaden an Gegnern. Jeder Bodentreffer gräbt eine kleine Mulde bis zur Grabtiefengrenze. Krater bleiben in der Welt gespeichert.":"Schießen nur vom Fahrersitz. Unbegrenzter Vorrat; Felsen und Gebäude blockieren. Orangefarbenes Visier: Lauf noch nicht ausgerichtet oder verdeckt.",mutedStyle);
+    }
+    Color LaserColor=>new Color(LaserChannel(laserRed.Value),LaserChannel(laserGreen.Value),LaserChannel(laserBlue.Value),1);
+    static float LaserChannel(float value)=>float.IsNaN(value)||float.IsInfinity(value)?0:Mathf.Clamp01(value);
+    void DrawLaserSettings() {
+        GUI.Label(new Rect(25,145,300,30),"Laser · Stärke und Farbe",labelStyle);
+        if(GUI.Button(new Rect(415,145,120,28),"Zurück")){laserSettingsOpen=false;return;}
+        GUI.enabled=turret!=null&&turret.LaserAvailable;
+        turretLaser.Value=GUI.Toggle(new Rect(25,187,510,28),turretLaser.Value," Laser aktivieren");
+        GUI.Label(new Rect(25,226,510,25),"Stärke  "+Mathf.RoundToInt(laserStrength.Value*100)+" %",labelStyle);
+        laserStrength.Value=Mathf.Round(GUI.HorizontalSlider(new Rect(25,262,510,20),laserStrength.Value,.25f,4)*20)/20;
+        int selected=-1;var current=LaserColor;
+        for(int i=0;i<NeonColors.Length;i++)if(Mathf.Abs(current.r-NeonColors[i].r)+Mathf.Abs(current.g-NeonColors[i].g)+Mathf.Abs(current.b-NeonColors[i].b)<.01f)selected=i;
+        int preset=GUI.SelectionGrid(new Rect(25,301,510,52),selected,ColorNames,4);
+        if(preset>=0&&preset!=selected){var c=NeonColors[preset];laserRed.Value=c.r;laserGreen.Value=c.g;laserBlue.Value=c.b;}
+        var channels=new[]{laserRed,laserGreen,laserBlue};var names=new[]{"Rot","Grün","Blau"};
+        for(int i=0;i<3;i++) {
+            float y=370+i*40;
+            GUI.Label(new Rect(25,y,85,24),names[i]+" "+Mathf.RoundToInt(LaserChannel(channels[i].Value)*255),mutedStyle);
+            channels[i].Value=GUI.HorizontalSlider(new Rect(115,y+8,290,20),LaserChannel(channels[i].Value),0,1);
+        }
+        var old=GUI.color;GUI.color=LaserColor;GUI.DrawTexture(new Rect(440,375,85,85),Texture2D.whiteTexture);GUI.color=old;
+        GUI.enabled=true;
+        GUI.Label(new Rect(25,490,510,26),"Stärke und Farbe gelten für Strahl und Treffpunkt.",mutedStyle);
+    }
+    void DrawTurretAim() {
+        if(!driving||menuOpen||audioBlocked||turret==null||!turret.Enabled||Camera.main==null)return;
+        var old=GUI.color;
+        try {
+            {
+                float x=Screen.width*TurretAimSettings.ViewX,y=Screen.height*(1-TurretAimSettings.ViewY);
+                // Pixel strokes stay centred on the world hit regardless of GUI font metrics.
+                var bars=new[]{new Rect(x-12,y-1,7,2),new Rect(x+5,y-1,7,2),new Rect(x-1,y-12,2,7),new Rect(x-1,y+5,2,7)};
+                GUI.color=new Color(0,0,0,.85f);
+                foreach(var r in bars)GUI.DrawTexture(new Rect(r.x-1,r.y-1,r.width+2,r.height+2),Texture2D.whiteTexture);
+                GUI.color=turret.Aligned?new Color(.5f,1,.2f):new Color(1,.45f,.1f);
+                foreach(var r in bars)GUI.DrawTexture(r,Texture2D.whiteTexture);
+            }
+            GUI.color=Color.white;
+            GUI.Box(new Rect(15,Screen.height-155,340,28),turret.State.ReloadLeft>0?"AK · Nachladen…":"RMB: AK "+turretAmmo.Value+" · "+turret.State.Ammo+" / 30"+(turret.Obstructed?" · Blockiert":""));
+        }finally{GUI.color=old;}
+    }
+}
+}
