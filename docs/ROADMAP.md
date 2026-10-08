@@ -1,5 +1,20 @@
 # Nächste Aufgaben
 
+## Anfahren, Rückwärtsfahrt und Burnout in 0.5.0
+
+Umgesetzt: +20 Prozent Anfahrmoment mit weichem Auslauf, kürzerer erster
+Sound-Gang, synthetisches Rückwärts-Getriebeheulen, gedimmtes Rückfahrlicht
+und W+S-Burnout mit originalem Reifensound und Rauchtextur.
+
+- Anfahren auf derselben Strecke mit 0.4.1 vergleichen, besonders auf Hängen.
+- W+S im Stand in beiden Fahrmodi prüfen: Frontachse hält, Hinterräder drehen.
+- Loslassen von S/W, Leertaste, F9, Alt-Tab, Aussteigen und Entfernen prüfen:
+  keine hängenbleibenden Effekte oder Gripänderungen.
+- Bodenkontaktverlust und seitliches Rutschen sollen den Burnout abbrechen.
+- Rückwärts-Heulen mit Geschwindigkeit/Stillstand und Lautstärke prüfen.
+- Rückfahrlicht bei Nacht prüfen; Original-Sample-Zuordnung weiter recherchieren.
+- Rauchposition mit Radversatz/Sturz sowie Shaderwirkung im Spiel prüfen.
+
 ## Menüposition und Scheinwerfer in 0.4.1
 
 Menü links oben mit 16 Pixel Rand und Skalierung für kleinere Fenster.

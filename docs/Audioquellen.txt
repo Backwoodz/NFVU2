@@ -1,4 +1,4 @@
-350Z-Fahrzeug-Sound – Version 0.3.0
+350Z-Fahrzeug-Sound – Version 0.5.0
 
 Die folgenden Originalaufnahmen wurden aus den lokal bereitgestellten
 NFS Underground 2-CD-Abbildern extrahiert:
@@ -26,6 +26,20 @@ Die zwei jeweils benachbarten Drehzahlbereiche werden weich gemischt.
 
 Die Hupe ist eine neu synthetisierte Zweiklang-Hupe bei 420/500 Hz und
 keine aus NFS extrahierte Aufnahme.
+
+Rückwärtsgang seit 0.5.0:
+Neu synthetisierte periodische Schleife mit 320-Hz-Grundton, Harmonischen und
+leichter Modulation. Tonhöhe/Lautstärke folgen der Rückwärtsgeschwindigkeit.
+Bei Stillstand, Vorwärtsfahrt und Ausstieg bleibt sie stumm. Die lokale
+SOUND-Dateiinventur und untersuchten CSI-Ereignisse liefern bislang keinen
+eindeutig zugeordneten Rückwärts-Heulton; dies ist ausdrücklich kein NFS-Sample.
+
+Burnout seit 0.5.0:
+Verwendet das vorhandene originale SKID_PAV_MB.abk-Sample (Unterstream 1).
+Im Burnout entfällt die bisherige Mindest-Fahrgeschwindigkeit für den Skid-Sound;
+stattdessen bestimmen Hinterrad-Drehzahl und Bodenkontakt seine Lautstärke.
+Der Motor bleibt dabei akustisch im ersten Gang unter Last bei mindestens 5000 RPM.
+Rauch nutzt die originale SFX_SMOKE_B_CS-Textur mit eigener Unity-Animation.
 
 Turbo:
 SOUND/TURBO/TURBO_MED_2_MB.abk, Unterstreams 1 (Aufladung),

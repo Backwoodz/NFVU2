@@ -11,6 +11,8 @@ public sealed class VehicleHandling {
     float diagnosticElapsed;
     int diagnosticSamples;
     bool terrain;
+    public bool BurnoutActive { get; private set; }
+    bool burnoutGrip;
     public VehicleHandling(Rigidbody rigidbody,WheelCollider[] wheelColliders,bool terrainMode,System.Action<string> logger=null) {
         body=rigidbody;wheels=wheelColliders;log=logger;
         body.centerOfMass=new Vector3(0,.05f,0);
@@ -25,6 +27,7 @@ public sealed class VehicleHandling {
     }
     public void SetTerrainMode(bool enabled) {
         terrain=enabled;
+        burnoutGrip=false;
         foreach(var wheel in wheels) {
             wheel.suspensionDistance=terrain?.4f:.24f;
             var spring=wheel.suspensionSpring;
@@ -37,19 +40,30 @@ public sealed class VehicleHandling {
         }
         body.WakeUp();
     }
-    public void Step(bool driving,float throttle,float steer,float brake) {
+    public void Step(bool driving,float throttle,float steer,float brake,bool burnoutRequested=false) {
         float dt=Time.fixedDeltaTime;
-        if(driving && (throttle!=0 || steer!=0))body.WakeUp();
+        if(driving && (throttle!=0 || steer!=0 || burnoutRequested))body.WakeUp();
         float speed=Vector3.Dot(body.linearVelocity,body.transform.forward);
-        bool directionBrake=DrivingMath.DirectionBrake(speed,throttle);
-        bool stopping=!driving || brake>0 || directionBrake;
+        for(int i=0;i<4;i++)grounded[i]=wheels[i].GetGroundHit(out contacts[i]);
+        float totalSpeed=body.linearVelocity.magnitude;
+        BurnoutActive=driving&&burnoutRequested&&brake<=0&&totalSpeed<(BurnoutActive?2f:.65f)
+            &&(grounded[0]||grounded[1])&&grounded[2]&&grounded[3];
+        if(BurnoutActive)throttle=1;
+        bool directionBrake=!BurnoutActive&&DrivingMath.DirectionBrake(speed,throttle);
+        bool stopping=!driving || brake>0 || directionBrake || (burnoutRequested&&!BurnoutActive);
         appliedThrottle=Mathf.MoveTowards(appliedThrottle,stopping?0:throttle,dt*2.4f);
         // Let go of the previous direction before starting reverse torque.
         if(stopping || appliedThrottle*throttle<0)appliedThrottle=0;
         float maxSteer=DrivingMath.SteeringLimit(speed,terrain);
         appliedSteering=Mathf.MoveTowards(appliedSteering,driving?steer*maxSteer:0,dt*85f);
-        for(int i=0;i<4;i++)grounded[i]=wheels[i].GetGroundHit(out contacts[i]);
-        float torque=(terrain?3200:2200)*appliedThrottle*DrivingMath.TorqueFactor(speed,throttle,terrain);
+        float torque=(terrain?3200:2200)*appliedThrottle*DrivingMath.TorqueFactor(speed,throttle,terrain)*DrivingMath.LaunchTorqueFactor(speed,throttle);
+        if(burnoutGrip!=BurnoutActive) {
+            for(int i=2;i<4;i++) {
+                var friction=wheels[i].forwardFriction;
+                friction.stiffness=BurnoutActive?.35f:(terrain?1.65f:1.3f);wheels[i].forwardFriction=friction;
+            }
+            burnoutGrip=BurnoutActive;
+        }
         for(int i=0;i<4;i++) {
             var wheel=wheels[i];wheel.steerAngle=i<2?appliedSteering:0;
             var share=DrivingMath.WheelWeight(i,terrain);
@@ -59,6 +73,10 @@ public sealed class VehicleHandling {
             wheel.motorTorque=stopping?0:torque*share*grip;
             // S first brakes forward motion; reverse engages near a standstill.
             wheel.brakeTorque=stopping?3200:(throttle==0&&Mathf.Abs(speed)<.5f?900:0);
+            if(BurnoutActive) {
+                wheel.motorTorque=i<2?0:1800*appliedThrottle;
+                wheel.brakeTorque=i<2?6000:0;
+            }
         }
         AntiRoll(0,1);AntiRoll(2,3);
         LogDriveState(driving,throttle,speed,directionBrake);

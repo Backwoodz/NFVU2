@@ -16,7 +16,7 @@ public sealed class VehicleAudio : IDisposable {
     readonly List<AudioClip> clips=new List<AudioClip>();
     readonly List<AudioSource> sources=new List<AudioSource>();
     AudioSource[] power,coast;
-    AudioSource road,skid,horn;
+    AudioSource road,skid,horn,reverseWhine;
     AudioSource turboCharge,turboLow,turboHigh;
     GameObject root;
     Rigidbody body;
@@ -39,8 +39,9 @@ public sealed class VehicleAudio : IDisposable {
             coast[i]=CreateSource("engine_off_"+EngineSoundModel.Bands[i]+".wav",80);
         }
         road=CreateSource("road.wav",160);skid=CreateSource("skid.wav",120);horn=CreateSource("horn.wav",60);
+        reverseWhine=CreateSource("reverse_whine_synth",110,ReverseGearSound.Create());reverseWhine.dopplerLevel=0;
         LoadTurbo(log);
-        log("350Z audio ready: "+clips.Count+" clips; original NFSU2 350Z power/coast and tyre sounds; synthesized horn. Mixer: "+(mixer!=null?mixer.name:"AudioListener master"));
+        log("350Z audio ready: "+clips.Count+" clips; original NFSU2 350Z power/coast and tyre sounds; synthesized horn and reverse-gear whine. Mixer: "+(mixer!=null?mixer.name:"AudioListener master"));
     }
     void LoadTurbo(Action<string> log) {
         var folder=Path.Combine(Path.GetDirectoryName(typeof(VehicleAudio).Assembly.Location),"audio","turbo");
@@ -74,7 +75,7 @@ public sealed class VehicleAudio : IDisposable {
         source.dopplerLevel=.25f;source.spread=0;source.outputAudioMixerGroup=mixer;
         return source;
     }
-    public void Tick(bool driving,float throttle,bool braking,bool honking,bool blocked,bool terrain,float volume) {
+    public void Tick(bool driving,float throttle,bool braking,bool honking,bool blocked,bool terrain,float volume,bool burnout=false) {
         if(disposed)return;
         if(blocked) {
             if(!paused){foreach(var source in sources)source.Pause();paused=true;}
@@ -84,7 +85,7 @@ public sealed class VehicleAudio : IDisposable {
         float dt=Mathf.Min(Time.unscaledDeltaTime,.1f);
         float forward=Vector3.Dot(body.linearVelocity,body.transform.forward),speed=body.linearVelocity.magnitude;
         float wheelRpm=(Mathf.Abs(wheels[2].rpm)+Mathf.Abs(wheels[3].rpm))*.5f;
-        model.Step(dt,driving,forward,wheelRpm,throttle,braking,terrain);
+        model.Step(dt,driving,forward,wheelRpm,burnout?1:throttle,braking,terrain,burnout);
         turboModel.Step(dt,driving,model.Rpm,braking?0:Mathf.Max(0,throttle),model.IsShifting,model.Gear<0);
         if(model.Level>.001f && !playing){foreach(var source in sources)if(source.loop)source.Play();playing=true;}
         else if(model.Level<=.001f && playing){foreach(var source in sources)source.Stop();playing=false;}
@@ -107,10 +108,14 @@ public sealed class VehicleAudio : IDisposable {
         }
         float contact=grounded/4f;
         roadLevel=Mathf.MoveTowards(roadLevel,contact*Mathf.Clamp01((speed-1)/16),dt*3);
-        skidLevel=Mathf.MoveTowards(skidLevel,contact*Mathf.Clamp01((slip-.35f)/1.1f)*Mathf.Clamp01((speed-2)/5),dt*5);
+        float skidTarget=contact*Mathf.Clamp01((slip-.35f)/1.1f)*Mathf.Clamp01((speed-2)/5);
+        if(burnout&&grounded>=3)skidTarget=Mathf.Max(skidTarget,Mathf.Clamp01((wheelRpm-30)/180));
+        skidLevel=Mathf.MoveTowards(skidLevel,skidTarget,dt*5);
         hornLevel=Mathf.MoveTowards(hornLevel,driving&&honking?1:0,dt*18);
         road.volume=volume*model.Level*roadLevel*.24f;road.pitch=Mathf.Lerp(.8f,1.4f,Mathf.Clamp01(speed/25));
-        skid.volume=volume*model.Level*skidLevel*(terrain?.18f:.48f);skid.pitch=1;
+        skid.volume=volume*model.Level*skidLevel*(burnout?.5f:terrain?.18f:.48f);skid.pitch=1;
+        reverseWhine.volume=volume*model.Level*ReverseGearSound.Level(driving,model.Gear<0&&!burnout,forward)*.22f;
+        reverseWhine.pitch=ReverseGearSound.Pitch(forward);
         horn.volume=volume*model.Level*hornLevel*.8f;
         if(turboCharge!=null) {
             turboCharge.volume=volume*model.Level*turboModel.Charge*.24f;

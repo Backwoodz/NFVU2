@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Rachel350Z {
 // Disposable local prototype. No ZNetView: never use in multiplayer or persist into saves.
-[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.4.1")]
+[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.5.0")]
 public partial class Plugin : BaseUnityPlugin {
     GameObject car; Rigidbody body; WheelCollider[] wheels; Transform[] visuals;
     Material[] vehicleMaterials;
@@ -26,10 +26,12 @@ public partial class Plugin : BaseUnityPlugin {
     VehicleRadio vehicleRadio;
     VehicleNitro vehicleNitro;
     VehicleNitroEffects nitroEffects;
+    VehicleBurnoutEffects burnoutEffects;
     VehicleEffectsAudio effectsAudio;
     readonly NitroInputGate nitroInput=new NitroInputGate();
     readonly BackfireState backfireState=new BackfireState();
     bool nitroHeld;
+    bool burnoutHeld;
     bool audioBlocked, honking;
     ConfigEntry<bool> terrainMode, invertMouseY;
     ConfigEntry<float> mouseSensitivity, soundVolume;
@@ -90,7 +92,7 @@ public partial class Plugin : BaseUnityPlugin {
             if(Input.GetKeyDown(KeyCode.F8))Cleanup();
             if(Input.GetKeyDown(KeyCode.F7)) { if(driving)Exit();else if(car!=null && Vector3.Distance(local.transform.position,car.transform.position)<5)Enter(local); }
             nitroHeld=nitroInput.Read(Input.GetMouseButton(0),driving&&nitroEnabled.Value);
-            if(driving){throttle=(Input.GetKey(KeyCode.W)?1:0)-(Input.GetKey(KeyCode.S)?1:0);steer=(Input.GetKey(KeyCode.D)?1:0)-(Input.GetKey(KeyCode.A)?1:0);brake=Input.GetKey(KeyCode.Space)?1:0;honking=Input.GetKey(KeyCode.H);orbitCamera.InputFrame(true,mouseSensitivity.Value,invertMouseY.Value);}
+            if(driving){burnoutHeld=Input.GetKey(KeyCode.W)&&Input.GetKey(KeyCode.S);throttle=(Input.GetKey(KeyCode.W)?1:0)-(Input.GetKey(KeyCode.S)?1:0);steer=(Input.GetKey(KeyCode.D)?1:0)-(Input.GetKey(KeyCode.A)?1:0);brake=Input.GetKey(KeyCode.Space)?1:0;honking=Input.GetKey(KeyCode.H);orbitCamera.InputFrame(true,mouseSensitivity.Value,invertMouseY.Value);}
         }catch(Exception e){Logger.LogError(e);Cleanup();status="Fehler – siehe BepInEx/LogOutput.log";}
     }
     void Spawn(MonoBehaviour local) {
@@ -125,6 +127,7 @@ public partial class Plugin : BaseUnityPlugin {
             }
         }
         handling=new VehicleHandling(body,wheels,terrainMode.Value,message=>Logger.LogInfo(message));
+        burnoutEffects=VehicleBurnoutEffects.Create(car,model,wheels,visuals,message=>Logger.LogInfo(message));
         vehicleNitro=new VehicleNitro(body,wheels);
         try {nitroEffects=VehicleNitroEffects.Create(car,model,message=>Logger.LogInfo(message));}
         catch(Exception e){Logger.LogWarning("350Z nitro effects unavailable: "+e);}
@@ -167,11 +170,12 @@ public partial class Plugin : BaseUnityPlugin {
     }
     void FixedUpdate() {
         if(body==null||wheels==null)return;
-        handling?.Step(driving,throttle,steer,brake);
-        vehicleNitro?.Step(driving,audioBlocked||menuOpen||!Application.isFocused||!nitroEnabled.Value,nitroHeld,throttle,brake>0,terrainMode.Value);
+        handling?.Step(driving,throttle,steer,brake,burnoutHeld&&!audioBlocked&&!menuOpen&&Application.isFocused);
+        vehicleNitro?.Step(driving,audioBlocked||menuOpen||burnoutHeld||!Application.isFocused||!nitroEnabled.Value,nitroHeld,throttle,brake>0,terrainMode.Value);
         if(driving&&player!=null)player.transform.position=car.transform.TransformPoint(new Vector3(0,.8f,.3f));
     }
     void LateUpdate() {
+        bool burnout=driving&&burnoutHeld&&handling!=null&&handling.BurnoutActive&&!audioBlocked&&!menuOpen&&Application.isFocused;
         wheelSizeVisuals?.Apply(rimInches.Value);
         if(wheels!=null && visuals!=null)for(int i=0;i<4;i++)if(wheels[i]!=null && visuals[i]!=null){
             UpdateWheelVisual(i);
@@ -180,7 +184,7 @@ public partial class Plugin : BaseUnityPlugin {
         if(vehicleLighting!=null)try {
             vehicleLighting.SetHeadlights(headlightPreset.Value,headlightStrength.Value);
             float speed=Vector3.Dot(body.linearVelocity,car.transform.forward);
-            vehicleLighting.Tick(driving,driving&&(brake>0||DrivingMath.DirectionBrake(speed,throttle)),speed,throttle);
+            vehicleLighting.Tick(driving,driving&&(burnoutHeld||brake>0||DrivingMath.DirectionBrake(speed,throttle)),speed,burnout?1:throttle);
         }
         catch(Exception e){vehicleLighting.Dispose();vehicleLighting=null;Logger.LogWarning("350Z lighting disabled: "+e);}
         if(vehicleNeon!=null)try {vehicleNeon.Tick(driving,Time.deltaTime);}
@@ -188,11 +192,13 @@ public partial class Plugin : BaseUnityPlugin {
         if(vehicleRadio!=null)try {vehicleRadio.Tick(driving,audioBlocked,radioVolume.Value,radioEnabled.Value);}
         catch(Exception e){vehicleRadio.Dispose();vehicleRadio=null;Logger.LogWarning("350Z radio disabled: "+e);}
         if(vehicleAudio!=null)try {
-            vehicleAudio.Tick(driving,throttle,brake>0,honking,audioBlocked,terrainMode.Value,soundVolume.Value);
+            vehicleAudio.Tick(driving,throttle,brake>0||burnoutHeld&&!burnout,honking,audioBlocked,terrainMode.Value,soundVolume.Value,burnout);
         } catch(Exception e) {
             vehicleAudio.Dispose();vehicleAudio=null;Logger.LogWarning("350Z sound disabled after audio error: "+e);
         }
         bool effectsBlocked=!driving||audioBlocked||menuOpen||!Application.isFocused;
+        if(burnoutEffects!=null)try {burnoutEffects.Tick(burnout,effectsBlocked);}
+        catch(Exception e){burnoutEffects.Dispose();burnoutEffects=null;Logger.LogWarning("350Z tyre smoke disabled: "+e);}
         bool backfire=backfireState.Step(Time.deltaTime,!effectsBlocked,
             vehicleAudio!=null?vehicleAudio.Rpm:950,throttle,
             body!=null?Vector3.Dot(body.linearVelocity,body.transform.forward):0,backfireEnabled.Value);
@@ -205,7 +211,7 @@ public partial class Plugin : BaseUnityPlugin {
     }
     void Exit() {
         CloseVehicleMenu();
-        driving=false;throttle=steer=0;brake=1;honking=false;
+        driving=false;throttle=steer=0;brake=1;honking=false;burnoutHeld=false;
         nitroHeld=false;nitroInput.Reset();vehicleNitro?.State.Stop();
         orbitCamera?.End();
         if(player!=null){player.transform.position=lastExitPosition;
@@ -218,6 +224,7 @@ public partial class Plugin : BaseUnityPlugin {
     }
     void Cleanup(){
         CloseVehicleMenu();
+        burnoutHeld=false;burnoutEffects?.Dispose();burnoutEffects=null;
         nitroHeld=false;nitroInput.Reset();vehicleNitro=null;
         nitroEffects?.Dispose();nitroEffects=null;
         effectsAudio?.Dispose();effectsAudio=null;

@@ -68,6 +68,16 @@ class AudioTests {
         Check(model.Gear==-1&&model.Rpm>950,"reverse has engine sound without forward shifting");
         for(int i=0;i<60;i++)model.Step(1f/60,false,0,0,0,false);
         Check(model.Level==0&&model.Load==0,"sound fades out after exit");
+        var burnoutModel=new EngineSoundModel();
+        for(int i=0;i<120;i++)burnoutModel.Step(1f/60,true,0,600,1,false,true,true);
+        Check(burnoutModel.Gear==1&&!burnoutModel.IsShifting&&burnoutModel.Rpm>=5000&&burnoutModel.Load>.9f,"stationary burnout holds a loaded first-gear engine note");
+        for(int i=0;i<120;i++)burnoutModel.Step(1f/60,true,0,0,0,false,true,false);
+        Check(burnoutModel.Rpm==950&&burnoutModel.Load==0,"ending burnout returns sound to idle");
+        var whine=ReverseGearSound.Create();
+        Check(whine.Channels==1&&whine.SampleRate==22050&&whine.Samples.All(v=>!float.IsNaN(v)&&Math.Abs(v)<.8f)&&whine.Samples.Any(v=>Math.Abs(v)>.2f),"generated reverse whine is valid unclipped mono PCM");
+        Check(ReverseGearSound.Level(true,true,0)==0&&ReverseGearSound.Level(true,false,-4)==0&&ReverseGearSound.Level(false,true,-4)==0,"reverse whine stays silent at rest, forward selection and exit");
+        Check(ReverseGearSound.Level(true,true,-4)>ReverseGearSound.Level(true,true,-1)&&ReverseGearSound.Pitch(-4)>ReverseGearSound.Pitch(-1),"reverse whine volume and pitch rise with reverse speed");
+        Check(ReverseGearSound.Level(true,true,float.NaN)==0&&ReverseGearSound.Pitch(float.NaN)==1,"invalid speed cannot poison reverse audio");
         model.Step(.016f,true,float.NaN,float.PositiveInfinity,float.NaN,false);CheckFinite(model);Check(true,"invalid wheel samples cannot poison audio state");
         var turbo=new TurboSoundModel();
         for(int i=0;i<120;i++)turbo.Step(1f/60,true,950,1,false,false);

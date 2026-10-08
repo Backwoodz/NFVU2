@@ -3,6 +3,8 @@ using System;
 namespace Rachel350Z {
 // Scalar control rules, independent of Unity's physics runtime.
 public static class DrivingMath {
+    public static float LaunchTorqueFactor(float speed,float input) => input>0&&speed>=-.65f
+        ?1+.2f*Clamp((6-Math.Abs(speed))/3,0,1):1;
     public static float Clamp(float value, float min, float max) => Math.Max(min, Math.Min(max, value));
     public static float SteeringLimit(float speed, bool terrain) {
         var blend=Clamp(Math.Abs(speed)/25f,0,1);

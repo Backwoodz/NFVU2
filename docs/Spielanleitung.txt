@@ -1,4 +1,4 @@
-350Z-Prototyp 0.4.1 – lokaler Test für Valheim
+350Z-Prototyp 0.5.0 – lokaler Test für Valheim
 
 Die Funktionen von 0.2.0 sind vom Nutzer grundsätzlich in Valheim bestätigt.
 Auch die Nachbesserungen von 0.2.1 wurden vom Nutzer in Valheim bestätigt.
@@ -6,6 +6,7 @@ Nitro, Purge und Felgenkorrektur in 0.3.0 warten noch auf den Spieltest.
 0.3.1 korrigiert die Ausrichtung des 350Z-Schriftzugs am Heck.
 0.4.0 ergänzt die optische Radeinstellung im Fahrzeugmenü; Spieltest noch offen.
 0.4.1 verschiebt das Menü nach links oben und ergänzt Scheinwerferfarben/-stärke.
+0.5.0 ergänzt Anfahrmoment, Rückwärts-Heulen, schwächeres Rückfahrlicht und Burnout.
 Fahrwerk und Steuerung basieren auf dem bestätigten Prototyp.
 Das Fahrzeug ist temporär und ausschließlich für lokale Einzelspielerwelten.
 
@@ -15,6 +16,7 @@ F7: In Fahrzeugnähe einsteigen / aussteigen.
 F8: Fahrzeug entfernen.
 F9: Fahrzeugmenü öffnen/schließen (Taste in der Konfiguration änderbar).
 W / S: Gas / bremsen und anschließend rückwärts fahren.
+W + S halten: Burnout im Stand. In Bewegung wird zunächst gebremst.
 A / D: Lenken. Leertaste: Bremsen. H halten: Hupe.
 Maus: Umschauen. Mausrad: Zoom. Mittelklick: Kamera zentrieren.
 Linke Maustaste halten: Nitro bei Vorwärtsfahrt mit Gas; Purge im Stand.
@@ -78,6 +80,10 @@ Die Originalmaske 350Z_NEON wird an den Boden angepasst. Pulsverlauf und
 Unity-Lichtwirkung sind eigene Anpassungen und müssen im Spiel geprüft werden.
 
 MOTOR UND TURBO
+Beim Anfahren gibt es vorwärts bis etwa 11 km/h 20 Prozent mehr Drehmoment;
+der Zuschlag läuft bis etwa 22 km/h aus. Der erste hörbare Gang ist etwas kürzer.
+Rückwärts ist ein Getriebeheulen mit steigender Tonhöhe/Lautstärke hörbar.
+Dieses Geräusch ist synthetisch erzeugt, keine Original-NFS-Aufnahme.
 Die akustischen Gangwechsel erfolgen früher, besonders im Gelände.
 Schaltunterbrechungen: 140 ms hoch / 120 ms herunter. Das Fahrwerk wurde
 für diese Soundänderung nicht verändert. Originale NFS-Turboaufnahmen
@@ -85,6 +91,16 @@ bauen unter Last auf und lassen beim Gaswegnehmen/Schalten Druck ab.
 Sample-Rollen und Auslösung sind eine dokumentierte Annäherung; Rachels
 exakte Performance-Stufe und Originalverhalten bleiben zu vergleichen.
 Die Hupe ist synthetisiert. NFS-Physik und NFS-Audio-Engine laufen nicht mit.
+
+BURNOUT
+Im Stand W und S gemeinsam halten: Die Vorderachse hält das Fahrzeug,
+die Hinterräder drehen durch. Dazu kommen Reifengeräusch und Rauch.
+Für den Start müssen beide Hinterräder und mindestens ein Vorderrad Bodenkontakt
+haben. Rauch/Quietschen setzen erst ein, wenn die Reifen tatsächlich drehen.
+S loslassen bei gehaltenem W: normal losfahren. W loslassen: wieder bremsen/
+rückwärts wählen. Leertaste, Menü, Fokusverlust und Ausstieg beenden den Burnout.
+Bei Kontaktverlust oder zu starkem Rutschen wird ebenfalls abgebrochen.
+Während W+S sind Nitro und Purge gesperrt. Rückfahrlicht ist seit 0.5.0 gedimmt.
 
 NITRO UND PURGE
 Bei Vorwärtsfahrt mit Gas und Bodenkontakt erzeugt die linke Maustaste Schub

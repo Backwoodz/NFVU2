@@ -37,7 +37,7 @@ public partial class Plugin {
         neonColor=Config.Bind("Neon","Color","Grün",new ConfigDescription("Underbody neon colour.",new AcceptableValueList<string>(ColorNames)));
     }
     bool CanUseVehicleMenu(MonoBehaviour local)=>car!=null&&local!=null&&!Multiplayer()&&(driving||Vector3.Distance(local.transform.position,car.transform.position)<5);
-    void BlockDrivingInput(){throttle=steer=0;brake=1;honking=false;nitroHeld=false;nitroInput.Reset();vehicleNitro?.State.Stop();orbitCamera?.InputFrame(false,mouseSensitivity.Value,invertMouseY.Value);}
+    void BlockDrivingInput(){throttle=steer=0;brake=1;honking=false;burnoutHeld=false;nitroHeld=false;nitroInput.Reset();vehicleNitro?.State.Stop();orbitCamera?.InputFrame(false,mouseSensitivity.Value,invertMouseY.Value);}
     void SetVehicleMenu(bool open) {
         if(open==menuOpen)return;
         if(open){
@@ -99,7 +99,7 @@ public partial class Plugin {
         GUI.Label(new Rect(25,145,510,30),"Fahrmodus",labelStyle);
         bool terrain=GUI.Toggle(new Rect(25,180,500,30),terrainMode.Value," Gelände / Allradhilfe");
         if(terrain!=terrainMode.Value){terrainMode.Value=terrain;handling?.SetTerrainMode(terrain);}
-        GUI.Label(new Rect(25,215,510,45),terrain?"Für kurze Strecken und unebenen Boden.":"Straßenmodus mit Heckantrieb.",mutedStyle);
+        GUI.Label(new Rect(25,215,510,45),(terrain?"Für kurze Strecken und unebenen Boden.":"Straßenmodus mit Heckantrieb.")+"\nW + S im Stand halten: Burnout · Leertaste: abbrechen",mutedStyle);
         if(GUI.Button(new Rect(25,280,245,38),driving?"Aussteigen":"Einsteigen")){
             var local=LocalPlayer();CloseVehicleMenu();if(driving)Exit();else if(CanUseVehicleMenu(local))Enter(local);return;
         }

@@ -1,5 +1,28 @@
 # Versionsgeschichte
 
+## 0.5.0 — Kräftigeres Anfahren, Rückwärts-Sound und Burnout
+
+Vorwärts-Anfahrmoment um 20 Prozent bis 3 m/s erhöht, linear bis 6 m/s auf
+das bisherige Niveau reduziert. Die erste akustische Übersetzung steigt
+von 3,79 auf 4,15; übrige Gänge und Höchstgeschwindigkeiten bleiben erhalten.
+Das Rückwärts-Getriebeheulen ist eine neue synthetische Schleife mit
+geschwindigkeitsabhängiger Tonhöhe/Lautstärke. Kein eindeutig zugeordneter
+Original-Rückwärts-Sample wurde in der Dateiinventur und Ereignissuche gefunden.
+Rückfahrlicht: Intensität 1,6 → 0,45, Reichweite 6 → 4 m, Emission 2 → 0,7.
+
+W+S startet unter 0,65 m/s mit beiden Hinterrädern und mindestens einem
+Vorderrad am Boden einen Burnout. Die Frontachse bremst, die Hinterachse
+erhält Drehmoment und vorübergehend reduzierten Längsgrip. Über 2 m/s,
+bei Kontaktverlust, Loslassen, Leertaste, Menü oder Ausstieg wird beendet.
+Normale Reibungswerte werden wiederhergestellt; Nitro ist während W+S gesperrt.
+Motor hält im Burnout den ersten Gang mit hoher Last. Originaler SKID_PAV-Sound
+und SFX_SMOKE_B_CS-Rauchatlas reagieren auf tatsächlich drehende Hinterräder.
+Rauchposition folgt auch dem visuellen Radversatz. Partikel werden begrenzt
+und bei Sperre/Entfernen gelöscht. Effekte, Audio und Steuerung bleiben getrennt.
+
+256 automatisierte Prüfungen bestanden; tatsächliche WheelCollider-Physik,
+Rauchdarstellung und Hörwirkung benötigen den Spieltest.
+
 ## 0.4.1 — Menü links oben und einstellbare Frontscheinwerfer
 
 Das Menü sitzt mit 16 Pixel Abstand links oben und skaliert bei kleinen

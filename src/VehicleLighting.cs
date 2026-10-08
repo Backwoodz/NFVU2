@@ -46,9 +46,9 @@ public sealed class VehicleLighting : IDisposable {
                 var light = obj.AddComponent<Light>(); result.lights.Add(light); result.roles.Add(data.role);
                 light.type = LightType.Spot; light.shadows = LightShadows.None; light.enabled = false;
                 light.color = data.role == "taillight" ? new Color(1, .035f, .015f) : data.role == "reverse" ? Color.white : new Color(1, .94f, .82f);
-                light.range = data.role == "headlight" ? 30 : data.role == "plate" ? .7f : data.role == "reverse" ? 6 : 2;
+                light.range = data.role == "headlight" ? 30 : data.role == "plate" ? .7f : data.role == "reverse" ? 4 : 2;
                 light.spotAngle = data.role == "headlight" ? 65 : 110;
-                light.intensity = data.role == "headlight" ? 3.5f : data.role == "plate" ? 1 : data.role == "reverse" ? 1.6f : .5f;
+                light.intensity = data.role == "headlight" ? 3.5f : data.role == "plate" ? 1 : data.role == "reverse" ? .45f : .5f;
             }
             log?.Invoke("350Z lighting: " + result.lights.Count + " lights and " + result.surfaces.Count + " emitting surfaces");
             return result;
@@ -70,7 +70,7 @@ public sealed class VehicleLighting : IDisposable {
             bool brakeOnly = surface.role == "brakelight";
             bool active = surface.role == "reverse" ? state.ReverseLightsOn : brakeOnly ? state.BrakeLightsOn : surface.role == "taillight" ? state.RearLightsOn : Enabled;
             Color color = surface.role == "reverse" ? Color.white : surface.role == "headlight" ? headlightColor : new Color(1, .015f, .005f);
-            float power = surface.role == "headlight" ? 2.5f*headlightPower : surface.role == "reverse" ? 2 : braking && driving ? 2.8f : .65f;
+            float power = surface.role == "headlight" ? 2.5f*headlightPower : surface.role == "reverse" ? .7f : braking && driving ? 2.8f : .65f;
             VehicleMaterials.SetEmission(surface.material, active ? color * power : Color.black);
         }
     }

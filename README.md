@@ -2,7 +2,7 @@
 
 **Need for Valheim: Underground 2** — ein privater Fahrzeug-Mod-Prototyp für Valheim.
 
-Aktueller Stand: **0.4.1**, gebaut und automatisiert geprüft; Spieltest noch offen.
+Aktueller Stand: **0.5.0**, gebaut und automatisiert geprüft; Spieltest noch offen.
 Die vorherige Version 0.2.1 ist vom Nutzer in Valheim bestätigt. Ein aus eigenen NFS-Underground-2-Dateien ausgelesener
 Nissan 350Z lässt sich in einer lokalen Valheim-Einzelspielerwelt spawnen und fahren.
 Mauskamera, Gelände-/Straßenmodus und Fahrzeug-Sound sind im Spiel bestätigt.
@@ -16,6 +16,8 @@ und getrennte Chromring-/Goldstern-Materialien für die Felgen.
 0.3.1 korrigiert den spiegelverkehrten 350Z-Schriftzug am Heck.
 0.4.0 ergänzt fünf Live-Regler für Sturz, Radversatz und Felgengröße unter F9 → Räder.
 0.4.1 platziert das Menü links oben und ergänzt Scheinwerferfarben und -stärke.
+0.5.0 ergänzt kräftigeres Anfahren, einen etwas kürzeren ersten Sound-Gang,
+Rückwärtsgang-Heulen, schwächeres Rückfahrlicht und W+S-Burnouts mit Rauch.
 
 Die Darstellung verwendet jetzt die Originalvoreinstellung `DDAY_PLAYER_CAR`:
 Widebody-Kit 02, Carbonhaube 07, Spoiler 02, Racing-Hart-Felgen 07,
@@ -40,6 +42,7 @@ NFS-Prozess ist eine mögliche spätere Forschungsaufgabe und noch nicht impleme
 | F6 | Fahrzeug erstellen |
 | F7 | Ein-/aussteigen |
 | W / S | Gas / bremsen und rückwärts fahren |
+| W + S halten | Im Stand Burnout; während der Fahrt zunächst bremsen |
 | A / D | Lenken |
 | Leertaste | Bremsen |
 | Maus / Mausrad | Umschauen / Kameraabstand |
@@ -164,6 +167,16 @@ Valheim angenähert. Rück-, Brems-, Rückfahr- und Kennzeichenlicht bleiben una
 Die weißen Rückfahrleuchten in der Stoßstange reagieren auf die Rückwärtswahl:
 S bremst bei Vorwärtsfahrt zunächst, erst nahe Stillstand wird rückwärts eingelegt.
 Orange Heckstreifen sind sichtbar, haben bislang aber keine Blinkersteuerung.
+Seit 0.5.0 ist das Rückfahrlicht deutlich gedimmt (Lichtintensität 0,45,
+Reichweite 4 m, Emission 0,7). Beim Anfahren stehen vorwärts bis rund 11 km/h
+20 Prozent mehr Drehmoment zur Verfügung; der Zuschlag klingt bis rund 22 km/h
+aus. Der erste akustische Gang ist etwa neun Prozent kürzer.
+W+S startet nahe Stillstand einen Burnout: Frontbremse hält, Hinterräder drehen.
+Rauch und originales NFS-Reifenquietschen reagieren auf drehende Reifen mit
+Bodenkontakt. Loslassen, Leertaste, Menü, Fokusverlust oder Aussteigen beendet
+den Burnout; der normale Grip wird wiederhergestellt. Nitro ist dabei gesperrt.
+Das geschwindigkeitsabhängige Rückwärts-Getriebeheulen ist synthetisch erzeugt;
+ein eindeutig zugeordneter NFS-Rückwärtsgang-Sample wurde nicht gefunden.
 Türen und Kofferraum sind vorbereitete, noch deaktivierte Menüeinträge.
 Unter F9 → Räder lassen sich Sturz vorne/hinten (−15 bis +10 Grad),
 Radversatz vorne/hinten (−10 bis +20 cm je Rad) und die gemeinsame Felgengröße

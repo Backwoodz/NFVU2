@@ -3,6 +3,7 @@ using System;
 namespace UnityEngine {
 public struct Vector3 {
     public float x,y,z;
+    public float magnitude => (float)Math.Sqrt(x*x+y*y+z*z);
     public Vector3(float x,float y,float z){this.x=x;this.y=y;this.z=z;}
     public static float Dot(Vector3 a,Vector3 b)=>a.x*b.x+a.y*b.y+a.z*b.z;
     public static Vector3 operator -(Vector3 a)=>new Vector3(-a.x,-a.y,-a.z);
