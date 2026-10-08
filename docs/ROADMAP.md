@@ -1,5 +1,15 @@
 # Nächste Aufgaben
 
+## Außenmusik in 0.7.2
+
+- Bei laufendem Radio draußen linke/rechte Tür und Heckklappe einzeln sowie
+  gemeinsam öffnen: stufenlos lauter/klarer, räumlich zur jeweiligen Öffnung.
+- Beim Schließen wieder gedämpft, kein Titelsprung; Motorhaube ohne Einfluss.
+- Alle Türmechaniken, Wiedereinstieg, Pause, Lautstärke 0, Weiterlaufen aus,
+  Fokusverlust und Entfernung vom Auto im Spiel hören.
+- Eine räumliche Quelle bildet bei mehreren Öffnungen deren gewichtete Mitte;
+  keine getrennte Ausbreitungs- oder Wandabschattungssimulation.
+
 ## Rückleuchten-Korrektur in 0.7.1
 
 Die oberen STYLE04-Einsätze waren im Import ausgelassen und sind wieder

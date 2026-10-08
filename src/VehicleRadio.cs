@@ -53,19 +53,23 @@ public sealed class VehicleRadio : IDisposable {
     void Invalidate() {
         CancelLoad();ReleaseClip();Status=state.HasPlayable?"Bereit":"Keine abspielbare Musik";
     }
-    public void Tick(bool driving,bool blocked,float volume,bool enabled=true,bool parkedRunning=false) {
-        UpdatePlayback(driving,blocked,volume,enabled,parkedRunning);
+    public void Tick(bool driving,bool blocked,float volume,bool enabled=true,bool parkedRunning=false,
+                     float leftDoorOpen=0,float rightDoorOpen=0,float hatchOpen=0) {
+        UpdatePlayback(driving,blocked,volume,enabled,parkedRunning,leftDoorOpen,rightDoorOpen,hatchOpen);
         if(!disposed)musicDucking.Tick(driving&&source!=null&&source.isPlaying&&source.volume>.001f&&!blocked);
     }
-    void UpdatePlayback(bool driving,bool blocked,float volume,bool enabled,bool parkedRunning) {
+    void UpdatePlayback(bool driving,bool blocked,float volume,bool enabled,bool parkedRunning,
+                        float leftDoorOpen,float rightDoorOpen,float hatchOpen) {
         if(disposed||source==null)return;
         bool active=enabled&&(driving||parkedRunning)&&!blocked&&!state.Paused;
         float dt=Mathf.Min(Time.unscaledDeltaTime,.1f);
         outsideBlend=Mathf.MoveTowards(outsideBlend,driving?0:1,dt*3);
         source.spatialBlend=outsideBlend;
-        cabinFilter.cutoffFrequency=Mathf.Lerp(22000,1400,outsideBlend);
+        var acoustics=RadioAcoustics.Evaluate(outsideBlend,leftDoorOpen,rightDoorOpen,hatchOpen);
+        root.transform.localPosition=new Vector3(acoustics.X,acoustics.Y,acoustics.Z);
+        cabinFilter.cutoffFrequency=acoustics.Cutoff;
         gain=blocked?0:Mathf.MoveTowards(gain,active?1:0,dt*3);
-        source.volume=Mathf.Clamp01(volume)*gain*Mathf.Lerp(1,.3f,outsideBlend);
+        source.volume=Mathf.Clamp01(volume)*gain*acoustics.Gain;
         if(!state.HasPlayable)return;
         if(loadedRevision!=state.Revision&&loadingRevision!=state.Revision&&active) {
             CancelLoad();ReleaseClip();loadingRevision=state.Revision;

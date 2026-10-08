@@ -5,7 +5,36 @@ using Rachel350Z;
 class RadioTests {
     static int checks;
     static void Check(bool ok,string name){if(!ok)throw new Exception(name);checks++;Console.WriteLine("PASS "+name);}
+    static bool Near(float a,float b)=>Math.Abs(a-b)<.001f;
     static void Main(){
+        var closed=RadioAcoustics.Evaluate(1,0,0,0);
+        var left=RadioAcoustics.Evaluate(1,1,0,0);
+        var right=RadioAcoustics.Evaluate(1,0,1,0);
+        var both=RadioAcoustics.Evaluate(1,1,1,0);
+        var hatch=RadioAcoustics.Evaluate(1,0,0,1);
+        var all=RadioAcoustics.Evaluate(1,1,1,1);
+        Check(Near(closed.Gain,.3f)&&Near(closed.Cutoff,1400),"closed cabin retains muffled exterior radio");
+        Check(left.Gain>closed.Gain&&left.Cutoff>closed.Cutoff,"one open door makes music louder and clearer");
+        Check(Near(left.Gain,right.Gain)&&Near(left.Cutoff,right.Cutoff)&&Near(left.X,-right.X)&&left.X<0,"door sound follows the correct mirrored physical side");
+        Check(both.Gain>left.Gain&&Near(both.X,0),"two doors increase exterior sound with a centred origin");
+        Check(hatch.Gain>left.Gain&&hatch.Cutoff>left.Cutoff&&Near(hatch.Z,-1.45f),"open hatch exposes the trunk music at the rear");
+        Check(Near(all.Gain,.85f)&&Near(all.Cutoff,12000)&&Near(all.X,0),"all openings keep a bounded mix without stacking streams");
+        var seated=RadioAcoustics.Evaluate(0,1,1,1);
+        Check(Near(seated.Gain,1)&&Near(seated.Cutoff,22000)&&Near(seated.X,0),"open panels do not alter seated playback");
+        var transition=RadioAcoustics.Evaluate(.5f,0,0,1);
+        Check(Near(transition.Gain,(1+hatch.Gain)/2)&&Near(transition.Cutoff,(22000+hatch.Cutoff)/2),"enter and exit smoothly blend the same exterior mix");
+        bool continuous=true;var previous=closed;
+        for(int i=1;i<=100;i++) {
+            var next=RadioAcoustics.Evaluate(1,i/100f,0,i/100f);
+            continuous&=next.Gain>=previous.Gain&&next.Cutoff>=previous.Cutoff&&next.Gain-previous.Gain<.01f&&Math.Abs(next.Z-previous.Z)<.03f;
+            previous=next;
+        }
+        Check(continuous,"partial openings change volume, filtering and origin continuously");
+        var shutAgain=RadioAcoustics.Evaluate(1,0,0,0);
+        Check(Near(shutAgain.Gain,closed.Gain)&&Near(shutAgain.Cutoff,closed.Cutoff),"closing panels restores the muffled mix without retained gain");
+        var invalid=RadioAcoustics.Evaluate(1,float.NaN,float.PositiveInfinity,-1);
+        var clamped=RadioAcoustics.Evaluate(2,2,2,2);
+        Check(Near(invalid.Gain,closed.Gain)&&Near(invalid.Cutoff,closed.Cutoff)&&Near(clamped.Gain,all.Gain),"invalid animation inputs cannot poison or overdrive audio");
         var empty=new RadioPlaybackState(0);
         Check(!empty.HasPlayable&&!empty.Move(1)&&!empty.Select(0),"missing music leaves radio unavailable");
         var state=new RadioPlaybackState(3);int original=state.Revision;

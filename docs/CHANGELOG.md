@@ -1,5 +1,18 @@
 # Versionsgeschichte
 
+## 0.7.2 — Außenmusik bei offenen Türen und Heckklappe
+
+Die tatsächlichen Animationsstände steuern Lautstärke, Tiefpass und Position
+der räumlichen Radioquelle. Geschlossen bleibt die bisherige Dämpfung erhalten
+(30 Prozent, 1400 Hz); eine offene Tür lässt mehr Musik heraus, die vollständig
+offene Heckklappe erreicht 85 Prozent und 12 kHz. Werte sind Mod-Abstimmungen.
+Die Quelle wandert zur geöffneten Fahrzeugseite oder zum Kofferraum; mehrere
+Öffnungen ergeben eine gewichtete Position mit begrenztem Gesamtpegel.
+Der bestehende Stream läuft durch, ohne neue Wiedergabe oder doppelte Songs.
+Innenwiedergabe, Benutzerlautstärke, Pause, Fokus-/Menüsperren und der
+Weiterlaufen-Schalter bleiben erhalten. Die Motorhaube ist ausgenommen.
+Automatisierte Mischungsprüfungen ersetzen keinen Hörtest in Valheim.
+
 ## 0.7.1 — Fehlende obere Rückleuchten-Einsätze
 
 Der Import hat vom geteilten STYLE04-Leuchtenmaterial nur die unteren

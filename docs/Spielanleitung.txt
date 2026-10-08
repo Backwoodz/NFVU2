@@ -65,6 +65,10 @@ F9 → Fahrzeug → „Beim Aussteigen weiterlaufen lassen“ ist standardmäßi
 Nach der Fahrt läuft der Motor im Leerlauf, aktiviertes Neon bleibt an und
 das Radio spielt leiser und dumpfer aus dem Auto weiter. Mit Entfernung
 werden Radio und Motor leiser und sind ab ungefähr 30 Metern nicht mehr hörbar.
+Beim Öffnen der Türen oder Heckklappe wird die Musik draußen stufenlos lauter
+und klarer, beim Schließen wieder leiser und dumpfer. Der Klang kommt aus
+Richtung der geöffneten Seite beziehungsweise des Kofferraums; bei mehreren
+Öffnungen liegt die Klangquelle dazwischen. Die Motorhaube hat keinen Einfluss.
 Der Schalter lässt sich auch neben dem Auto bedienen und wird gespeichert.
 Ausschalten stoppt den Leerlauf/das Neon und pausiert das Radio nach dem Ausblenden.
 Ein frisch erstelltes Auto bleibt aus, bis du einmal eingestiegen bist.

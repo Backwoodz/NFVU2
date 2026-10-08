@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Rachel350Z {
 // Disposable local prototype. No ZNetView: never use in multiplayer or persist into saves.
-[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.7.1")]
+[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.7.2")]
 public partial class Plugin : BaseUnityPlugin {
     GameObject car; Rigidbody body; WheelCollider[] wheels; Transform[] visuals;
     Material[] vehicleMaterials;
@@ -213,7 +213,11 @@ public partial class Plugin : BaseUnityPlugin {
         catch(Exception e){vehicleLighting.Dispose();vehicleLighting=null;Logger.LogWarning("350Z lighting disabled: "+e);}
         if(vehicleNeon!=null)try {vehicleNeon.Tick(driving||ParkedRunning,Time.deltaTime);}
         catch(Exception e){vehicleNeon.Dispose();vehicleNeon=null;Logger.LogWarning("350Z neon disabled: "+e);}
-        if(vehicleRadio!=null)try {vehicleRadio.Tick(driving,audioBlocked,radioVolume.Value,radioEnabled.Value,ParkedRunning);}
+        if(vehicleRadio!=null)try {
+            // NFS RIGHT maps to Unity -X (the physical left door), as in the menu.
+            vehicleRadio.Tick(driving,audioBlocked,radioVolume.Value,radioEnabled.Value,ParkedRunning,
+                showroom?.State.Progress[1]??0,showroom?.State.Progress[0]??0,showroom?.State.Progress[3]??0);
+        }
         catch(Exception e){vehicleRadio.Dispose();vehicleRadio=null;Logger.LogWarning("350Z radio disabled: "+e);}
         if(vehicleAudio!=null)try {
             vehicleAudio.Tick(driving,throttle,brake>0||burnoutHeld&&!burnout,honking,audioBlocked,terrainMode.Value,soundVolume.Value,burnout,ParkedRunning);

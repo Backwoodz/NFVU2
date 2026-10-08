@@ -2,7 +2,7 @@
 
 **Need for Valheim: Underground 2** — ein privater Fahrzeug-Mod-Prototyp für Valheim.
 
-Aktueller Stand: **0.7.1**, gebaut und automatisiert geprüft; Spieltest noch offen.
+Aktueller Stand: **0.7.2**, gebaut und automatisiert geprüft; Spieltest noch offen.
 Die vorherige Version 0.2.1 ist vom Nutzer in Valheim bestätigt. Ein aus eigenen NFS-Underground-2-Dateien ausgelesener
 Nissan 350Z lässt sich in einer lokalen Valheim-Einzelspielerwelt spawnen und fahren.
 Mauskamera, Gelände-/Straßenmodus und Fahrzeug-Sound sind im Spiel bestätigt.
@@ -28,6 +28,8 @@ normale Türen, Suicide Doors und NFS-Scherentüren sind wählbar.
 Drei originale Motoroptiken und die vereinfachten Innenflächen sind enthalten.
 0.7.1 ergänzt die zuvor ausgelassenen oberen Rückleuchten-Einsätze und schließt
 damit die offenen Sichtlinien vom Heck zum Kofferraum-Neon.
+0.7.2 lässt die Außenmusik mit offenen Türen oder offener Heckklappe lauter
+und klarer werden; die räumliche Klangquelle wandert zur jeweiligen Öffnung.
 
 Die Darstellung verwendet jetzt die Originalvoreinstellung `DDAY_PLAYER_CAR`:
 Widebody-Kit 02, Carbonhaube 07, Spoiler 02, Racing-Hart-Felgen 07,
@@ -201,6 +203,12 @@ stammen aus den lokalen NFS-Dateien; die passende Plattengröße ist nach der
 Geometrie gewählt. LCDs verwenden statische Originaltexturen, keine Videowiedergabe.
 Kofferraum-Neon hat einen eigenen Schalter, sieben Farben und Pulsmodus.
 Die Leuchtstreifen, Lichtwirkung und Pulsfrequenz sind Mod-Anpassungen.
+Bei weiterlaufendem Radio wird die Musik draußen mit zunehmender Tür- oder
+Heckklappenöffnung lauter und weniger gedämpft. Der Kofferraum hat den stärksten
+Effekt; beim Schließen wird es wieder leiser und dumpfer. Die Klangquelle folgt
+der offenen Seite beziehungsweise dem Heck, bei mehreren Öffnungen deren Mitte.
+Die Motorhaube beeinflusst die Musik nicht. Radiolautstärke, Pause und der
+Schalter „Beim Aussteigen weiterlaufen lassen“ gelten weiterhin.
 Der Innenraum ist das vereinfachte Original-Basismodell mit Türinnenflächen;
 ein detailliertes Cockpit und transparente Scheiben bleiben offen.
 Unter F9 → Räder lassen sich Sturz vorne/hinten (−15 bis +10 Grad),
