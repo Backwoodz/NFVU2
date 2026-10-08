@@ -1,5 +1,30 @@
 # Versionsgeschichte
 
+## 0.6.0 — Überfahren und laufendes Fahrzeug nach dem Aussteigen
+
+Ab 2,5 m/s Kontaktgeschwindigkeit verursachen Fahrzeugtreffer nativen Valheim-
+Schaden und Rückstoß an feindlichen, lebenden Kreaturen. Spieler und gezähmte
+Tiere bleiben ausgenommen. Kleine Buchen/Tannen und vier Buschvarianten nutzen
+nativen Hackschaden mit normalen Zerstörungseffekten und Beute. Große Bäume,
+Felsen, Bauwerke und gepflanzte Setzlinge sind ausgenommen. Kurze Vorschau des
+Fahrzeugvolumens plus Kollisionskontakte; pro Ziel 0,8 Sekunden Trefferschutz.
+Schaden und Rückstoß sind begrenzt; hohe Gesundheit/Rüstung schützt weiterhin.
+Fahrwerk und Antrieb bleiben unverändert. Der Build referenziert nun zusätzlich
+die lokal installierte assembly_valheim.dll, ohne sie mitzuliefern.
+
+F9 → Fahrzeug: „Beim Aussteigen weiterlaufen lassen“ ist standardmäßig an
+und wird gespeichert. Nach mindestens einem Einstieg bleiben Motor im Leerlauf,
+eingeschaltetes Neon und Radio aktiv. Der Schalter wirkt auch neben dem Auto;
+Radio-Pause und eigener Neon-/Radioschalter bleiben wirksam. Draußen wird das
+Radio räumlich, auf 30 Prozent gedämpft und auf 1,4 kHz tiefpassgefiltert;
+es blendet bis 28 Meter aus. Valheim-Musik wird nur beim Fahren unterdrückt.
+Motor draußen auf 55 Prozent und 30 Meter Reichweite begrenzt.
+Fokus-/UI-Pause und Entfernen räumen weiterhin alle Quellen auf.
+
+Build und 297 automatisierte Prüfungen einschließlich 41 neuer Treffer-Adaptertests
+bestanden. Unity-Physik, Spiel-Schadensverarbeitung und Hörwirkung sind noch
+im Spiel zu bestätigen.
+
 ## 0.5.0 — Kräftigeres Anfahren, Rückwärts-Sound und Burnout
 
 Vorwärts-Anfahrmoment um 20 Prozent bis 3 m/s erhöht, linear bis 6 m/s auf

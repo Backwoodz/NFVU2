@@ -1,4 +1,4 @@
-350Z-Prototyp 0.5.0 – lokaler Test für Valheim
+350Z-Prototyp 0.6.0 – lokaler Test für Valheim
 
 Die Funktionen von 0.2.0 sind vom Nutzer grundsätzlich in Valheim bestätigt.
 Auch die Nachbesserungen von 0.2.1 wurden vom Nutzer in Valheim bestätigt.
@@ -7,6 +7,7 @@ Nitro, Purge und Felgenkorrektur in 0.3.0 warten noch auf den Spieltest.
 0.4.0 ergänzt die optische Radeinstellung im Fahrzeugmenü; Spieltest noch offen.
 0.4.1 verschiebt das Menü nach links oben und ergänzt Scheinwerferfarben/-stärke.
 0.5.0 ergänzt Anfahrmoment, Rückwärts-Heulen, schwächeres Rückfahrlicht und Burnout.
+0.6.0 ergänzt Überfahren und optional weiterlaufenden Motor, Neon und Musik.
 Fahrwerk und Steuerung basieren auf dem bestätigten Prototyp.
 Das Fahrzeug ist temporär und ausschließlich für lokale Einzelspielerwelten.
 
@@ -29,6 +30,25 @@ F9 oder das Kreuz schließen das Menü. Chat, Inventar, Spielmenü und
 Fokusverlust schließen das Fahrzeugmenü und pausieren den Sound.
 Türen und Kofferraum sind noch deaktivierte Vorbereitung für spätere Animationen.
 
+ÜBERFAHREN
+Kleine Buchen/Tannen, normale Büsche und feindliche Kreaturen lassen sich
+ab etwa 9 km/h Kontaktgeschwindigkeit anfahren, auch rückwärts. Schaden und
+Rückstoß steigen mit der Geschwindigkeit; starke Gegner können überleben.
+Valheim übernimmt Zerstörung, Treffergeräusche, Effekte und Beute.
+Große Bäume, Felsen, Bauwerke, Setzlinge, Spieler, zahme Tiere und friedliche
+NPCs sind ausgenommen. Stillstand und leichte Parkrempler verursachen keinen
+zusätzlichen Fahrzeugschaden. Antrieb/Fahrwerk entsprechen weiterhin 0.5.0.
+
+NACH DEM AUSSTEIGEN
+F9 → Fahrzeug → „Beim Aussteigen weiterlaufen lassen“ ist standardmäßig an.
+Nach der Fahrt läuft der Motor im Leerlauf, aktiviertes Neon bleibt an und
+das Radio spielt leiser und dumpfer aus dem Auto weiter. Mit Entfernung
+werden Radio und Motor leiser und sind ab ungefähr 30 Metern nicht mehr hörbar.
+Der Schalter lässt sich auch neben dem Auto bedienen und wird gespeichert.
+Ausschalten stoppt den Leerlauf/das Neon und pausiert das Radio nach dem Ausblenden.
+Ein frisch erstelltes Auto bleibt aus, bis du einmal eingestiegen bist.
+Die getrennten Radio-/Neonschalter und eine manuelle Musikpause gelten weiterhin.
+
 RÄDER
 F9 → Räder bietet fünf Regler:
 - Sturz vorne und hinten, jeweils −15 bis +10 Grad. Negativ: oben nach innen.
@@ -44,10 +64,11 @@ Die Regler funktionieren auch neben dem Auto, um das Ergebnis anzusehen.
 RADIO
 Beim Einstieg startet die lokal importierte NFS-Musik. Im Menü stehen
 Titelauswahl, Vor/Zurück, Pause und eine eigene Lautstärke zur Verfügung.
-Beim Ausstieg blendet sie aus und pausiert; beim Wiedereinstieg geht es
+Beim Ausstieg spielt sie mit aktiviertem Weiterlaufen gedämpft und räumlich weiter.
+Ohne Weiterlaufen blendet sie aus und pausiert; beim Wiedereinstieg geht es
 an derselben Stelle weiter. Eine manuell gesetzte Pause bleibt erhalten.
-Valheim-Musik wird während hörbarer Radiowiedergabe stummgeschaltet und
-danach auf den vorherigen Mute-Zustand zurückgesetzt.
+Valheim-Musik wird während hörbarer Radiowiedergabe im Auto stummgeschaltet;
+beim Ausstieg wird ihr vorheriger Mute-Zustand wiederhergestellt.
 Die Playlist enthält 27 originale EA-Trax-Songs mit Künstler- und Titelnamen.
 Die Zuordnung ist anhand der Originaldaten und Audio-Prüfsummen verifiziert.
 Weitere Containerstreams erscheinen nicht mehr als Songs im Radio.
@@ -75,7 +96,8 @@ Die Reifen sind jetzt 28 cm breit, bei weiterhin 70 cm Durchmesser.
 STYLE03-Sportbremsen haben rote Sättel und 38-cm-Scheiben; die Scheiben
 drehen mit dem Rad, während die Sättel nur der Lenkung folgen.
 Neon ist zunächst aus. Im Menü: einschalten, Farbe wählen, Pulsieren wählen.
-Farbe und Modus werden gespeichert. Neon ist während des Fahrens aktiv.
+Farbe und Modus werden gespeichert. Neon ist während des Fahrens aktiv und
+bleibt mit aktiviertem Weiterlaufen nach dem Aussteigen an.
 Die Originalmaske 350Z_NEON wird an den Boden angepasst. Pulsverlauf und
 Unity-Lichtwirkung sind eigene Anpassungen und müssen im Spiel geprüft werden.
 

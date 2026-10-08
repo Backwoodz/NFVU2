@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Rachel350Z {
 // Disposable local prototype. No ZNetView: never use in multiplayer or persist into saves.
-[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.5.0")]
+[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.6.0")]
 public partial class Plugin : BaseUnityPlugin {
     GameObject car; Rigidbody body; WheelCollider[] wheels; Transform[] visuals;
     Material[] vehicleMaterials;
@@ -19,6 +19,9 @@ public partial class Plugin : BaseUnityPlugin {
     float wheelVisualLift, frontWheelVisualOffset, rearWheelVisualOffset;
     PhysicsMaterial chassisMaterial;
     VehicleHandling handling;
+    VehicleImpact vehicleImpact;
+    bool hasBeenDriven;
+    bool ParkedRunning=>car!=null&&hasBeenDriven&&!driving&&keepRunning.Value;
     VehicleOrbitCamera orbitCamera;
     VehicleAudio vehicleAudio;
     VehicleLighting vehicleLighting;
@@ -127,6 +130,8 @@ public partial class Plugin : BaseUnityPlugin {
             }
         }
         handling=new VehicleHandling(body,wheels,terrainMode.Value,message=>Logger.LogInfo(message));
+        vehicleImpact=car.AddComponent<VehicleImpact>();
+        vehicleImpact.Initialize(body,box,message=>Logger.LogWarning(message));
         burnoutEffects=VehicleBurnoutEffects.Create(car,model,wheels,visuals,message=>Logger.LogInfo(message));
         vehicleNitro=new VehicleNitro(body,wheels);
         try {nitroEffects=VehicleNitroEffects.Create(car,model,message=>Logger.LogInfo(message));}
@@ -165,11 +170,12 @@ public partial class Plugin : BaseUnityPlugin {
         gameCamera=cameraType?.GetProperty("instance",BindingFlags.Public|BindingFlags.NonPublic|BindingFlags.Static)?.GetValue(null) as MonoBehaviour;
         if(gameCamera!=null){cameraEnabled=gameCamera.enabled;gameCamera.enabled=false;}
         orbitCamera.Begin(car.transform);
-        driving=true;
+        driving=true;hasBeenDriven=true;
         nitroInput.Reset();nitroHeld=false;
     }
     void FixedUpdate() {
         if(body==null||wheels==null)return;
+        vehicleImpact?.Step(player,driving&&!audioBlocked&&!menuOpen&&Application.isFocused);
         handling?.Step(driving,throttle,steer,brake,burnoutHeld&&!audioBlocked&&!menuOpen&&Application.isFocused);
         vehicleNitro?.Step(driving,audioBlocked||menuOpen||burnoutHeld||!Application.isFocused||!nitroEnabled.Value,nitroHeld,throttle,brake>0,terrainMode.Value);
         if(driving&&player!=null)player.transform.position=car.transform.TransformPoint(new Vector3(0,.8f,.3f));
@@ -187,12 +193,12 @@ public partial class Plugin : BaseUnityPlugin {
             vehicleLighting.Tick(driving,driving&&(burnoutHeld||brake>0||DrivingMath.DirectionBrake(speed,throttle)),speed,burnout?1:throttle);
         }
         catch(Exception e){vehicleLighting.Dispose();vehicleLighting=null;Logger.LogWarning("350Z lighting disabled: "+e);}
-        if(vehicleNeon!=null)try {vehicleNeon.Tick(driving,Time.deltaTime);}
+        if(vehicleNeon!=null)try {vehicleNeon.Tick(driving||ParkedRunning,Time.deltaTime);}
         catch(Exception e){vehicleNeon.Dispose();vehicleNeon=null;Logger.LogWarning("350Z neon disabled: "+e);}
-        if(vehicleRadio!=null)try {vehicleRadio.Tick(driving,audioBlocked,radioVolume.Value,radioEnabled.Value);}
+        if(vehicleRadio!=null)try {vehicleRadio.Tick(driving,audioBlocked,radioVolume.Value,radioEnabled.Value,ParkedRunning);}
         catch(Exception e){vehicleRadio.Dispose();vehicleRadio=null;Logger.LogWarning("350Z radio disabled: "+e);}
         if(vehicleAudio!=null)try {
-            vehicleAudio.Tick(driving,throttle,brake>0||burnoutHeld&&!burnout,honking,audioBlocked,terrainMode.Value,soundVolume.Value,burnout);
+            vehicleAudio.Tick(driving,throttle,brake>0||burnoutHeld&&!burnout,honking,audioBlocked,terrainMode.Value,soundVolume.Value,burnout,ParkedRunning);
         } catch(Exception e) {
             vehicleAudio.Dispose();vehicleAudio=null;Logger.LogWarning("350Z sound disabled after audio error: "+e);
         }
@@ -212,6 +218,7 @@ public partial class Plugin : BaseUnityPlugin {
     void Exit() {
         CloseVehicleMenu();
         driving=false;throttle=steer=0;brake=1;honking=false;burnoutHeld=false;
+        vehicleImpact?.Step(null,false);
         nitroHeld=false;nitroInput.Reset();vehicleNitro?.State.Stop();
         orbitCamera?.End();
         if(player!=null){player.transform.position=lastExitPosition;
@@ -233,6 +240,7 @@ public partial class Plugin : BaseUnityPlugin {
         vehicleNeon?.Dispose();vehicleNeon=null;
         vehicleAudio?.Dispose();vehicleAudio=null;
         if(player!=null||driving)Exit();if(car!=null)Destroy(car);
+        hasBeenDriven=false;vehicleImpact=null;
         foreach(var mesh in vehicleMeshes)if(mesh!=null)Destroy(mesh);vehicleMeshes.Clear();
         wheelSizeVisuals=null;
         if(vehicleMaterials!=null)foreach(var material in vehicleMaterials)if(material!=null)Destroy(material);

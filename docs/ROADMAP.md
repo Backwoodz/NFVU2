@@ -1,5 +1,25 @@
 # Nächste Aufgaben
 
+## Überfahren und Weiterlaufen nach Ausstieg in 0.6.0
+
+Umgesetzt: geschwindigkeitsabhängiger nativer Treffer auf feindliche Kreaturen
+und ausgewählte kleine Bäume/Büsche; Motorleerlauf, Neon und gedämpftes
+räumliches Radio nach dem Aussteigen, gemeinsam schaltbar unter F9 → Fahrzeug.
+
+- Kleine Buchen/Tannen und Büsche vorwärts/rückwärts ab etwa 9 km/h anfahren:
+  native Zerstörung, Holz und Effekte; besonders dicht stehende Vegetation prüfen.
+- Gegner bei verschiedenen Geschwindigkeiten treffen: Schaden, Rückstoß,
+  Tod/Beute und wiederholte Anfahrt; keine Mehrfachtreffer durch mehrere Collider.
+- Große Bäume, Felsen, Gebäude, zahme Tiere und friedliche NPCs bleiben ausgenommen.
+- Parkplatz: nach frischem Spawn aus, nach Fahrt Leerlauf und aktiviertes Neon an;
+  Menüschalter draußen aus/an, gespeicherte Einstellung, Aus-/Wiedereinstieg prüfen.
+- Radio darf beim Aussteigen nicht neu starten; draußen leiser/dumpfer, mit
+  Entfernung ausblenden. Manuelle Pause, Titelende/-wechsel, Lautstärke 0 prüfen.
+- Valheim-Musik draußen wiederherstellen, Fokusverlust/Spielmenü pausieren,
+  F8 und Weltwechsel müssen sämtliche Quellen/Effekte entfernen.
+- Tatsächliche Physikkontakte, native Schadens-RPCs, Hörwirkung und Menülayout
+  benötigen den Spieltest; automatisierte Tests verwenden hierfür Test-Doubles.
+
 ## Anfahren, Rückwärtsfahrt und Burnout in 0.5.0
 
 Umgesetzt: +20 Prozent Anfahrmoment mit weichem Auslauf, kürzerer erster

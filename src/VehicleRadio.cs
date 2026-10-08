@@ -11,6 +11,7 @@ public sealed class VehicleRadio : IDisposable {
     MonoBehaviour owner;
     GameObject root;
     AudioSource source;
+    AudioLowPassFilter cabinFilter;
     AudioClip clip;
     Coroutine loading;
     UnityWebRequest request;
@@ -20,7 +21,7 @@ public sealed class VehicleRadio : IDisposable {
     Action<string> log;
     int loadedRevision=-1,loadingRevision=-1;
     bool disposed,sourcePaused,started;
-    float gain,startedAt;
+    float gain,startedAt,outsideBlend;
     public int Count {get{return titles.Length;}}
     public int CurrentIndex {get{return state==null?-1:state.Index;}}
     public string CurrentTitle {get{return CurrentIndex>=0?titles[CurrentIndex]:"Keine Musik verfügbar";}}
@@ -39,6 +40,8 @@ public sealed class VehicleRadio : IDisposable {
         root=new GameObject("350Z_Radio");root.transform.SetParent(car.transform,false);
         source=root.AddComponent<AudioSource>();source.playOnAwake=false;source.loop=false;
         source.spatialBlend=0;source.dopplerLevel=0;source.volume=0;source.priority=128;
+        source.minDistance=2;source.maxDistance=28;source.rolloffMode=AudioRolloffMode.Linear;
+        cabinFilter=root.AddComponent<AudioLowPassFilter>();cabinFilter.cutoffFrequency=22000;
         musicDucking=new ValheimMusicDucking(log);
         Status=Count>0?"Bereit":"Keine Musik importiert";
         log("350Z radio ready: "+Count+" local tracks (streamed stereo).");
@@ -50,16 +53,19 @@ public sealed class VehicleRadio : IDisposable {
     void Invalidate() {
         CancelLoad();ReleaseClip();Status=state.HasPlayable?"Bereit":"Keine abspielbare Musik";
     }
-    public void Tick(bool driving,bool blocked,float volume,bool enabled=true) {
-        UpdatePlayback(driving,blocked,volume,enabled);
-        if(!disposed)musicDucking.Tick(source!=null&&source.isPlaying&&source.volume>.001f&&!blocked);
+    public void Tick(bool driving,bool blocked,float volume,bool enabled=true,bool parkedRunning=false) {
+        UpdatePlayback(driving,blocked,volume,enabled,parkedRunning);
+        if(!disposed)musicDucking.Tick(driving&&source!=null&&source.isPlaying&&source.volume>.001f&&!blocked);
     }
-    void UpdatePlayback(bool driving,bool blocked,float volume,bool enabled) {
+    void UpdatePlayback(bool driving,bool blocked,float volume,bool enabled,bool parkedRunning) {
         if(disposed||source==null)return;
-        bool active=enabled&&driving&&!blocked&&!state.Paused;
+        bool active=enabled&&(driving||parkedRunning)&&!blocked&&!state.Paused;
         float dt=Mathf.Min(Time.unscaledDeltaTime,.1f);
+        outsideBlend=Mathf.MoveTowards(outsideBlend,driving?0:1,dt*3);
+        source.spatialBlend=outsideBlend;
+        cabinFilter.cutoffFrequency=Mathf.Lerp(22000,1400,outsideBlend);
         gain=blocked?0:Mathf.MoveTowards(gain,active?1:0,dt*3);
-        source.volume=Mathf.Clamp01(volume)*gain;
+        source.volume=Mathf.Clamp01(volume)*gain*Mathf.Lerp(1,.3f,outsideBlend);
         if(!state.HasPlayable)return;
         if(loadedRevision!=state.Revision&&loadingRevision!=state.Revision&&active) {
             CancelLoad();ReleaseClip();loadingRevision=state.Revision;

@@ -9,10 +9,11 @@ def main():
     if not args.handling_only:
         subprocess.run([sys.executable,'-m','unittest','discover','-s',str(BASE/'tests'),'-p','test_*.py'],check=True)
     references,tfm,version=test_refs()
-    for suite in (['handling'] if args.handling_only else ['model','handling','audio','radio','nitro']):
+    for suite in (['handling'] if args.handling_only else ['model','handling','audio','radio','nitro','impact']):
         out=OUTPUT/'tests'/suite;out.mkdir(parents=True,exist_ok=True)
         sources=list((BASE/'tests'/suite).glob('*.cs'));refs=list(references);arguments=[]
         if suite=='handling':sources.extend(BASE/'src'/name for name in ('DrivingMath.cs','VehicleHandling.cs'))
+        elif suite=='impact':sources.extend(BASE/'src'/name for name in ('VehicleImpactRules.cs','VehicleImpact.cs'))
         else:
             plugin=out/'Rachel350Z.dll';shutil.copy2(OUTPUT/'mod/Rachel350Z.dll',plugin);refs.append(plugin)
         if suite=='model':

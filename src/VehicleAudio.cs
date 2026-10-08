@@ -75,7 +75,7 @@ public sealed class VehicleAudio : IDisposable {
         source.dopplerLevel=.25f;source.spread=0;source.outputAudioMixerGroup=mixer;
         return source;
     }
-    public void Tick(bool driving,float throttle,bool braking,bool honking,bool blocked,bool terrain,float volume,bool burnout=false) {
+    public void Tick(bool driving,float throttle,bool braking,bool honking,bool blocked,bool terrain,float volume,bool burnout=false,bool parkedRunning=false) {
         if(disposed)return;
         if(blocked) {
             if(!paused){foreach(var source in sources)source.Pause();paused=true;}
@@ -85,12 +85,15 @@ public sealed class VehicleAudio : IDisposable {
         float dt=Mathf.Min(Time.unscaledDeltaTime,.1f);
         float forward=Vector3.Dot(body.linearVelocity,body.transform.forward),speed=body.linearVelocity.magnitude;
         float wheelRpm=(Mathf.Abs(wheels[2].rpm)+Mathf.Abs(wheels[3].rpm))*.5f;
-        model.Step(dt,driving,forward,wheelRpm,burnout?1:throttle,braking,terrain,burnout);
+        if(!driving){forward=speed=wheelRpm=throttle=0;braking=honking=burnout=false;}
+        model.Step(dt,driving||parkedRunning,forward,wheelRpm,burnout?1:throttle,braking,terrain,burnout);
         turboModel.Step(dt,driving,model.Rpm,braking?0:Mathf.Max(0,throttle),model.IsShifting,model.Gear<0);
         if(model.Level>.001f && !playing){foreach(var source in sources)if(source.loop)source.Play();playing=true;}
         else if(model.Level<=.001f && playing){foreach(var source in sources)source.Stop();playing=false;}
         if(!playing)return;
         volume=Mathf.Clamp01(volume);
+        if(!driving)volume*=.55f;
+        foreach(var source in sources){source.minDistance=driving?6:2;source.maxDistance=driving?65:30;}
         float powerMix=Mathf.Lerp(.85f,.15f+.85f*model.Load,Mathf.Clamp01(speed/2));
         float engineGain=volume*model.Level*(.5f+.3f*model.Load)*model.ShiftGain;
         for(int i=0;i<power.Length;i++) {

@@ -8,6 +8,7 @@ def build():
     for name in ('UnityEngine','UnityEngine.CoreModule','UnityEngine.PhysicsModule','UnityEngine.VehiclesModule','UnityEngine.InputLegacyModule','UnityEngine.IMGUIModule','UnityEngine.AudioModule','UnityEngine.ParticleSystemModule','UnityEngine.UnityWebRequestModule','UnityEngine.UnityWebRequestAudioModule','UnityEngine.TextRenderingModule','Newtonsoft.Json'):
         refs.append(managed/(name+'.dll'))
     refs.append(game/'BepInEx/core/BepInEx.dll')
+    refs.append(managed/'assembly_valheim.dll')
     missing=[str(p) for p in refs if not p.exists()]
     if missing:raise SystemExit('Missing installed game/mod-loader references:\n'+'\n'.join(missing))
     audio=sorted((LOCAL/'audio-assets').glob('*.wav'))

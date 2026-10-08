@@ -3,11 +3,12 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <LangVersion>latest</LangVersion>
     <AssemblyName>Rachel350Z</AssemblyName>
-    <Version>0.5.0</Version>
+    <Version>0.6.0</Version>
     <ValheimDir Condition="'$(ValheimDir)' == ''">$(NFVU2_VALHEIM)</ValheimDir>
     <ManagedDir>$(ValheimDir)/valheim_Data/Managed</ManagedDir>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="assembly_valheim"><HintPath>$(ManagedDir)/assembly_valheim.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="BepInEx"><HintPath>$(ValheimDir)/BepInEx/core/BepInEx.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine"><HintPath>$(ManagedDir)/UnityEngine.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine.CoreModule"><HintPath>$(ManagedDir)/UnityEngine.CoreModule.dll</HintPath><Private>false</Private></Reference>

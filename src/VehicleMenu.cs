@@ -8,6 +8,7 @@ public partial class Plugin {
     ConfigEntry<KeyboardShortcut> menuKey;
     ConfigEntry<bool> radioEnabled, neonEnabled, neonPulsing;
     ConfigEntry<bool> nitroEnabled,backfireEnabled;
+    ConfigEntry<bool> keepRunning;
     ConfigEntry<float> radioVolume;
     ConfigEntry<string> neonColor;
     ConfigEntry<string> headlightPreset;
@@ -25,14 +26,15 @@ public partial class Plugin {
     GUIStyle panelStyle, titleStyle, labelStyle, mutedStyle, songButtonStyle;
     void InitializeMenu() {
         InitializeWheelTuning();
+        keepRunning=Config.Bind("Vehicle","KeepRunningAfterExit",true,"After driving, keep the engine idling, enabled neon and muffled spatial radio running outside. Can be toggled beside the car.");
         headlightPreset=Config.Bind("Lights","HeadlightPreset","Serie",new ConfigDescription("Front headlight colour preset. Names follow NFSU2; RGB values are adapted for Unity.",new AcceptableValueList<string>(VehicleLighting.HeadlightPresets)));
         headlightStrength=Config.Bind("Lights","HeadlightStrength",1f,new ConfigDescription("Front headlight strength multiplier: 0 to 3. Rear, reverse and plate lights are independent.",new AcceptableValueRange<float>(0,3)));
         menuKey=Config.Bind("Controls","VehicleMenu",new KeyboardShortcut(KeyCode.F9),"Open the vehicle menu while seated or within 5 metres of the car.");
         nitroEnabled=Config.Bind("Nitro","Enabled",true,"Hold left mouse: forward throttle boosts; stationary purges. Six seconds of boost, refills while driving after release.");
         backfireEnabled=Config.Bind("Nitro","LiftOffBackfire",false,"Optional high-RPM lift-off effect. Uses original assets with NFVU2 trigger thresholds, not verified NFS tuning rules.");
-        radioEnabled=Config.Bind("Radio","Enabled",true,"Play the local NFS radio while seated.");
+        radioEnabled=Config.Bind("Radio","Enabled",true,"Play the local NFS radio while seated, and outside if KeepRunningAfterExit is enabled.");
         radioVolume=Config.Bind("Radio","Volume",.55f,new ConfigDescription("Radio volume, independent of engine volume.",new AcceptableValueRange<float>(0,1)));
-        neonEnabled=Config.Bind("Neon","Enabled",false,"Enable underbody neon while seated.");
+        neonEnabled=Config.Bind("Neon","Enabled",false,"Enable underbody neon while seated, and outside if KeepRunningAfterExit is enabled.");
         neonPulsing=Config.Bind("Neon","Pulsing",false,"Pulse the underbody neon.");
         neonColor=Config.Bind("Neon","Color","Grün",new ConfigDescription("Underbody neon colour.",new AcceptableValueList<string>(ColorNames)));
     }
@@ -104,12 +106,12 @@ public partial class Plugin {
             var local=LocalPlayer();CloseVehicleMenu();if(driving)Exit();else if(CanUseVehicleMenu(local))Enter(local);return;
         }
         if(GUI.Button(new Rect(285,280,245,38),"Fahrzeug entfernen")){Cleanup();return;}
-        GUI.Label(new Rect(25,345,510,27),"Karosserie",labelStyle);
+        keepRunning.Value=GUI.Toggle(new Rect(25,340,510,32),keepRunning.Value," Beim Aussteigen weiterlaufen lassen");
+        GUI.Label(new Rect(25,378,510,48),"Motor im Leerlauf, aktiviertes Neon und gedämpfte Musik. Auch neben dem Auto ein-/ausschaltbar.",mutedStyle);
         GUI.enabled=false;
-        GUI.Button(new Rect(25,383,245,38),"Türen · noch nicht verfügbar");
-        GUI.Button(new Rect(285,383,245,38),"Kofferraum · noch nicht verfügbar");
+        GUI.Button(new Rect(25,445,245,38),"Türen · noch nicht verfügbar");
+        GUI.Button(new Rect(285,445,245,38),"Kofferraum · noch nicht verfügbar");
         GUI.enabled=true;
-        GUI.Label(new Rect(25,436,510,52),"Öffnen und Schließen wird mit den späteren Fahrzeuganimationen ergänzt.",mutedStyle);
     }
     void DrawNitroMenu() {
         nitroEnabled.Value=GUI.Toggle(new Rect(25,145,510,32),nitroEnabled.Value," Nitro aktivieren");
@@ -120,12 +122,12 @@ public partial class Plugin {
         GUI.Label(new Rect(25,464,510,44),effectsAudio!=null&&effectsAudio.BackfireAvailable?"Kurzer Flammenstoß nach hoher Drehzahl; separat zuschaltbar.":"Kurzer Flammenstoß nach hoher Drehzahl. Knallgeräusch noch nicht verfügbar.",mutedStyle);
     }
     void DrawRadioMenu() {
-        radioEnabled.Value=GUI.Toggle(new Rect(25,143,510,28),radioEnabled.Value," Radio beim Fahren einschalten");
+        radioEnabled.Value=GUI.Toggle(new Rect(25,143,510,28),radioEnabled.Value," Radio einschalten");
         GUI.Label(new Rect(25,185,510,25),"Lautstärke  "+Mathf.RoundToInt(radioVolume.Value*100)+" %",labelStyle);
         radioVolume.Value=GUI.HorizontalSlider(new Rect(25,220,505,22),radioVolume.Value,0,1);
         if(vehicleRadio==null||vehicleRadio.Count==0){GUI.Label(new Rect(25,260,510,95),"Noch keine Musik verfügbar. Die NFS-Musik muss zuerst lokal importiert werden.",labelStyle);return;}
         GUI.Label(new Rect(25,255,510,48),vehicleRadio.CurrentTitle,labelStyle);
-        GUI.enabled=driving&&radioEnabled.Value;
+        GUI.enabled=(driving||ParkedRunning)&&radioEnabled.Value;
         if(GUI.Button(new Rect(25,310,160,34),"◀ Zurück"))vehicleRadio.Previous();
         if(GUI.Button(new Rect(195,310,165,34),vehicleRadio.Paused?"Abspielen":"Pause"))vehicleRadio.TogglePause();
         if(GUI.Button(new Rect(370,310,160,34),"Weiter ▶"))vehicleRadio.Next();
@@ -133,7 +135,7 @@ public partial class Plugin {
         var titles=vehicleRadio.TrackTitles;
         try {for(int i=0;i<vehicleRadio.Count;i++)if(GUI.Button(new Rect(0,i*44,483,42),(i==vehicleRadio.CurrentIndex?"▶ ":"")+titles[i],songButtonStyle))vehicleRadio.Select(i);}
         finally {GUI.EndScrollView();GUI.enabled=true;}
-        GUI.Label(new Rect(25,493,510,23),driving?vehicleRadio.Status:"Zum Musikhören einsteigen.",mutedStyle);
+        GUI.Label(new Rect(25,493,510,23),driving||ParkedRunning?vehicleRadio.Status:hasBeenDriven?"Zum Musikhören einsteigen oder Weiterlaufen aktivieren.":"Zum Musikhören einmal einsteigen.",mutedStyle);
     }
     void DrawLightsMenu() {
         GUI.enabled=vehicleLighting!=null;
@@ -161,7 +163,7 @@ public partial class Plugin {
         int choice=GUI.SelectionGrid(new Rect(25,285,510,100),selected,ColorNames,4);
         if(enabled!=neonEnabled.Value||pulse!=neonPulsing.Value||choice!=selected){neonEnabled.Value=enabled;neonPulsing.Value=pulse;neonColor.Value=ColorNames[choice];ApplyNeonSettings();}
         GUI.enabled=true;
-        GUI.Label(new Rect(25,420,510,60),"Farbe und Pulsmodus bleiben gespeichert. Die Unterbodenbeleuchtung wird beim Fahren aktiv.",mutedStyle);
+        GUI.Label(new Rect(25,420,510,70),"Farbe und Pulsmodus bleiben gespeichert. Mit „Beim Aussteigen weiterlaufen lassen“ bleibt aktiviertes Neon auch draußen an.",mutedStyle);
     }
 }
 }

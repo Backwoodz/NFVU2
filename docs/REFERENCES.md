@@ -1,5 +1,12 @@
 # Technische Quellen
 
+- Lokal installierte `assembly_valheim.dll` (Valheim 1.0.17): Signaturen/IL von
+  `Character.Damage`, `Destructible.Damage`, `HitData.SetAttacker` und
+  `BaseAI.IsEnemy` für native Fahrzeugtreffer geprüft; keine Spielbibliothek im Paket.
+- [Jötunn-Prefabliste](https://valheim-modding.github.io/Jotunn/data/prefabs/prefab-list.html):
+  `Beech_small1/2`, `FirTree_small/_dead` und `Bush01`, `Bush01_heath`,
+  `Bush01_deepnorth`, `Bush02_en` besitzen `Destructible`; große Bäume und
+  gepflanzte Setzlinge werden für Fahrzeugtreffer ausdrücklich nicht freigegeben.
 - Lokale Originaldateien `LANGUAGES/English.bin`,
   `LANGUAGES/German.bin` und `LANGUAGES/Labels.bin`: zusammenhängende Liste
   der 14 Scheinwerfer-Vorlagen von STOCK/SERIE bis BRIGHT_YELLOW/GELB EXTRAHELL.
