@@ -26,6 +26,7 @@ public partial class Plugin {
     GUIStyle panelStyle, titleStyle, labelStyle, mutedStyle, songButtonStyle;
     void InitializeMenu() {
         InitializeWheelTuning();
+        InitializeShowroomMenu();
         keepRunning=Config.Bind("Vehicle","KeepRunningAfterExit",true,"After driving, keep the engine idling, enabled neon and muffled spatial radio running outside. Can be toggled beside the car.");
         headlightPreset=Config.Bind("Lights","HeadlightPreset","Serie",new ConfigDescription("Front headlight colour preset. Names follow NFSU2; RGB values are adapted for Unity.",new AcceptableValueList<string>(VehicleLighting.HeadlightPresets)));
         headlightStrength=Config.Bind("Lights","HeadlightStrength",1f,new ConfigDescription("Front headlight strength multiplier: 0 to 3. Rear, reverse and plate lights are independent.",new AcceptableValueRange<float>(0,3)));
@@ -92,8 +93,8 @@ public partial class Plugin {
             GUI.Label(new Rect(22,15,480,36),"NFVU2  /  350Z",titleStyle);
             if(GUI.Button(new Rect(513,17,28,28),"×")){CloseVehicleMenu();return;}
             GUI.Label(new Rect(23,55,510,25),driving?"Fahrzeug bremst · Radio bleibt bedienbar":"Fahrzeugsteuerung",mutedStyle);
-            menuTab=GUI.Toolbar(new Rect(22,90,516,34),menuTab,new[]{"Fahrzeug","Radio","Licht","Neon","Nitro","Räder"});
-            switch(menuTab){case 0:DrawCarMenu();break;case 1:DrawRadioMenu();break;case 2:DrawLightsMenu();break;case 3:DrawNeonMenu();break;case 4:DrawNitroMenu();break;case 5:DrawWheelMenu();break;}
+            menuTab=GUI.Toolbar(new Rect(22,90,516,34),menuTab,new[]{"Fahrzeug","Radio","Licht","Neon","Nitro","Räder","Türen","Ausbau"});
+            switch(menuTab){case 0:DrawCarMenu();break;case 1:DrawRadioMenu();break;case 2:DrawLightsMenu();break;case 3:DrawNeonMenu();break;case 4:DrawNitroMenu();break;case 5:DrawWheelMenu();break;case 6:DrawBodyMenu();break;case 7:DrawTrunkMenu();break;}
             GUI.Label(new Rect(23,522,516,28),menuKey.Value+": schließen  ·  Einstellungen werden gespeichert",mutedStyle);
         } finally {GUI.matrix=oldMatrix;GUI.enabled=oldEnabled;}
     }
@@ -108,10 +109,8 @@ public partial class Plugin {
         if(GUI.Button(new Rect(285,280,245,38),"Fahrzeug entfernen")){Cleanup();return;}
         keepRunning.Value=GUI.Toggle(new Rect(25,340,510,32),keepRunning.Value," Beim Aussteigen weiterlaufen lassen");
         GUI.Label(new Rect(25,378,510,48),"Motor im Leerlauf, aktiviertes Neon und gedämpfte Musik. Auch neben dem Auto ein-/ausschaltbar.",mutedStyle);
-        GUI.enabled=false;
-        GUI.Button(new Rect(25,445,245,38),"Türen · noch nicht verfügbar");
-        GUI.Button(new Rect(285,445,245,38),"Kofferraum · noch nicht verfügbar");
-        GUI.enabled=true;
+        if(GUI.Button(new Rect(25,445,245,38),"Türen und Motorhaube"))menuTab=6;
+        if(GUI.Button(new Rect(285,445,245,38),"Kofferraum-Ausbau"))menuTab=7;
     }
     void DrawNitroMenu() {
         nitroEnabled.Value=GUI.Toggle(new Rect(25,145,510,32),nitroEnabled.Value," Nitro aktivieren");

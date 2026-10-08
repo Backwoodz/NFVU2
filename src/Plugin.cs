@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Rachel350Z {
 // Disposable local prototype. No ZNetView: never use in multiplayer or persist into saves.
-[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.6.0")]
+[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.7.0")]
 public partial class Plugin : BaseUnityPlugin {
     GameObject car; Rigidbody body; WheelCollider[] wheels; Transform[] visuals;
     Material[] vehicleMaterials;
@@ -19,6 +19,8 @@ public partial class Plugin : BaseUnityPlugin {
     float wheelVisualLift, frontWheelVisualOffset, rearWheelVisualOffset;
     PhysicsMaterial chassisMaterial;
     VehicleHandling handling;
+    VehicleShowroom showroom;
+    readonly System.Collections.Generic.Dictionary<ModelPart,Mesh> audioMeshes=new System.Collections.Generic.Dictionary<ModelPart,Mesh>();
     VehicleImpact vehicleImpact;
     bool hasBeenDriven;
     bool ParkedRunning=>car!=null&&hasBeenDriven&&!driving&&keepRunning.Value;
@@ -144,18 +146,27 @@ public partial class Plugin : BaseUnityPlugin {
         catch(Exception e){Logger.LogWarning("350Z neon unavailable: "+e);}
         ApplyNeonSettings();
         vehicleRadio=VehicleRadio.Create(this,car,message=>Logger.LogWarning(message));
+        if(model.animations!=null) {
+            showroom=new VehicleShowroom(car,model,(part,parent)=>AddVisual(part,parent,model,paint,dark),dark);
+            ApplyShowroomSettings();
+        }
         Logger.LogInfo("350Z spawned: "+model.parts.Length+" meshes, 4 wheels. Terrain assistance: "+terrainMode.Value);
         status="350Z bereit. F7: einsteigen | "+menuKey.Value+": Fahrzeugmenü | F8: entfernen";
     }
-    void AddVisual(ModelPart p, Transform parent, ModelData model, Material paint, Material dark) {
+    Transform AddVisual(ModelPart p, Transform parent, ModelData model, Material paint, Material dark) {
         var obj=new GameObject(p.name);obj.transform.SetParent(parent,false);
-        var mesh=new Mesh{name=p.name,vertices=p.vertices.Select(v=>new Vector3(v.x,v.y,v.z)).ToArray(),triangles=p.indices};vehicleMeshes.Add(mesh);
-        if(p.normals!=null)mesh.normals=p.normals.Select(v=>new Vector3(v.x,v.y,v.z)).ToArray();else mesh.RecalculateNormals();
-        mesh.uv=p.uv!=null?p.uv.Select(v=>new Vector2(v.u,v.v)).ToArray():new Vector2[p.vertices.Length];
-        mesh.colors=Enumerable.Repeat(Color.white,p.vertices.Length).ToArray();
-        mesh.RecalculateTangents();mesh.RecalculateBounds();
-        if(p.group=="wheel")wheelSizeVisuals?.Track(mesh);
+        Mesh mesh;
+        if(p.group!="audio"||!audioMeshes.TryGetValue(p,out mesh)) {
+            mesh=new Mesh{name=p.name,vertices=p.vertices.Select(v=>new Vector3(v.x,v.y,v.z)).ToArray(),triangles=p.indices};vehicleMeshes.Add(mesh);
+            if(p.normals!=null)mesh.normals=p.normals.Select(v=>new Vector3(v.x,v.y,v.z)).ToArray();else mesh.RecalculateNormals();
+            mesh.uv=p.uv!=null?p.uv.Select(v=>new Vector2(v.u,v.v)).ToArray():new Vector2[p.vertices.Length];
+            mesh.colors=Enumerable.Repeat(Color.white,p.vertices.Length).ToArray();
+            mesh.RecalculateTangents();mesh.RecalculateBounds();
+            if(p.group=="wheel")wheelSizeVisuals?.Track(mesh);
+            if(p.group=="audio")audioMeshes.Add(p,mesh);
+        }
         obj.AddComponent<MeshFilter>().sharedMesh=mesh;obj.AddComponent<MeshRenderer>().sharedMaterial=model.schemaVersion==2?vehicleMaterials[p.material]:(p.name.Contains("BASE")?dark:paint);
+        return obj.transform;
     }
     void Enter(MonoBehaviour local) {
         if(Multiplayer())return;
@@ -171,6 +182,7 @@ public partial class Plugin : BaseUnityPlugin {
         if(gameCamera!=null){cameraEnabled=gameCamera.enabled;gameCamera.enabled=false;}
         orbitCamera.Begin(car.transform);
         driving=true;hasBeenDriven=true;
+        showroom?.State.CloseAll();
         nitroInput.Reset();nitroHeld=false;
     }
     void FixedUpdate() {
@@ -181,6 +193,12 @@ public partial class Plugin : BaseUnityPlugin {
         if(driving&&player!=null)player.transform.position=car.transform.TransformPoint(new Vector3(0,.8f,.3f));
     }
     void LateUpdate() {
+        if(showroom!=null)try {
+            ApplyShowroomSettings();
+            int color=Math.Max(0,Array.IndexOf(ColorNames,trunkNeonColor.Value));
+            showroom.Tick(Time.deltaTime,body.linearVelocity.magnitude>.5f,doorStyle.Value,driving||ParkedRunning,trunkNeonEnabled.Value,trunkNeonPulsing.Value,NeonColors[color]);
+        }
+        catch(Exception e){showroom.Dispose();showroom=null;Logger.LogWarning("350Z showroom disabled: "+e);}
         bool burnout=driving&&burnoutHeld&&handling!=null&&handling.BurnoutActive&&!audioBlocked&&!menuOpen&&Application.isFocused;
         wheelSizeVisuals?.Apply(rimInches.Value);
         if(wheels!=null && visuals!=null)for(int i=0;i<4;i++)if(wheels[i]!=null && visuals[i]!=null){
@@ -231,6 +249,7 @@ public partial class Plugin : BaseUnityPlugin {
     }
     void Cleanup(){
         CloseVehicleMenu();
+        showroom?.Dispose();showroom=null;audioMeshes.Clear();
         burnoutHeld=false;burnoutEffects?.Dispose();burnoutEffects=null;
         nitroHeld=false;nitroInput.Reset();vehicleNitro=null;
         nitroEffects?.Dispose();nitroEffects=null;

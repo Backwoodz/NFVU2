@@ -1,5 +1,31 @@
 # Versionsgeschichte
 
+## 0.7.0 — Kofferraumausbauten, Türanimationen und Motorraum
+
+F9 → Ausbau: Serie und drei originale 350Z-Gehäuse mit 2/4/6 Plätzen.
+Je Platz Abdeckung, vier Subwooferdesigns, vier Verstärker und vier LCDs.
+Originale AUDIO-Geometrie, AUDIO_SKIN-Textur und MARKER_AUDIO_COMP-Matrizen;
+Komponentengröße nach Geometriepassform gewählt. Standard: KIT02 mit vier
+SPEAKER1-Subwoofern. Dies ist eine Mod-Voreinstellung, kein nachgewiesener
+Bestandteil von Rachels Preset. Separates Kofferraum-Neon mit sieben Farben,
+Ein-/Ausschalter, statischer oder pulsierender Darstellung und Zurücksetzen.
+Leuchtstreifen und Pulsverlauf sind eigene Mod-Effekte; LCDs bleiben statisch.
+
+F9 → Türen: linke/rechte Tür, Haube und Heckklappe öffnen im Stand animiert.
+Normale/Suicide-/Scherentüren verwenden Original-Quaternionen, Scharnierpunkte
+und bei Scherentüren auch die originale seitliche Translation. Wiedergabe auf
+eine Sekunde normiert; Türmechanik wechselt erst nach dem Schließen.
+Spiegel, Türverkleidungen, Haubenunterseiten und Spoiler folgen den Gruppen.
+Anfahren/Einsteigen schließt die Teile automatisch. Keine neuen Türcollider;
+Antrieb und WheelCollider bleiben unverändert.
+
+Drei Original-Motormodelle samt UNLIT-Innenflächen sind unter der Haube
+wählbar. Das Basismodell enthält nur einfache Innenraumgeometrie; ein
+detailliertes Cockpit wurde nicht gefunden. Scheiben bleiben undurchsichtig.
+Neue Metadaten sind optional für ältere Modelle; importierte Audiomeshes
+werden beim Teilewechsel wiederverwendet. Build und 322 automatisierte Prüfungen
+sowie Blender-Sichtprüfungen; Unity-Darstellung/Bedienung noch im Spiel prüfen.
+
 ## 0.6.0 — Überfahren und laufendes Fahrzeug nach dem Aussteigen
 
 Ab 2,5 m/s Kontaktgeschwindigkeit verursachen Fahrzeugtreffer nativen Valheim-

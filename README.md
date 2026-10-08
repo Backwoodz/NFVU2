@@ -2,7 +2,7 @@
 
 **Need for Valheim: Underground 2** — ein privater Fahrzeug-Mod-Prototyp für Valheim.
 
-Aktueller Stand: **0.6.0**, gebaut und automatisiert geprüft; Spieltest noch offen.
+Aktueller Stand: **0.7.0**, gebaut und automatisiert geprüft; Spieltest noch offen.
 Die vorherige Version 0.2.1 ist vom Nutzer in Valheim bestätigt. Ein aus eigenen NFS-Underground-2-Dateien ausgelesener
 Nissan 350Z lässt sich in einer lokalen Valheim-Einzelspielerwelt spawnen und fahren.
 Mauskamera, Gelände-/Straßenmodus und Fahrzeug-Sound sind im Spiel bestätigt.
@@ -21,6 +21,11 @@ Rückwärtsgang-Heulen, schwächeres Rückfahrlicht und W+S-Burnouts mit Rauch.
 0.6.0 ergänzt Aufprallschaden an kleinen Bäumen, Büschen und Gegnern.
 F9 → Fahrzeug → „Beim Aussteigen weiterlaufen lassen“ hält Motor, aktiviertes
 Neon und gedämpfte, räumliche Musik nach der Fahrt an; standardmäßig eingeschaltet.
+0.7.0 ergänzt originale Kofferraumausbauten mit einzeln wählbaren Subwoofern,
+Verstärkern und LCDs sowie eigenem Neon. Standard: vier Subwoofer in Ausbau 2.
+Türen, Haube und Heckklappe öffnen mit den originalen Animationsdaten;
+normale Türen, Suicide Doors und NFS-Scherentüren sind wählbar.
+Drei originale Motoroptiken und die vereinfachten Innenflächen sind enthalten.
 
 Die Darstellung verwendet jetzt die Originalvoreinstellung `DDAY_PLAYER_CAR`:
 Widebody-Kit 02, Carbonhaube 07, Spoiler 02, Racing-Hart-Felgen 07,
@@ -50,7 +55,7 @@ NFS-Prozess ist eine mögliche spätere Forschungsaufgabe und noch nicht impleme
 | Leertaste | Bremsen |
 | Maus / Mausrad | Umschauen / Kameraabstand |
 | Mittlere Maustaste | Kamera zentrieren |
-| F9 | Fahrzeugmenü: Fahrmodus, Radio, Licht, Neon, Nitro und Räder |
+| F9 | Fahrzeugmenü: Fahrmodus, Radio, Licht, Neon, Nitro, Räder, Türen und Ausbau |
 | Linke Maustaste halten | Bei Vorwärtsfahrt mit Gas: Nitro; im Stand: Purge |
 | H halten | Hupe |
 | F8 | Fahrzeug entfernen |
@@ -126,6 +131,9 @@ dafür `ValheimDir` beziehungsweise die Umgebungsvariable `NFVU2_VALHEIM` setzen
 
 Prüfungen umfassen Modell-/Lichtzustände, Antrieb, Audio/Turbo, Radioauswahl, Nitro-/Eingabezustände,
 Originalasset-Verarbeitung und Installation mit Rücksicherung.
+Hinzu kommen Kofferraumkatalog, Animationsimport, Bewegungszustände und
+Validierung von Scharnier-/Einbaupunkten. Externe Blender-Vorschauen prüfen
+die Geometrie und Posen, nicht die Darstellung im Spiel.
 Die Antriebsprüfungen verwenden kontrollierte API-Antworten. Sie ersetzen keinen
 Unity-Fahrtest; auch die Audio-Prüfungen spielen nichts in Valheim ab.
 
@@ -180,7 +188,19 @@ Bodenkontakt. Loslassen, Leertaste, Menü, Fokusverlust oder Aussteigen beendet
 den Burnout; der normale Grip wird wiederhergestellt. Nitro ist dabei gesperrt.
 Das geschwindigkeitsabhängige Rückwärts-Getriebeheulen ist synthetisch erzeugt;
 ein eindeutig zugeordneter NFS-Rückwärtsgang-Sample wurde nicht gefunden.
-Türen und Kofferraum sind vorbereitete, noch deaktivierte Menüeinträge.
+F9 → Türen öffnet linke/rechte Tür, Haube und Heckklappe im Stand einzeln.
+Beim Losfahren schließen sie automatisch. Die Türmechanik lässt sich zwischen
+Normal, Suicide und Scherentüren wechseln; der Wechsel erfolgt nach dem Schließen.
+Motoroptik Serie/Style 1/Style 2 betrifft ausschließlich das Modell.
+F9 → Ausbau bietet Serien-Kofferraum oder drei Gehäuse mit 2/4/6 Einbauplätzen.
+Je Platz sind Abdeckung, vier Subwooferdesigns, vier Verstärker und vier LCDs
+wählbar. Standard ist Ausbau 2 mit vier Subwoofern. Teile und Einbaupunkte
+stammen aus den lokalen NFS-Dateien; die passende Plattengröße ist nach der
+Geometrie gewählt. LCDs verwenden statische Originaltexturen, keine Videowiedergabe.
+Kofferraum-Neon hat einen eigenen Schalter, sieben Farben und Pulsmodus.
+Die Leuchtstreifen, Lichtwirkung und Pulsfrequenz sind Mod-Anpassungen.
+Der Innenraum ist das vereinfachte Original-Basismodell mit Türinnenflächen;
+ein detailliertes Cockpit und transparente Scheiben bleiben offen.
 Unter F9 → Räder lassen sich Sturz vorne/hinten (−15 bis +10 Grad),
 Radversatz vorne/hinten (−10 bis +20 cm je Rad) und die gemeinsame Felgengröße
 (16 bis 22 Zoll, ausgehend vom nominalen NFS-20-Zoll-Modell) einstellen.

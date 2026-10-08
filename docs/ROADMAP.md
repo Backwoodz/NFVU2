@@ -1,5 +1,27 @@
 # Nächste Aufgaben
 
+## Kofferraumausbau, Türen und Motorraum in 0.7.0
+
+Umgesetzt: vier originale Kofferraumgehäuse, Auswahl pro Einbauplatz,
+Standard-Ausbau mit vier Subwoofern, eigenes Neon mit Farbe/Pulsmodus,
+drei Motoroptiken und acht Original-Animationsspuren mit Scharnierpunkten.
+Normale/Suicide-/Scherentüren, Haube und Heckklappe sind einzeln bedienbar.
+Externe Vorschauen aller Türmechaniken, Gehäuse 1–3 und Motoroptiken geprüft.
+
+- Im Spiel F9 → Ausbau: alle Einbauplätze, Subwoofer, Verstärker, LCDs und
+  Abdeckungen wechseln; beim Gehäusewechsel darf nichts doppelt erscheinen.
+- Standard-System, gespeicherte Konfiguration und F6/F8-Wiederholung prüfen.
+- Kofferraum-Neon unabhängig vom Unterboden einstellen: sieben Farben,
+  statisch/pulsierend, Ausstieg/Weiterlaufen, offener/geschlossener Kofferraum.
+- Beide Türen einzeln, Haube und Heckklappe öffnen/schließen; laufende Animation
+  umkehren und Türmechanik während geöffneter Türen wechseln.
+- Spiegel/Innenverkleidungen und Spoiler müssen mitgehen, Schweller bleiben fest.
+- Anfahren und Einsteigen schließen alles; auf Hängen keine bleibende Fehlstellung.
+- Die Showroom-Animationen haben keine zusätzlichen Tür-Kollisionskörper.
+- Innenraum bleibt ein einfaches Originalmodell; detaillierte Sitze/Cockpit,
+  transparente Scheiben und feinere Materialwirkung sind spätere Arbeiten.
+- LCDs sind statisch texturiert. Neon ist ein visueller Puls, keine Beat-Analyse.
+
 ## Überfahren und Weiterlaufen nach Ausstieg in 0.6.0
 
 Umgesetzt: geschwindigkeitsabhängiger nativer Treffer auf feindliche Kreaturen
@@ -107,8 +129,7 @@ Die orangefarbenen Streifen sind passiv; Blinkersteuerung bleibt eine spätere A
 - Neon auf Ebene, Hängen und Stufen sowie bei Sprüngen prüfen; Shader/Farbintensität abstimmen.
 - Frühere akustische Schaltungen und Turbo auf derselben kurzen Strecke hören.
 - Originale Turbo-Substream-Rollen, Rachel-Tuning und NFS-Auslöseverhalten abgleichen.
-- Türen/Kofferraum: Scharniere, gemeinsame Teilgruppen und Innenflächen ergänzen;
-  die bisherigen Menüeinträge sind Vorbereitung, keine fertigen Animationen.
+- Türen/Kofferraum: neue 0.7.0-Animationen und Innenflächen im Spiel prüfen.
 
 ## Sound-Feinschliff
 
@@ -123,7 +144,7 @@ Die orangefarbenen Streifen sind passiv; Blinkersteuerung bleibt eine spätere A
   Carbonhaube, Originalfelgen und Drachenvinyl sind aus `DDAY_PLAYER_CAR` importiert.
 - Lackreflexionen und Felgentönung mit dem Originalspiel vergleichen.
 - Radfreigang bei Lenkeinschlag und Einfedern in beiden Fahrmodi prüfen.
-- Scheibentransparenz, Leuchtenabdeckungen, Innenraum und Fahrersitz ergänzen;
+- Scheibentransparenz, Leuchtenabdeckungen, detaillierten Innenraum und Fahrersitz ergänzen;
   angenäherten Kennzeicheneinbau im Spiel prüfen.
 - Alle offenen Darstellungsschritte abschließen, bevor die vollständige
   Rachel-Rekonstruktion als fertig bezeichnet wird.

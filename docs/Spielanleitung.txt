@@ -1,4 +1,4 @@
-350Z-Prototyp 0.6.0 – lokaler Test für Valheim
+350Z-Prototyp 0.7.0 – lokaler Test für Valheim
 
 Die Funktionen von 0.2.0 sind vom Nutzer grundsätzlich in Valheim bestätigt.
 Auch die Nachbesserungen von 0.2.1 wurden vom Nutzer in Valheim bestätigt.
@@ -8,6 +8,7 @@ Nitro, Purge und Felgenkorrektur in 0.3.0 warten noch auf den Spieltest.
 0.4.1 verschiebt das Menü nach links oben und ergänzt Scheinwerferfarben/-stärke.
 0.5.0 ergänzt Anfahrmoment, Rückwärts-Heulen, schwächeres Rückfahrlicht und Burnout.
 0.6.0 ergänzt Überfahren und optional weiterlaufenden Motor, Neon und Musik.
+0.7.0 ergänzt Kofferraumausbauten, animierte Türen/Hauben und Motoroptiken.
 Fahrwerk und Steuerung basieren auf dem bestätigten Prototyp.
 Das Fahrzeug ist temporär und ausschließlich für lokale Einzelspielerwelten.
 
@@ -28,7 +29,27 @@ jetzt im Menü umgeschaltet. Das Auto bremst während der Bedienung; Kamera
 und Fahrsteuerung sind gesperrt, Radio und Motor bleiben hörbar.
 F9 oder das Kreuz schließen das Menü. Chat, Inventar, Spielmenü und
 Fokusverlust schließen das Fahrzeugmenü und pausieren den Sound.
-Türen und Kofferraum sind noch deaktivierte Vorbereitung für spätere Animationen.
+F9 → Türen: linke/rechte Tür, Motorhaube und Kofferraum einzeln öffnen/schließen.
+Öffnen ist nur im Stand möglich. Beim Losfahren und Einsteigen schließt alles.
+Türmechanik: Normal, Suicide oder Scherentüren wie in NFS. Beim Mechanikwechsel
+schließen geöffnete Türen zuerst, damit sie nicht zwischen Scharnieren springen.
+Motoroptik: Serie, Style 1 oder Style 2; ausschließlich eine sichtbare Änderung.
+Die Motoren und Animationen stammen aus den Originaldateien. Der vorhandene
+Innenraum ist sehr einfach; ein detailliertes Cockpit ist nicht enthalten.
+
+KOFFERRAUMAUSBAU
+F9 → Ausbau: Serie oder Ausbau 1/2/3 mit zwei, vier oder sechs Einbauplätzen.
+Wähle einen Platz und anschließend sein Teil: Abdeckung, Subwoofer 1–4,
+Verstärker 1–4 oder Bildschirm 1–4. Die Baugröße passt zum gewählten Gehäuse.
+Standardmäßig ist Ausbau 2 mit vier Subwoofern eingebaut. „Standard-System“
+stellt dieses System und grünes statisches Kofferraum-Neon wieder her.
+Die LCDs tragen originale statische Texturen, spielen aber keine Videos ab.
+Kofferraum-Neon lässt sich unabhängig vom Unterboden ein-/ausschalten,
+in sieben Farben einstellen und auf statisch oder pulsierend setzen.
+Es leuchtet bei laufendem Auto oder geöffneter Heckklappe. Der Puls ist ein
+regelmäßiger Lichteffekt, keine Kopplung an den Musik-Beat. Einstellungen werden
+gespeichert; Tür-/Haubenöffnungen starten nach dem Spawnen geschlossen.
+Die Türen sind visuell animiert; zusätzliche Tür-Kollisionskörper gibt es nicht.
 
 ÜBERFAHREN
 Kleine Buchen/Tannen, normale Büsche und feindliche Kreaturen lassen sich

@@ -61,6 +61,8 @@ class Program {
         Check(model.effectEmitters.Where(e=>e.role=="exhaust").All(e=>e.position.z < -1.9f && e.direction.z < -.9f),"exhaust flames originate behind car and point rearward");
         Check(model.nitroFlameTexture>=0 && model.nitroPurgeTexture>=0 && model.textures[model.nitroFlameTexture].width==128 && model.textures[model.nitroPurgeTexture].width==128,"original nitrous particle atlases present");
         Check(model.materials.Any(m=>m.name.StartsWith("wheel_chrome_")) && model.materials.Any(m=>m.name.StartsWith("wheel_gold_")),"chrome lip and gold star use separate materials");
+        Check(model.animations.Length==8&&model.trunkLayouts.Length==4,"original showroom tracks and four trunk layouts load");
+        Check(model.trunkLayouts[2].sockets.Length==4&&model.audioComponents.Any(c=>c.kind=="speaker"),"default enclosure has four subwoofer mounts");
         Console.WriteLine("PASS model: "+model.parts.Length+" slices, "+model.parts.Sum(p=>p.indices.Length/3)+" triangles");checks++;
         ExpectInvalid<InvalidDataException>("missing-parts","{}");
         ExpectInvalid<InvalidDataException>("empty-file","");
@@ -101,6 +103,16 @@ class Program {
         ExpectInvalid<InvalidDataException>("zero-effect-direction",doc.ToString(Formatting.None));
         doc=JObject.Parse(File.ReadAllText(args[0]));doc["effectEmitters"][0]["role"]="unknown";
         ExpectInvalid<InvalidDataException>("invalid-effect-role",doc.ToString(Formatting.None));
+        doc=JObject.Parse(File.ReadAllText(args[0]));doc["animations"][0]["frames"][0]["rotation"]["w"]=4;
+        ExpectInvalid<InvalidDataException>("invalid-animation-quaternion",doc.ToString(Formatting.None));
+        doc=JObject.Parse(File.ReadAllText(args[0]));doc["animations"][0]["name"]="UNKNOWN";
+        ExpectInvalid<InvalidDataException>("unknown-animation-track",doc.ToString(Formatting.None));
+        doc=JObject.Parse(File.ReadAllText(args[0]));doc["trunkLayouts"][1]["sockets"][0]["up"]=doc["trunkLayouts"][1]["sockets"][0]["forward"].DeepClone();
+        ExpectInvalid<InvalidDataException>("degenerate-audio-socket",doc.ToString(Formatting.None));
+        doc=JObject.Parse(File.ReadAllText(args[0]));doc["audioComponents"][0]["id"]="UNKNOWN";
+        ExpectInvalid<InvalidDataException>("missing-component-mesh",doc.ToString(Formatting.None));
+        doc=JObject.Parse(File.ReadAllText(args[0]));doc["parts"][0]["movingPart"]="axle";
+        ExpectInvalid<InvalidDataException>("invalid-moving-part",doc.ToString(Formatting.None));
         doc=JObject.Parse(File.ReadAllText(args[0]));doc.Remove("lights");doc.Remove("neonTexture");
         doc.Remove("effectEmitters");doc.Remove("nitroFlameTexture");doc.Remove("nitroPurgeTexture");
         foreach(var part in doc["parts"]) ((JObject)part).Remove("lightRole");

@@ -13,6 +13,7 @@ from PIL import Image
 from project import LOCAL
 from export_geometry import parse
 from nfs_formats import bin_hash, jdlz, TexturePack
+import showroom_assets
 
 ASSETS=LOCAL/'nfs-assets'
 PAINT=(15,108,49)
@@ -154,7 +155,11 @@ def main():
     families=['350Z_BASE','350Z_KITW02_BODY','350Z_KITW02_DOOR_LEFT','350Z_KITW02_DOOR_RIGHT',
               '350Z_KITW02_DOOR_PANEL_LEFT','350Z_KITW02_DOOR_PANEL_RIGHT','350Z_KITW02_DOOR_SILL_LEFT','350Z_KITW02_DOOR_SILL_RIGHT',
               '350Z_STYLE07_HOOD','350Z_KIT00_ROOF','350Z_KIT00_TRUNK','350Z_KIT00_LEFT_SIDE_MIRROR','350Z_KIT00_RIGHT_SIDE_MIRROR',
-              '350Z_STYLE02_HEADLIGHT_LEFT','350Z_STYLE02_HEADLIGHT_RIGHT','350Z_STYLE04_BRAKELIGHT']
+              '350Z_STYLE02_HEADLIGHT_LEFT','350Z_STYLE02_HEADLIGHT_RIGHT','350Z_STYLE04_BRAKELIGHT',
+              '350Z_KIT00_TRUNK_UNDER','350Z_KIT00_HOOD_UNDER',
+              '350Z_KIT00_ENGINE','350Z_KIT00_ENGINE_UNLIT',
+              '350Z_STYLE01_ENGINE','350Z_STYLE01_ENGINE_UNLIT',
+              '350Z_STYLE02_ENGINE','350Z_STYLE02_ENGINE_UNLIT']
     selected=[(pick(car,n),'body',None,n) for n in families]
     spoiler=pick(parse(ASSETS/'CARS/SPOILER/GEOMETRY.BIN'),'SPOILER_STYLE02')
     socket=pick(car,'350Z_BASE')['sockets'][0xc93b73fd]
@@ -167,7 +172,7 @@ def main():
     selected.append((rim,'wheel',None,'RACINGHART_STYLE07_20_26'))
     brakes=pick(parse(ASSETS/'CARS/BRAKES/GEOMETRY.BIN'),'BRAKE_STYLE03')
     selected.append((sport_brake_geometry(brakes),'brake',None,'BRAKE_STYLE03'))
-    packs=[TexturePack(ASSETS/'CARS/350Z/TEXTURES.BIN'),TexturePack(ASSETS/'CARS/WHEELS/TEXTURES.BIN'),TexturePack(global_path)]
+    packs=[TexturePack(ASSETS/'CARS/350Z/TEXTURES.BIN'),TexturePack(ASSETS/'CARS/WHEELS/TEXTURES.BIN'),TexturePack(global_path),TexturePack(ASSETS/'CARS/TEXTURES.BIN')]
     vinyls=TexturePack(ASSETS/'CARS/350Z/VINYLS.BIN')
     _,vinyl,_=vinyls.decode(bin_hash('350Z_ART_F_6'))
     _,mask,_=vinyls.decode(bin_hash('350Z_ART_F_6_MASK'))
@@ -220,6 +225,11 @@ def main():
         elif key in (0x78743ca1,0x12c9453c,0x0fedee40,0x010cb64a,0x2787edab,0x3ed70c43):
             color=[.16,.16,.18,1.] if tex>=0 else [.035,.035,.045,1.];smooth=.15
         elif tex<0:color=[.12,.12,.14,1.]
+        if group=='audio' or appearance=='showroom':
+            if tex>=0:color=[1.,1.,1.,1.]
+            elif key in (0xd6d6080a,0x5be72f1c):color=[.12,.3,.17,1.]
+            else:color=[.24,.25,.27,1.]
+            metal=.18;smooth=.4
         if group=='brake':
             if key==0xd6640dff:color=[.8,.025,.018,1.];metal=.45;smooth=.65;tex=-1
             elif key==0xb1aae6bb:color=[.9,.92,.95,1.];metal=.75;smooth=.6
@@ -239,16 +249,22 @@ def main():
             v=[x*matrix[a]+y*matrix[4+a]+z*matrix[8+a]+(0 if normal else matrix[12+a]) for a in range(3)]
             x,y,z=v
         return {'x':y,'y':z+(0 if normal else BODY_LIFT),'z':x}
+    extra,layouts,components=showroom_assets.catalog(car,parse(ASSETS/'CARS/AUDIO/GEOMETRY.BIN'),pick,transform)
+    selected.extend(extra)
     for p,group,matrix,family in selected:
         sections=[entry for section in p['slices'] for entry in (wheel_finish_sections(p,section) if group=='wheel' else rear_lens_sections(p,family,section))]
         for number,(s,lens_role) in enumerate(sections):
             key=s['materialKey']
             if key in (0xa6348ee3,0xd79597d6):continue # full clear covers still omitted
             texture_key=s['textureKey']
+            showroom='ENGINE' in family or 'TRUNK_AUDIO' in family or group=='audio'
             if family=='350Z_STYLE04_BRAKELIGHT' and texture_key in (bin_hash('BRAKELIGHT_LEFT'),bin_hash('BRAKELIGHT_RIGHT')):
                 texture_key=bin_hash('350Z_STYLE04_BRAKELIGHT_OFF')
             tex=-1 if key==0xd6d6080a else source_texture(texture_key)
-            if group in ('wheel','brake'):
+            if group=='audio':
+                vertices=[dict(zip(('x','y','z'),v)) for v in p['vertices']]
+                normals=[dict(zip(('x','y','z'),v)) for v in p['normals']]
+            elif group in ('wheel','brake'):
                 # Source wheel axis +Y becomes Unity +X; the disk extends
                 # inward from its outer face. No WheelCollider changes.
                 if group=='wheel':vertices,normals=wheel_geometry(p)
@@ -278,10 +294,18 @@ def main():
             if 'HEADLIGHT' in family and key==0x9c645529:role='headlight'
             if 'BRAKELIGHT' in family and key==0x05bc3a3c:role='taillight'
             if 'TRUNK' in family and key==0x05bc3a3c:role='brakelight'
+            moving=''
+            if 'DOOR_LEFT' in family or 'DOOR_PANEL_LEFT' in family or family.endswith('LEFT_SIDE_MIRROR'):moving='leftDoor'
+            if 'DOOR_RIGHT' in family or 'DOOR_PANEL_RIGHT' in family or family.endswith('RIGHT_SIDE_MIRROR'):moving='rightDoor'
+            if family in ('350Z_KIT00_TRUNK','350Z_KIT00_TRUNK_UNDER','SPOILER_STYLE02'):moving='trunk'
+            if family in ('350Z_STYLE07_HOOD','350Z_KIT00_HOOD_UNDER'):moving='hood'
+            option_group='audio' if group=='audio' else 'trunk' if 'TRUNK_AUDIO' in family else 'engine' if 'ENGINE' in family else ''
+            option=family if group=='audio' else str(int(family.split('_')[1][-2:])) if option_group else ''
             parts.append({'name':family+f'_A_slice{number}_{len(parts)}','group':group,'lightRole':role,
+                          'movingPart':moving,'optionGroup':option_group,'option':option,
                           'rotatesWithWheel':group=='brake' and key==0xb1aae6bb,'vertices':vertices,'normals':normals,
                           'uv':visual_uv(p,s,family), 'indices':ids,
-                          'material':material(key,tex,group,'HOOD' in family,lens_role)})
+                          'material':material(key,tex,group,'HOOD' in family,'showroom' if showroom else lens_role)})
     # Shared plate geometry was not identified. This small authored rectangle
     # uses the original fixed UNDRGND 2 texture at the rear-centre kit socket.
     # The socket's purpose is inferred from its position/orientation, not its hash.
@@ -314,6 +338,8 @@ def main():
         emitters.append({'role':'purge','position':{'x':side*.62,'y':.53,'z':2.11},'direction':{'x':side*.3,'y':.65,'z':.7}})
         emitters.append({'role':'purge','position':{'x':side*.412741,'y':.833191,'z':.987397},'direction':{'x':side*.25,'y':1,'z':.12}})
     model={'schemaVersion':2,'preset':'DDAY_PLAYER_CAR','wheelVisualLift':WHEEL_LIFT,'lights':lights,'neonTexture':neon_id,
+           'animations':showroom_assets.animations(ASSETS/'CARS/350Z/PARTS_ANIMATIONS.bin',BODY_LIFT),
+           'trunkLayouts':layouts,'audioComponents':components,
            'effectEmitters':emitters,'nitroFlameTexture':flame_id,'nitroPurgeTexture':purge_id,
            'frontWheelVisualOffset':FRONT_WHEEL_OFFSET,'rearWheelVisualOffset':REAR_WHEEL_OFFSET,
            'previewHubHeight':.20,'parts':parts,'materials':materials,'textures':textures}
@@ -321,6 +347,13 @@ def main():
     (out/'provenance.json').write_text(json.dumps({'preset':model['preset'],'verifiedFields':expected,'paint':'METAL_L2_COLOR10; calibrated Valheim RGB','vinyl':'350Z_ART_F_6 + mask; original embedded RGBA palettes','parts':families,
         'licensePlate':{'texture':'original LICENSE_PLATE / UNDRGND 2','geometry':'NFVU2 rectangle; shared original mesh not identified','placement':'rear-centre kit socket 0xc805f7e0; purpose inferred from geometry'},
         'neon':{'texture':'original 350Z_NEON','projectionAndPulse':'NFVU2 Unity implementation; not recovered NFS timing'},
+        'showroom':{'geometry':'original 350Z TRUNK_AUDIO KIT00-03, engine KIT00/STYLE01/STYLE02 including UNLIT; CARS/AUDIO shared components',
+                    'texture':'original AUDIO_SKIN from CARS/TEXTURES.BIN; engine atlases from 350Z/TEXTURES.BIN',
+                    'animation':'8 original 350Z PARTS_ANIMATIONS quaternion tracks, scissor translations and pivot matrices; runtime duration normalized to one second',
+                    'componentFit':'original MARKER_AUDIO_COMP_0..5 matrices; large plates for KIT01/02 and medium for KIT03 chosen by geometry fit',
+                    'interior':'simplified original BASE/DOOR_PANEL/DOOR_SILL geometry; full detailed cockpit not present in imported car meshes',
+                    'neon':'NFVU2 light strips, point light, tint and visual pulse; not original neon geometry or beat analysis',
+                    'defaults':'NFVU2 choice: KIT02 with four SPEAKER1 subwoofers; not asserted to be Rachel preset equipment'},
         'rearLenses':{'upperStrip':'original STYLE04 amber textured trim; passive','bumper':'original lens triangles split into inner reverse and outer amber, split inferred from stock layout; not recovered NFS atlas mapping'},
         'sportBrakes':{'source':'BRAKE_STYLE03_A + original BRAKE_STYLE03 rotor atlas','adaptation':'38cm round opaque rotor replaces alpha-masked square; original caliper geometry painted red; visual only'},
         'wheelFinish':{'source':'original RACINGHART_STYLE07 geometry; its shared wheel material split at existing radial loops','adaptation':'chrome-coloured outer ring, gold-bronze star; reduced metallic plus subtle runtime ambient fill for Valheim'},

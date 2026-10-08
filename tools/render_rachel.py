@@ -19,6 +19,8 @@ for m in model['materials']:
         else:mat.node_tree.links.new(node.outputs['Color'],shader.inputs['Base Color'])
     materials.append(mat)
 for p in model['parts']:
+    if p['group']=='audio':continue
+    if p.get('optionGroup') in ('engine','trunk') and p['option']!=('0' if p['optionGroup']=='engine' else '2'):continue
     mesh=bpy.data.meshes.new(p['name']);mesh.from_pydata([(v['x'],v['z'],v['y']) for v in p['vertices']],[],[p['indices'][i:i+3][::-1] for i in range(0,len(p['indices']),3)]);mesh.update()
     uv=mesh.uv_layers.new()
     for loop in mesh.loops:

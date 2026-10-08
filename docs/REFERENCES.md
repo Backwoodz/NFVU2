@@ -1,5 +1,16 @@
 # Technische Quellen
 
+- Lokale `CARS/350Z/GEOMETRY.BIN`: KIT00–03_TRUNK_AUDIO, KIT00/STYLE01/STYLE02
+  ENGINE und ENGINE_UNLIT sowie Türverkleidungen und Haubenunterseiten.
+  `CARS/AUDIO/GEOMETRY.BIN` und `CARS/TEXTURES.BIN`: Originalkomponenten und
+  AUDIO_SKIN; Platzierung über MARKER_AUDIO_COMP_0..5. Baugrößen nach Passform.
+- Lokale `CARS/350Z/PARTS_ANIMATIONS.bin`: ELF32-Animationskanäle und 21
+  Pivotmatrizen. Acht Tracks importiert; Quellenpose und seitliche Translation
+  bleiben erhalten, Wiedergabezeit ist für den Mod normiert.
+- [PartAnimatorulator](https://github.com/TVasya/PartAnimatorulator): Referenz
+  für Pivotreihenfolge, Quaternion-/Translationsdaten und ELF-Animationsblöcke.
+  Unabhängiger, lesender Import in `tools/showroom_assets.py`; keine Verteilung
+  des Werkzeugs oder der Originaldaten.
 - Lokal installierte `assembly_valheim.dll` (Valheim 1.0.17): Signaturen/IL von
   `Character.Damage`, `Destructible.Damage`, `HitData.SetAttacker` und
   `BaseAI.IsEnemy` für native Fahrzeugtreffer geprüft; keine Spielbibliothek im Paket.
