@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Rachel350Z {
 // Disposable local prototype. No ZNetView: never use in multiplayer or persist into saves.
-[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.7.2")]
+[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.8.0")]
 public partial class Plugin : BaseUnityPlugin {
     GameObject car; Rigidbody body; WheelCollider[] wheels; Transform[] visuals;
     Material[] vehicleMaterials;
@@ -132,6 +132,8 @@ public partial class Plugin : BaseUnityPlugin {
             }
         }
         handling=new VehicleHandling(body,wheels,terrainMode.Value,message=>Logger.LogInfo(message));
+        if(driftMode.Value)handling.SetDriftMode();
+        dashboard=VehicleDashboard.Create(Path.Combine(Path.GetDirectoryName(Info.Location),"hud","hud.json"),message=>Logger.LogWarning(message));
         vehicleImpact=car.AddComponent<VehicleImpact>();
         vehicleImpact.Initialize(body,box,message=>Logger.LogWarning(message));
         burnoutEffects=VehicleBurnoutEffects.Create(car,model,wheels,visuals,message=>Logger.LogInfo(message));
@@ -188,7 +190,8 @@ public partial class Plugin : BaseUnityPlugin {
     void FixedUpdate() {
         if(body==null||wheels==null)return;
         vehicleImpact?.Step(player,driving&&!audioBlocked&&!menuOpen&&Application.isFocused);
-        handling?.Step(driving,throttle,steer,brake,burnoutHeld&&!audioBlocked&&!menuOpen&&Application.isFocused);
+        bool handbrake=driftMode.Value&&driving&&brake>0&&!audioBlocked&&!menuOpen&&Application.isFocused;
+        handling?.Step(driving,throttle,steer,handbrake?0:brake,burnoutHeld&&!audioBlocked&&!menuOpen&&Application.isFocused,handbrake);
         vehicleNitro?.Step(driving,audioBlocked||menuOpen||burnoutHeld||!Application.isFocused||!nitroEnabled.Value,nitroHeld,throttle,brake>0,terrainMode.Value);
         if(driving&&player!=null)player.transform.position=car.transform.TransformPoint(new Vector3(0,.8f,.3f));
     }
@@ -204,7 +207,7 @@ public partial class Plugin : BaseUnityPlugin {
         if(wheels!=null && visuals!=null)for(int i=0;i<4;i++)if(wheels[i]!=null && visuals[i]!=null){
             UpdateWheelVisual(i);
         }
-        if(driving)orbitCamera.LateFrame();
+        if(driving)orbitCamera.LateFrame(body.linearVelocity,dynamicCamera.Value,cameraFollow.Value,audioBlocked||menuOpen);
         if(vehicleLighting!=null)try {
             vehicleLighting.SetHeadlights(headlightPreset.Value,headlightStrength.Value);
             float speed=Vector3.Dot(body.linearVelocity,car.transform.forward);
@@ -225,7 +228,7 @@ public partial class Plugin : BaseUnityPlugin {
             vehicleAudio.Dispose();vehicleAudio=null;Logger.LogWarning("350Z sound disabled after audio error: "+e);
         }
         bool effectsBlocked=!driving||audioBlocked||menuOpen||!Application.isFocused;
-        if(burnoutEffects!=null)try {burnoutEffects.Tick(burnout,effectsBlocked);}
+        if(burnoutEffects!=null)try {burnoutEffects.Tick(burnout,effectsBlocked,driftMode.Value&&body!=null&&body.linearVelocity.magnitude>3);}
         catch(Exception e){burnoutEffects.Dispose();burnoutEffects=null;Logger.LogWarning("350Z tyre smoke disabled: "+e);}
         bool backfire=backfireState.Step(Time.deltaTime,!effectsBlocked,
             vehicleAudio!=null?vehicleAudio.Rpm:950,throttle,
@@ -253,6 +256,7 @@ public partial class Plugin : BaseUnityPlugin {
     }
     void Cleanup(){
         CloseVehicleMenu();
+        dashboard?.Dispose();dashboard=null;
         showroom?.Dispose();showroom=null;audioMeshes.Clear();
         burnoutHeld=false;burnoutEffects?.Dispose();burnoutEffects=null;
         nitroHeld=false;nitroInput.Reset();vehicleNitro=null;

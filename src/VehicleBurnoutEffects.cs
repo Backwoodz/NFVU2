@@ -51,12 +51,13 @@ public sealed class VehicleBurnoutEffects : IDisposable {
             renderer.shadowCastingMode=ShadowCastingMode.Off;renderer.receiveShadows=false;
         }
     }
-    public void Tick(bool burnout,bool blocked) {
+    public void Tick(bool burnout,bool blocked,bool drift=false) {
         if(disposed)return;
         for(int i=0;i<systems.Length;i++) {
             var ps=systems[i];if(ps==null)continue;
             bool active=false;var wheel=wheels[i+2];
-            if(!blocked&&burnout&&Mathf.Abs(wheel.rpm)>40&&wheel.GetGroundHit(out var hit)) {
+            if(!blocked&&(burnout||drift)&&wheel.GetGroundHit(out var hit)&&
+                (burnout?Mathf.Abs(wheel.rpm)>40:Mathf.Abs(hit.sidewaysSlip)>.3f||Mathf.Abs(hit.forwardSlip)>.5f)) {
                 wheel.GetWorldPose(out var hub,out var rotation);
                 ps.transform.position=hit.point+(visuals[i+2].position-hub)+Vector3.up*.035f;
                 ps.transform.rotation=Quaternion.LookRotation(Vector3.up,Vector3.forward);active=true;

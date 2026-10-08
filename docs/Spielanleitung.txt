@@ -9,6 +9,21 @@ Nitro, Purge und Felgenkorrektur in 0.3.0 warten noch auf den Spieltest.
 0.5.0 ergänzt Anfahrmoment, Rückwärts-Heulen, schwächeres Rückfahrlicht und Burnout.
 0.6.0 ergänzt Überfahren und optional weiterlaufenden Motor, Neon und Musik.
 0.7.0 ergänzt Kofferraumausbauten, animierte Türen/Hauben und Motoroptiken.
+0.8.0 ergänzt originale NFS-Tachos, eine weichere Kamera und einen Driftmodus.
+
+TACHO, KAMERA UND DRIFT
+F9 → Anzeige: Tacho ein/aus, elf NFS-Designs, Farbe, Größe und KM/H oder MPH.
+Rechts unten stehen Geschwindigkeit, Drehzahl/Gang und NOS-Füllstand.
+Drehzahl und Gang gehören zum hörbaren Getriebe. Nitroanzeige folgt dem Tank.
+Die dynamische Kamera zieht in Kurven weicher nach; der Regler bestimmt wie
+schnell. Mausblick bleibt kurz frei, im Stand bleibt die Ansicht erhalten.
+Mittlere Maustaste zentriert. „Dynamische Verfolgerkamera“ aus stellt das
+bisherige Verhalten wieder her.
+F9 → Fahrzeug → Drift: Heckantrieb mit lockerem Heck und mehr Lenkwinkel.
+Leertaste zieht die Hinterrad-Handbremse; S bremst normal vor der Rückwärtsfahrt.
+Gas/Gegenlenken kontrollieren den Drift; Schlupf erzeugt Reifensound und Rauch.
+Zurück zu Gelände oder Straße stellt die bisherige Abstimmung wieder her.
+Fahrgefühl und Kameranachlauf dieser Version bitte im Spiel testen.
 Fahrwerk und Steuerung basieren auf dem bestätigten Prototyp.
 Das Fahrzeug ist temporär und ausschließlich für lokale Einzelspielerwelten.
 

@@ -10,6 +10,8 @@ public sealed class VehicleOrbitCamera {
     Camera camera;
     float yaw,pitch=18,distance=6,smoothedDistance=6;
     Vector3 smoothedPivot;
+    readonly ChaseCameraState chase=new ChaseCameraState();
+    bool dynamicMode=true;
     bool active,hadInput;
     CursorLockMode oldLock;
     bool oldVisible;
@@ -28,6 +30,7 @@ public sealed class VehicleOrbitCamera {
         vehicle=target;camera=Camera.main;
         oldLock=Cursor.lockState;oldVisible=Cursor.visible;active=true;hadInput=false;
         yaw=0;pitch=18;distance=6;smoothedDistance=distance;
+        chase.Reset(vehicle.eulerAngles.y);
         smoothedPivot=vehicle.position+Vector3.up*1.05f;
     }
     public void InputFrame(bool enabled,float sensitivity,bool invert) {
@@ -39,19 +42,26 @@ public sealed class VehicleOrbitCamera {
         if(hadInput) {
             var delta=mouseDelta();
             yaw=DrivingMath.WrapAngle(yaw+delta.x*sensitivity);
+            chase.Orbit(delta.x*sensitivity);
+            if(Mathf.Abs(delta.y)>.05f)chase.Hold();
             pitch=DrivingMath.Clamp(pitch-delta.y*sensitivity*(invert?-1:1),-10,70);
             distance=DrivingMath.Clamp(distance-Input.mouseScrollDelta.y*.65f,3,10);
         }
         hadInput=true;
-        if(Input.GetMouseButtonDown(2)){yaw=0;pitch=18;distance=6;}
+        if(Input.GetMouseButtonDown(2)){yaw=0;pitch=18;distance=6;chase.Reset(vehicle.eulerAngles.y);}
     }
-    public void LateFrame() {
+    public void LateFrame(Vector3 velocity,bool dynamicFollow,float followRate,bool blocked) {
         if(!active||vehicle==null)return;
         if(camera==null)camera=Camera.main;
         if(camera==null)return;
+        if(dynamicMode!=dynamicFollow){dynamicMode=dynamicFollow;yaw=0;chase.Reset(vehicle.eulerAngles.y);}
+        float speed=velocity.magnitude;
+        if(dynamicMode&&!blocked)chase.Step(Time.deltaTime,vehicle.eulerAngles.y,
+            Mathf.Atan2(velocity.x,velocity.z)*Mathf.Rad2Deg,speed,Vector3.Dot(velocity,vehicle.forward),followRate);
         float blend=1-Mathf.Exp(-14*Time.deltaTime);
-        smoothedPivot=Vector3.Lerp(smoothedPivot,vehicle.position+Vector3.up*1.05f,blend);
-        var rotation=Quaternion.Euler(pitch,vehicle.eulerAngles.y+yaw,0);
+        var lookAhead=dynamicMode?Vector3.ClampMagnitude(new Vector3(velocity.x,0,velocity.z)*.08f,1.25f):Vector3.zero;
+        smoothedPivot=Vector3.Lerp(smoothedPivot,vehicle.position+Vector3.up*1.05f+lookAhead,blend);
+        var rotation=Quaternion.Euler(pitch,dynamicMode?chase.Yaw:vehicle.eulerAngles.y+yaw,0);
         var direction=rotation*Vector3.back;
         float clear=distance;
         foreach(var hit in Physics.SphereCastAll(smoothedPivot,.22f,direction,distance,Physics.DefaultRaycastLayers,QueryTriggerInteraction.Ignore)) {

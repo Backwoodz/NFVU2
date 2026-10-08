@@ -1,5 +1,12 @@
 # Technische Quellen
 
+- Lokale `GLOBAL/HUD_CustomTextures_00.bin` bis `_10.bin`: elf originale
+  TACH_FILL_CUSTOM-Flächen, 3RDPERSON_7500LINES_CUSTOM-Skalen und
+  3RDPERSON_RPMDIAL_CUSTOM-Zeiger. Padding wird für das neue Layout beschnitten.
+  `GLOBAL/InGameRace.bun`: TACH_NOS_ALPHA und TACH_NOS_BACKING; die Alphavariante
+  vermeidet den schwarzen Hintergrund der separaten TACH_NOS-Farbtextur.
+  Import über den vorhandenen TexturePack-Decoder; Livewerte, Farbwahl,
+  Positionierung und Füllmasken sind eigene NFVU2-Anpassungen.
 - Lokale `CARS/350Z/GEOMETRY.BIN`: KIT00–03_TRUNK_AUDIO, KIT00/STYLE01/STYLE02
   ENGINE und ENGINE_UNLIT sowie Türverkleidungen und Haubenunterseiten.
   `CARS/AUDIO/GEOMETRY.BIN` und `CARS/TEXTURES.BIN`: Originalkomponenten und

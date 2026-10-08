@@ -11,6 +11,7 @@ public sealed class VehicleHandling {
     float diagnosticElapsed;
     int diagnosticSamples;
     bool terrain;
+    public bool DriftMode {get;private set;}
     public bool BurnoutActive { get; private set; }
     bool burnoutGrip;
     public VehicleHandling(Rigidbody rigidbody,WheelCollider[] wheelColliders,bool terrainMode,System.Action<string> logger=null) {
@@ -26,6 +27,7 @@ public sealed class VehicleHandling {
         SetTerrainMode(terrainMode);
     }
     public void SetTerrainMode(bool enabled) {
+        DriftMode=false;
         terrain=enabled;
         burnoutGrip=false;
         foreach(var wheel in wheels) {
@@ -40,27 +42,32 @@ public sealed class VehicleHandling {
         }
         body.WakeUp();
     }
-    public void Step(bool driving,float throttle,float steer,float brake,bool burnoutRequested=false) {
+    public void SetDriftMode() {
+        SetTerrainMode(false);DriftMode=true;VehicleDriftTuning.Apply(wheels);
+    }
+    public void Step(bool driving,float throttle,float steer,float brake,bool burnoutRequested=false,bool handbrakeRequested=false) {
         float dt=Time.fixedDeltaTime;
         if(driving && (throttle!=0 || steer!=0 || burnoutRequested))body.WakeUp();
         float speed=Vector3.Dot(body.linearVelocity,body.transform.forward);
         for(int i=0;i<4;i++)grounded[i]=wheels[i].GetGroundHit(out contacts[i]);
         float totalSpeed=body.linearVelocity.magnitude;
-        BurnoutActive=driving&&burnoutRequested&&brake<=0&&totalSpeed<(BurnoutActive?2f:.65f)
+        bool handbrake=DriftMode&&driving&&handbrakeRequested&&brake<=0;
+        BurnoutActive=driving&&burnoutRequested&&!handbrake&&brake<=0&&totalSpeed<(BurnoutActive?2f:.65f)
             &&(grounded[0]||grounded[1])&&grounded[2]&&grounded[3];
         if(BurnoutActive)throttle=1;
         bool directionBrake=!BurnoutActive&&DrivingMath.DirectionBrake(speed,throttle);
-        bool stopping=!driving || brake>0 || directionBrake || (burnoutRequested&&!BurnoutActive);
+        bool stopping=!driving || brake>0 || directionBrake || handbrake || (burnoutRequested&&!BurnoutActive);
         appliedThrottle=Mathf.MoveTowards(appliedThrottle,stopping?0:throttle,dt*2.4f);
         // Let go of the previous direction before starting reverse torque.
         if(stopping || appliedThrottle*throttle<0)appliedThrottle=0;
-        float maxSteer=DrivingMath.SteeringLimit(speed,terrain);
-        appliedSteering=Mathf.MoveTowards(appliedSteering,driving?steer*maxSteer:0,dt*85f);
+        float maxSteer=DriftMode?VehicleDriftTuning.SteeringLimit(speed):DrivingMath.SteeringLimit(speed,terrain);
+        appliedSteering=Mathf.MoveTowards(appliedSteering,driving?steer*maxSteer:0,dt*(DriftMode?150f:85f));
         float torque=(terrain?3200:2200)*appliedThrottle*DrivingMath.TorqueFactor(speed,throttle,terrain)*DrivingMath.LaunchTorqueFactor(speed,throttle);
+        if(DriftMode)torque*=1.2f;
         if(burnoutGrip!=BurnoutActive) {
             for(int i=2;i<4;i++) {
                 var friction=wheels[i].forwardFriction;
-                friction.stiffness=BurnoutActive?.35f:(terrain?1.65f:1.3f);wheels[i].forwardFriction=friction;
+                friction.stiffness=BurnoutActive?.35f:DriftMode?1.05f:(terrain?1.65f:1.3f);wheels[i].forwardFriction=friction;
             }
             burnoutGrip=BurnoutActive;
         }
@@ -70,9 +77,11 @@ public sealed class VehicleHandling {
             // Contact and slip measurements refine traction only after launch.
             // They must never be prerequisites for applying engine torque.
             float grip=grounded[i]&&Mathf.Abs(speed)>2?DrivingMath.GripTorqueFactor(contacts[i].forwardSlip):1;
+            if(DriftMode)grip=.75f+.25f*grip;
             wheel.motorTorque=stopping?0:torque*share*grip;
             // S first brakes forward motion; reverse engages near a standstill.
             wheel.brakeTorque=stopping?3200:(throttle==0&&Mathf.Abs(speed)<.5f?900:0);
+            if(handbrake&&!directionBrake)wheel.brakeTorque=i<2?0:4200;
             if(BurnoutActive) {
                 wheel.motorTorque=i<2?0:1800*appliedThrottle;
                 wheel.brakeTorque=i<2?6000:0;

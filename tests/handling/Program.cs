@@ -48,6 +48,35 @@ class HandlingTests {
         }
         Check(DrivingMath.LaunchTorqueFactor(0,1)==1.2f&&DrivingMath.LaunchTorqueFactor(4.5f,1)>1&&DrivingMath.LaunchTorqueFactor(6,1)==1,"launch assistance tapers out at six metres per second");
         Check(DrivingMath.LaunchTorqueFactor(-2,-1)==1&&DrivingMath.LaunchTorqueFactor(0,0)==1,"reverse and coasting receive no launch assistance");
+        {
+            var body=new Rigidbody();var wheels=Wheels(true);var controller=new VehicleHandling(body,wheels,true);
+            controller.SetDriftMode();
+            for(int i=0;i<50;i++)controller.Step(true,1,1,0);
+            Check(controller.DriftMode&&wheels.Take(2).All(w=>w.motorTorque==0)&&wheels.Skip(2).All(w=>w.motorTorque>0),"drift setup uses rear drive even after terrain mode");
+            Check(wheels[2].sidewaysFriction.stiffness<wheels[0].sidewaysFriction.stiffness&&wheels[2].sidewaysFriction.asymptoteValue<wheels[0].sidewaysFriction.asymptoteValue,"drift rear axle breaks away before front grip");
+            Check(wheels[0].steerAngle>DrivingMath.SteeringLimit(0,false),"drift setup allows more steering lock");
+            body.linearVelocity=new Vector3(0,0,8);foreach(var w in wheels)w.slip=2;
+            controller.Step(true,1,0,0);
+            Check(wheels[2].motorTorque>1000,"drift retains drive torque through wheelspin");
+            controller.Step(true,1,0,0,false,true);
+            Check(wheels.Take(2).All(w=>w.brakeTorque==0)&&wheels.Skip(2).All(w=>w.brakeTorque>0)&&wheels.All(w=>w.motorTorque==0),"drift handbrake locks rear axle and cuts drive only while held");
+            controller.Step(true,1,0,0);
+            Check(wheels.All(w=>w.brakeTorque==0)&&wheels[2].motorTorque>0,"releasing drift handbrake restores engine drive");
+            controller.Step(true,-1,0,0,false,true);
+            Check(wheels.All(w=>w.brakeTorque>0&&w.motorTorque==0),"reverse direction braking overrides rear handbrake");
+            controller.Step(true,1,0,1,false,true);
+            Check(wheels.All(w=>w.brakeTorque>0&&w.motorTorque==0),"menu brake stops all wheels in drift mode");
+            controller.Step(false,1,0,0,false,true);
+            Check(wheels.All(w=>w.brakeTorque>0&&w.motorTorque==0),"exit parks all four wheels in drift mode");
+            body.linearVelocity=new Vector3();controller.Step(true,0,0,0,true);
+            Check(controller.BurnoutActive,"drift retains stationary burnout");
+            controller.Step(true,1,0,0);
+            Check(Math.Abs(wheels[2].forwardFriction.stiffness-1.05f)<.001f,"burnout release restores drift longitudinal grip");
+            foreach(bool terrain in new[]{false,true}) {
+                controller.SetDriftMode();controller.SetTerrainMode(terrain);
+                Check(!controller.DriftMode&&wheels.All(w=>Math.Abs(w.sidewaysFriction.stiffness-(terrain?1.45f:1.25f))<.001f&&Math.Abs(w.forwardFriction.stiffness-(terrain?1.65f:1.3f))<.001f)&&wheels.All(w=>w.sidewaysFriction.extremumSlip==.25f),"leaving drift fully restores original grip, terrain="+terrain);
+            }
+        }
         foreach(float invalid in new[]{float.NaN,float.PositiveInfinity,float.NegativeInfinity}){
             var body=new Rigidbody{linearVelocity=new Vector3(0,0,3)};var wheels=Wheels(true);
             foreach(var wheel in wheels)wheel.slip=invalid;

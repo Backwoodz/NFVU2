@@ -2,7 +2,7 @@
 
 **Need for Valheim: Underground 2** — ein privater Fahrzeug-Mod-Prototyp für Valheim.
 
-Aktueller Stand: **0.7.2**, gebaut und automatisiert geprüft; Spieltest noch offen.
+Aktueller Stand: **0.8.0**, gebaut und automatisiert geprüft; Spieltest noch offen.
 Die vorherige Version 0.2.1 ist vom Nutzer in Valheim bestätigt. Ein aus eigenen NFS-Underground-2-Dateien ausgelesener
 Nissan 350Z lässt sich in einer lokalen Valheim-Einzelspielerwelt spawnen und fahren.
 Mauskamera, Gelände-/Straßenmodus und Fahrzeug-Sound sind im Spiel bestätigt.
@@ -30,6 +30,8 @@ Drei originale Motoroptiken und die vereinfachten Innenflächen sind enthalten.
 damit die offenen Sichtlinien vom Heck zum Kofferraum-Neon.
 0.7.2 lässt die Außenmusik mit offenen Türen oder offener Heckklappe lauter
 und klarer werden; die räumliche Klangquelle wandert zur jeweiligen Öffnung.
+0.8.0 ergänzt elf originale NFSU2-Tacho-Designs mit NOS-Bogen, eine dynamische
+Verfolgerkamera und ein separat wählbares Driftsetup mit Hinterrad-Handbremse.
 
 Die Darstellung verwendet jetzt die Originalvoreinstellung `DDAY_PLAYER_CAR`:
 Widebody-Kit 02, Carbonhaube 07, Spoiler 02, Racing-Hart-Felgen 07,
@@ -56,10 +58,10 @@ NFS-Prozess ist eine mögliche spätere Forschungsaufgabe und noch nicht impleme
 | W / S | Gas / bremsen und rückwärts fahren |
 | W + S halten | Im Stand Burnout; während der Fahrt zunächst bremsen |
 | A / D | Lenken |
-| Leertaste | Bremsen |
+| Leertaste | Bremsen; im Driftmodus Hinterrad-Handbremse |
 | Maus / Mausrad | Umschauen / Kameraabstand |
 | Mittlere Maustaste | Kamera zentrieren |
-| F9 | Fahrzeugmenü: Fahrmodus, Radio, Licht, Neon, Nitro, Räder, Türen und Ausbau |
+| F9 | Fahrzeugmenü einschließlich Fahrmodus sowie Anzeige/Kamera |
 | Linke Maustaste halten | Bei Vorwärtsfahrt mit Gas: Nitro; im Stand: Purge |
 | H halten | Hupe |
 | F8 | Fahrzeug entfernen |
@@ -95,6 +97,7 @@ python -m pip install -r requirements.txt
 python tools/extract_assets.py
 python tools/export_geometry.py
 python tools/export_rachel.py
+python tools/export_hud.py
 python tools/extract_audio.py
 python tools/decode_audio.py
 python tools/prepare_audio.py
@@ -140,6 +143,8 @@ Validierung von Scharnier-/Einbaupunkten. Externe Blender-Vorschauen prüfen
 die Geometrie und Posen, nicht die Darstellung im Spiel.
 Die Antriebsprüfungen verwenden kontrollierte API-Antworten. Sie ersetzen keinen
 Unity-Fahrtest; auch die Audio-Prüfungen spielen nichts in Valheim ab.
+Kamera-Winkelnachlauf, Driftmodus-Wechsel, Handbremspriorität, HUD-Pixeldaten
+und Anzeigeumrechnung werden ebenfalls außerhalb der Unity-Laufzeit geprüft.
 
 Die Antriebsprüfungen funktionieren ohne Spieldateien:
 
@@ -172,6 +177,28 @@ F9 öffnet im Auto oder in dessen Nähe das Menü links oben. Es bremst das Auto
 Maus frei; Radio und Motor bleiben hörbar. Chat, Inventar, Spielmenü und
 Fokusverlust pausieren Audio weiterhin. Beim Einstieg schaltet sich das Fahrlicht
 ein, beim Ausstieg aus. Neon ist zunächst aus; Farbe und Pulsmodus sind gespeichert.
+F9 → Anzeige wählt elf Original-Tachodesigns, Farbe, Größe (65–140 Prozent),
+KM/H oder MPH sowie Ein-/Ausblenden. Der Tacho rechts unten zeigt tatsächliche
+Fahrgeschwindigkeit, Drehzahl/Gang des akustischen Getriebes und den echten
+Mod-Nitrotank einschließlich Verbrauch/Nachladung. Die originalen Grafiken
+werden lokal in `hud/hud.json` erzeugt; Anordnung, Zeigerkalibrierung und
+NOS-Füllung sind für Valheim angepasst. Fehlen sie, erscheint eine Textanzeige.
+F9 → Anzeige steuert auch die dynamische Verfolgerkamera und ihr Nachziehen.
+Sie folgt Kurven verzögert und orientiert sich teilweise an der Fahrtrichtung.
+Mausblick bleibt kurz frei; nach rund 2,2 Sekunden ohne Mausbewegung zieht die
+Kamera während der Fahrt wieder nach. Im Stand bleibt die gewählte Ansicht.
+Mittlere Maustaste zentriert; Abschalten stellt das bisherige Kameraverhalten her.
+
+F9 → Fahrzeug bietet Gelände, Straße und Drift. Drift ist eine zusätzliche
+Mod-Abstimmung mit Heckantrieb, geringerem Seitengrip hinten, mehr Lenkwinkel,
+schnellerem Gegenlenken und 20 Prozent mehr Drehmoment gegenüber Straße.
+Leertaste zieht nur die Hinterrad-Handbremse und unterbricht dabei den Antrieb;
+S bremst wie bisher zunächst vorwärts und legt erst im Stand rückwärts ein.
+Rauch und Reifensound reagieren auf tatsächlichen Schlupf/Bodenkontakt.
+Menü, Fokusverlust und Ausstieg bremsen weiterhin alle vier Räder. Gelände
+und Straße behalten ihre bisherige Abstimmung; der Wechsel stellt sie wieder her.
+Kamera und Driftgefühl müssen auf Valheim-Untergrund im Spiel abgestimmt werden.
+
 Unter „Licht“ stehen 14 Vorlagen aus den originalen NFSU2-Sprachdateien zur Wahl:
 Serie, Xenon 4000K, Rot, Blau, Grün, Violett, Gelb, Weiß extrahell, Xenon 8000K
 und extrahelle Varianten der fünf Farben. Der Stärke-Regler reicht von 0 bis

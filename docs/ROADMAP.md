@@ -1,5 +1,18 @@
 # Nächste Aufgaben
 
+## Tachos, Kamera und Drift in 0.8.0
+
+- Alle elf Designs, Farbe, Größen, KM/H/MPH und gespeicherte Auswahl prüfen.
+- Drehzahl/Gang mit Sound und NOS-Füllung mit Boost/Nachladen vergleichen.
+- HUD bei verschiedenen Auflösungen, geöffnetem Menü, Ausstieg und F6/F8 prüfen.
+- Dynamische Kamera: Kurven, Drift, Rückwärtsfahrt, Mausblick, Stand, Zoom,
+  Mittelklick, Menü/Alt-Tab und Hindernisse testen; Nachzieh-Regler vergleichen.
+- Drift auf freier ebener Fläche: Gas, Gegenlenken, Handbremse, S-Bremse,
+  Rauch bei Bodenkontakt, Burnout-Abbruch, Nitro und Aus-/Wiedereinstieg.
+- Wieder zurück auf Gelände/Straße wechseln; bisheriges Fahrgefühl erhalten.
+- Grip und Kameranachlauf benötigen einen Spieltest; keine Original-NFS-Physik
+  oder vollständige GTA-Kamerareproduktion behauptet.
+
 ## Außenmusik in 0.7.2
 
 - Bei laufendem Radio draußen linke/rechte Tür und Heckklappe einzeln sowie

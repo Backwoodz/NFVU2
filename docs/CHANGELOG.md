@@ -1,5 +1,28 @@
 # Versionsgeschichte
 
+## 0.8.0 — NFS-Tachos, dynamische Kamera und Driftsetup
+
+Elf Original-Designs aus HUD_CustomTextures_00 bis 10 mit 7500-RPM-Skala und
+Zeigern sowie NOS-Grafiken aus InGameRace.bun. Der lokale Import erhält Alpha
+und entfernt ungenutzte Texturränder. Anzeige rechts unten: Geschwindigkeit,
+akustische Drehzahl/Gang, Nitrotank und Boostfarbe. Menü → Anzeige: Design,
+Größe, Farbe, KM/H/MPH und Sichtbarkeit; ohne Assets einfacher Text-Fallback.
+Layout, Zeigersweep und NOS-Füllanimation sind eigene Valheim-Anpassungen.
+
+Kamera folgt einem geglätteten Weltwinkel statt starr dem Fahrzeugwinkel.
+Begrenzter Anteil der Bewegungsrichtung und vorausschauender Zielpunkt für
+Kurven/Drifts; Rückwärtsfahrt dreht die Kamera nicht um. Mausblick pausiert
+das automatische Nachziehen für 2,2 Sekunden; im Stand keine Rückzentrierung.
+Im Anzeigemenü abschaltbar und in der Stärke einstellbar. Hindernisprüfung bleibt.
+
+Optionaler Driftmodus zusätzlich zu Gelände/Straße: Heckantrieb, weniger
+Seitengrip hinten, erweiterter Lenkwinkel, schnelleres Gegenlenken, 20 Prozent
+mehr Drehmoment gegenüber Straße und weniger Traktionsregelung bei Schlupf.
+Leertaste als Hinterrad-Handbremse; Menü/Exit/Fokusverlust bremsen alle Räder.
+Originaler Reifensound und Rauch bei Schlupf, W+S-Burnout weiterhin möglich.
+Driftparameter liegen separat; Umschalten stellt die bisherigen Grundwerte her.
+Prüfungen und externe HUD-Vorschau ersetzen keinen Fahr-/Kameratest in Unity.
+
 ## 0.7.2 — Außenmusik bei offenen Türen und Heckklappe
 
 Die tatsächlichen Animationsstände steuern Lautstärke, Tiefpass und Position
