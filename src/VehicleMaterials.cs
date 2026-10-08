@@ -71,6 +71,17 @@ public static class VehicleMaterials {
                     if (data.texture >= 0 && material.HasTexture(property)) material.SetTexture(property, textures[data.texture]);
                 if (material.HasFloat("_Metallic")) material.SetFloat("_Metallic", data.metallic);
                 foreach (var property in new[] { "_Glossiness", "_Smoothness" }) if (material.HasFloat(property)) material.SetFloat(property, data.smoothness);
+                if ((data.name ?? "").StartsWith("wheel_chrome_", StringComparison.Ordinal) || (data.name ?? "").StartsWith("wheel_gold_", StringComparison.Ordinal)) {
+                    // The template may retain maps/keywords authored for a
+                    // different Valheim prop. Keep the wheel's diffuse colour
+                    // readable when no useful reflection probe is available.
+                    material.DisableKeyword("_METALLICGLOSSMAP"); material.DisableKeyword("_SPECGLOSSMAP");
+                    foreach (var property in new[] { "_MetallicGlossMap", "_SpecGlossMap", "_OcclusionMap" })
+                        if (material.HasTexture(property)) material.SetTexture(property, Texture2D.whiteTexture);
+                    if (material.HasFloat("_OcclusionStrength")) material.SetFloat("_OcclusionStrength", 0);
+                    if (material.HasFloat("_GlossMapScale")) material.SetFloat("_GlossMapScale", data.smoothness);
+                    SetEmission(material, new Color(c[0], c[1], c[2]) * .025f);
+                }
             }
             return result;
         } catch {

@@ -1,4 +1,4 @@
-350Z-Fahrzeug-Sound – Version 0.2.1
+350Z-Fahrzeug-Sound – Version 0.3.0
 
 Die folgenden Originalaufnahmen wurden aus den lokal bereitgestellten
 NFS Underground 2-CD-Abbildern extrahiert:
@@ -35,6 +35,25 @@ Die Originaltabellen kennen getrennte Aufladung, Low-/High-Boost-Blow-off und
 0,5 s ChargeTime. Rachels tatsächliche Performance-Stufe bleibt zu prüfen.
 https://github.com/nlgxzef/NFSU2CarSoundTuner
 Originalbank-Prüfsumme und Decoderherkunft stehen im lokal erzeugten Manifest.
+
+Nitro und Purge:
+SOUND/NOS/Nitrous_00_MB.abk, Schleifen 1 und 4. Beide sind originale,
+mono decodierte Loop-Substreams; ihre Zuordnung zu Boost/Purge ist vorläufig
+und kann beim Import angepasst werden. Die lokale UG2_MAIN_AEMS.csi nennt
+getrennt FX_NITROUS und FX_PURGE. tools/prepare_effects_audio.py verwendet
+Original-Loopgrenzen, entfernt Gleichanteile und gleicht Lautstärke an.
+Prüfsummen, Decoder- und Herkunftsdaten stehen in .local/audio-effects/manifest.json.
+
+Backfire-Recherche:
+UG2_ENGINES_AEMS2.csi nennt Sputter_Message, CAR_SputOutput und CAR_Sputter.
+Die rekonstruierte 350Z-Sweetener-Tabelle nutzt SWTN_CAR_27_MB.abk mit SputterVol.
+Unlimiter unterscheidet CARFX_NITRO, CARFX_EXHAUST_BLOWOFF und CARFX_NOS_BLOWOFF.
+Das belegt Effektarten, nicht die genaue Lastwechsel-/Tuningbedingung.
+Der passende Sputter-Substream ist nicht eindeutig bestimmt: keine backfire.wav
+ausgegeben. Der optionale Flammenstoß bleibt deshalb vorerst ohne Knallgeräusch.
+https://github.com/nlgxzef/NFSU2Unlimiter/blob/master/CarEffect.h
+https://github.com/nlgxzef/NFSU2CarSoundTuner/blob/master/CarSoundData/SweetnerDataSet/27.ini
+https://github.com/vgmstream/vgmstream/blob/master/src/meta/ea_schl_abk.c
 
 Radio:
 SDATA/SDAT.VIV enthält pfdata/MusicSFx.mpf und MusicSFx.mus.

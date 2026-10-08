@@ -53,6 +53,29 @@ def wheel_geometry(part):
     return vertices,normals
 
 
+def wheel_finish_sections(part,section):
+    if section['materialKey']!=0xfd102a92:return [(section,'')]
+    groups={'wheel_chrome':[],'wheel_gold':[]}
+    for j in range(0,len(section['indices']),3):
+        tri=section['indices'][j:j+3]
+        # The original material merges lip/barrel and spokes. Existing radial
+        # loops divide the outer machined ring from the five-point star.
+        outer=min(math.hypot(part['vertices'][i][0],part['vertices'][i][2]) for i in tri)>=.2319
+        groups['wheel_chrome' if outer else 'wheel_gold'].extend(tri)
+    return [({**section,'indices':ids},finish) for finish,ids in groups.items() if ids]
+
+
+def exhaust_mouths(part):
+    # Two eight-sided mouth loops occupy the minimum longitudinal plane.
+    end=min(v[0] for v in part['vertices'])
+    mouths=[]
+    for side in (-1,1):
+        ring={tuple(v) for v in part['vertices'] if abs(v[0]-end)<.00001 and v[1]*side>0}
+        if len(ring)!=8:raise ValueError('Re-identify STYLE08 exhaust mouth loops')
+        mouths.append(tuple(sum(v[a] for v in ring)/len(ring) for a in range(3)))
+    return mouths
+
+
 def sport_brake_geometry(part):
     # Original STYLE03 uses an alpha-masked square for the drilled rotor.
     # Rebuild only that square as a round, thin rotor so opaque Unity materials
@@ -151,6 +174,11 @@ def main():
     plate_id=texture('original_license_plate',plate_image)
     _,neon_image,_=packs[0].decode(bin_hash('350Z_NEON'))
     neon_id=texture('350Z_NEON',neon_image)
+    effects=TexturePack(ASSETS/'GLOBAL/InGameCommon.bun')
+    _,flame_image,_=effects.decode(bin_hash('SFX_FIREB'))
+    _,purge_image,_=effects.decode(bin_hash('SFX_SMOKE_B_CS'))
+    flame_id=texture('SFX_FIREB',flame_image)
+    purge_id=texture('SFX_SMOKE_B_CS',purge_image)
     def source_texture(key):
         for pack in packs:
             if key in pack.slots or key in pack.records:
@@ -182,7 +210,10 @@ def main():
             else:color=[.7,.73,.78,1.];metal=.75;smooth=.55
         if appearance=='reverse':color=[.88,.92,1.,1.];metal=.05;smooth=.8;tex=-1
         elif appearance=='rear_amber_trim' and tex<0:color=[1.,.3,.025,1.];metal=.05;smooth=.7
-        desc={'name':f'{key:08x}_{len(materials)}','color':color,'metallic':metal,'smoothness':smooth,'texture':tex}
+        elif appearance=='wheel_chrome':color=[.94,.96,1.,1.];metal=.28;smooth=.76
+        elif appearance=='wheel_gold':color=[1.,.72,.28,1.];metal=.22;smooth=.58
+        prefix=appearance+'_' if appearance.startswith('wheel_') else ''
+        desc={'name':f'{prefix}{key:08x}_{len(materials)}','color':color,'metallic':metal,'smoothness':smooth,'texture':tex}
         material_ids[identity]=len(materials);materials.append(desc);return len(materials)-1
     parts=[]
     def transform(v,matrix,exhaust=False,normal=False):
@@ -193,7 +224,7 @@ def main():
             x,y,z=v
         return {'x':y,'y':z+(0 if normal else BODY_LIFT),'z':x}
     for p,group,matrix,family in selected:
-        sections=[entry for section in p['slices'] for entry in rear_lens_sections(p,family,section)]
+        sections=[entry for section in p['slices'] for entry in (wheel_finish_sections(p,section) if group=='wheel' else rear_lens_sections(p,family,section))]
         for number,(s,lens_role) in enumerate(sections):
             key=s['materialKey']
             if key in (0xa6348ee3,0xd79597d6):continue # full clear covers still omitted
@@ -255,7 +286,19 @@ def main():
     for side in (-1,1):lamp('taillight',{'x':side*.62,'y':.71,'z':-1.97},{'x':0,'y':0,'z':-1})
     for side in (-1,1):lamp('reverse',{'x':side*.49,'y':.45,'z':-2.11},{'x':0,'y':-.12,'z':-1})
     lamp('plate',transform((.10,0,.045),plate_socket),transform((-.5,0,-1),plate_socket,normal=True))
+    emitters=[]
+    for key in (0xbcf8a18b,0xbd7cf15e):
+        socket=pick(car,'350Z_KITW02_BODY')['sockets'][key]
+        for mouth in exhaust_mouths(exhaust):
+            point=transform((mouth[0]-.006,mouth[1],mouth[2]),socket,exhaust=True)
+            emitters.append({'role':'exhaust','position':point,'direction':transform((-1,0,0),socket,exhaust=True,normal=True)})
+    # No verified NFS purge sockets were found. Mod-authored bumper positions
+    # and hood surface anchors provide paired jets without changing geometry.
+    for side in (-1,1):
+        emitters.append({'role':'purge','position':{'x':side*.62,'y':.53,'z':2.11},'direction':{'x':side*.3,'y':.65,'z':.7}})
+        emitters.append({'role':'purge','position':{'x':side*.412741,'y':.833191,'z':.987397},'direction':{'x':side*.25,'y':1,'z':.12}})
     model={'schemaVersion':2,'preset':'DDAY_PLAYER_CAR','wheelVisualLift':WHEEL_LIFT,'lights':lights,'neonTexture':neon_id,
+           'effectEmitters':emitters,'nitroFlameTexture':flame_id,'nitroPurgeTexture':purge_id,
            'frontWheelVisualOffset':FRONT_WHEEL_OFFSET,'rearWheelVisualOffset':REAR_WHEEL_OFFSET,
            'previewHubHeight':.20,'parts':parts,'materials':materials,'textures':textures}
     (out/'body.json').write_text(json.dumps(model,separators=(',',':')),encoding='utf-8')
@@ -264,6 +307,8 @@ def main():
         'neon':{'texture':'original 350Z_NEON','projectionAndPulse':'NFVU2 Unity implementation; not recovered NFS timing'},
         'rearLenses':{'upperStrip':'original STYLE04 amber textured trim; passive','bumper':'original lens triangles split into inner reverse and outer amber, split inferred from stock layout; not recovered NFS atlas mapping'},
         'sportBrakes':{'source':'BRAKE_STYLE03_A + original BRAKE_STYLE03 rotor atlas','adaptation':'38cm round opaque rotor replaces alpha-masked square; original caliper geometry painted red; visual only'},
+        'wheelFinish':{'source':'original RACINGHART_STYLE07 geometry; its shared wheel material split at existing radial loops','adaptation':'chrome-coloured outer ring, gold-bronze star; reduced metallic plus subtle runtime ambient fill for Valheim'},
+        'nitroEffects':{'textures':'original InGameCommon SFX_FIREB and SFX_SMOKE_B_CS; runtime tint/animation adapted','exhaust':'four original STYLE08 mouth-loop centres, offset 6mm outward','purge':'mod-authored bumper pair and measured hood surface pair; original nozzle sockets not identified'},
         'visualFit':{'wheelRadius':WHEEL_RADIUS,'wheelWidth':WHEEL_WIDTH,'wheelWidthFit':'outer face retained, widened inward; inverse-transpose normals','brakeRadius':BRAKE_RADIUS,'bodyLift':BODY_LIFT,'frontOffset':FRONT_WHEEL_OFFSET,'rearOffset':REAR_WHEEL_OFFSET,'preview':'approximate terrain-mode loaded suspension; not a Unity simulation'}},indent=2),encoding='utf-8')
     print(f'Rachel preset: {len(parts)} material slices, {sum(len(p["indices"])//3 for p in parts)} triangles, {len(textures)} textures')
 

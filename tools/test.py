@@ -9,7 +9,7 @@ def main():
     if not args.handling_only:
         subprocess.run([sys.executable,'-m','unittest','discover','-s',str(BASE/'tests'),'-p','test_*.py'],check=True)
     references,tfm,version=test_refs()
-    for suite in (['handling'] if args.handling_only else ['model','handling','audio','radio']):
+    for suite in (['handling'] if args.handling_only else ['model','handling','audio','radio','nitro']):
         out=OUTPUT/'tests'/suite;out.mkdir(parents=True,exist_ok=True)
         sources=list((BASE/'tests'/suite).glob('*.cs'));refs=list(references);arguments=[]
         if suite=='handling':sources.extend(BASE/'src'/name for name in ('DrivingMath.cs','VehicleHandling.cs'))
@@ -18,7 +18,7 @@ def main():
         if suite=='model':
             jsondll=out/'Newtonsoft.Json.dll';shutil.copy2(valheim_dir()/'valheim_Data/Managed/Newtonsoft.Json.dll',jsondll);refs.append(jsondll)
             arguments=[str(LOCAL/'model/body.json')]
-        if suite=='audio':arguments=[str(out/'preview-state.csv')]
+        if suite=='audio':arguments=[str(out/'preview-state.csv'),str(OUTPUT/'mod/audio/effects')]
         if suite=='radio':
             jsondll=out/'Newtonsoft.Json.dll';shutil.copy2(valheim_dir()/'valheim_Data/Managed/Newtonsoft.Json.dll',jsondll);refs.append(jsondll)
         dll=out/(suite+'Tests.dll');compile_cs(dll,sources,refs);runtime_config(dll,tfm,version)

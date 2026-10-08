@@ -40,6 +40,20 @@ class InstallTests(unittest.TestCase):
                 with self.assertRaises(RuntimeError):install.install_payload(source,dest,backup,lambda:None)
             self.assertEqual((dest/'Rachel350Z.dll').read_bytes(),b'old')
             self.assertFalse((dest/'radio/song.wav').exists())
+    def test_effects_are_synced_installed_and_backed_up(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);source,dest,backup=self.fixture(root)
+            local=root/'local';effects=local/'audio-effects';effects.mkdir(parents=True)
+            (effects/'nitro.wav').write_bytes(b'nitro');(effects/'purge.wav').write_bytes(b'purge')
+            (effects/'source.abk').write_bytes(b'original bank stays local')
+            (dest/'audio/effects').mkdir(parents=True)
+            (dest/'audio/effects/nitro.wav').write_bytes(b'old effect')
+            sync_optional_assets(local,source)
+            install.install_payload(source,dest,backup,lambda:None)
+            self.assertEqual((backup/'audio/effects/nitro.wav').read_bytes(),b'old effect')
+            self.assertEqual((dest/'audio/effects/nitro.wav').read_bytes(),b'nitro')
+            self.assertEqual((dest/'audio/effects/purge.wav').read_bytes(),b'purge')
+            self.assertFalse((dest/'audio/effects/source.abk').exists())
     def test_reject_manifest_escape_before_mutation(self):
         with tempfile.TemporaryDirectory() as temp:
             source,dest,backup=self.fixture(Path(temp))

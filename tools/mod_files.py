@@ -5,7 +5,8 @@ import json
 
 REQUIRED=('Rachel350Z.dll','body.json')
 OPTIONAL=(('radio', 'radio', {'.wav','.ogg','.json'}),
-          ('audio-turbo', 'audio/turbo', {'.wav','.json'}))
+          ('audio-turbo', 'audio/turbo', {'.wav','.json'}),
+          ('audio-effects', 'audio/effects', {'.wav','.json'}))
 
 def asset_files(folder,extensions):
     folder=Path(folder)

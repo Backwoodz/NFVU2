@@ -20,6 +20,10 @@ class AudioTests {
             var data=WavPcm16.Read(assembly.GetManifestResourceStream(name));
             Check(data.Channels==1 && data.Samples.Length>2000 && data.Samples.All(s=>!float.IsNaN(s)&&Math.Abs(s)<=.83f) && data.Samples.Any(s=>Math.Abs(s)>.05f),"valid non-silent PCM: "+name);
         }
+        if(args.Length>1 && Directory.Exists(args[1]))foreach(var path in Directory.GetFiles(args[1],"*.wav")) {
+            var data=WavPcm16.Read(File.OpenRead(path));
+            Check(data.Channels==1 && data.Samples.Length>1000 && data.Samples.All(s=>!float.IsNaN(s)&&Math.Abs(s)<=.83f) && data.Samples.Any(s=>Math.Abs(s)>.05f),"runtime reader accepts prepared effect: "+Path.GetFileName(path));
+        }
         var bytes=Resource(names[0]);Invalid(bytes.Take(30).ToArray(),"reject truncated WAV");
         var wrong=(byte[])bytes.Clone();wrong[0]=0;Invalid(wrong,"reject missing RIFF");
         wrong=(byte[])bytes.Clone();wrong[34]=24;Invalid(wrong,"reject unexpected sample depth");

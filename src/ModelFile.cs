@@ -8,7 +8,10 @@ public sealed class ModelData {
     public float wheelVisualLift, frontWheelVisualOffset, rearWheelVisualOffset;
     public ModelPart[] parts; public ModelMaterial[] materials; public ModelTexture[] textures;
     public ModelLight[] lights; public int neonTexture = -1;
+    public ModelEffectEmitter[] effectEmitters;
+    public int nitroFlameTexture = -1, nitroPurgeTexture = -1;
 }
+public sealed class ModelEffectEmitter { public string role; public ModelVertex position,direction; }
 public sealed class ModelPart { public string name, group, lightRole; public bool rotatesWithWheel; public int material; public ModelVertex[] vertices, normals; public ModelUV[] uv; public int[] indices; }
 public sealed class ModelLight { public string role; public ModelVertex position, direction; }
 public struct ModelVertex { public float x, y, z; }
@@ -44,6 +47,19 @@ public static class ModelFile {
                 foreach (var c in material.color) if (!Unit(c)) throw new InvalidDataException("Invalid material color");
             }
             if (model.neonTexture < -1 || model.neonTexture >= model.textures.Length) throw new InvalidDataException("Invalid neon texture");
+            if (model.nitroFlameTexture < -1 || model.nitroFlameTexture >= model.textures.Length ||
+                model.nitroPurgeTexture < -1 || model.nitroPurgeTexture >= model.textures.Length)
+                throw new InvalidDataException("Invalid nitro texture");
+            if(model.effectEmitters!=null) {
+                if(model.effectEmitters.Length>16)throw new InvalidDataException("Too many effect emitters");
+                foreach(var emitter in model.effectEmitters) {
+                    if(emitter==null || (emitter.role!="exhaust"&&emitter.role!="purge") ||
+                        !ValidVector(emitter.position)||!ValidVector(emitter.direction))
+                        throw new InvalidDataException("Invalid effect emitter");
+                    var d=emitter.direction;
+                    if(d.x*d.x+d.y*d.y+d.z*d.z<.001f)throw new InvalidDataException("Zero emitter direction");
+                }
+            }
             if (model.lights != null) {
                 if (model.lights.Length > 16) throw new InvalidDataException("Too many vehicle lights");
                 foreach (var light in model.lights) {

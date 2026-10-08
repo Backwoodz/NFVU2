@@ -7,10 +7,43 @@ sys.path.insert(0,str(Path(__file__).resolve().parents[1]/'tools'))
 from project import LOCAL
 from nfs_formats import TexturePack,bin_hash,jdlz
 from export_geometry import parse
-from export_rachel import wheel_source_radius,wheel_geometry,sport_brake_geometry,rear_lens_sections
+from export_rachel import wheel_source_radius,wheel_geometry,wheel_finish_sections,exhaust_mouths,sport_brake_geometry,rear_lens_sections
 
 
 class AssetImportTests(unittest.TestCase):
+    def test_chrome_ring_split_preserves_all_original_wheel_triangles(self):
+        wheel=next(p for p in parse(LOCAL/'nfs-assets/CARS/WHEELS/GEOMETRY_RACINGHART.BIN') if p['key']==bin_hash('RACINGHART_STYLE07_20_26_A'))
+        source=next(s for s in wheel['slices'] if s['materialKey']==0xfd102a92)
+        split=dict((finish,s) for s,finish in wheel_finish_sections(wheel,source))
+        self.assertEqual(len(split['wheel_chrome']['indices'])//3,120)
+        self.assertEqual(len(split['wheel_gold']['indices'])//3,210)
+        triangles=lambda s:{tuple(s['indices'][i:i+3]) for i in range(0,len(s['indices']),3)}
+        self.assertEqual(triangles(source),triangles(split['wheel_chrome'])|triangles(split['wheel_gold']))
+        self.assertFalse(triangles(split['wheel_chrome'])&triangles(split['wheel_gold']))
+        self.assertGreater(min(np.hypot(wheel['vertices'][i][0],wheel['vertices'][i][2]) for i in split['wheel_chrome']['indices']),.2319)
+
+    def test_exhaust_emitters_use_actual_two_tip_centres(self):
+        part=next(p for p in parse(LOCAL/'nfs-assets/CARS/EXHAUST/GEOMETRY.BIN') if p['key']==bin_hash('EXHAUST_STYLE08_LEVEL1_A'))
+        mouths=exhaust_mouths(part)
+        self.assertEqual(len(mouths),2)
+        self.assertAlmostEqual(mouths[0][0],-.00868424,places=6)
+        self.assertAlmostEqual(mouths[0][1],-.052866,places=5)
+        self.assertAlmostEqual(mouths[1][1],.061012,places=5)
+        self.assertAlmostEqual(mouths[0][2],mouths[1][2],places=6)
+
+    def test_effect_pixel_alignment_preserves_leading_real_0x11_bytes(self):
+        pack=TexturePack(LOCAL/'nfs-assets/GLOBAL/InGameCommon.bun')
+        self.assertEqual(pack.pixel_base,46080)
+        self.assertEqual(pack.data[pack.pixel_base:pack.pixel_base+4],b'\x11\x11\x11\x7f')
+        for name in ('SFX_FIREB','SFX_SMOKE_B_CS'):
+            decoded,image,_=pack.decode(bin_hash(name))
+            self.assertEqual(decoded,name)
+            self.assertEqual(image.size,(128,128))
+        _,smoke,_=pack.decode(bin_hash('SFX_SMOKE_B_CS'))
+        alpha=np.array(smoke)[:,:,3]
+        self.assertEqual(alpha[0,0],0)
+        self.assertGreater(alpha.max(),100)
+
     def test_wide_tyre_keeps_diameter_outer_face_and_correct_normals(self):
         wheel=next(p for p in parse(LOCAL/'nfs-assets/CARS/WHEELS/GEOMETRY_RACINGHART.BIN') if p['key']==bin_hash('RACINGHART_STYLE07_20_26_A'))
         vertices,normals=wheel_geometry(wheel)

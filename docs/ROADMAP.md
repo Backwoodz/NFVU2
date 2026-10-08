@@ -1,5 +1,22 @@
 # Nächste Aufgaben
 
+## Nitro, Purge und Felgen in 0.3.0
+
+Umgesetzt: gehaltene linke Maustaste für Boost mit grünen Auspuffflammen,
+Purge im Stand an Front/Haube, sechs Sekunden Tank, Nachladung beim Fahren,
+F9-Nitro-Einstellungen und Chromring mit goldbronzenem Felgenstern.
+Originale NFS-Texturen und Nitrobank-Sounds sind lokal importiert.
+Der Spieltest dieser Version steht noch aus.
+
+- Boost/Purge-Wechsel, Tank, Bremsen, Rückwärtsfahrt und Sprünge im Spiel prüfen.
+- Menü schließen per Mausklick, Alt-Tab, Ein-/Ausstieg: keine unbeabsichtigte Aktivierung.
+- Grüne Flammen an allen vier Endrohren und Purge-Düsen bei Tag/Nacht prüfen.
+- Chrom-/Goldwirkung mit Valheims Beleuchtung prüfen; externe Vorschau ist fertig.
+- Native Nitro-/Purge-Loop-Zuordnung durch Hörvergleich mit NFS bestätigen.
+- Exakte NFS-Lastwechsel-/Tuningbedingungen und Sputter-Substream identifizieren.
+  Optionaler Flammenstoß ist eine eigene, zunächst ausgeschaltete Annäherung;
+  ohne verifizierten Knall-Sample bleibt er visuell.
+
 ## Rückmeldung aus dem Spieltest von 0.2.0
 
 Der Nutzer bestätigt die grundsätzliche Funktion der umgesetzten Menü-, Radio-,

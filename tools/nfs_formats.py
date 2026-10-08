@@ -138,7 +138,14 @@ class TexturePack:
             pos += size
         pixel=data.find(struct.pack('<I',0x33320002),end)
         self.pixel_base=pixel+8 if pixel>=0 else 0
-        while self.pixel_base and data[self.pixel_base:self.pixel_base+1]==b'\x11': self.pixel_base+=1
+        if self.pixel_base:
+            # Pixel chunks are aligned to 128 bytes. The first actual texel can
+            # legitimately contain 0x11 (e.g. InGameCommon SFX atlases), so never
+            # scan through pixel bytes looking for the end of a padding run.
+            aligned=(self.pixel_base+127)&~127
+            if any(byte!=0x11 for byte in data[self.pixel_base:aligned]):
+                raise ValueError('Invalid texture pixel alignment padding')
+            self.pixel_base=aligned
 
     def decode(self, key):
         if key in self.records:

@@ -2,7 +2,8 @@
 
 **Need for Valheim: Underground 2** — ein privater Fahrzeug-Mod-Prototyp für Valheim.
 
-Aktueller Stand: **0.2.1**, vom Nutzer in Valheim bestätigt. Ein aus eigenen NFS-Underground-2-Dateien ausgelesener
+Aktueller Stand: **0.3.0**, gebaut und automatisiert geprüft; Spieltest noch offen.
+Die vorherige Version 0.2.1 ist vom Nutzer in Valheim bestätigt. Ein aus eigenen NFS-Underground-2-Dateien ausgelesener
 Nissan 350Z lässt sich in einer lokalen Valheim-Einzelspielerwelt spawnen und fahren.
 Mauskamera, Gelände-/Straßenmodus und Fahrzeug-Sound sind im Spiel bestätigt.
 Neu: Fahrzeugmenü, lokales NFS-Radio, automatische Beleuchtung, Originalkennzeichen,
@@ -10,6 +11,8 @@ farbiges/pulsierendes Neon sowie frühere akustische Gangwechsel und Turbo.
 Die grundsätzliche Funktion von 0.2.0 wurde vom Nutzer in Valheim bestätigt.
 0.2.1 ergänzt fehlende Heckleuchtenflächen, weiße Rückfahrleuchten, 28 cm breite
 Reifen und größere Sportbremsen sowie echte Künstler-/Songnamen im Radio.
+0.3.0 ergänzt Nitro per linker Maustaste, grüne Auspuffflammen, Purge im Stand
+und getrennte Chromring-/Goldstern-Materialien für die Felgen.
 
 Die Darstellung verwendet jetzt die Originalvoreinstellung `DDAY_PLAYER_CAR`:
 Widebody-Kit 02, Carbonhaube 07, Spoiler 02, Racing-Hart-Felgen 07,
@@ -38,7 +41,8 @@ NFS-Prozess ist eine mögliche spätere Forschungsaufgabe und noch nicht impleme
 | Leertaste | Bremsen |
 | Maus / Mausrad | Umschauen / Kameraabstand |
 | Mittlere Maustaste | Kamera zentrieren |
-| F9 | Fahrzeugmenü: Fahrmodus, Radio, Licht und Neon |
+| F9 | Fahrzeugmenü: Fahrmodus, Radio, Licht, Neon und Nitro |
+| Linke Maustaste halten | Bei Vorwärtsfahrt mit Gas: Nitro; im Stand: Purge |
 | H halten | Hupe |
 | F8 | Fahrzeug entfernen |
 
@@ -79,6 +83,7 @@ python tools/prepare_audio.py
 python tools/extract_audio.py --turbo-only
 python tools/decode_audio.py --turbo-only
 python tools/prepare_audio.py --turbo-only
+python tools/prepare_effects_audio.py
 python tools/extract_music.py
 ```
 
@@ -93,7 +98,8 @@ EA-Trax-Songs und echten Künstler-/Titelnamen. Die Zuordnung in
 weitere Containerstreams werden nicht als Songs angeboten. Bestehende
 Importe können mit `python tools/extract_music.py --refresh-titles` aktualisiert
 werden. Turbo-Samples liegen separat
-unter `.local/audio-turbo/`; Build, Paket und Installer übernehmen beide Ordner.
+unter `.local/audio-turbo/`, Nitro-/Purge-Sounds unter `.local/audio-effects/`;
+Build, Paket und Installer übernehmen die Medienordner.
 Die 19 kurzen Motor-/Fahrgeräusche bleiben in der DLL eingebettet.
 
 ## Bauen und prüfen
@@ -109,7 +115,7 @@ Sie verwenden den mitgelieferten C#-Compiler direkt und benötigen keinen
 NuGet-Download. `src/NFVU2.csproj` dient zusätzlich als Projektdatei für Editoren;
 dafür `ValheimDir` beziehungsweise die Umgebungsvariable `NFVU2_VALHEIM` setzen.
 
-Prüfungen umfassen Modell-/Lichtzustände, Antrieb, Audio/Turbo, Radioauswahl,
+Prüfungen umfassen Modell-/Lichtzustände, Antrieb, Audio/Turbo, Radioauswahl, Nitro-/Eingabezustände,
 Originalasset-Verarbeitung und Installation mit Rücksicherung.
 Die Antriebsprüfungen verwenden kontrollierte API-Antworten. Sie ersetzen keinen
 Unity-Fahrtest; auch die Audio-Prüfungen spielen nichts in Valheim ab.
@@ -133,7 +139,7 @@ prüft den laufenden Prozess, sichert die installierten Dateien in `artifacts/ba
 und verifiziert alle kopierten Dateien mit SHA-256.
 
 Alternativ den Inhalt von `artifacts/mod/` einschließlich `radio/` und
-`audio/turbo/` nach `<Valheim>/BepInEx/plugins/Rachel350Z/` kopieren.
+`audio/turbo/` und `audio/effects/` nach `<Valheim>/BepInEx/plugins/Rachel350Z/` kopieren.
 Der bestehende Plugin-Name und die
 Konfigurationskennung bleiben für die bisherige Installation erhalten.
 
@@ -149,6 +155,15 @@ Die weißen Rückfahrleuchten in der Stoßstange reagieren auf die Rückwärtswa
 S bremst bei Vorwärtsfahrt zunächst, erst nahe Stillstand wird rückwärts eingelegt.
 Orange Heckstreifen sind sichtbar, haben bislang aber keine Blinkersteuerung.
 Türen und Kofferraum sind vorbereitete, noch deaktivierte Menüeinträge.
+Nitro wirkt bei Vorwärtsfahrt mit Gas und Bodenkontakt; im Stand entstehen
+Purge-Strahlen an Stoßstange und Haube. Ein voller Tank reicht sechs Sekunden,
+lädt zwei Sekunden nach dem Loslassen während der Fahrt in zehn Sekunden nach.
+F9 → Nitro schaltet die Funktion und optionale Flammen beim Gaswegnehmen.
+Letztere sind zunächst aus; ein eindeutig zugeordneter Knall-Sample fehlt noch.
+Originale Feuer-/Rauchtexturen und Nitrobank-Aufnahmen sind importiert;
+Boost, Nachladung, Partikelbewegung und Purge-Düsenpositionen sind Mod-Anpassungen.
+Die beiden Nitrobank-Loops sind vorläufig Boost/Purge zugeordnet. Ob und ab
+welcher Tuningstufe NFS automatisch Lastwechsel-Flammen auslöst, bleibt offen.
 Das Kennzeichen verwendet die feste Originaltextur „UNDRGND 2“ auf einer eigenen
 kleinen Schildfläche. Freier NFS-Kennzeichentext ist nicht nachgewiesen.
 Neon-Pulsverlauf, Lichtstärken, Kennzeichenposition und Turbo-Auslösung sind

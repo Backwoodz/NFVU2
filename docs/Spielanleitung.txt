@@ -1,7 +1,8 @@
-350Z-Prototyp 0.2.1 – lokaler Test für Valheim
+350Z-Prototyp 0.3.0 – lokaler Test für Valheim
 
 Die Funktionen von 0.2.0 sind vom Nutzer grundsätzlich in Valheim bestätigt.
 Auch die Nachbesserungen von 0.2.1 wurden vom Nutzer in Valheim bestätigt.
+Nitro, Purge und Felgenkorrektur in 0.3.0 warten noch auf den Spieltest.
 Fahrwerk und Steuerung basieren auf dem bestätigten Prototyp.
 Das Fahrzeug ist temporär und ausschließlich für lokale Einzelspielerwelten.
 
@@ -13,6 +14,7 @@ F9: Fahrzeugmenü öffnen/schließen (Taste in der Konfiguration änderbar).
 W / S: Gas / bremsen und anschließend rückwärts fahren.
 A / D: Lenken. Leertaste: Bremsen. H halten: Hupe.
 Maus: Umschauen. Mausrad: Zoom. Mittelklick: Kamera zentrieren.
+Linke Maustaste halten: Nitro bei Vorwärtsfahrt mit Gas; Purge im Stand.
 
 FAHRZEUGMENÜ
 F9 funktioniert im Auto oder bis fünf Meter daneben. Der Geländemodus wird
@@ -62,12 +64,26 @@ Sample-Rollen und Auslösung sind eine dokumentierte Annäherung; Rachels
 exakte Performance-Stufe und Originalverhalten bleiben zu vergleichen.
 Die Hupe ist synthetisiert. NFS-Physik und NFS-Audio-Engine laufen nicht mit.
 
+NITRO UND PURGE
+Bei Vorwärtsfahrt mit Gas und Bodenkontakt erzeugt die linke Maustaste Schub
+und grüne Flammen aus dem Auspuff. Im Stand kommen stattdessen Gasstrahlen
+aus Stoßstange und Haube. Originale NFS-Sounds begleiten beide Zustände.
+Ein voller Tank reicht sechs Sekunden. Nach dem Loslassen beginnt nach zwei
+Sekunden die Nachladung beim Fahren; eine volle Ladung dauert zehn Sekunden.
+F9 → Nitro: ein-/ausschalten und optionale Flammen beim Gaswegnehmen aktivieren.
+Diese Option ist standardmäßig aus und derzeit ohne Knallgeräusch, da der
+richtige Original-Sample noch nicht eindeutig zugeordnet ist.
+Menü, Alt-Tab und Aussteigen stoppen Nitro. Nach dem Menü die Maustaste erst
+loslassen und erneut drücken. Rückwärts und in der Luft gibt es keinen Schub.
+Flammen-/Gasanimation, Düsenpositionen und Boost-Abstimmung sind Mod-Anpassungen.
+Die Felgen besitzen nun einen hellen Chromring und einen goldbronzenen Stern.
+
 INSTALLATION
 Valheim schließen, dann python tools/install.py ausführen. Der Installer
 sichert die vorherigen Dateien und prüft alle Kopien mit SHA-256.
 Manuell: den gesamten Inhalt von artifacts/mod/ nach
 <Valheim>/BepInEx/plugins/Rachel350Z/ kopieren, einschließlich radio/ und
-audio/turbo/. Plugin-ID und Rachel350Z.dll heißen weiterhin wie zuvor.
+audio/turbo/ und audio/effects/. Plugin-ID und Rachel350Z.dll heißen weiterhin wie zuvor.
 Einstellungen: BepInEx/config/local.rachel350z.prototype.cfg.
 
 SPIELTEST
@@ -78,6 +94,9 @@ SPIELTEST
 5. Bei Nacht Ebene/Hang prüfen: Lichtkegel, Schild, Neon ohne Schweben/Flackern.
 6. Inventar, Spielmenü, Alt-Tab, Aussteigen und Wiedereinstieg prüfen.
 7. Fahrzeug entfernen: keine hängenden Sounds/Lichter, Spieler/Kamera frei.
+8. Linke Maustaste im Stand und beim Fahren halten: Purge, grüne Flammen, Tank.
+9. Nitro mit Menü, Alt-Tab, Bremsen, Rückwärtsfahrt und Sprüngen prüfen.
+10. Chromring/Goldstern bei Tag und Nacht vergleichen.
 
 Automatisierte Prüfungen ersetzen keine Unity-Physik/-Wiedergabe.
 Die externe Soundvorschau ist keine Aufnahme aus Valheim.

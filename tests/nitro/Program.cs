@@ -1,0 +1,65 @@
+using System;
+using Rachel350Z;
+class NitroTests {
+    static int checks;
+    static void Check(bool ok,string message){if(!ok)throw new Exception(message);checks++;Console.WriteLine("PASS "+message);}
+    static void Main(){
+        var gate=new NitroInputGate();
+        Check(!gate.Read(true,true),"entry with held mouse cannot trigger nitro");
+        gate.Read(false,true);Check(gate.Read(true,true),"fresh left mouse press activates control");
+        gate.Read(true,false);Check(!gate.Read(true,true),"closing menu by mouse requires release before nitro");
+        gate.Read(false,true);Check(gate.Read(true,true),"mouse input works after release");
+        var n=new NitroState();
+        n.Step(.02f,true,false,true,0,0,0,true,true,true);
+        Check(n.Purging&&!n.Boosting&&n.Charge==1,"stationary hold purges without propulsion or fuel use");
+        n.Step(.02f,true,false,true,0,0,0,false,false,true);
+        Check(!n.Purging&&!n.Boosting,"jump apex is not treated as stationary purge");
+        n.Step(.02f,true,false,true,5,5,1,false,true,true);
+        Check(n.Boosting&&!n.Purging&&n.Charge<1,"driving switches purge to boost and uses tank");
+        float charge=n.Charge;
+        n.Step(.02f,true,true,true,5,5,1,false,true,true);
+        Check(!n.Boosting&&!n.Purging&&n.Charge==charge,"blocked controls stop effects and freeze charge");
+        n.Step(.02f,true,false,true,5,5,1,true,true,true);
+        Check(!n.Boosting,"braking prevents additional propulsion");
+        n.Step(.02f,true,false,true,-3,3,-1,false,true,true);
+        Check(!n.Boosting&&!n.Purging,"reverse cannot activate nitro");
+        n.Step(.02f,true,false,true,5,5,1,false,false,true);
+        Check(!n.Boosting,"airborne car receives no nitro thrust");
+        n.Step(.02f,true,false,true,27,27,1,false,true,true);
+        Check(!n.Boosting,"terrain boost respects its top speed");
+        n.Step(.02f,true,false,true,27,27,1,false,true,false);
+        Check(n.Boosting,"road boost has a separate higher speed limit");
+        Check(NitroState.Acceleration(true,26,26,true,true)<NitroState.Acceleration(true,20,20,true,true),"boost tapers near the speed cap");
+        Check(NitroState.Acceleration(true,10,30,true,true)==0,"large sideways velocity cannot bypass speed cap");
+        for(int i=0;i<400;i++)n.Step(.02f,true,false,true,10,10,1,false,true,true);
+        Check(n.Charge==0&&!n.Boosting,"continuous boost stops at empty tank");
+        for(int i=0;i<100;i++)n.Step(.02f,true,false,true,10,10,1,false,true,true);
+        Check(n.Charge==0&&!n.Boosting,"holding empty tank does not pulse propulsion");
+        for(int i=0;i<100;i++)n.Step(.02f,true,false,false,10,10,1,false,true,true);
+        Check(n.Charge<.01f,"refill waits two seconds after boost");
+        for(int i=0;i<600;i++)n.Step(.02f,true,false,false,10,10,1,false,true,true);
+        Check(n.Charge==1,"ordinary driving refills tank to maximum");
+        n.Step(.02f,true,false,true,10,10,1,false,true,true);charge=n.Charge;
+        for(int i=0;i<800;i++)n.Step(.02f,false,false,false,10,10,1,false,true,true);
+        Check(!n.Boosting&&!n.Purging&&n.Charge==charge,"exit stops effects without refilling tank");
+        n.Step(.02f,true,false,true,float.NaN,10,1,false,true,true);
+        Check(!n.Boosting&&!n.Purging&&!float.IsNaN(n.Charge),"invalid inputs cannot poison boost");
+        Check(NitroState.Acceleration(true,float.PositiveInfinity,10,true,true)==0,"invalid velocity never adds thrust");
+        var pop=new BackfireState();
+        for(int i=0;i<30;i++)pop.Step(.02f,true,5000,1,10,false);
+        Check(!pop.Step(.02f,true,5000,0,10,false),"disabled lift-off effect never fires");
+        for(int i=0;i<30;i++)pop.Step(.02f,true,2500,1,10,true);
+        Check(!pop.Step(.02f,true,2500,0,10,true),"ordinary low RPM release cannot trigger flames");
+        for(int i=0;i<30;i++)pop.Step(.02f,true,5000,1,10,true);
+        Check(pop.Step(.02f,true,4800,0,10,true),"sustained high load arms a single lift-off flame");
+        Check(!pop.Step(.02f,true,4500,0,10,true),"continued coast cannot repeat the flame");
+        for(int i=0;i<30;i++)pop.Step(.02f,true,5000,1,10,true);
+        Check(!pop.Step(.02f,true,4800,0,10,true),"cooldown suppresses repeated rapid pops");
+        for(int i=0;i<30;i++)pop.Step(.02f,true,5000,1,10,true);
+        pop.Step(.02f,false,5000,1,10,true);
+        Check(!pop.Step(.02f,true,4800,0,10,true),"menu or exit cancels armed lift-off effect");
+        for(int i=0;i<30;i++)pop.Step(.02f,true,5000,1,0,true);
+        Check(!pop.Step(.02f,true,4800,0,0,true),"stationary revving does not trigger lift-off effect");
+        Console.WriteLine(checks+" nitro checks passed; actual acceleration and particles require a Unity test.");
+    }
+}

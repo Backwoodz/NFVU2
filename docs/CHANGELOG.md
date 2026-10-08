@@ -1,5 +1,27 @@
 # Versionsgeschichte
 
+## 0.3.0 — Nitro, Purge und zweifarbige Felgen
+
+Linke Maustaste halten: Vorwärtsfahrt mit Gas und Bodenkontakt gibt Zusatzschub
+und grüne Flammen aus den vier vermessenen Endrohren; im Stand entstehen helle
+Purge-Strahlen an Stoßstange und Haube. Originale SFX_FIREB-/SFX_SMOKE_B_CS-Atlanten
+und zwei Schleifen aus Nitrous_00_MB.abk werden verwendet. Die Loop-Rollenzuordnung,
+Purge-Düsenpositionen und Unity-Partikelanimation sind dokumentierte Annäherungen.
+Sechs Sekunden Tank, zwei Sekunden Nachladeverzögerung, zehn Sekunden Ladung
+während der Fahrt. Zusatzschub liegt getrennt vom bestätigten VehicleHandling.
+Menü, Fokusverlust und Ausstieg stoppen Effekte; Menüklicks lösen keinen Boost aus.
+
+F9 enthält Nitro-Einstellungen und optionale, zunächst ausgeschaltete Flammen
+bei Gaswegnahme nach hoher Last. NFS kennt Sputter-/Blow-off-Effekte; genaue
+Tuningbedingungen und der richtige Knall-Substream bleiben offen. Deshalb wird
+kein unbestätigter Backfire-Sound als Original ausgegeben oder installiert.
+
+Die Originalfelge wird ohne Geometrieverlust in Chromring und Goldstern getrennt.
+Angepasste Materialwerte verhindern die bisher fast schwarze Metallfläche.
+Der Texturparser überspringt keine echten führenden 0x11-Pixelbytes mehr.
+Externe Felgenvorschau und 222 automatisierte Prüfungen bestanden;
+Unity-Fahr-, Partikel- und Hörtest noch offen.
+
 ## 0.2.1 — Heckleuchten, breitere Reifen, Sportbremsen und Songtitel
 
 Der Nutzer bestätigt die grundsätzliche Funktion von 0.2.0 in Valheim.

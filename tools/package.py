@@ -3,7 +3,7 @@ import zipfile
 from project import BASE,OUTPUT
 from mod_files import payload_files
 
-target=OUTPUT/'NFVU2-v0.2.1.zip'
+target=OUTPUT/'NFVU2-v0.3.0.zip'
 with zipfile.ZipFile(target,'w',zipfile.ZIP_DEFLATED) as archive:
     for name in payload_files(OUTPUT/'mod'):
         archive.write(OUTPUT/'mod'/name,'BepInEx/plugins/Rachel350Z/'+name.as_posix())

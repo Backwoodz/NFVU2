@@ -9,6 +9,10 @@ namespace Rachel350Z {
 public sealed class VehicleAudio : IDisposable {
     readonly EngineSoundModel model=new EngineSoundModel();
     readonly TurboSoundModel turboModel=new TurboSoundModel();
+    public float Rpm => model.Rpm;
+    public float Load => model.Load;
+    public bool IsShifting => model.IsShifting;
+    public int Gear => model.Gear;
     readonly List<AudioClip> clips=new List<AudioClip>();
     readonly List<AudioSource> sources=new List<AudioSource>();
     AudioSource[] power,coast;

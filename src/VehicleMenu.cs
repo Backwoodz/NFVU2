@@ -7,6 +7,7 @@ namespace Rachel350Z {
 public partial class Plugin {
     ConfigEntry<KeyboardShortcut> menuKey;
     ConfigEntry<bool> radioEnabled, neonEnabled, neonPulsing;
+    ConfigEntry<bool> nitroEnabled,backfireEnabled;
     ConfigEntry<float> radioVolume;
     ConfigEntry<string> neonColor;
     static readonly string[] ColorNames={"Grün","Blau","Cyan","Violett","Rot","Gelb","Weiß"};
@@ -22,6 +23,8 @@ public partial class Plugin {
     GUIStyle panelStyle, titleStyle, labelStyle, mutedStyle, songButtonStyle;
     void InitializeMenu() {
         menuKey=Config.Bind("Controls","VehicleMenu",new KeyboardShortcut(KeyCode.F9),"Open the vehicle menu while seated or within 5 metres of the car.");
+        nitroEnabled=Config.Bind("Nitro","Enabled",true,"Hold left mouse: forward throttle boosts; stationary purges. Six seconds of boost, refills while driving after release.");
+        backfireEnabled=Config.Bind("Nitro","LiftOffBackfire",false,"Optional high-RPM lift-off effect. Uses original assets with NFVU2 trigger thresholds, not verified NFS tuning rules.");
         radioEnabled=Config.Bind("Radio","Enabled",true,"Play the local NFS radio while seated.");
         radioVolume=Config.Bind("Radio","Volume",.55f,new ConfigDescription("Radio volume, independent of engine volume.",new AcceptableValueRange<float>(0,1)));
         neonEnabled=Config.Bind("Neon","Enabled",false,"Enable underbody neon while seated.");
@@ -29,7 +32,7 @@ public partial class Plugin {
         neonColor=Config.Bind("Neon","Color","Grün",new ConfigDescription("Underbody neon colour.",new AcceptableValueList<string>(ColorNames)));
     }
     bool CanUseVehicleMenu(MonoBehaviour local)=>car!=null&&local!=null&&!Multiplayer()&&(driving||Vector3.Distance(local.transform.position,car.transform.position)<5);
-    void BlockDrivingInput(){throttle=steer=0;brake=1;honking=false;orbitCamera?.InputFrame(false,mouseSensitivity.Value,invertMouseY.Value);}
+    void BlockDrivingInput(){throttle=steer=0;brake=1;honking=false;nitroHeld=false;nitroInput.Reset();vehicleNitro?.State.Stop();orbitCamera?.InputFrame(false,mouseSensitivity.Value,invertMouseY.Value);}
     void SetVehicleMenu(bool open) {
         if(open==menuOpen)return;
         if(open){
@@ -70,6 +73,8 @@ public partial class Plugin {
         if(!ready||LocalPlayer()==null)return;
         var text=driving?(terrainMode.Value?"Gelände / Allradhilfe":"Straße / Heckantrieb")+" | WASD: fahren | Leertaste: bremsen | H: Hupe | F7: aussteigen\nMaus: umschauen | Mausrad: Zoom | "+menuKey.Value+": Fahrzeugmenü":status;
         GUI.Box(new Rect(15,Screen.height-80,Mathf.Min(920,Screen.width-30),60),text);
+        if(driving&&vehicleNitro!=null&&nitroEnabled.Value)
+            GUI.Box(new Rect(15,Screen.height-120,310,32),"LMB: Nitro / Purge  |  Tank "+Mathf.RoundToInt(vehicleNitro.State.Charge*100)+" %");
         if(!menuOpen||audioBlocked)return;
         EnsureMenuStyles();
         float scale=Mathf.Min(1,Mathf.Min(Screen.width/600f,Screen.height/610f));
@@ -80,8 +85,8 @@ public partial class Plugin {
             GUI.Label(new Rect(22,15,480,36),"NFVU2  /  350Z",titleStyle);
             if(GUI.Button(new Rect(513,17,28,28),"×")){CloseVehicleMenu();return;}
             GUI.Label(new Rect(23,55,510,25),driving?"Fahrzeug bremst · Radio bleibt bedienbar":"Fahrzeugsteuerung",mutedStyle);
-            menuTab=GUI.Toolbar(new Rect(22,90,516,34),menuTab,new[]{"Fahrzeug","Radio","Licht","Neon"});
-            switch(menuTab){case 0:DrawCarMenu();break;case 1:DrawRadioMenu();break;case 2:DrawLightsMenu();break;case 3:DrawNeonMenu();break;}
+            menuTab=GUI.Toolbar(new Rect(22,90,516,34),menuTab,new[]{"Fahrzeug","Radio","Licht","Neon","Nitro"});
+            switch(menuTab){case 0:DrawCarMenu();break;case 1:DrawRadioMenu();break;case 2:DrawLightsMenu();break;case 3:DrawNeonMenu();break;case 4:DrawNitroMenu();break;}
             GUI.Label(new Rect(23,522,516,28),menuKey.Value+": schließen  ·  Einstellungen werden gespeichert",mutedStyle);
         } finally {GUI.matrix=oldMatrix;GUI.enabled=oldEnabled;}
     }
@@ -100,6 +105,14 @@ public partial class Plugin {
         GUI.Button(new Rect(285,383,245,38),"Kofferraum · noch nicht verfügbar");
         GUI.enabled=true;
         GUI.Label(new Rect(25,436,510,52),"Öffnen und Schließen wird mit den späteren Fahrzeuganimationen ergänzt.",mutedStyle);
+    }
+    void DrawNitroMenu() {
+        nitroEnabled.Value=GUI.Toggle(new Rect(25,145,510,32),nitroEnabled.Value," Nitro aktivieren");
+        GUI.Label(new Rect(25,195,510,75),"Linke Maustaste halten: Beim Vorwärtsfahren mit Gas gibt es Schub und grüne Auspuffflammen.",labelStyle);
+        GUI.Label(new Rect(25,275,510,70),"Im Stand strömt stattdessen Gas aus den Düsen vorne und an der Haube.",labelStyle);
+        GUI.Label(new Rect(25,350,510,60),"Sechs Sekunden Boost. Nach dem Loslassen lädt der Tank beim Fahren wieder auf.",mutedStyle);
+        backfireEnabled.Value=GUI.Toggle(new Rect(25,427,510,32),backfireEnabled.Value," Auspuffflammen beim Gaswegnehmen");
+        GUI.Label(new Rect(25,464,510,44),effectsAudio!=null&&effectsAudio.BackfireAvailable?"Kurzer Flammenstoß nach hoher Drehzahl; separat zuschaltbar.":"Kurzer Flammenstoß nach hoher Drehzahl. Knallgeräusch noch nicht verfügbar.",mutedStyle);
     }
     void DrawRadioMenu() {
         radioEnabled.Value=GUI.Toggle(new Rect(25,143,510,28),radioEnabled.Value," Radio beim Fahren einschalten");
