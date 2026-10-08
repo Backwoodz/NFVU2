@@ -1,5 +1,10 @@
 # Nächste Aufgaben
 
+## Heckschriftzug in 0.3.1
+
+Spiegelverkehrten 350Z-Schriftzug gezielt über seine UV-Insel korrigiert.
+Externe Nahaufnahme geprüft; Ausrichtung im Spiel noch bestätigen.
+
 ## Nitro, Purge und Felgen in 0.3.0
 
 Umgesetzt: gehaltene linke Maustaste für Boost mit grünen Auspuffflammen,

@@ -1,5 +1,12 @@
 # Versionsgeschichte
 
+## 0.3.1 — Heckschriftzug richtig ausgerichtet
+
+Die UV-Zuordnung des hinteren 350Z-Schriftzugs ist horizontal korrigiert,
+damit er von hinten lesbar ist. Nur seine beiden Dreiecke sind betroffen;
+der gemeinsame Originalatlas und die übrigen Embleme bleiben erhalten.
+Nahaufnahme vor/nach dem Export geprüft; Spieltest noch offen.
+
 ## 0.3.0 — Nitro, Purge und zweifarbige Felgen
 
 Linke Maustaste halten: Vorwärtsfahrt mit Gas und Bodenkontakt gibt Zusatzschub

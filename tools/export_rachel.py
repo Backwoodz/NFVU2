@@ -53,6 +53,22 @@ def wheel_geometry(part):
     return vertices,normals
 
 
+def visual_uv(part,section,family):
+    uv=[{'u':u,'v':1-v} for u,v in part['uv']]
+    if family=='350Z_KIT00_TRUNK' and section['textureKey']==bin_hash('350Z_BADGING'):
+        # This atlas section also contains the central Nissan emblem. Correct
+        # only the two triangles of the lateral 350Z wordmark: its original
+        # U direction reads backwards on our converted rear-facing geometry.
+        badge={i for j in range(0,len(section['indices']),3)
+               if all(part['vertices'][i][1]>.25 and part['vertices'][i][0]<-1.9
+                      for i in section['indices'][j:j+3])
+               for i in section['indices'][j:j+3]}
+        if len(badge)!=4:raise ValueError('Re-identify rear 350Z wordmark UV island')
+        total=min(uv[i]['u'] for i in badge)+max(uv[i]['u'] for i in badge)
+        for i in badge:uv[i]['u']=total-uv[i]['u']
+    return uv
+
+
 def wheel_finish_sections(part,section):
     if section['materialKey']!=0xfd102a92:return [(section,'')]
     groups={'wheel_chrome':[],'wheel_gold':[]}
@@ -264,7 +280,7 @@ def main():
             if 'TRUNK' in family and key==0x05bc3a3c:role='brakelight'
             parts.append({'name':family+f'_A_slice{number}_{len(parts)}','group':group,'lightRole':role,
                           'rotatesWithWheel':group=='brake' and key==0xb1aae6bb,'vertices':vertices,'normals':normals,
-                          'uv':[{'u':u,'v':1-v} for u,v in p['uv']], 'indices':ids,
+                          'uv':visual_uv(p,s,family), 'indices':ids,
                           'material':material(key,tex,group,'HOOD' in family,lens_role)})
     # Shared plate geometry was not identified. This small authored rectangle
     # uses the original fixed UNDRGND 2 texture at the rear-centre kit socket.

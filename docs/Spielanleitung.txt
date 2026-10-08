@@ -1,8 +1,9 @@
-350Z-Prototyp 0.3.0 – lokaler Test für Valheim
+350Z-Prototyp 0.3.1 – lokaler Test für Valheim
 
 Die Funktionen von 0.2.0 sind vom Nutzer grundsätzlich in Valheim bestätigt.
 Auch die Nachbesserungen von 0.2.1 wurden vom Nutzer in Valheim bestätigt.
 Nitro, Purge und Felgenkorrektur in 0.3.0 warten noch auf den Spieltest.
+0.3.1 korrigiert die Ausrichtung des 350Z-Schriftzugs am Heck.
 Fahrwerk und Steuerung basieren auf dem bestätigten Prototyp.
 Das Fahrzeug ist temporär und ausschließlich für lokale Einzelspielerwelten.
 

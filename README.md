@@ -2,7 +2,7 @@
 
 **Need for Valheim: Underground 2** — ein privater Fahrzeug-Mod-Prototyp für Valheim.
 
-Aktueller Stand: **0.3.0**, gebaut und automatisiert geprüft; Spieltest noch offen.
+Aktueller Stand: **0.3.1**, gebaut und automatisiert geprüft; Spieltest noch offen.
 Die vorherige Version 0.2.1 ist vom Nutzer in Valheim bestätigt. Ein aus eigenen NFS-Underground-2-Dateien ausgelesener
 Nissan 350Z lässt sich in einer lokalen Valheim-Einzelspielerwelt spawnen und fahren.
 Mauskamera, Gelände-/Straßenmodus und Fahrzeug-Sound sind im Spiel bestätigt.
@@ -13,6 +13,7 @@ Die grundsätzliche Funktion von 0.2.0 wurde vom Nutzer in Valheim bestätigt.
 Reifen und größere Sportbremsen sowie echte Künstler-/Songnamen im Radio.
 0.3.0 ergänzt Nitro per linker Maustaste, grüne Auspuffflammen, Purge im Stand
 und getrennte Chromring-/Goldstern-Materialien für die Felgen.
+0.3.1 korrigiert den spiegelverkehrten 350Z-Schriftzug am Heck.
 
 Die Darstellung verwendet jetzt die Originalvoreinstellung `DDAY_PLAYER_CAR`:
 Widebody-Kit 02, Carbonhaube 07, Spoiler 02, Racing-Hart-Felgen 07,
