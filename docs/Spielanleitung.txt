@@ -1,10 +1,11 @@
-350Z-Prototyp 0.4.0 – lokaler Test für Valheim
+350Z-Prototyp 0.4.1 – lokaler Test für Valheim
 
 Die Funktionen von 0.2.0 sind vom Nutzer grundsätzlich in Valheim bestätigt.
 Auch die Nachbesserungen von 0.2.1 wurden vom Nutzer in Valheim bestätigt.
 Nitro, Purge und Felgenkorrektur in 0.3.0 warten noch auf den Spieltest.
 0.3.1 korrigiert die Ausrichtung des 350Z-Schriftzugs am Heck.
 0.4.0 ergänzt die optische Radeinstellung im Fahrzeugmenü; Spieltest noch offen.
+0.4.1 verschiebt das Menü nach links oben und ergänzt Scheinwerferfarben/-stärke.
 Fahrwerk und Steuerung basieren auf dem bestätigten Prototyp.
 Das Fahrzeug ist temporär und ausschließlich für lokale Einzelspielerwelten.
 
@@ -19,7 +20,7 @@ Maus: Umschauen. Mausrad: Zoom. Mittelklick: Kamera zentrieren.
 Linke Maustaste halten: Nitro bei Vorwärtsfahrt mit Gas; Purge im Stand.
 
 FAHRZEUGMENÜ
-F9 funktioniert im Auto oder bis fünf Meter daneben. Der Geländemodus wird
+F9 öffnet das Menü links oben, im Auto oder bis fünf Meter daneben. Der Geländemodus wird
 jetzt im Menü umgeschaltet. Das Auto bremst während der Bedienung; Kamera
 und Fahrsteuerung sind gesperrt, Radio und Motor bleiben hörbar.
 F9 oder das Kreuz schließen das Menü. Chat, Inventar, Spielmenü und
@@ -51,6 +52,13 @@ Weitere Containerstreams erscheinen nicht mehr als Songs im Radio.
 Fehlerhafte Titel werden übersprungen. Fehlt Musik, bleibt das Auto nutzbar.
 
 LICHT UND NEON
+F9 → Licht: Scheinwerferstärke von 0 bis 300 Prozent und 14 Farbvorlagen.
+Serie, Xenon 4000K, Rot, Blau, Grün, Violett, Gelb, Weiß extrahell, Xenon 8000K
+sowie extrahelle Farbvarianten. Auswahl und Stärke bleiben gespeichert.
+„Scheinwerfer zurücksetzen“ stellt Serie und 100 Prozent wieder her.
+Die Einstellung färbt Lichtkegel und vordere Leuchtenflächen gemeinsam;
+Rücklicht, Bremslicht, Rückfahrlicht und Kennzeichenbeleuchtung bleiben unabhängig.
+Die Vorlagennamen stammen aus NFSU2; die Lichtwirkung ist für Valheim abgestimmt.
 Beim Einstieg gehen Front-, Rück- und Kennzeichenlicht an, beim Ausstieg aus.
 Der Lichtschalter im Menü gilt bis zum nächsten Einstieg. Bremslicht reagiert
 auch bei ausgeschaltetem Fahrlicht. Das Schild nutzt die feste originale

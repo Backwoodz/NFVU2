@@ -2,7 +2,7 @@
 
 **Need for Valheim: Underground 2** — ein privater Fahrzeug-Mod-Prototyp für Valheim.
 
-Aktueller Stand: **0.4.0**, gebaut und automatisiert geprüft; Spieltest noch offen.
+Aktueller Stand: **0.4.1**, gebaut und automatisiert geprüft; Spieltest noch offen.
 Die vorherige Version 0.2.1 ist vom Nutzer in Valheim bestätigt. Ein aus eigenen NFS-Underground-2-Dateien ausgelesener
 Nissan 350Z lässt sich in einer lokalen Valheim-Einzelspielerwelt spawnen und fahren.
 Mauskamera, Gelände-/Straßenmodus und Fahrzeug-Sound sind im Spiel bestätigt.
@@ -15,6 +15,7 @@ Reifen und größere Sportbremsen sowie echte Künstler-/Songnamen im Radio.
 und getrennte Chromring-/Goldstern-Materialien für die Felgen.
 0.3.1 korrigiert den spiegelverkehrten 350Z-Schriftzug am Heck.
 0.4.0 ergänzt fünf Live-Regler für Sturz, Radversatz und Felgengröße unter F9 → Räder.
+0.4.1 platziert das Menü links oben und ergänzt Scheinwerferfarben und -stärke.
 
 Die Darstellung verwendet jetzt die Originalvoreinstellung `DDAY_PLAYER_CAR`:
 Widebody-Kit 02, Carbonhaube 07, Spoiler 02, Racing-Hart-Felgen 07,
@@ -149,10 +150,17 @@ Eine lokale Einzelspieler-Testwelt öffnen. Das Fahrzeug wird nicht gespeichert
 und unterstützt derzeit keine Mehrspielersitzungen. Audio-Lautstärke und
 Kameraeinstellungen stehen in `BepInEx/config/local.rachel350z.prototype.cfg`.
 
-F9 öffnet im Auto oder in dessen Nähe das Menü. Es bremst das Auto und gibt die
+F9 öffnet im Auto oder in dessen Nähe das Menü links oben. Es bremst das Auto und gibt die
 Maus frei; Radio und Motor bleiben hörbar. Chat, Inventar, Spielmenü und
 Fokusverlust pausieren Audio weiterhin. Beim Einstieg schaltet sich das Fahrlicht
 ein, beim Ausstieg aus. Neon ist zunächst aus; Farbe und Pulsmodus sind gespeichert.
+Unter „Licht“ stehen 14 Vorlagen aus den originalen NFSU2-Sprachdateien zur Wahl:
+Serie, Xenon 4000K, Rot, Blau, Grün, Violett, Gelb, Weiß extrahell, Xenon 8000K
+und extrahelle Varianten der fünf Farben. Der Stärke-Regler reicht von 0 bis
+300 Prozent und betrifft Lichtkegel und Emission der Frontscheinwerfer.
+Die Einstellungen bleiben gespeichert; „Scheinwerfer zurücksetzen“ stellt
+Serie/100 Prozent wieder her. RGB-Werte und Helligkeitsverhältnisse sind für
+Valheim angenähert. Rück-, Brems-, Rückfahr- und Kennzeichenlicht bleiben unabhängig.
 Die weißen Rückfahrleuchten in der Stoßstange reagieren auf die Rückwärtswahl:
 S bremst bei Vorwärtsfahrt zunächst, erst nahe Stillstand wird rückwärts eingelegt.
 Orange Heckstreifen sind sichtbar, haben bislang aber keine Blinkersteuerung.

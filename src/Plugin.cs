@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Rachel350Z {
 // Disposable local prototype. No ZNetView: never use in multiplayer or persist into saves.
-[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.4.0")]
+[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.4.1")]
 public partial class Plugin : BaseUnityPlugin {
     GameObject car; Rigidbody body; WheelCollider[] wheels; Transform[] visuals;
     Material[] vehicleMaterials;
@@ -178,6 +178,7 @@ public partial class Plugin : BaseUnityPlugin {
         }
         if(driving)orbitCamera.LateFrame();
         if(vehicleLighting!=null)try {
+            vehicleLighting.SetHeadlights(headlightPreset.Value,headlightStrength.Value);
             float speed=Vector3.Dot(body.linearVelocity,car.transform.forward);
             vehicleLighting.Tick(driving,driving&&(brake>0||DrivingMath.DirectionBrake(speed,throttle)),speed,throttle);
         }

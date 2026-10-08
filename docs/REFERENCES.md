@@ -1,5 +1,11 @@
 # Technische Quellen
 
+- Lokale Originaldateien `LANGUAGES/English.bin`,
+  `LANGUAGES/German.bin` und `LANGUAGES/Labels.bin`: zusammenhängende Liste
+  der 14 Scheinwerfer-Vorlagen von STOCK/SERIE bis BRIGHT_YELLOW/GELB EXTRAHELL.
+  Die englische Xenon-Zeichenfolge beginnt bei 0xABD7; der Labels-Block enthält
+  STOCK, XENON, RED/BLUE/GREEN/PURPLE/YELLOW und die entsprechenden BRIGHT-Namen.
+  Es werden nur Namen übernommen; RGB und Helligkeitsfaktoren sind angenähert.
 - [OpenUG2-Dateiformate](https://github.com/whoismept/OpenUG2/blob/main/docs/FORMATS.md): Hintergrund für die NFSU2-Modellextraktion.
 - [OpenUG2-Parser](https://github.com/whoismept/OpenUG2/blob/main/src/nfsu2.h):
   Referenz für UG2-Materialbereiche, Anbausockel und komprimierte Texturen.

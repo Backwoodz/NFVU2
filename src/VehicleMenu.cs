@@ -10,6 +10,8 @@ public partial class Plugin {
     ConfigEntry<bool> nitroEnabled,backfireEnabled;
     ConfigEntry<float> radioVolume;
     ConfigEntry<string> neonColor;
+    ConfigEntry<string> headlightPreset;
+    ConfigEntry<float> headlightStrength;
     static readonly string[] ColorNames={"Grün","Blau","Cyan","Violett","Rot","Gelb","Weiß"};
     static readonly Color[] NeonColors={new Color(.2f,1,.08f),new Color(.12f,.3f,1),Color.cyan,new Color(.7f,.08f,1),Color.red,new Color(1,.8f,.05f),Color.white};
     bool menuOpen;
@@ -23,6 +25,8 @@ public partial class Plugin {
     GUIStyle panelStyle, titleStyle, labelStyle, mutedStyle, songButtonStyle;
     void InitializeMenu() {
         InitializeWheelTuning();
+        headlightPreset=Config.Bind("Lights","HeadlightPreset","Serie",new ConfigDescription("Front headlight colour preset. Names follow NFSU2; RGB values are adapted for Unity.",new AcceptableValueList<string>(VehicleLighting.HeadlightPresets)));
+        headlightStrength=Config.Bind("Lights","HeadlightStrength",1f,new ConfigDescription("Front headlight strength multiplier: 0 to 3. Rear, reverse and plate lights are independent.",new AcceptableValueRange<float>(0,3)));
         menuKey=Config.Bind("Controls","VehicleMenu",new KeyboardShortcut(KeyCode.F9),"Open the vehicle menu while seated or within 5 metres of the car.");
         nitroEnabled=Config.Bind("Nitro","Enabled",true,"Hold left mouse: forward throttle boosts; stationary purges. Six seconds of boost, refills while driving after release.");
         backfireEnabled=Config.Bind("Nitro","LiftOffBackfire",false,"Optional high-RPM lift-off effect. Uses original assets with NFVU2 trigger thresholds, not verified NFS tuning rules.");
@@ -78,10 +82,10 @@ public partial class Plugin {
             GUI.Box(new Rect(15,Screen.height-120,310,32),"LMB: Nitro / Purge  |  Tank "+Mathf.RoundToInt(vehicleNitro.State.Charge*100)+" %");
         if(!menuOpen||audioBlocked)return;
         EnsureMenuStyles();
-        float scale=Mathf.Min(1,Mathf.Min(Screen.width/600f,Screen.height/610f));
+        float scale=Mathf.Max(.1f,Mathf.Min(1,Mathf.Min((Screen.width-32f)/560f,(Screen.height-140f)/560f)));
         var oldMatrix=GUI.matrix;bool oldEnabled=GUI.enabled;
         try {
-            GUI.matrix=Matrix4x4.TRS(new Vector3((Screen.width-560*scale)/2,(Screen.height-560*scale)/2,0),Quaternion.identity,Vector3.one*scale);
+            GUI.matrix=Matrix4x4.TRS(new Vector3(16,16,0),Quaternion.identity,Vector3.one*scale);
             GUI.Box(new Rect(0,0,560,560),GUIContent.none,panelStyle);
             GUI.Label(new Rect(22,15,480,36),"NFVU2  /  350Z",titleStyle);
             if(GUI.Button(new Rect(513,17,28,28),"×")){CloseVehicleMenu();return;}
@@ -132,13 +136,21 @@ public partial class Plugin {
         GUI.Label(new Rect(25,493,510,23),driving?vehicleRadio.Status:"Zum Musikhören einsteigen.",mutedStyle);
     }
     void DrawLightsMenu() {
-        GUI.Label(new Rect(25,145,510,50),"Beim Einsteigen geht das Fahrlicht automatisch an.",labelStyle);
         GUI.enabled=vehicleLighting!=null;
-        bool lights=GUI.Toggle(new Rect(25,213,510,32),vehicleLighting!=null&&vehicleLighting.Enabled," Scheinwerfer, Rücklicht und Kennzeichenlicht");
+        bool lights=GUI.Toggle(new Rect(25,140,510,32),vehicleLighting!=null&&vehicleLighting.Enabled," Scheinwerfer, Rücklicht und Kennzeichenlicht");
         if(vehicleLighting!=null)vehicleLighting.Enabled=lights;
+        float strength=headlightStrength.Value;
+        if(float.IsNaN(strength)||float.IsInfinity(strength))strength=1;
+        GUI.Label(new Rect(25,181,510,26),"Scheinwerferstärke   "+Mathf.RoundToInt(strength*100)+" %",labelStyle);
+        float next=Mathf.Round(GUI.HorizontalSlider(new Rect(25,216,510,20),strength,0,3)*20)/20;
+        if(next!=headlightStrength.Value)headlightStrength.Value=next;
+        GUI.Label(new Rect(25,247,510,25),"Scheinwerferfarbe",labelStyle);
+        int selected=Math.Max(0,Array.IndexOf(VehicleLighting.HeadlightPresets,headlightPreset.Value));
+        int choice=GUI.SelectionGrid(new Rect(25,279,510,148),selected,VehicleLighting.HeadlightPresets,4,songButtonStyle);
+        if(choice!=selected)headlightPreset.Value=VehicleLighting.HeadlightPresets[choice];
+        if(GUI.Button(new Rect(25,444,510,32),"Scheinwerfer zurücksetzen")) {headlightPreset.Value="Serie";headlightStrength.Value=1;}
         GUI.enabled=true;
-        GUI.Label(new Rect(25,270,510,90),"Brems- und weiße Rückfahrleuchten reagieren auf Bremse und Rückwärtsgang. Beim Aussteigen schaltet sich das Fahrlicht aus.",mutedStyle);
-        GUI.Label(new Rect(25,370,510,35),"Kennzeichen: Original NFS Underground 2",labelStyle);
+        GUI.Label(new Rect(25,483,510,36),"Farbe und Stärke gelten vorne. Fahrlicht geht beim Einstieg an; Brems- und Rückfahrlicht reagieren automatisch.",mutedStyle);
     }
     void DrawNeonMenu() {
         GUI.enabled=vehicleNeon!=null;

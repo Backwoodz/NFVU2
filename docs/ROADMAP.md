@@ -1,5 +1,16 @@
 # Nächste Aufgaben
 
+## Menüposition und Scheinwerfer in 0.4.1
+
+Menü links oben mit 16 Pixel Rand und Skalierung für kleinere Fenster.
+Scheinwerferfarbe aus 14 NFSU2-Vorlagen, Stärke 0–300 Prozent, gespeicherte
+Werte und Zurücksetzen unter F9 → Licht umgesetzt.
+
+- Menüposition bei verschiedenen Auflösungen und freier Sicht aufs Auto prüfen.
+- Front-Lichtkegel und Leuchtenflächen bei Nacht mit allen Farben vergleichen.
+- Stärke 0/100/300 Prozent, Aus-/Einstieg und gespeicherte Werte prüfen.
+- Rück-/Brems-/Rückfahr- und Kennzeichenlicht müssen unabhängig bleiben.
+
 ## Räder-Menü in 0.4.0
 
 Fünf Regler umgesetzt: Sturz und Radversatz je Achse, gemeinsame Felgengröße.

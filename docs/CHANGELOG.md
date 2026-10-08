@@ -1,5 +1,20 @@
 # Versionsgeschichte
 
+## 0.4.1 — Menü links oben und einstellbare Frontscheinwerfer
+
+Das Menü sitzt mit 16 Pixel Abstand links oben und skaliert bei kleinen
+Fenstern so, dass unten Platz für die Fahrhinweise bleibt.
+F9 → Licht bietet 14 Farbvorlagen, einen Stärke-Regler von 0 bis 300 Prozent
+und Zurücksetzen auf Serie/100 Prozent. Auswahl und Stärke werden gespeichert.
+Lichtkegel und emissive Frontleuchten erhalten gemeinsam Farbe und Stärke;
+Rück-, Brems-, Rückfahr- und Kennzeichenlicht behalten ihr bisheriges Verhalten.
+
+Die Vorlagennamen stammen aus den lokalen Originaldateien
+LANGUAGES/English.bin, German.bin und Labels.bin. RGB-Werte und der Faktor
+1,45 der extrahellen Vorlagen sind NFVU2-Anpassungen für Unity.
+Build und 232 bestehende automatisierte Prüfungen bestanden.
+Menüdarstellung und tatsächliche Lichtwirkung sind noch im Spiel zu bestätigen.
+
 ## 0.4.0 — Sturz, Radversatz und Felgengröße im Menü
 
 F9 → Räder bietet getrennten Sturz (−15 bis +10 Grad) und seitlichen Versatz
