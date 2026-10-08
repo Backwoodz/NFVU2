@@ -1,5 +1,22 @@
 # Versionsgeschichte
 
+## 0.4.0 — Sturz, Radversatz und Felgengröße im Menü
+
+F9 → Räder bietet getrennten Sturz (−15 bis +10 Grad) und seitlichen Versatz
+(−10 bis +20 cm je Rad) für Vorder-/Hinterachse. Ein gemeinsamer Regler ändert
+die nominale Felgengröße von 16 bis 22 Zoll relativ zum NFS-20-Zoll-Ausgangsmodell.
+Die Reifenflanke wird angepasst, der 70-cm-Außendurchmesser bleibt erhalten.
+Änderungen erscheinen sofort und bleiben in der Konfiguration gespeichert;
+ein Zurücksetzen-Knopf stellt alle fünf Ausgangswerte wieder her.
+
+Sturz liegt vor der Radrotation, damit geneigte Räder beim Rollen nicht taumeln.
+Die Bremsen folgen Sturz/Versatz; Sättel bleiben von der Raddrehung getrennt.
+Felgenänderungen verwenden unveränderte Ausgangsvertices statt kumulativer
+Skalierung und passen die Normalen an. Der Versatz wird je Seite gespiegelt.
+Die Funktion ist optisch: Radstand, Kontaktgeometrie und VehicleHandling bleiben
+unverändert. Spieltest von Bedienung, Extremwerten und Beleuchtung noch offen.
+232 automatisierte Prüfungen bestanden; externe 16-/22-Zoll-Vorschauen geprüft.
+
 ## 0.3.1 — Heckschriftzug richtig ausgerichtet
 
 Die UV-Zuordnung des hinteren 350Z-Schriftzugs ist horizontal korrigiert,

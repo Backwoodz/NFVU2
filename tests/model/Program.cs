@@ -32,6 +32,22 @@ class Program {
         double rotorRadius=sportRotor.indices.Select(i=>sportRotor.vertices[i]).Max(v=>Math.Sqrt(v.y*v.y+v.z*v.z));
         Check(sportRotor.name.StartsWith("BRAKE_STYLE03") && Math.Abs(rotorRadius-.19)<.00001,"sport brake rotor has 38 cm diameter");
         Check(sportRotor.rotatesWithWheel && model.parts.Where(p=>p.group=="brake"&&p!=sportRotor).All(p=>!p.rotatesWithWheel),"brake rotor spins with the wheel while calipers stay fixed");
+        float bead=(float)tyreVertices.Min(v=>Math.Sqrt(v.y*v.y+v.z*v.z)),outside=(float)tyreRadius;
+        foreach(float inches in new[]{16f,20f,22f}) {
+            float scale=inches/20;
+            WheelFitMath.RadialShape(outside,bead,outside,scale,out var tread,out var slope);
+            Check(tread==outside,"rim sizing preserves tyre outside diameter at "+inches+" inches");
+            WheelFitMath.RadialShape(bead,bead,outside,scale,out var inner,out slope);
+            Check(inner>rotorRadius && inner<outside,"tyre bead clears fixed sport brake and stays inside tread at "+inches+" inches");
+            bool ordered=true;float prior=-1;
+            for(int i=0;i<=1000;i++) {
+                WheelFitMath.RadialShape(outside*i/1000,bead,outside,scale,out var radius,out slope);
+                ordered &= radius>prior && radius<=outside+.00001f && slope>0 && !float.IsNaN(radius);
+                prior=radius;
+            }
+            Check(ordered,"rim/sidewall deformation never folds or inverts at "+inches+" inches");
+        }
+        Check(WheelFitMath.Sanitize(float.NaN,16,22,20)==20 && WheelFitMath.Sanitize(float.PositiveInfinity,-15,10,0)==0 && WheelFitMath.Sanitize(100,-10,20,0)==20,"invalid wheel settings fall back or stay within slider limits");
         Check(model.textures.Any(t=>t.name=="rachel_paint" && t.width==512 && t.height==512),"original vinyl atlas present");
         Check(model.parts.All(p=>p.normals.Length==p.vertices.Length && p.uv.Length==p.vertices.Length),"authored UVs and normals retained");
         Check(model.lights.Count(l=>l.role=="headlight")==2 && model.lights.Count(l=>l.role=="taillight")==2 && model.lights.Count(l=>l.role=="plate")==1,"front rear and plate light locators");

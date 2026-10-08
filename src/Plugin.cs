@@ -8,12 +8,13 @@ using UnityEngine;
 
 namespace Rachel350Z {
 // Disposable local prototype. No ZNetView: never use in multiplayer or persist into saves.
-[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.3.1")]
+[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.4.0")]
 public partial class Plugin : BaseUnityPlugin {
     GameObject car; Rigidbody body; WheelCollider[] wheels; Transform[] visuals;
     Material[] vehicleMaterials;
     Texture2D[] vehicleTextures;
     Transform[] brakeVisuals;
+    WheelSizeVisuals wheelSizeVisuals;
     bool originalWheels;
     float wheelVisualLift, frontWheelVisualOffset, rearWheelVisualOffset;
     PhysicsMaterial chassisMaterial;
@@ -101,6 +102,7 @@ public partial class Plugin : BaseUnityPlugin {
         if(Physics.Raycast(origin,Vector3.down,out var hit,15,~0,QueryTriggerInteraction.Ignore))origin=hit.point+Vector3.up*.7f;
         car=new GameObject("350Z_Local_Prototype");car.transform.SetPositionAndRotation(origin,Quaternion.Euler(0,local.transform.eulerAngles.y,0));
         originalWheels=model.schemaVersion==2;
+        if(originalWheels)wheelSizeVisuals=new WheelSizeVisuals(model);
         wheelVisualLift=model.wheelVisualLift;frontWheelVisualOffset=model.frontWheelVisualOffset;rearWheelVisualOffset=model.rearWheelVisualOffset;
         vehicleMaterials=originalWheels?VehicleMaterials.CreateForModel(local,model,message=>Logger.LogInfo(message),out vehicleTextures):VehicleMaterials.Create(local, message=>Logger.LogInfo(message));
         var paint=vehicleMaterials[0];var dark=vehicleMaterials[1];
@@ -144,6 +146,7 @@ public partial class Plugin : BaseUnityPlugin {
         mesh.uv=p.uv!=null?p.uv.Select(v=>new Vector2(v.u,v.v)).ToArray():new Vector2[p.vertices.Length];
         mesh.colors=Enumerable.Repeat(Color.white,p.vertices.Length).ToArray();
         mesh.RecalculateTangents();mesh.RecalculateBounds();
+        if(p.group=="wheel")wheelSizeVisuals?.Track(mesh);
         obj.AddComponent<MeshFilter>().sharedMesh=mesh;obj.AddComponent<MeshRenderer>().sharedMaterial=model.schemaVersion==2?vehicleMaterials[p.material]:(p.name.Contains("BASE")?dark:paint);
     }
     void Enter(MonoBehaviour local) {
@@ -169,13 +172,9 @@ public partial class Plugin : BaseUnityPlugin {
         if(driving&&player!=null)player.transform.position=car.transform.TransformPoint(new Vector3(0,.8f,.3f));
     }
     void LateUpdate() {
+        wheelSizeVisuals?.Apply(rimInches.Value);
         if(wheels!=null && visuals!=null)for(int i=0;i<4;i++)if(wheels[i]!=null && visuals[i]!=null){
-            wheels[i].GetWorldPose(out var pos,out var rot);
-            // Offset the complete wheel and brake together. Apply outside the
-            // spinning transform so the fitted hub cannot orbit its axle.
-            if(originalWheels)pos+=car.transform.up*wheelVisualLift+car.transform.forward*(i<2?frontWheelVisualOffset:rearWheelVisualOffset);
-            visuals[i].SetPositionAndRotation(pos,rot*(originalWheels?Quaternion.Euler(0,i%2==0?180:0,0):Quaternion.Euler(0,0,90)));
-            if(originalWheels && brakeVisuals[i]!=null)brakeVisuals[i].SetPositionAndRotation(pos,car.transform.rotation*Quaternion.Euler(0,wheels[i].steerAngle+(i%2==0?180:0),0));
+            UpdateWheelVisual(i);
         }
         if(driving)orbitCamera.LateFrame();
         if(vehicleLighting!=null)try {
@@ -227,6 +226,7 @@ public partial class Plugin : BaseUnityPlugin {
         vehicleAudio?.Dispose();vehicleAudio=null;
         if(player!=null||driving)Exit();if(car!=null)Destroy(car);
         foreach(var mesh in vehicleMeshes)if(mesh!=null)Destroy(mesh);vehicleMeshes.Clear();
+        wheelSizeVisuals=null;
         if(vehicleMaterials!=null)foreach(var material in vehicleMaterials)if(material!=null)Destroy(material);
         if(vehicleTextures!=null)foreach(var texture in vehicleTextures)if(texture!=null)Destroy(texture);
         if(chassisMaterial!=null)Destroy(chassisMaterial);

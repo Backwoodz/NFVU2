@@ -1,5 +1,16 @@
 # Nächste Aufgaben
 
+## Räder-Menü in 0.4.0
+
+Fünf Regler umgesetzt: Sturz und Radversatz je Achse, gemeinsame Felgengröße.
+Optische Live-Anpassung mit gespeicherten Werten und Zurücksetzen;
+Reifenaußendurchmesser und bestätigtes Fahrwerk bleiben erhalten.
+
+- Im Spiel beide Achsen unabhängig einstellen und nach Neustart prüfen.
+- Bei Lenkeinschlag und drehenden Rädern auf stabilen Sturz ohne Taumeln achten.
+- Bremssättel müssen mitlenken/kippen, aber weiterhin nicht mitrotieren.
+- Extremwerte auf Durchdringung von Kotflügel/Karosserie prüfen; Regler sind optisch.
+
 ## Heckschriftzug in 0.3.1
 
 Spiegelverkehrten 350Z-Schriftzug gezielt über seine UV-Insel korrigiert.

@@ -2,7 +2,7 @@
 
 **Need for Valheim: Underground 2** — ein privater Fahrzeug-Mod-Prototyp für Valheim.
 
-Aktueller Stand: **0.3.1**, gebaut und automatisiert geprüft; Spieltest noch offen.
+Aktueller Stand: **0.4.0**, gebaut und automatisiert geprüft; Spieltest noch offen.
 Die vorherige Version 0.2.1 ist vom Nutzer in Valheim bestätigt. Ein aus eigenen NFS-Underground-2-Dateien ausgelesener
 Nissan 350Z lässt sich in einer lokalen Valheim-Einzelspielerwelt spawnen und fahren.
 Mauskamera, Gelände-/Straßenmodus und Fahrzeug-Sound sind im Spiel bestätigt.
@@ -14,6 +14,7 @@ Reifen und größere Sportbremsen sowie echte Künstler-/Songnamen im Radio.
 0.3.0 ergänzt Nitro per linker Maustaste, grüne Auspuffflammen, Purge im Stand
 und getrennte Chromring-/Goldstern-Materialien für die Felgen.
 0.3.1 korrigiert den spiegelverkehrten 350Z-Schriftzug am Heck.
+0.4.0 ergänzt fünf Live-Regler für Sturz, Radversatz und Felgengröße unter F9 → Räder.
 
 Die Darstellung verwendet jetzt die Originalvoreinstellung `DDAY_PLAYER_CAR`:
 Widebody-Kit 02, Carbonhaube 07, Spoiler 02, Racing-Hart-Felgen 07,
@@ -42,7 +43,7 @@ NFS-Prozess ist eine mögliche spätere Forschungsaufgabe und noch nicht impleme
 | Leertaste | Bremsen |
 | Maus / Mausrad | Umschauen / Kameraabstand |
 | Mittlere Maustaste | Kamera zentrieren |
-| F9 | Fahrzeugmenü: Fahrmodus, Radio, Licht, Neon und Nitro |
+| F9 | Fahrzeugmenü: Fahrmodus, Radio, Licht, Neon, Nitro und Räder |
 | Linke Maustaste halten | Bei Vorwärtsfahrt mit Gas: Nitro; im Stand: Purge |
 | H halten | Hupe |
 | F8 | Fahrzeug entfernen |
@@ -156,6 +157,15 @@ Die weißen Rückfahrleuchten in der Stoßstange reagieren auf die Rückwärtswa
 S bremst bei Vorwärtsfahrt zunächst, erst nahe Stillstand wird rückwärts eingelegt.
 Orange Heckstreifen sind sichtbar, haben bislang aber keine Blinkersteuerung.
 Türen und Kofferraum sind vorbereitete, noch deaktivierte Menüeinträge.
+Unter F9 → Räder lassen sich Sturz vorne/hinten (−15 bis +10 Grad),
+Radversatz vorne/hinten (−10 bis +20 cm je Rad) und die gemeinsame Felgengröße
+(16 bis 22 Zoll, ausgehend vom nominalen NFS-20-Zoll-Modell) einstellen.
+Negativer Sturz neigt die Oberkante nach innen; positiver Versatz schiebt die
+Räder nach außen. Die Reifenflanke passt sich an die Felge an, der äußere
+Reifendurchmesser bleibt bei 70 cm. Diese Einstellungen sind optisch;
+Radstand, WheelCollider und Fahrwerk bleiben unverändert. Bremsen folgen Sturz
+und Versatz, behalten aber ihre Größe. Änderungen erscheinen direkt, bleiben
+gespeichert und können gemeinsam zurückgesetzt werden.
 Nitro wirkt bei Vorwärtsfahrt mit Gas und Bodenkontakt; im Stand entstehen
 Purge-Strahlen an Stoßstange und Haube. Ein voller Tank reicht sechs Sekunden,
 lädt zwei Sekunden nach dem Loslassen während der Fahrt in zehn Sekunden nach.

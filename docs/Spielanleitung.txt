@@ -1,9 +1,10 @@
-350Z-Prototyp 0.3.1 – lokaler Test für Valheim
+350Z-Prototyp 0.4.0 – lokaler Test für Valheim
 
 Die Funktionen von 0.2.0 sind vom Nutzer grundsätzlich in Valheim bestätigt.
 Auch die Nachbesserungen von 0.2.1 wurden vom Nutzer in Valheim bestätigt.
 Nitro, Purge und Felgenkorrektur in 0.3.0 warten noch auf den Spieltest.
 0.3.1 korrigiert die Ausrichtung des 350Z-Schriftzugs am Heck.
+0.4.0 ergänzt die optische Radeinstellung im Fahrzeugmenü; Spieltest noch offen.
 Fahrwerk und Steuerung basieren auf dem bestätigten Prototyp.
 Das Fahrzeug ist temporär und ausschließlich für lokale Einzelspielerwelten.
 
@@ -24,6 +25,18 @@ und Fahrsteuerung sind gesperrt, Radio und Motor bleiben hörbar.
 F9 oder das Kreuz schließen das Menü. Chat, Inventar, Spielmenü und
 Fokusverlust schließen das Fahrzeugmenü und pausieren den Sound.
 Türen und Kofferraum sind noch deaktivierte Vorbereitung für spätere Animationen.
+
+RÄDER
+F9 → Räder bietet fünf Regler:
+- Sturz vorne und hinten, jeweils −15 bis +10 Grad. Negativ: oben nach innen.
+- Radversatz vorne und hinten, jeweils −10 bis +20 cm je Rad. Positiv: nach außen.
+- Gemeinsame Felgengröße: 16 bis 22 Zoll, bezogen auf das NFS-20-Zoll-Modell.
+Die Reifenflanken passen sich an, der äußere Durchmesser bleibt bei 70 cm.
+Die Einstellung betrifft die Optik. Fahrwerk und Radstand bleiben erhalten.
+Bremsen folgen Sturz/Versatz und behalten ihre Größe.
+Werte ändern sich direkt am Auto, bleiben gespeichert und lassen sich mit
+„Räder zurücksetzen“ auf 0 Grad, 0 cm und 20 Zoll zurückstellen.
+Die Regler funktionieren auch neben dem Auto, um das Ergebnis anzusehen.
 
 RADIO
 Beim Einstieg startet die lokal importierte NFS-Musik. Im Menü stehen

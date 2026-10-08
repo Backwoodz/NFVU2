@@ -22,6 +22,7 @@ public partial class Plugin {
     Texture2D menuBackground;
     GUIStyle panelStyle, titleStyle, labelStyle, mutedStyle, songButtonStyle;
     void InitializeMenu() {
+        InitializeWheelTuning();
         menuKey=Config.Bind("Controls","VehicleMenu",new KeyboardShortcut(KeyCode.F9),"Open the vehicle menu while seated or within 5 metres of the car.");
         nitroEnabled=Config.Bind("Nitro","Enabled",true,"Hold left mouse: forward throttle boosts; stationary purges. Six seconds of boost, refills while driving after release.");
         backfireEnabled=Config.Bind("Nitro","LiftOffBackfire",false,"Optional high-RPM lift-off effect. Uses original assets with NFVU2 trigger thresholds, not verified NFS tuning rules.");
@@ -85,8 +86,8 @@ public partial class Plugin {
             GUI.Label(new Rect(22,15,480,36),"NFVU2  /  350Z",titleStyle);
             if(GUI.Button(new Rect(513,17,28,28),"×")){CloseVehicleMenu();return;}
             GUI.Label(new Rect(23,55,510,25),driving?"Fahrzeug bremst · Radio bleibt bedienbar":"Fahrzeugsteuerung",mutedStyle);
-            menuTab=GUI.Toolbar(new Rect(22,90,516,34),menuTab,new[]{"Fahrzeug","Radio","Licht","Neon","Nitro"});
-            switch(menuTab){case 0:DrawCarMenu();break;case 1:DrawRadioMenu();break;case 2:DrawLightsMenu();break;case 3:DrawNeonMenu();break;case 4:DrawNitroMenu();break;}
+            menuTab=GUI.Toolbar(new Rect(22,90,516,34),menuTab,new[]{"Fahrzeug","Radio","Licht","Neon","Nitro","Räder"});
+            switch(menuTab){case 0:DrawCarMenu();break;case 1:DrawRadioMenu();break;case 2:DrawLightsMenu();break;case 3:DrawNeonMenu();break;case 4:DrawNitroMenu();break;case 5:DrawWheelMenu();break;}
             GUI.Label(new Rect(23,522,516,28),menuKey.Value+": schließen  ·  Einstellungen werden gespeichert",mutedStyle);
         } finally {GUI.matrix=oldMatrix;GUI.enabled=oldEnabled;}
     }
