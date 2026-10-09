@@ -10,8 +10,10 @@ public partial class Plugin {
     readonly int[] audioOptions=new int[6];
     ConfigEntry<bool> trunkNeonEnabled,trunkNeonPulsing;
     ConfigEntry<string> trunkNeonColor;
+    ConfigEntry<float> windowTint;
     int selectedAudioSlot;
     void InitializeShowroomMenu() {
+        windowTint=Config.Bind("Cabin","WindowTint",.16f,new ConfigDescription("350Z window tint: 0 clear, 1 dark. The driver's window stays open while occupied.",new AcceptableValueRange<float>(0,1)));
         trunkLayout=Config.Bind("Showroom","TrunkLayout",2,new ConfigDescription("Original 350Z trunk enclosure: 0 stock, 1 two slots, 2 four slots, 3 six slots.",new AcceptableValueRange<int>(0,3)));
         engineStyle=Config.Bind("Showroom","EngineStyle",0,new ConfigDescription("Visual engine model: 0 stock, 1 style 1, 2 style 2. Does not change performance.",new AcceptableValueRange<int>(0,2)));
         doorStyle=Config.Bind("Showroom","DoorStyle",0,new ConfigDescription("Door animation: 0 regular, 1 suicide, 2 scissor. Changes apply after closing.",new AcceptableValueRange<int>(0,2)));
@@ -31,7 +33,7 @@ public partial class Plugin {
     }
     void MotionButton(Rect rect,int part,string label) {
         bool stationary=body!=null&&body.linearVelocity.magnitude<=.5f;
-        GUI.enabled=stationary||showroom.State.Open[part];
+        GUI.enabled=(stationary||showroom.State.Open[part])&&!(driving&&cabinDriver!=null&&!DriverInputReady&&part==1);
         if(MenuButton(rect,label+(showroom.State.Open[part]?" schließen":" öffnen")))showroom.State.Toggle(part,stationary);
         GUI.enabled=true;
     }
@@ -43,11 +45,19 @@ public partial class Plugin {
         MotionButton(new Rect(285,179,245,36),0,"Tür rechts");
         MotionButton(new Rect(25,225,245,36),2,"Motorhaube");
         MotionButton(new Rect(285,225,245,36),3,"Kofferraum");
-        GUI.Label(new Rect(25,280,510,26),"Türmechanik",labelStyle);
-        doorStyle.Value=GUI.Toolbar(new Rect(25,317,505,36),doorStyle.Value,new[]{"Normal","Suicide","Scherentüren"});
-        GUI.Label(new Rect(25,365,510,26),"Motoroptik",labelStyle);
-        engineStyle.Value=GUI.Toolbar(new Rect(25,402,505,36),engineStyle.Value,new[]{"Serie","Style 1","Style 2"});
-        GUI.Label(new Rect(25,455,510,62),"Öffnen im Stand. Beim Losfahren schließt alles automatisch. Eine neue Türmechanik wird nach dem Schließen aktiv.",mutedStyle);
+        GUI.Label(new Rect(25,273,510,24),"Türmechanik",labelStyle);
+        GUI.enabled=!(driving&&cabinDriver!=null&&!DriverInputReady);
+        doorStyle.Value=GUI.Toolbar(new Rect(25,302,505,32),doorStyle.Value,new[]{"Normal","Suicide","Scherentüren"});
+        GUI.enabled=true;
+        GUI.Label(new Rect(25,345,510,24),"Motoroptik",labelStyle);
+        engineStyle.Value=GUI.Toolbar(new Rect(25,374,505,32),engineStyle.Value,new[]{"Serie","Style 1","Style 2"});
+        bool tintAvailable=current.interior!=null&&current.interior.SupportsTint;
+        GUI.Label(new Rect(25,418,510,24),"Scheibentönung   "+Mathf.RoundToInt(CabinAppearance.Tint(windowTint.Value)*100)+" %",labelStyle);
+        GUI.enabled=tintAvailable;
+        float tint=Mathf.Round(GUI.HorizontalSlider(new Rect(25,450,505,18),CabinAppearance.Tint(windowTint.Value),0,1)*100)/100;
+        if(tintAvailable&&tint!=windowTint.Value)windowTint.Value=tint;
+        GUI.enabled=true;
+        GUI.Label(new Rect(25,480,510,44),tintAvailable?"0 % klar · 100 % dunkel. Links beim Sitzen offen.\nTüren lassen sich im Stand auch von innen öffnen.":"Scheibentönung benötigt den Innenraum und einen transparenten Fenstershader.",mutedStyle);
     }
     void DrawTrunkMenu() {
         if(!ShowroomReady())return;

@@ -21,6 +21,7 @@ internal sealed class VehicleRuntime {
     public VehicleHandling handling;
     public VehicleRideHeight rideHeight;
     public VehicleShowroom showroom;
+    public VehicleInterior interior;
     public VehicleImpact vehicleImpact;
     public bool hasBeenDriven;
     public VehicleAudio vehicleAudio;

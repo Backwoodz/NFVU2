@@ -8,7 +8,8 @@ using UnityEngine;
 
 namespace Rachel350Z {
 // Disposable local prototype. No ZNetView: never use in multiplayer or persist into saves.
-[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.13.1")]
+[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.14.3")]
+[DefaultExecutionOrder(10000)]
 public partial class Plugin : BaseUnityPlugin {
     VehicleOrbitCamera orbitCamera;
     ValheimMusicDucking fleetMusic;
@@ -19,6 +20,8 @@ public partial class Plugin : BaseUnityPlugin {
     Renderer[] playerRenderers; bool[] renderStates; Collider[] playerColliders; bool[] colliderStates;
     string status = "F6: Fahrzeug erstellen | F7: einsteigen | F9: Garage";
     Vector3 lastExitPosition;
+    VehicleCabinDriver cabinDriver;
+    bool DriverInputReady=>cabinDriver==null||cabinDriver.Motion.CanDrive;
     Type playerType, netType; bool ready;
     bool ParkedRunning=>car!=null&&hasBeenDriven&&!driving&&keepRunning.Value;
     void Awake() {
@@ -63,6 +66,7 @@ public partial class Plugin : BaseUnityPlugin {
         var local=LocalPlayer();
         if(local==null){CleanupAll();return;}
         if((fleetOwner!=null && local!=fleetOwner) || (driving && local!=player) || (fleet.Count>0 && Multiplayer())){CleanupAll();return;}
+        if(driving&&local is Player livePlayer&&livePlayer.IsDead()){Exit();return;}
         if(!driving&&!menuOpen)SelectNearest(local);
         audioBlocked=UIVisible()||!Application.isFocused;
         if(audioBlocked){CloseVehicleMenu();BlockDrivingInput();return;}
@@ -72,7 +76,8 @@ public partial class Plugin : BaseUnityPlugin {
             if(menuOpen){BlockDrivingInput();return;}
             if(Input.GetKeyDown(KeyCode.F6)) { if(Multiplayer()){status="Nur in einer lokalen Einzelspieler-Testwelt verwenden.";return;} Spawn(local); }
             if(Input.GetKeyDown(KeyCode.F8)&&CanAccessCurrent(local))Cleanup();
-            if(Input.GetKeyDown(KeyCode.F7)) { if(driving)Exit();else if(CanAccessCurrent(local))Enter(local); }
+            if(Input.GetKeyDown(KeyCode.F7)) { if(driving)RequestExit();else if(CanAccessCurrent(local))Enter(local); }
+            if(driving&&!DriverInputReady){BlockDrivingInput();return;}
             nitroHeld=nitroInput.Read(Input.GetMouseButton(0),driving&&nitroEnabled.Value);
             if(driving){burnoutHeld=Input.GetKey(KeyCode.W)&&Input.GetKey(KeyCode.S);throttle=(Input.GetKey(KeyCode.W)?1:0)-(Input.GetKey(KeyCode.S)?1:0);steer=(Input.GetKey(KeyCode.D)?1:0)-(Input.GetKey(KeyCode.A)?1:0);brake=Input.GetKey(KeyCode.Space)?1:0;honking=Input.GetKey(KeyCode.H);orbitCamera.InputFrame(true,mouseSensitivity.Value,invertMouseY.Value);}
         }catch(Exception e){Logger.LogError(e);CleanupAll();status="Fehler – siehe BepInEx/LogOutput.log";}
@@ -149,6 +154,9 @@ public partial class Plugin : BaseUnityPlugin {
             showroom=new VehicleShowroom(car,model,(part,parent)=>AddVisual(part,parent,model,paint,dark),dark);
             ApplyShowroomSettings();
         }
+        if(!IsHummer&&showroom!=null)try {
+            current.interior=VehicleInterior.Create(car,local,Path.Combine(Path.GetDirectoryName(Info.Location),"interior","interior.json"),message=>Logger.LogInfo(message));
+        } catch(Exception e){Logger.LogWarning("350Z cabin unavailable; original visuals retained: "+e);}
         Logger.LogInfo(VehicleName+" spawned: "+model.parts.Length+" meshes, 4 wheels. Terrain assistance: "+terrainMode.Value);
         status=VehicleName+" bereit. F7: einsteigen | "+menuKey.Value+": Fahrzeugmenü | F8: entfernen";
     }
@@ -164,17 +172,28 @@ public partial class Plugin : BaseUnityPlugin {
             if(p.group=="wheel")wheelSizeVisuals?.Track(mesh);
             if(p.group=="audio")audioMeshes.Add(p,mesh);
         }
-        obj.AddComponent<MeshFilter>().sharedMesh=mesh;obj.AddComponent<MeshRenderer>().sharedMaterial=model.schemaVersion==2?vehicleMaterials[p.material]:(p.name.Contains("BASE")?dark:paint);
+        obj.AddComponent<MeshFilter>().sharedMesh=mesh;
+        var renderer=obj.AddComponent<MeshRenderer>();renderer.sharedMaterial=model.schemaVersion==2?vehicleMaterials[p.material]:(p.name.Contains("BASE")?dark:paint);
+        if(p.group=="wheel")renderer.reflectionProbeUsage=UnityEngine.Rendering.ReflectionProbeUsage.BlendProbes;
         return obj.transform;
     }
     void Enter(MonoBehaviour local) {
         if(Multiplayer())return;
+        if(local is Player native&&(native.IsDead()||native.IsAttached()||native.IsTeleporting())){status="Zum Einsteigen zuerst die aktuelle Aktion beenden.";return;}
+        if(body.linearVelocity.magnitude>.5f){status="Zum Einsteigen muss das Fahrzeug stehen.";return;}
+        Vector3 outside=Vector3.zero;
+        if(current.interior!=null&&!FindCabinExit(local,out outside)){status="Die Fahrertür ist blockiert. Bitte etwas Platz schaffen.";return;}
         CloseVehicleMenu();
         player=local;playerBody=player.GetComponent<Rigidbody>();if(playerBody==null){player=null;return;}
         lastExitPosition=player.transform.position;playerEnabled=player.enabled;playerKinematic=playerBody.isKinematic;
         playerRenderers=player.GetComponentsInChildren<Renderer>();renderStates=playerRenderers.Select(r=>r.enabled).ToArray();
         playerColliders=player.GetComponentsInChildren<Collider>();colliderStates=playerColliders.Select(c=>c.enabled).ToArray();
-        foreach(var r in playerRenderers)r.enabled=false;foreach(var c in playerColliders)c.enabled=false;
+        if(current.interior!=null) {
+            try {cabinDriver=new VehicleCabinDriver(local,car.transform,current.interior,outside);}
+            catch(Exception e){Logger.LogWarning("Cabin driver unavailable: "+e);cabinDriver?.Dispose();cabinDriver=null;}
+        }
+        if(cabinDriver==null)foreach(var r in playerRenderers)r.enabled=false;
+        foreach(var c in playerColliders)c.enabled=false;
         player.enabled=false;playerBody.isKinematic=true;
         var cameraType=playerType.Assembly.GetType("GameCamera");
         gameCamera=cameraType?.GetProperty("instance",BindingFlags.Public|BindingFlags.NonPublic|BindingFlags.Static)?.GetValue(null) as MonoBehaviour;
@@ -190,10 +209,10 @@ public partial class Plugin : BaseUnityPlugin {
         current.rideHeight?.Apply(lowering.Value);
         vehicleImpact?.Step(player,driving&&!audioBlocked&&!menuOpen&&Application.isFocused);
         bool handbrake=driftMode.Value&&driving&&brake>0&&!audioBlocked&&!menuOpen&&Application.isFocused;
-        handling?.Step(driving,throttle,steer,handbrake?0:brake,burnoutHeld&&!audioBlocked&&!menuOpen&&Application.isFocused,handbrake);
+        handling?.Step(driving&&DriverInputReady,throttle,steer,handbrake?0:brake,burnoutHeld&&!audioBlocked&&!menuOpen&&Application.isFocused,handbrake);
         if(IsHummer)HummerTuning.AfterStep(wheels);
-        vehicleNitro?.Step(driving,audioBlocked||menuOpen||burnoutHeld||!Application.isFocused||!nitroEnabled.Value,nitroHeld,throttle,brake>0,terrainMode.Value);
-        if(driving&&player!=null)player.transform.position=car.transform.TransformPoint(new Vector3(0,.8f,.3f));
+        vehicleNitro?.Step(driving,audioBlocked||menuOpen||!DriverInputReady||burnoutHeld||!Application.isFocused||!nitroEnabled.Value,nitroHeld,throttle,brake>0,terrainMode.Value);
+        if(driving&&player!=null&&cabinDriver==null)player.transform.position=car.transform.TransformPoint(new Vector3(0,.8f,.3f));
     }
     void LateUpdate() {ForEachVehicle(TickVehicle);UpdateGameCrosshair();fleetMusic?.Tick(driving&&!audioBlocked&&vehicleRadio!=null&&vehicleRadio.CabinAudible);}
     void TickVehicle() {
@@ -201,9 +220,21 @@ public partial class Plugin : BaseUnityPlugin {
         if(showroom!=null)try {
             ApplyShowroomSettings();
             int color=Math.Max(0,Array.IndexOf(ColorNames,trunkNeonColor.Value));
-            showroom.Tick(Time.deltaTime,body.linearVelocity.magnitude>.5f,doorStyle.Value,driving||ParkedRunning,trunkNeonEnabled.Value,trunkNeonPulsing.Value,NeonColors[color]);
+            float showroomDt=driving&&cabinDriver!=null&&(audioBlocked||!Application.isFocused||menuOpen&&!DriverInputReady)?0:Time.deltaTime;
+            int activeDoorStyle=driving&&cabinDriver!=null&&!DriverInputReady?showroom.State.DoorStyle:doorStyle.Value;
+            showroom.Tick(showroomDt,body.linearVelocity.magnitude>.5f,activeDoorStyle,driving||ParkedRunning,trunkNeonEnabled.Value,trunkNeonPulsing.Value,NeonColors[color]);
         }
         catch(Exception e){showroom.Dispose();showroom=null;Logger.LogWarning("350Z showroom disabled: "+e);}
+        current.interior?.Tick(wheels!=null?wheels[0].steerAngle:0,windowTint.Value,driving&&cabinDriver!=null);
+        if(driving&&cabinDriver!=null)try {
+            if(showroom==null){Exit();return;}
+            cabinDriver.Tick(Time.deltaTime,audioBlocked||menuOpen||!Application.isFocused,showroom.State);
+            if(cabinDriver.Failed){Exit();status="Weg zur Fahrertür blockiert.";return;}
+            if(cabinDriver.Motion.Phase==CabinPhase.Complete){
+                if(!FindCabinExit(player,out var clearExit)){cabinDriver.Motion.CancelExit();status="Ausstieg inzwischen blockiert.";}
+                else {cabinDriver.SetExitPosition(clearExit);Exit();return;}
+            }
+        } catch(Exception e){Logger.LogError("Cabin animation stopped: "+e);Exit();return;}
         ApplyNeonSettings();
         bool burnout=driving&&burnoutHeld&&handling!=null&&handling.BurnoutActive&&!audioBlocked&&!menuOpen&&Application.isFocused;
         wheelSizeVisuals?.Apply(IsHummer?h2RimInches.Value:rimInches.Value);
@@ -246,26 +277,57 @@ public partial class Plugin : BaseUnityPlugin {
         if(effectsAudio!=null)try {effectsAudio.Tick(boost,purge,backfire,effectsBlocked,soundVolume.Value);}
         catch(Exception e){effectsAudio.Dispose();effectsAudio=null;Logger.LogWarning("350Z effect sounds disabled: "+e);}
     }
+    bool FindCabinExit(MonoBehaviour local,out Vector3 position) {
+        // Grounded capsule beside the physical left door; never put the player inside a wall.
+        foreach(float z in new[]{-.12f,-.48f,.22f}) {
+            var origin=car.transform.TransformPoint(new Vector3(-1.3f,2.2f,z));
+            foreach(var hit in Physics.RaycastAll(origin,Vector3.down,5,~0,QueryTriggerInteraction.Ignore).OrderBy(h=>h.distance)) {
+                if(hit.collider.transform.IsChildOf(car.transform)||hit.collider.transform.IsChildOf(local.transform)||hit.normal.y<.65f)continue;
+                var foot=hit.point+Vector3.up*.06f;
+                bool occupied=Physics.OverlapCapsule(foot+Vector3.up*.32f,foot+Vector3.up*1.5f,.27f,~0,QueryTriggerInteraction.Ignore)
+                    .Any(c=>!c.transform.IsChildOf(local.transform));
+                if(occupied)break;position=foot;return true;
+            }
+        }
+        position=Vector3.zero;return false;
+    }
+    void RequestExit() {
+        if(cabinDriver==null){Exit();return;}
+        if(!cabinDriver.Motion.CanDrive)return;
+        if(body.linearVelocity.magnitude>.5f){status="Zum Aussteigen erst anhalten.";return;}
+        if(!FindCabinExit(player,out var destination)){status="Die Fahrertür ist blockiert. Bitte anders parken.";return;}
+        cabinDriver.BeginExit(destination);BlockDrivingInput();
+    }
     void Exit() {
+        bool animated=cabinDriver!=null&&cabinDriver.Motion.Phase==CabinPhase.Complete;
+        var animatedExit=animated?cabinDriver.ExitPosition:lastExitPosition;
+        bool hadCabin=cabinDriver!=null;
+        cabinDriver?.Dispose();cabinDriver=null;
+        current.interior?.SetDriverWindowOpen(false);
+        showroom?.State.CloseAll();
         RestoreGameCrosshair();
         CloseVehicleMenu();
         driving=false;throttle=steer=0;brake=1;honking=false;burnoutHeld=false;
         vehicleImpact?.Step(null,false);
         nitroHeld=false;nitroInput.Reset();vehicleNitro?.State.Stop();
         orbitCamera?.End();
-        if(player!=null){player.transform.position=lastExitPosition;
-            if(car!=null){var candidate=car.transform.TransformPoint(new Vector3(2.5f,2,0));if(Physics.Raycast(candidate,Vector3.down,out var hit,10,~0,QueryTriggerInteraction.Ignore))player.transform.position=hit.point+Vector3.up*.3f;}
+        if(player!=null){player.transform.position=animatedExit;
+            if(hadCabin&&!animated&&car!=null&&FindCabinExit(player,out var emergency))player.transform.position=emergency;
+            else if(!hadCabin&&car!=null){var candidate=car.transform.TransformPoint(new Vector3(2.5f,2,0));if(Physics.Raycast(candidate,Vector3.down,out var hit,10,~0,QueryTriggerInteraction.Ignore))player.transform.position=hit.point+Vector3.up*.3f;}
+            player.transform.rotation=Quaternion.Euler(0,player.transform.eulerAngles.y,0);
             for(int i=0;playerRenderers!=null&&i<playerRenderers.Length;i++)if(playerRenderers[i]!=null)playerRenderers[i].enabled=renderStates[i];
             for(int i=0;playerColliders!=null&&i<playerColliders.Length;i++)if(playerColliders[i]!=null)playerColliders[i].enabled=colliderStates[i];
-            if(playerBody!=null)playerBody.isKinematic=playerKinematic;player.enabled=playerEnabled;}
+            if(playerBody!=null){playerBody.isKinematic=playerKinematic;if(!playerKinematic){playerBody.linearVelocity=Vector3.zero;playerBody.angularVelocity=Vector3.zero;}}player.enabled=playerEnabled;}
         if(gameCamera!=null)gameCamera.enabled=cameraEnabled;
         player=null;gameCamera=null;status="F6: Fahrzeug erstellen | F7: einsteigen | F9: Garage";
     }
     void Cleanup(){
+        if(driving)Exit();
         RestoreGameCrosshair();
         CloseVehicleMenu();
         turret?.Dispose();turret=null;
         dashboard?.Dispose();dashboard=null;
+        current.interior?.Dispose();current.interior=null;
         showroom?.Dispose();showroom=null;audioMeshes.Clear();
         burnoutHeld=false;burnoutEffects?.Dispose();burnoutEffects=null;
         nitroHeld=false;nitroInput.Reset();vehicleNitro=null;

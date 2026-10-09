@@ -275,3 +275,18 @@ Automatisierte Prüfungen ersetzen keine Unity-Physik/-Wiedergabe.
 Die externe Soundvorschau ist keine Aufnahme aus Valheim.
 Fehlerprotokoll: <Valheim>/BepInEx/LogOutput.log.
 Audioherkunft: docs/Audioquellen.txt; weitere Aufgaben: docs/ROADMAP.md.
+
+
+350Z-INNENRAUM (0.14.0, optionaler lokaler Import)
+F7 bei stehendem Fahrzeug: zur linken Tür gehen, Öffnen, sichtbar einsteigen
+und Tür schließen. Danach ist die Fahrsteuerung frei. F7 im Stand steigt
+wieder aus; neben der Fahrertür muss Platz sein. F8 beendet auch einen
+laufenden Ein-/Ausstieg und stellt den Spieler wieder her. Menüs und Alt-Tab
+pausieren den Ablauf. Die genaue Pose und Kleidung bitte im Spiel prüfen.
+
+FAHRERHALTUNG UND SCHEIBEN (0.14.1)
+F9 → Türen → Scheibentönung: 0 % klar bis 100 % dunkel, gespeichert.
+Beim Sitzen ist das linke Fenster offen: linker Arm am Fenster, rechte Hand
+am Lenkrad. Zum Öffnen der Fahrertür zieht der Fahrer den Arm nach innen.
+Türen lassen sich im Stand auch vom Sitz aus im Menü bedienen. Die Sperre
+gilt nur während des Ein-/Ausstiegs; beim Losfahren schließen sie automatisch.

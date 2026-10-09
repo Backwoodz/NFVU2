@@ -4,7 +4,7 @@ from build import build
 from build_support import compile_cs,test_refs,runtime_config
 
 def main():
-    suites=['model','handling','audio','radio','nitro','impact','showroom','driving','turret','targeting','terrain','hummer','menu']
+    suites=['model','handling','audio','radio','nitro','impact','showroom','driving','turret','targeting','terrain','hummer','menu','cabin']
     parser=argparse.ArgumentParser();parser.add_argument('--skip-build',action='store_true');parser.add_argument('--handling-only',action='store_true')
     parser.add_argument('--suite',action='append',choices=suites,help='Run only these C# suites; repeat to combine.')
     args=parser.parse_args()
@@ -33,6 +33,9 @@ def main():
         if suite=='driving':
             jsondll=out/'Newtonsoft.Json.dll';shutil.copy2(valheim_dir()/'valheim_Data/Managed/Newtonsoft.Json.dll',jsondll);refs.append(jsondll)
             arguments=[str(LOCAL/'hud/hud.json')]
+        if suite=='cabin':
+            jsondll=out/'Newtonsoft.Json.dll';shutil.copy2(valheim_dir()/'valheim_Data/Managed/Newtonsoft.Json.dll',jsondll);refs.append(jsondll)
+            arguments=[str(LOCAL/'interior/interior.json')]
         if suite=='hummer':
             jsondll=out/'Newtonsoft.Json.dll';shutil.copy2(valheim_dir()/'valheim_Data/Managed/Newtonsoft.Json.dll',jsondll);refs.append(jsondll)
             arguments=[str(LOCAL/'hummer/h2.json'),str(LOCAL/'audio-hummer')]

@@ -241,8 +241,10 @@ def main():
             else:color=[.7,.73,.78,1.];metal=.75;smooth=.55
         if appearance=='reverse':color=[.88,.92,1.,1.];metal=.05;smooth=.8;tex=-1
         elif appearance=='rear_amber_trim' and tex<0:color=[1.,.3,.025,1.];metal=.05;smooth=.7
-        elif appearance=='wheel_chrome':color=[.94,.96,1.,1.];metal=.28;smooth=.76
-        elif appearance=='wheel_gold':color=[1.,.72,.28,1.];metal=.22;smooth=.58
+        # The original atlas already contains gold. A second saturated gold
+        # multiplier made it orange; a mild cool tint keeps champagne highlights.
+        elif appearance=='wheel_chrome':color=[1.,1.,1.,1.];metal=1.;smooth=.97
+        elif appearance=='wheel_gold':color=[.88,.94,1.,1.];metal=1.;smooth=.92
         prefix=appearance+'_' if appearance.startswith('wheel_') else ''
         desc={'name':f'{prefix}{key:08x}_{len(materials)}','color':color,'metallic':metal,'smoothness':smooth,'texture':tex}
         material_ids[identity]=len(materials);materials.append(desc);return len(materials)-1
@@ -361,7 +363,7 @@ def main():
                     'defaults':'NFVU2 choice: KIT02 with four SPEAKER1 subwoofers; not asserted to be Rachel preset equipment'},
         'rearLenses':{'upperHousing':'complete original STYLE04 opaque lens inserts including upper reflector surrounds; clear outer covers still omitted','upperStrip':'original STYLE04 amber textured trim; passive','bumper':'original lens triangles split into inner reverse and outer amber, split inferred from stock layout; not recovered NFS atlas mapping'},
         'sportBrakes':{'source':'BRAKE_STYLE03_A + original BRAKE_STYLE03 rotor atlas','adaptation':'38cm round opaque rotor replaces alpha-masked square; original caliper geometry painted red; visual only'},
-        'wheelFinish':{'source':'original RACINGHART_STYLE07 geometry; its shared wheel material split at existing radial loops','adaptation':'chrome-coloured outer ring, gold-bronze star; reduced metallic plus subtle runtime ambient fill for Valheim'},
+        'wheelFinish':{'source':'original RACINGHART_STYLE07 geometry and gold/silver atlas; shared material split at existing radial loops','adaptation':'fully metallic polished chrome lip and lightly cooled original gold star; fresh runtime material with environment reflections, no emission; NFVU2 finish approximation'},
         'nitroEffects':{'textures':'original InGameCommon SFX_FIREB and SFX_SMOKE_B_CS; runtime tint/animation adapted','exhaust':'four original STYLE08 mouth-loop centres, offset 6mm outward','purge':'mod-authored bumper pair and measured hood surface pair; original nozzle sockets not identified'},
         'visualFit':{'wheelRadius':WHEEL_RADIUS,'wheelWidth':WHEEL_WIDTH,'wheelWidthFit':'outer face retained, widened inward; inverse-transpose normals','brakeRadius':BRAKE_RADIUS,'bodyLift':BODY_LIFT,'frontOffset':FRONT_WHEEL_OFFSET,'rearOffset':REAR_WHEEL_OFFSET,'preview':'approximate terrain-mode loaded suspension; not a Unity simulation'}},indent=2),encoding='utf-8')
     print(f'Rachel preset: {len(parts)} material slices, {sum(len(p["indices"])//3 for p in parts)} triangles, {len(textures)} textures')

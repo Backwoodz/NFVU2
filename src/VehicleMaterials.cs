@@ -51,6 +51,14 @@ public static class VehicleMaterials {
         var templates = Create(local, log);
         var result = new Material[model.materials.Length];
         try {
+            Shader wheelShader = null;
+            if (model.materials.Any(m => IsWheelMetal(m.name))) {
+                wheelShader = Resources.FindObjectsOfTypeAll<Material>()
+                    .Where(m => m != null && m.shader != null && m.shader.isSupported && m.shader.name == "Standard")
+                    .Select(m => m.shader).FirstOrDefault() ?? Shader.Find("Standard");
+                if (wheelShader == null || !wheelShader.isSupported) wheelShader = templates[0].shader;
+                log("350Z wheel metal shader: " + wheelShader.name + "; fresh material, environment reflections, no emission");
+            }
             for (int i = 0; i < textures.Length; i++) {
                 var data = model.textures[i];
                 var texture = new Texture2D(data.width, data.height, TextureFormat.RGBA32, true) { name = data.name, wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Trilinear, anisoLevel = 4 };
@@ -66,21 +74,30 @@ public static class VehicleMaterials {
             }
             for (int i = 0; i < result.Length; i++) {
                 var data = model.materials[i]; var c = data.color;
-                var material = Clone(templates[0], "350Z_" + data.name, new Color(c[0], c[1], c[2], c[3])); result[i] = material;
+                bool wheelMetal = IsWheelMetal(data.name);
+                // Preserve the paint/cabin path. Polished rims must not inherit a
+                // building prop's maps, disabled reflections or shader keywords.
+                var material = wheelMetal
+                    ? new Material(wheelShader) { name = "350Z_" + data.name, renderQueue = 2000 }
+                    : Clone(templates[0], "350Z_" + data.name, new Color(c[0], c[1], c[2], c[3]));
+                result[i] = material;
+                if (wheelMetal) foreach (var property in new[] { "_Color", "_BaseColor" })
+                    if (material.HasColor(property)) material.SetColor(property, new Color(c[0], c[1], c[2], c[3]));
                 foreach (var property in new[] { "_MainTex", "_BaseMap", "_Albedo" })
                     if (data.texture >= 0 && material.HasTexture(property)) material.SetTexture(property, textures[data.texture]);
                 if (material.HasFloat("_Metallic")) material.SetFloat("_Metallic", data.metallic);
                 foreach (var property in new[] { "_Glossiness", "_Smoothness" }) if (material.HasFloat(property)) material.SetFloat(property, data.smoothness);
-                if ((data.name ?? "").StartsWith("wheel_chrome_", StringComparison.Ordinal) || (data.name ?? "").StartsWith("wheel_gold_", StringComparison.Ordinal)) {
-                    // The template may retain maps/keywords authored for a
-                    // different Valheim prop. Keep the wheel's diffuse colour
-                    // readable when no useful reflection probe is available.
+                if (wheelMetal) {
                     material.DisableKeyword("_METALLICGLOSSMAP"); material.DisableKeyword("_SPECGLOSSMAP");
+                    material.DisableKeyword("_GLOSSYREFLECTIONS_OFF"); material.DisableKeyword("_SPECULARHIGHLIGHTS_OFF");
+                    material.DisableKeyword("_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A"); material.DisableKeyword("_EMISSION");
                     foreach (var property in new[] { "_MetallicGlossMap", "_SpecGlossMap", "_OcclusionMap" })
                         if (material.HasTexture(property)) material.SetTexture(property, Texture2D.whiteTexture);
                     if (material.HasFloat("_OcclusionStrength")) material.SetFloat("_OcclusionStrength", 0);
                     if (material.HasFloat("_GlossMapScale")) material.SetFloat("_GlossMapScale", data.smoothness);
-                    SetEmission(material, new Color(c[0], c[1], c[2]) * .025f);
+                    foreach (var property in new[] { "_GlossyReflections", "_SpecularHighlights" })
+                        if (material.HasFloat(property)) material.SetFloat(property, 1);
+                    if (material.HasColor("_EmissionColor")) material.SetColor("_EmissionColor", Color.black);
                 }
             }
             return result;
@@ -90,6 +107,8 @@ public static class VehicleMaterials {
             textures = null; throw;
         } finally { foreach (var m in templates) UnityEngine.Object.Destroy(m); }
     }
+    static bool IsWheelMetal(string name) => (name ?? "").StartsWith("wheel_chrome_", StringComparison.Ordinal) ||
+        (name ?? "").StartsWith("wheel_gold_", StringComparison.Ordinal);
     // Materials loaded by the game retain their actual asset-bundle shader
     // references; Shader.Find by an assumed name does not provide that guarantee.
     public static Material[] Create(MonoBehaviour local, Action<string> log) {

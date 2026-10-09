@@ -2,7 +2,8 @@
 
 **Need for Valheim: Underground 2** — ein privater Fahrzeug-Mod-Prototyp für Valheim.
 
-Aktueller Stand: **0.13.1**, gebaut und automatisiert geprüft; Spieltest noch offen.
+Aktueller Stand: **0.14.3**; Chromrand, dezenterer Goldstern und korrigierte Scheibentönung noch im Spiel prüfen.
+Innenraum und Ein-/Ausstieg von 0.14.0 funktionieren laut Nutzerrückmeldung.
 Die vorherige Version 0.2.1 ist vom Nutzer in Valheim bestätigt. Ein aus eigenen NFS-Underground-2-Dateien ausgelesener
 Nissan 350Z lässt sich in einer lokalen Valheim-Einzelspielerwelt spawnen und fahren.
 Mauskamera, Gelände-/Straßenmodus und Fahrzeug-Sound sind im Spiel bestätigt.
@@ -63,8 +64,9 @@ Fahrzeuge sind weiterhin temporär und werden nicht mit der Welt gespeichert.
 Die Darstellung verwendet jetzt die Originalvoreinstellung `DDAY_PLAYER_CAR`:
 Widebody-Kit 02, Carbonhaube 07, Spoiler 02, Racing-Hart-Felgen 07,
 Leuchten und Doppel-Endrohre sowie das originale Drachenvinyl mit Farbpalette.
-Lack und Felgentönung sind für Valheim angenähert. Scheiben sind vorerst dunkel
-und undurchsichtig, transparente Leuchtenabdeckungen fehlen. Die Darstellung
+Lack und Felgentönung sind für Valheim angenähert. Ohne optionalen Innenraumimport bleiben die Scheiben dunkel
+und undurchsichtig; mit Innenraum wird ein transparenter Fenstershader verwendet,
+sofern im Spiel verfügbar. Transparente Leuchtenabdeckungen fehlen. Die Darstellung
 von 0.1.9 wurde nach der Textur-Upload-Korrektur vom Nutzer in Valheim bestätigt.
 Die Räder sind optisch auf das Widebody abgestimmt; die Vorschau verwendet eine
 angenäherte eingefederte Stellung. Die tatsächliche Federstellung bestimmt Unity.
@@ -193,6 +195,56 @@ Geometrie-/Texturleser. Er erzeugt `.local/hummer/h2.json` und acht originale
 Motorloops unter `.local/audio-hummer/`. Build und Installer übernehmen diese
 als `hummer/` und `audio/hummer/` neben der unverändert benannten DLL.
 `tools/render_hummer.py` erstellt mit Blender eine lokale Vorschau.
+
+### Optionaler 350Z-Innenraum und Fahrer
+
+Die lokal bereitgestellte ZIP „Nissan 350Z FIX UKBEAMNG“ wird unter
+`.local/interior-source/beamng-350z/` entpackt; dort muss
+`vehicles/Nis350Z/Nis350Z.dae` liegen. Nur Modelle, Texturen und Materialdaten
+werden verarbeitet, keine BeamNG-Skripte ausgeführt.
+
+```powershell
+python tools/export_interior.py
+python tools/build.py
+python tools/test.py --skip-build
+```
+
+Der Import erzeugt den optionalen Mod-Payload `interior/interior.json`:
+62 Teilmeshes, rund 41.000 Dreiecke und 15 eingebettete Texturen. Zwei fehlende
+Quelltexturen erhalten einfache dunkle Ersatzmaterialien. Dach und Kofferraum
+bleiben aus dem NFS-Modell; überlappende Innenflächen werden ersetzt.
+`tools/render_interior.py` erzeugt mit Blender lokale Kontrollansichten.
+
+F7 im Stand: Der Charakter geht zur linken Fahrertür, die Tür öffnet, er nimmt
+sichtbar Platz und die Tür schließt. Erst dann werden Gas, Nitro und Turret
+freigegeben. F7 zum Aussteigen benötigt Stillstand und einen freien Platz
+neben der Fahrertür. F8 entfernt das Fahrzeug und stellt den Spieler sofort
+wieder her. Menüs/Fokusverlust pausieren den Übergang. H2 bleibt unverändert.
+
+Seit 0.14.1 sitzt der Fahrer tiefer; die gemessene Kopfposition begrenzt seine
+Höhe unter dem Dach. Die rechte Hand lenkt, der linke Arm ruht am offenen
+Fahrerfenster. Beim Öffnen der Tür wird der linke Arm eingezogen. Die Drehrichtung
+des sichtbaren Lenkrads ist korrigiert; die rechte Hand folgt derselben Drehung.
+F9 → Türen bietet eine gespeicherte Scheibentönung von 0 % (klar) bis 100 %
+(dunkel) für die geschlossenen 350Z-Scheiben. Im Stand lassen sich die Türen
+auch vom Sitz aus bedienen, nach Abschluss des Ein-/Ausstiegs. Der Menüaufruf
+pausiert beim Sitzen die Türbewegung nicht; beim Losfahren schließen die Türen.
+
+0.14.2 entfernt die geerbte rote Eigenleuchtung einer möglichen Lava-Laternen-
+Glasvorlage. Das Fenstermaterial übernimmt nur den geladenen Shader und nutzt
+neutrale Grauwerte ohne Eigenleuchtung.
+
+Der sichtbare Fahrer verwendet Valheims vorhandene Stuhl-Sitzanimation,
+einen eigenen Bewegungsablauf und prozedurale Ausrichtung der Gliedmaßen.
+Das Charaktervisual wird im Sitz auf 85 % skaliert; Spielfigur, Inventar und
+Ausrüstung bleiben dieselben. Die Animation ist keine original aus BeamNG
+übernommene Einsteigeanimation. Pose, Kleidung, Fenstershader, Türstile und
+Kollisionen müssen im Spiel geprüft werden.
+
+Quelle: [Modland — Nissan 350Z FIX UKBEAMNG](https://www.modland.net/beamng.drive-mods/cars/nissan-350z-fix-ukbeamng.html).
+Der Originalautor ist auf der Downloadseite unbekannt; eine Freigabe zur
+Weiterveröffentlichung der Assets ist nicht belegt. Archiv, extrahierte Dateien
+und generierter Innenraum bleiben ignorierte lokale Dateien.
 
 ### Optionaler Rust-Import
 
@@ -327,8 +379,9 @@ Effekt; beim Schließen wird es wieder leiser und dumpfer. Die Klangquelle folgt
 der offenen Seite beziehungsweise dem Heck, bei mehreren Öffnungen deren Mitte.
 Die Motorhaube beeinflusst die Musik nicht. Radiolautstärke, Pause und der
 Schalter „Beim Aussteigen weiterlaufen lassen“ gelten weiterhin.
-Der Innenraum ist das vereinfachte Original-Basismodell mit Türinnenflächen;
-ein detailliertes Cockpit und transparente Scheiben bleiben offen.
+Der optionale Innenraumimport in 0.14.0 ergänzt Cockpit, Sitze, Pedale, Schalthebel
+und Türverkleidungen aus der lokal bereitgestellten BeamNG-Mod. Das Lenkrad folgt
+der Lenkung. Ohne Import bleibt das vereinfachte NFS-Basismodell erhalten.
 Unter F9 → Räder lassen sich Sturz vorne/hinten (−15 bis +10 Grad),
 Radversatz vorne/hinten (−10 bis +20 cm je Rad) und die gemeinsame Felgengröße
 (16 bis 22 Zoll, ausgehend vom nominalen NFS-20-Zoll-Modell) einstellen.

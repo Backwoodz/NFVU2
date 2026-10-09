@@ -1,5 +1,69 @@
 # Versionsgeschichte
 
+## 0.14.3 — Polierte Chrom-/Goldfelgen
+
+Der Felgenrand war nur 28 % metallisch, der Stern 22 %. Eine zusätzliche
+orange-goldene Farbe multiplizierte die bereits goldene Originaltextur.
+Beide Flächen verwenden nun vollständig metallische Materialien mit hoher
+Glätte; der Stern erhält nur eine leichte kühlere Korrektur der Originalfarbe.
+
+Die Felgen verwenden ein frisches Standard-Material, sofern dessen Shader
+verfügbar ist, sonst eine frische Instanz des vorhandenen Fahrzeugshaders.
+Keine geerbten Prop-Texturen oder Eigenleuchtung; Reflexionen und Glanzlichter
+sind aktiviert. Die Rad-Renderer nutzen Valheims vorhandene Reflection Probes.
+Die Shaderauswahl steht im Log. Geometrie, Reifen und Fahrphysik bleiben gleich.
+Build sowie 142 Modell-, Innenraum- und H2-/Garagenprüfungen bestanden;
+Felgendetail zusätzlich in Blender gerendert. Die genaue Wirkung unter
+Valheim-Beleuchtung benötigt einen Spieltest.
+
+## 0.14.2 — Rotstich der Scheibentönung
+
+Die bisherige Materialauswahl konnte `lavalanternglass_mat` bzw. dessen
+Bruchvariante kopieren. Beide enthalten in den lokalen Spielassets eine rote
+Eigenleuchtfarbe und das aktive Shader-Schlüsselwort `_EMISSION`. Die Tönung
+änderte nur die Grundfarbe und ließ diese Eigenleuchtung erhalten.
+
+Das Fenstermaterial verwendet jetzt ein frisches Material mit der geladenen
+Shaderreferenz; fremde Texturen, Farben und Schlüsselwörter werden nicht mehr
+kopiert. Eigenleuchtung wird zusätzlich explizit abgeschaltet. Tönungsfarben
+sind neutral grau. Die gewählte Shaderreferenz wird zur Diagnose protokolliert.
+Build und Innenraumprüfungen bestanden; Darstellung im Spiel noch prüfen.
+
+## 0.14.1 — Fahrerhaltung, offenes Fenster und Scheibentönung
+
+- Nutzer bestätigt Innenraum und Ein-/Ausstieg von 0.14.0; Kopf ragte durch
+  das Dach, Hände saßen zu weit vorne und die Lenkanimation war umgekehrt.
+- Sitzposition abgesenkt und etwas zurückversetzt; zusätzliche Begrenzung
+  anhand des Kopfknochens mit Reserve für Kopf/Haar unter dem Dach.
+- Rechte Hand mit zurückversetztem Handgelenk am Lenkrad, korrigierte
+  Drehrichtung und Handorientierung. Linker Arm ruht am offenen Fenster;
+  beim Öffnen der Tür bzw. Aussteigen wird er nach innen geführt.
+- F9 → Türen: gespeicherte Scheibentönung 0–100 %. Die physisch linke
+  Seitenscheibe wird beim Sitzen ausgeblendet und beim Aussteigen wieder sichtbar.
+- Linke Tür nach dem Einstieg wieder manuell bedienbar: Menüknopf entsperrt,
+  Sitzanimation überschreibt den Türzustand nicht mehr. Türbewegung ist im
+  Menü möglich, sobald der Fahrer sitzt; Ein-/Ausstiege behalten ihre Sperre.
+- Build und gezielte Fahrer-, Tür- und Fahrwerksprüfungen bestanden.
+  Neue Pose, Scheibenwirkung und Ausrüstung benötigen erneuten Spieltest.
+
+## 0.14.0 — Lokaler Innenraum und sichtbarer Fahrer
+
+- Optionaler lokaler BeamNG-350Z-Innenraumimport: Cockpit, zwei Sitze, Pedale,
+  Schalthebel und an den NFS-Türen befestigte Innenverkleidungen. Separate
+  Lenkraddrehung, transparente Fenster mit verfügbarem Spielshader.
+- F7 im Stand: Weg zur Fahrertür, Öffnen, Übergang in Valheims Sitzanimation,
+  Hände am Lenkrad und Füße an den Pedalen, Schließen und Fahrfreigabe.
+  Rückweg beim Aussteigen; freie Bodenfläche und Platz für den Spieler nötig.
+- Eingaben/Nitro/Turret während des Übergangs gesperrt. Menü/Fokusverlust
+  pausiert den Ablauf; Entfernen, Fehler und Weltwechsel stellen den Spieler wieder her.
+- Native Sitzanimation plus eigene Übergänge/Gliedmaßenausrichtung, keine
+  übernommene BeamNG-Charakteranimation. Visuelle Sitzskalierung auf 85 %.
+  H2 und bestehende Fahrwerksabstimmung bleiben unverändert.
+- Import, Modelldaten und Zustandsabläufe automatisiert geprüft; externe
+  Modellvorschau geprüft. Unity-Spieltest einschließlich Kleidungsüberschneidungen offen.
+- Originalautor des bereitgestellten Modland-Archivs unbekannt. Assets bleiben
+  lokal in ignorierten Ordnern; keine Weiterveröffentlichungsfreigabe behauptet.
+
 ## 0.13.1 — Verschiebbares Fahrzeugmenü
 
 F9-Menü per linker Maustaste an der Titelleiste verschieben. Die Position wird

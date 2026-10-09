@@ -55,7 +55,7 @@ public partial class Plugin {
     }
     void TickTurret() {
         bool automatic=!driving&&hasBeenDriven&&turretAutomatic.Value;
-        if(turret!=null)try {turret.Tick(turretEnabled.Value,(driving||automatic)&&!audioBlocked&&!menuOpen&&Application.isFocused,
+        if(turret!=null)try {turret.Tick(turretEnabled.Value,(driving&&DriverInputReady||automatic)&&!audioBlocked&&!menuOpen&&Application.isFocused,
             Input.GetMouseButton(1),LocalPlayer() as Character,soundVolume.Value*turretVolume.Value,turretLaser.Value,turretAmmo.Value=="Explosiv",laserStrength.Value,LaserColor,automatic);}
         catch(Exception e){turret.Dispose();turret=null;Logger.LogWarning("350Z turret disabled: "+e);}
     }

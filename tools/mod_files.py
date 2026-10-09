@@ -10,6 +10,7 @@ OPTIONAL=(('radio', 'radio', {'.wav','.ogg','.json'}),
           ('audio-effects', 'audio/effects', {'.wav','.json'}),
           ('hud', 'hud', {'.json'}),
           ('hummer', 'hummer', {'.json'}),
+          ('interior', 'interior', {'.json'}),
           ('audio-hummer', 'audio/hummer', {'.wav','.json'}),
           ('turret', 'turret', {'.json','.wav'}))
 

@@ -1,5 +1,57 @@
 # Nächste Aufgaben
 
+## Felgen in 0.14.3
+
+- Bei Tageslicht um den 350Z gehen: Chromrand soll helle/dunkle Umgebung
+  spiegeln, der Stern gedeckter golden wirken. Nacht, Wald und Neon vergleichen.
+- Logeintrag `350Z wheel metal shader` kontrollieren; Standard bevorzugt,
+  vorhandener Fahrzeugshader als Fallback. Kein künstliches Leuchten im Dunkeln.
+- Mehrere Fahrzeuge sowie Radgrößen/Sturz prüfen. Die Blender-Vorschau bildet
+  Materialparameter ab, ist aber kein Nachweis für das Unity-Rendering.
+
+## Scheibentönung in 0.14.2
+
+- 0/50/100 % bei Tageslicht und Nacht: keine rote Eigenleuchtung, neutral dunkle
+  Scheiben bei 100 %. Heckscheibe mit Rücklicht und Kofferraum-Neon vergleichen.
+- Linkes offenes Fenster, Ausstieg, weitere 350Z und Neustart: Tönung bleibt
+  gespeichert und Fensterzustand funktioniert weiter.
+- Lokale Lava-Laternen-Materialien besitzen bestätigte rote Emission; die Mod
+  übernimmt nun nur deren Shaderreferenz und erstellt ein neutrales Material.
+
+## Fahrerhaltung und Scheiben in 0.14.1
+
+0.14.0 funktioniert laut Nutzer grundsätzlich. Gemeldet wurden ein durch das
+Dach ragender Kopf, zu weit vorne liegende Hände und umgekehrtes sichtbares Lenken.
+
+- Kopf mit beiden Charaktermodellen, Haaren/Helmen, Tieferlegung und auf Hängen
+  unter dem Dach prüfen; tiefere Sitzposition darf nicht im Sitzpolster verschwinden.
+- Rechts/links lenken: Rad und rechte Hand müssen zusammen in die erwartete
+  Richtung drehen. Handgelenk hinter dem Kranz, Finger am Kranz, keine Überstreckung.
+- Linker Arm am offenen Fenster; bei Türöffnung und Ausstieg nach innen.
+  Alle drei Türmechaniken sowie schnelles Öffnen/Schließen im F9-Menü prüfen.
+- Tönung 0/50/100 %, Neustart und mehrere 350Z: geschlossene Scheiben reagieren,
+  linkes Fenster beim Sitzen bleibt frei und nach Ausstieg wieder sichtbar.
+- F8, Fehler und Weltwechsel stellen Fenster, Körperhaltung und Steuerung wieder her.
+
+## Innenraum und Fahrer in 0.14.0
+
+- F6/F7: Cockpit, Sitze, Türverkleidungen, Fenster und Lenkraddrehung bei
+  Tageslicht und Nacht prüfen. Türverkleidungen müssen bei allen drei Türstilen mitgehen.
+- Einstieg von beiden Seiten, vorne/hinten, mit blockiertem Weg und am Hang.
+  Kein Durchlaufen von Wänden; Fahrfreigabe erst nach geschlossener Tür.
+- Beide Charaktermodelle mit/ohne Rüstung, Helm, Waffen und Umhang: Hüfte im
+  Sitz, Kopf unter dem Dach, Hände am Lenkrad, Füße an Pedalen. Visualskala 85 %.
+  Exakte Hand-/Fußhaltung und Textur-/Glaswirkung benötigen den Unity-Spieltest.
+- Ausstieg im Stand und während der Fahrt, blockierte Fahrertür, Hindernis
+  erscheint während des Ausstiegs, wiederholtes F7: keine festhängende Steuerung.
+- F9/Pause/Alt-Tab während Annäherung, offener Tür und Sitzübergang; F8, Tod,
+  Weltwechsel/Plugin-Abbau: Renderer, Ausrüstung, Animator, Collider, Körper
+  und Kamera müssen wiederhergestellt werden.
+- Mehrere Autos, H2-Wechsel, fehlender/ungültiger Innenraum-Payload und
+  fehlender transparenter Fenstershader: ursprünglicher Mod bleibt nutzbar.
+- Native Stuhlpose und eigene prozedurale Übergänge weiter verfeinern;
+  cockpitinterne Anzeigen sind statisch, keine Instrumentensimulation.
+
 ## Verschiebbares Menü in 0.13.1
 
 - F9: Titelleiste links gedrückt ziehen; Text und freie Headerfläche probieren.
