@@ -7,6 +7,7 @@ using UnityEngine;
 namespace Rachel350Z {
 public partial class Plugin {
     ConfigEntry<bool> turretEnabled;
+    ConfigEntry<bool> turretAutomatic;
     ConfigEntry<float> turretVolume;
     ConfigEntry<bool> turretLaser;
     ConfigEntry<string> turretAmmo;
@@ -38,6 +39,7 @@ public partial class Plugin {
         foreach(var obj in savedCrosshairs)if(obj!=null)obj.SetActive(false);
     }
     void InitializeTurretMenu() {
+        turretAutomatic=Config.Bind("Turret","AutomaticAfterExit",true,"After driving, scan a frontal 180-degree sector while unoccupied and attack visible hostile creatures within 30 metres. Independent of parked engine/radio.");
         turretEnabled=Config.Bind("Turret","Enabled",false,"Mount the optional local Rust AutoTurret with AK on the roof. Right mouse while seated fires toward the camera aim.");
         turretVolume=Config.Bind("Turret","Volume",.7f,new ConfigDescription("Turret sound volume, multiplied by Audio.Volume.",new AcceptableValueRange<float>(0,1)));
         turretLaser=Config.Bind("Turret","Laser",true,"Original Rust laser module with visible beam and impact dot.");
@@ -52,8 +54,9 @@ public partial class Plugin {
         if(File.Exists(Path.Combine(folder,"turret.json")))turret=VehicleTurret.Create(car,local,folder,message=>Logger.LogWarning(message));
     }
     void TickTurret() {
-        if(turret!=null)try {turret.Tick(turretEnabled.Value,driving&&!audioBlocked&&!menuOpen&&Application.isFocused,
-            Input.GetMouseButton(1),player as Character,soundVolume.Value*turretVolume.Value,turretLaser.Value,turretAmmo.Value=="Explosiv",laserStrength.Value,LaserColor);}
+        bool automatic=!driving&&hasBeenDriven&&turretAutomatic.Value;
+        if(turret!=null)try {turret.Tick(turretEnabled.Value,(driving||automatic)&&!audioBlocked&&!menuOpen&&Application.isFocused,
+            Input.GetMouseButton(1),LocalPlayer() as Character,soundVolume.Value*turretVolume.Value,turretLaser.Value,turretAmmo.Value=="Explosiv",laserStrength.Value,LaserColor,automatic);}
         catch(Exception e){turret.Dispose();turret=null;Logger.LogWarning("350Z turret disabled: "+e);}
     }
     void DrawTurretMenu() {
@@ -64,22 +67,24 @@ public partial class Plugin {
         GUI.Label(new Rect(25,185,510,50),"Mausblick: zielen · Rechte Maustaste: schießen\n30 Schuss · automatisches Nachladen",labelStyle);
         GUI.enabled=turret!=null&&turret.LaserAvailable;
         turretLaser.Value=GUI.Toggle(new Rect(25,242,280,28),turretLaser.Value," Rust-Lasermodul");
-        if(GUI.Button(new Rect(320,240,215,30),"Laser einstellen"))laserSettingsOpen=true;
+        if(MenuButton(new Rect(320,240,215,30),"Laser einstellen"))laserSettingsOpen=true;
         GUI.enabled=turret!=null&&turret.ExplosiveAvailable;
         int ammo=turretAmmo.Value=="Explosiv"?1:0;
         int next=GUI.Toolbar(new Rect(25,285,510,32),ammo,new[]{"Normale Munition","Explosivmunition"});
         if(next!=ammo)turretAmmo.Value=next==1?"Explosiv":"Normal";
         GUI.enabled=turret!=null;
-        GUI.Label(new Rect(25,337,510,25),"Lautstärke  "+Mathf.RoundToInt(turretVolume.Value*100)+" %",labelStyle);
-        turretVolume.Value=GUI.HorizontalSlider(new Rect(25,373,510,22),turretVolume.Value,0,1);
+        turretAutomatic.Value=GUI.Toggle(new Rect(25,330,510,28),turretAutomatic.Value," Nach dem Aussteigen automatisch bewachen");
+        GUI.Label(new Rect(25,363,510,24),"180° vorne · 30 m · "+(driving?"Manuelle Steuerung":hasBeenDriven&&turretAutomatic.Value?"Im Menü pausiert":"Bereit nach der Fahrt"),mutedStyle);
+        GUI.Label(new Rect(25,394,510,25),"Lautstärke  "+Mathf.RoundToInt(turretVolume.Value*100)+" %",labelStyle);
+        turretVolume.Value=GUI.HorizontalSlider(new Rect(25,429,510,22),turretVolume.Value,0,1);
         GUI.enabled=true;
-        GUI.Label(new Rect(25,415,510,90),turret==null?"Rust-Assets fehlen oder konnten nicht geladen werden. Lokal mit tools/export_rust_turret.py importieren.":!turret.ExplosiveAvailable?"Für Laser und Explosivmunition die Rust-Assets erneut importieren.":turretAmmo.Value=="Explosiv"?"Explosiv: Flächenschaden an Gegnern. Jeder Bodentreffer gräbt eine kleine Mulde bis zur Grabtiefengrenze. Krater bleiben in der Welt gespeichert.":"Schießen nur vom Fahrersitz. Unbegrenzter Vorrat; Felsen und Gebäude blockieren. Orangefarbenes Visier: Lauf noch nicht ausgerichtet oder verdeckt.",mutedStyle);
+        GUI.Label(new Rect(25,466,510,50),turret==null?"Rust-Assets fehlen. Lokal mit tools/export_rust_turret.py importieren.":turretAmmo.Value=="Explosiv"?"Explosiv: Flächenschaden an Gegnern; Bodentreffer hinterlassen gespeicherte Krater.":"Automatik trifft nur sichtbare Gegner. Spieler, zahme Tiere, Auto und Deckung blockieren die Schusslinie.",mutedStyle);
     }
     Color LaserColor=>new Color(LaserChannel(laserRed.Value),LaserChannel(laserGreen.Value),LaserChannel(laserBlue.Value),1);
     static float LaserChannel(float value)=>float.IsNaN(value)||float.IsInfinity(value)?0:Mathf.Clamp01(value);
     void DrawLaserSettings() {
         GUI.Label(new Rect(25,145,300,30),"Laser · Stärke und Farbe",labelStyle);
-        if(GUI.Button(new Rect(415,145,120,28),"Zurück")){laserSettingsOpen=false;return;}
+        if(MenuButton(new Rect(415,145,120,28),"Zurück")){laserSettingsOpen=false;return;}
         GUI.enabled=turret!=null&&turret.LaserAvailable;
         turretLaser.Value=GUI.Toggle(new Rect(25,187,510,28),turretLaser.Value," Laser aktivieren");
         GUI.Label(new Rect(25,226,510,25),"Stärke  "+Mathf.RoundToInt(laserStrength.Value*100)+" %",labelStyle);

@@ -7,6 +7,32 @@ class HandlingTests {
     static void Check(bool ok,string name){checks++;if(!ok)failures++;Console.WriteLine((ok?"PASS ":"FAIL ")+name);}
     static WheelCollider[] Wheels(bool contact)=>Enumerable.Range(0,4).Select(_=>new WheelCollider{contact=contact}).ToArray();
     static void Main(){
+        foreach(bool drift in new[]{false,true})foreach(float direction in new[]{-1f,1f}) {
+            var body=new Rigidbody();var wheels=Wheels(true);var controller=new VehicleHandling(body,wheels,true);
+            if(drift)controller.SetDriftMode();
+            for(int i=0;i<9;i++)controller.Step(true,0,direction,0);
+            float angle=wheels[0].steerAngle;
+            for(int i=0;i<300;i++)controller.Step(false,1,-direction,0,true,true);
+            Check(angle*direction>0&&wheels.Take(2).All(w=>w.steerAngle==angle)&&wheels.Skip(2).All(w=>w.steerAngle==0),"exit preserves partial steering for both front wheels, drift="+drift+", direction="+direction);
+            Check(wheels.All(w=>w.motorTorque==0&&w.brakeTorque>0)&&!controller.BurnoutActive,"steering retention keeps parking brake and cancels drive effects");
+            controller.Step(true,0,0,0);
+            Check(Math.Abs(wheels[0].steerAngle)<Math.Abs(angle)&&wheels[0].steerAngle!=0,"reentry resumes smooth steering without snapping");
+        }
+        foreach(float stock in new[]{.34f,.50f}) {
+            var body=new Rigidbody();var wheels=Wheels(true);
+            foreach(var wheel in wheels)wheel.transform.localPosition=new Vector3(.8f,stock,1.3f);
+            var handling=new VehicleHandling(body,wheels,true);var height=new VehicleRideHeight(body,wheels);
+            height.Apply(8);height.Apply(8);
+            Check(wheels.All(w=>Math.Abs(w.transform.localPosition.y-stock-.08f)<.0001f&&w.transform.localPosition.x==.8f&&w.transform.localPosition.z==1.3f),"lowering raises anchors without accumulation or axle changes, stock="+stock);
+            Check(wheels.All(w=>w.suspensionDistance==.4f&&w.suspensionSpring.spring==42000),"lowering preserves suspension travel and springs");
+            handling.SetTerrainMode(false);height.Apply(8);
+            Check(wheels.All(w=>Math.Abs(w.transform.localPosition.y-stock-.08f)<.0001f&&w.suspensionDistance==.24f),"ride height survives drive mode change");
+            height.Apply(999);Check(wheels.All(w=>Math.Abs(w.transform.localPosition.y-stock-.12f)<.0001f),"lowering is bounded to twelve centimetres");
+            foreach(float invalid in new[]{-1f,float.NaN,float.PositiveInfinity,0}) {
+                height.Apply(8);height.Apply(invalid);
+                Check(wheels.All(w=>w.transform.localPosition.y==stock),"reset or invalid lowering restores exact original anchors: "+invalid);
+            }
+        }
         foreach(bool terrain in new[]{false,true}) {
             var body=new Rigidbody();var wheels=Wheels(false);
             var controller=new VehicleHandling(body,wheels,terrain);

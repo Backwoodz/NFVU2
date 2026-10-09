@@ -1,4 +1,32 @@
-NFVU2 0.12.0 – 350Z und Hummer H2, lokaler Test für Valheim
+NFVU2 0.13.1 – 350Z und Hummer H2, lokaler Test für Valheim
+
+NEU: VERSCHIEBBARES MENÜ
+F9 öffnen, Titelleiste mit linker Maustaste greifen und an die gewünschte
+Stelle ziehen. Die Position bleibt gespeichert. Bei Auflösungswechsel bleibt
+das Menü im sichtbaren Bildschirm. Der X-Button schließt weiterhin direkt.
+Ohne gespawntes Fahrzeug ist nur die Garage in der Seitenleiste verfügbar.
+
+NEU: TIEFERLEGUNG, NFS-MENÜ UND PARK-TURRET
+F9 → Räder: Tieferlegung zusätzlich zu Sturz, Versatz und Felgengröße.
+0–12 cm; 0 stellt die Serienhöhe her. Mehr Tieferlegung = weniger Bodenfreiheit.
+Der Wert bleibt pro Fahrzeugmodell gespeichert. Beim Aussteigen behalten
+die Vorderräder ihren Lenkeinschlag; Wiedereinstieg setzt die Lenkung fort.
+
+F9 zeigt Kategorien links, Original-NFS-Icons und kurze Navigationssounds.
+Mit Maus oder Pfeil hoch/runter wechseln. Menü-Lautstärke in der Konfiguration:
+Menu → SoundVolume (0 = stumm). Import: python tools/export_menu.py.
+
+F9 → Turret: Turret einschalten und einmal einsteigen. Nach dem Aussteigen
+bewacht er automatisch den Bereich vor dem Auto (180°, 30 Meter).
+Der Laser schwenkt sichtbar, sofern der Laserschalter aktiv ist. Sichtbare
+Gegner werden erfasst und automatisch beschossen; Nachladen bleibt automatisch.
+Spieler und zahme Tiere werden nicht anvisiert und blockieren die Schusslinie.
+Deckung und eigenes Auto blockieren ebenfalls. Automatik ist im Turret-Menü
+abschaltbar und unabhängig davon, ob Motor/Radio draußen weiterlaufen.
+Laserfarbe/-stärke und gewählte Munition gelten in beiden Betriebsarten.
+Menüs, Fokusverlust und Spielertod pausieren die Automatik. Beim Einstieg
+wieder manuell zielen; gehaltenes RMB erst loslassen, dann erneut drücken.
+H2 hat weiterhin keinen Dach-Turret. Unity-Spieltest für 0.13.0 noch offen.
 
 NEU: HUMMER H2 UND GARAGE
 F9 → Garage: Nissan 350Z oder Hummer H2 wählen und spawnen.

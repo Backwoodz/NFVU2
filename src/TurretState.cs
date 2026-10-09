@@ -10,13 +10,15 @@ public sealed class TurretState {
     public float Recoil {get;private set;}
     public bool ReloadStarted {get;private set;}
     bool released;
+    bool wasAutomatic;
     float cooldown;
-    public bool Step(float dt,bool allowed,bool held) {
+    public bool Step(float dt,bool allowed,bool held,bool automatic=false) {
         ReloadStarted=false;
         dt=float.IsNaN(dt)||float.IsInfinity(dt)?0:Math.Max(0,Math.Min(dt,.1f));
         Recoil=Math.Max(0,Recoil-dt*9);
+        if(wasAutomatic!=automatic){released=false;wasAutomatic=automatic;}
         if(!allowed){released=false;return false;}
-        if(!held)released=true;
+        if(automatic||!held)released=true;
         cooldown=Math.Max(0,cooldown-dt);
         if(ReloadLeft>0) {
             ReloadLeft=Math.Max(0,ReloadLeft-dt);
@@ -28,6 +30,12 @@ public sealed class TurretState {
         if(Ammo==0){ReloadLeft=ReloadDuration;ReloadStarted=true;}
         return true;
     }
+}
+public static class TurretAutoRules {
+    public const float Range=30,HalfArc=90;
+    public static bool InSector(float distance,float yaw,float pitch) =>
+        distance>=0&&distance<=Range&&Math.Abs(yaw)<=HalfArc&&pitch>=-65&&pitch<=55;
+    public static float ScanYaw(float seconds) => (float)Math.Sin(seconds*.3f)*HalfArc;
 }
 public sealed class TurretRig {
     public ModelVertex yawPivot,pitchOffset,muzzle;

@@ -61,7 +61,8 @@ public sealed class VehicleHandling {
         // Let go of the previous direction before starting reverse torque.
         if(stopping || appliedThrottle*throttle<0)appliedThrottle=0;
         float maxSteer=DriftMode?VehicleDriftTuning.SteeringLimit(speed):DrivingMath.SteeringLimit(speed,terrain);
-        appliedSteering=Mathf.MoveTowards(appliedSteering,driving?steer*maxSteer:0,dt*(DriftMode?150f:85f));
+        // Parking keeps the actual angle, including partial steering during exit.
+        if(driving)appliedSteering=Mathf.MoveTowards(appliedSteering,steer*maxSteer,dt*(DriftMode?150f:85f));
         float torque=(terrain?3200:2200)*appliedThrottle*DrivingMath.TorqueFactor(speed,throttle,terrain)*DrivingMath.LaunchTorqueFactor(speed,throttle);
         if(DriftMode)torque*=1.2f;
         if(burnoutGrip!=BurnoutActive) {

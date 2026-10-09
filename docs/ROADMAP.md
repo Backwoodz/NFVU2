@@ -1,5 +1,40 @@
 # Nächste Aufgaben
 
+## Verschiebbares Menü in 0.13.1
+
+- F9: Titelleiste links gedrückt ziehen; Text und freie Headerfläche probieren.
+- Alle Bildschirmränder, 720p/1080p, kleinere Fenster und Auflösungswechsel
+  prüfen: Menü vollständig erreichbar, Maus folgt ohne Sprung bei Skalierung.
+- Kategorie/Regler/Schließen klicken: kein unbeabsichtigtes Verschieben.
+- Während Ziehen F9, Fokusverlust und Loslassen außerhalb des Fensters prüfen;
+  beim Wiederöffnen kein festgehaltener Cursor. Position nach Neustart prüfen.
+
+## Tieferlegung, Menü und Parkautomatik in 0.13.0
+
+- 350Z/H2: 0/6/12 cm auf ebener Fläche, Fahrmoduswechsel, F6-Neuspawn und
+  Konfigurationsneustart prüfen. Bestehende Sturz-/Versatz-/Felgenregler weiterhin
+  kombinierbar; Radfreigang und Bodenkontakt bei starken Werten beobachten.
+- Mit teilweisem/vollen Lenkeinschlag beider Richtungen aussteigen, lange warten,
+  F9 neben dem Wagen öffnen und wiedereinsteigen: kein Zurückschnappen beim
+  Ausstieg, sanftes Weiterlenken beim Einstieg; Bremsen/Burnout/Nitro stoppen.
+- Neues Menü bei 720p/1080p und kleineren Fenstern durch alle Kategorien prüfen:
+  Icons, deutsche Originalüberschriften, Cursor, Scrolllisten, Schließen,
+  Kategorien über ↑↓ und Soundlautstärke 0/50/100 Prozent.
+- Drei Original-Frontend-Samples im NFS-Spiel gegenhören; native Rollen sind
+  noch nicht verifiziert. Import-Indizes bleiben über CLI konfigurierbar.
+- Turret einmal fahren/aktivieren, aussteigen: ruhiger Laserschwenk nach beiden
+  Seiten. Gegner vorne/seitlich bei 5/29/31 m und hinter dem Auto prüfen.
+- Fels/Gebäude/eigenes Auto/Spieler/zahmes Tier vor dem Lauf: kein automatischer
+  Schuss durch Deckung. Zielverlust, Tod, Zähmung, mehrere Gegner und Nachladen
+  prüfen. Ein anderer feindlicher Ersttreffer wird erst nach Zielwechsel beschossen.
+- Motorweiterlauf aus, anderer 350Z/H2 gefahren, mehrere geparkte Turrets:
+  jeweils eigene Suchbewegung, Schüsse, Nachladen und räumliche Sounds.
+- F9, Inventar, Pause, Alt-Tab, Spielertod, Wiederbelebung und RMB beim Einstieg:
+  Sperren und erneute Zielerfassung prüfen. F8/Weltwechsel entfernt alles.
+- Explosivmunition/Laserfarbe und Stärke in beiden Modi prüfen. Suchsektor
+  ±90° orientiert sich an Rust; Scanbewegung und 30-m-Reichweite sind eigene
+  Mod-Regeln. Automatisierte Tests ersetzen keine Unity-Physik/Spielansicht.
+
 ## Hummer und Garage in 0.12.0
 
 - F9 ohne Auto → Garage: 350Z und gelben H2 nacheinander spawnen; beide bleiben

@@ -43,7 +43,7 @@ public partial class Plugin {
         if(next!=selected)spawnModel.Value=next==1?"Hummer H2":"Nissan 350Z";
         GUI.Label(new Rect(25,240,510,65),next==1?"Gelber H2 · 26-Zoll-Spinner · eigener SUV-Sound\nOhne Motorraum- und Kofferraumausbau.":"350Z mit deinen bisherigen Funktionen und Einstellungen.",mutedStyle);
         GUI.enabled=!driving&&fleet.Count<4;
-        if(GUI.Button(new Rect(25,310,510,40),"Ausgewähltes Fahrzeug spawnen (F6)")){Spawn(LocalPlayer());return;}
+        if(MenuButton(new Rect(25,310,510,40),"Ausgewähltes Fahrzeug spawnen (F6)")){Spawn(LocalPlayer());return;}
         GUI.enabled=true;
         GUI.Label(new Rect(25,366,510,60),"Gespawnt: "+fleet.Count+" / 4\n"+string.Join(" · ",fleet.Select(v=>v.Hummer?"H2":"350Z")),labelStyle);
         GUI.Label(new Rect(25,436,510,72),"Bestehende Autos bleiben stehen. Zum Einsteigen oder Einstellen zum gewünschten Auto gehen: F7 / F9. F8 entfernt nur dieses Auto. Fahrzeuge bleiben bis zum Weltwechsel.",mutedStyle);

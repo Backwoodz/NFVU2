@@ -5,8 +5,11 @@ namespace Rachel350Z {
 public partial class Plugin {
     ConfigEntry<float> rimInches;
     ConfigEntry<float> h2RimInches;
+    ConfigEntry<float> z_lowering;
+    ConfigEntry<float> lowering=>VehicleConfig(z_lowering);
 
     void InitializeWheelTuning() {
+        z_lowering=WheelSetting("LoweringCm",0,0,12,"Lower the body by raising suspension anchors, in centimetres. Zero restores stock height; less ground clearance at higher values.");
         h2RimInches=Config.Bind("Hummer.Wheels","RimInches",26f,new ConfigDescription("H2 spinner rim diameter, tyre diameter unchanged.",new AcceptableValueRange<float>(22,28)));
         frontCamber=WheelSetting("FrontCamber",0,-15,10,"Front visual camber in degrees. Negative tilts the top inward.");
         rearCamber=WheelSetting("RearCamber",0,-15,10,"Rear visual camber in degrees. Negative tilts the top inward.");
@@ -20,17 +23,20 @@ public partial class Plugin {
     void DrawWheelMenu() {
         GUI.enabled=originalWheels;
         WheelSlider(frontCamber,"Sturz vorne",140,-15,10,.5f,"°");
-        WheelSlider(rearCamber,"Sturz hinten",201,-15,10,.5f,"°");
-        WheelSlider(frontWheelOffset,"Radversatz vorne",262,-10,20,.5f," cm / Rad");
-        WheelSlider(rearWheelOffset,"Radversatz hinten",323,-10,20,.5f," cm / Rad");
-        WheelSlider(IsHummer?h2RimInches:rimInches,"Felgengröße",384,IsHummer?22:16,IsHummer?28:22,.5f," Zoll");
-        if(GUI.Button(new Rect(25,446,510,32),"Räder zurücksetzen")) {
+        WheelSlider(rearCamber,"Sturz hinten",191,-15,10,.5f,"°");
+        WheelSlider(frontWheelOffset,"Radversatz vorne",242,-10,20,.5f," cm / Rad");
+        WheelSlider(rearWheelOffset,"Radversatz hinten",293,-10,20,.5f," cm / Rad");
+        WheelSlider(IsHummer?h2RimInches:rimInches,"Felgengröße",344,IsHummer?22:16,IsHummer?28:22,.5f," Zoll");
+        GUI.enabled=true;
+        WheelSlider(lowering,"Tieferlegung",395,0,12,.5f," cm");
+        if(MenuButton(new Rect(25,455,510,30),"Räder und Tieferlegung zurücksetzen")) {
+            lowering.Value=0;
             frontCamber.Value=rearCamber.Value=0;
             frontWheelOffset.Value=rearWheelOffset.Value=0;if(IsHummer)h2RimInches.Value=26;else rimInches.Value=20;
         }
         GUI.enabled=true;
-        GUI.Label(new Rect(25,483,510,36),originalWheels?
-            "Optische Anpassung · negativer Sturz: oben nach innen · positiver Versatz: nach außen":
+        GUI.Label(new Rect(25,490,510,30),originalWheels?
+            "Tieferlegung reduziert die Bodenfreiheit. Sturz und Versatz sind optisch.":
             "Für die importierten Originalräder verfügbar.",mutedStyle);
     }
     void WheelSlider(ConfigEntry<float> setting,string label,float y,float min,float max,float step,string unit) {

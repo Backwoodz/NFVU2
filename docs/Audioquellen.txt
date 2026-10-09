@@ -108,3 +108,14 @@ Keine separate Hummer-Schubaufnahme behauptet. Vier akustische Gänge
 und Schaltzeitpunkte sind für Valheim angepasst. Reifen/Hupe/Rückwärtsheulen
 werden mit dem bestehenden System geteilt. H2-Motorloops werden extern
 in audio/hummer installiert; Originaldateien bleiben im ignorierten .local.
+
+NFS-MENÜ (0.13.0)
+Originalbank: SOUND/GLOBAL/FE_COMMON_MB.abk aus eigenen NFSU2-Dateien.
+tools/export_menu.py decodiert drei kurze Mono-Samples mit vgmstream:
+Navigation = Substream 1, Bestätigen = 3, Zurück = 2 (konfigurierbare CLI-Werte).
+Sampleherkunft und Prüfsummen werden in menu/provenance.json aufgezeichnet.
+Die Zuordnung zu diesen Mod-Aktionen ist noch kein verifizierter Nachbau der
+Original-Eventtabelle. Kein synthetischer Ersatz; ohne Medien bleibt das Menü
+stumm und bedienbar. Eigene 2D-Quelle im SFX-Mixer, Menu.SoundVolume 0–1.
+Icons aus FRONTEND/FrontB.lzc; sieben deutsche Titel über Hash-Zuordnung aus
+LANGUAGES/Labels.bin und German.bin. Layout und Aktionen sind NFVU2-eigen.

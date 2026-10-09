@@ -78,6 +78,19 @@ Subwoofer in 0.11.0: [Unity OnAudioFilterRead](https://docs.unity3d.com/6000.0/D
 für die Analyse der interleavten Samples auf dem Audiothread. Der Callback
 ändert keine Samples und ruft keine Unity-API auf; Basshüllkurve und
 Membranverformung sind eigene NFVU2-Implementierungen.
+# Menü und Parkautomatik in 0.13.0
+
+- Lokale NFSU2-Dateien: `FRONTEND/FrontB.lzc`,
+  `LANGUAGES/Labels.bin`, `LANGUAGES/German.bin` und
+  `SOUND/GLOBAL/FE_COMMON_MB.abk`. Export erfasst SHA-256, Texturschlüssel,
+  Sprachschlüssel und Audio-Substreams in `.local/menu/provenance.json`.
+- Icons/Titel sind Originaldaten; Layout, Menüaktionen und Soundrollen sind
+  eigene Anpassungen. Die nativen Soundrollen sind noch nicht nachgewiesen.
+- [Facepunch: Auto Turret](https://wiki.facepunch.com/rust/Item/autoturret):
+  180° frontal für die Zielsuche. Mod verwendet ±90° relativ zur Fahrzeugfront;
+  Scanbewegung, 30-m-Reichweite, Valheim-Gegnerfilter und Feuerlogik sind eigene
+  Regeln, keine vollständige Reproduktion der Rust-Steuerung.
+
 # Hummer H2 in 0.12.0
 
 - Lokale NFSU2-CDs: `CARS/HUMMER/GEOMETRY.BIN`, `TEXTURES.BIN`,

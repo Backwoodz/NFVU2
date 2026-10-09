@@ -1,5 +1,36 @@
 # Versionsgeschichte
 
+## 0.13.1 — Verschiebbares Fahrzeugmenü
+
+F9-Menü per linker Maustaste an der Titelleiste verschieben. Die Position wird
+gespeichert und bei Auflösungswechsel auf den sichtbaren Bildschirm begrenzt.
+Schließen/Fokusverlust beendet das Ziehen. Schließen-Button und Inhaltsregler
+bleiben unabhängig bedienbar. Die bestehende Fahrzeugbindung der Kategorien
+bleibt erhalten: Ohne Fahrzeug ist nur die Garage aktiv.
+Build und Menütests geprüft; tatsächliches Unity-Ziehen noch im Spiel prüfen.
+
+## 0.13.0 — Tieferlegung, NFS-Menü und Parkautomatik
+
+- F9 → Räder: zusätzlicher Tieferlegungsregler 0–12 cm mit 0,5-cm-Schritten,
+  für H2/350Z getrennt gespeichert; physischer Versatz der Aufhängungspunkte.
+  Serienhöhe beim Zurücksetzen, Feder-/Dämpfer- und Fahrmodusabstimmung erhalten.
+- Vorderräder behalten beim Aussteigen ihren tatsächlichen Lenkwinkel.
+  Wiedereinstieg setzt die geglättete Lenkung fort; Parkbremse bleibt aktiv.
+- Neues F9-Layout mit Kategorienleiste, Original-NFSU2-Icons, ausgewählten
+  deutschen Originaltiteln, Tastaturnavigation und drei Frontend-Sounds.
+  Lokaler Import mit `tools/export_menu.py`, optionaler Medienordner `menu/`.
+  Layout/Aktionen und Soundrollen sind angepasst; keine NFS-Menüemulation.
+- Aktivierter 350Z-Turret bewacht nach dem Aussteigen automatisch: sichtbare
+  Lasersuche, vorderer 180°-Sektor, 30 m Reichweite, feindliche Kreaturen,
+  Laufnachführung, kontrollierte Schusslinie und automatisches Nachladen.
+  Schalter unter Turret; unabhängig vom Motor-/Radioweiterlauf. Laserfarbe,
+  Stärke und Munition werden übernommen. Spieler/zahme Tiere sind keine Ziele.
+- Menüs, Fokusverlust und Spielertod sperren Automatik; nach manueller Übernahme
+  bleibt gehaltenes RMB bis zum Loslassen gesperrt. Jeder Turret hat eigene
+  Suche, Munition und Bewegung. H2-Turret weiterhin nicht eingerichtet.
+- Geprüft mit Build, Import-/Payloadtests, Fahrwerks- und Turret-Zustandstests
+  sowie kontrollierten Sichtlinien-API-Antworten. Kein Unity-Spieltest.
+
 ## 0.12.0 — Hummer H2, Spinner und Garage
 
 Originaler H2 aus den eigenen NFSU2-Dateien: Serienkarosserie in Gelb,

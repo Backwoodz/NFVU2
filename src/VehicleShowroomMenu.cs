@@ -32,7 +32,7 @@ public partial class Plugin {
     void MotionButton(Rect rect,int part,string label) {
         bool stationary=body!=null&&body.linearVelocity.magnitude<=.5f;
         GUI.enabled=stationary||showroom.State.Open[part];
-        if(GUI.Button(rect,label+(showroom.State.Open[part]?" schließen":" öffnen")))showroom.State.Toggle(part,stationary);
+        if(MenuButton(rect,label+(showroom.State.Open[part]?" schließen":" öffnen")))showroom.State.Toggle(part,stationary);
         GUI.enabled=true;
     }
     void DrawBodyMenu() {
@@ -65,7 +65,7 @@ public partial class Plugin {
         int next=GUI.SelectionGrid(new Rect(25,402,505,60),color,ColorNames,4);
         if(next!=color)trunkNeonColor.Value=ColorNames[next];
         MotionButton(new Rect(25,478,245,34),3,"Kofferraum");
-        if(GUI.Button(new Rect(285,478,245,34),"Standard-System")) {
+        if(MenuButton(new Rect(285,478,245,34),"Standard-System")) {
             trunkLayout.Value=2;foreach(var slot in audioSlots)slot.Value=1;
             trunkNeonEnabled.Value=true;trunkNeonPulsing.Value=false;trunkNeonColor.Value="Grün";
         }

@@ -18,6 +18,8 @@ public partial class Plugin {
     Texture2D menuBackground;
     GUIStyle panelStyle, titleStyle, labelStyle, mutedStyle, songButtonStyle;
     void InitializeMenu() {
+        InitializeMenuPlacement();
+        InitializeMenuTheme();
         InitializeGarage();
         InitializeWheelTuning();
         InitializeShowroomMenu();
@@ -40,6 +42,7 @@ public partial class Plugin {
     void SetVehicleMenu(bool open) {
         if(open==menuOpen)return;
         if(open){
+            EnsureMenuAssets();MenuSound(1);hoveredTab=-1;
             if(!CanAccessCurrent(LocalPlayer()))menuTab=10;
             menuOldLock=Cursor.lockState;menuOldVisible=Cursor.visible;menuOpen=true;
             if(!driving){
@@ -51,6 +54,8 @@ public partial class Plugin {
             BlockDrivingInput();Cursor.lockState=CursorLockMode.None;Cursor.visible=true;
         }
         else {
+            StopMenuDrag();SaveMenuPlacement();
+            MenuSound(2);
             menuOpen=false;
             if(menuPlayer!=null)menuPlayer.enabled=menuPlayerEnabled;
             if(menuCamera!=null)menuCamera.enabled=menuCameraEnabled;
@@ -72,9 +77,12 @@ public partial class Plugin {
         labelStyle=new GUIStyle(GUI.skin.label){fontSize=15,wordWrap=true};labelStyle.normal.textColor=Color.white;
         mutedStyle=new GUIStyle(labelStyle){fontSize=13};mutedStyle.normal.textColor=new Color(.65f,.7f,.72f);
         songButtonStyle=new GUIStyle(GUI.skin.button){fontSize=13,wordWrap=true,alignment=TextAnchor.MiddleLeft};
+        titleStyle.normal.textColor=MenuAccent;
+        BuildMenuSkin();
     }
-    void DisposeMenu(){if(menuBackground!=null)Destroy(menuBackground);menuBackground=null;panelStyle=titleStyle=labelStyle=mutedStyle=songButtonStyle=null;}
+    void DisposeMenu(){DisposeMenuTheme();if(menuBackground!=null)Destroy(menuBackground);menuBackground=null;panelStyle=titleStyle=labelStyle=mutedStyle=songButtonStyle=null;}
     void OnGUI() {
+        if(!menuOpen||audioBlocked||!Application.isFocused)StopMenuDrag();
         if(!ready||LocalPlayer()==null)return;
         var text=driving?DriveModeName+" | WASD: fahren | Leertaste: "+(driftMode.Value?"Handbremse":"bremsen")+" | H: Hupe | F7: aussteigen\nMaus: umschauen | Mausrad: Zoom | "+menuKey.Value+": Fahrzeugmenü":status;
         GUI.Box(new Rect(15,Screen.height-80,Mathf.Min(920,Screen.width-30),60),text);
@@ -84,19 +92,28 @@ public partial class Plugin {
             GUI.Box(new Rect(15,Screen.height-120,310,32),"LMB: Nitro / Purge  |  Tank "+Mathf.RoundToInt(vehicleNitro.State.Charge*100)+" %");
         if(!menuOpen||audioBlocked)return;
         EnsureMenuStyles();
-        float scale=Mathf.Max(.1f,Mathf.Min(1,Mathf.Min((Screen.width-32f)/560f,(Screen.height-140f)/560f)));
+        float scale=Mathf.Max(.1f,Mathf.Min(1,Mathf.Min((Screen.width-32f)/740f,(Screen.height-140f)/560f)));
+        HandleMenuDrag(scale);
         var oldMatrix=GUI.matrix;bool oldEnabled=GUI.enabled;
+        var oldSkin=GUI.skin;bool oldChanged=GUI.changed;var inputEvent=Event.current.type;
         try {
-            GUI.matrix=Matrix4x4.TRS(new Vector3(16,16,0),Quaternion.identity,Vector3.one*scale);
-            GUI.Box(new Rect(0,0,560,560),GUIContent.none,panelStyle);
-            GUI.Label(new Rect(22,15,480,36),"NFVU2  /  "+(CanAccessCurrent(LocalPlayer())?VehicleName:"Garage"),titleStyle);
-            if(GUI.Button(new Rect(513,17,28,28),"×")){CloseVehicleMenu();return;}
-            GUI.Label(new Rect(23,55,510,25),driving?"Fahrzeug bremst · Radio bleibt bedienbar":"Fahrzeugsteuerung",mutedStyle);
-            menuTab=GUI.SelectionGrid(new Rect(22,86,516,46),menuTab,new[]{"Fahrzeug","Radio","Licht","Neon","Nitro","Räder","Türen","Ausbau","Anzeige","Turret","Garage"},6);
+            GUI.skin=menuSkin;GUI.changed=false;
+            GUI.matrix=Matrix4x4.TRS(new Vector3(menuPlacement.X,menuPlacement.Y,0),Quaternion.identity,Vector3.one*scale);
+            GUI.Box(new Rect(0,0,740,560),GUIContent.none,panelStyle);
+            var oldColor=GUI.color;GUI.color=MenuAccent;GUI.DrawTexture(new Rect(0,0,740,3),Texture2D.whiteTexture);GUI.color=oldColor;
+            GUI.Label(new Rect(22,15,650,36),"NFVU2  /  "+(CanAccessCurrent(LocalPlayer())?VehicleName:"Garage"),titleStyle);
+            if(GUI.Button(new Rect(690,19,30,30),"×")){CloseVehicleMenu();return;}
+            GUI.Label(new Rect(23,57,660,25),"UNDERGROUND GARAGE   /   "+(driving?"Fahrzeug bremst":"Tuning & Fahrzeugsteuerung"),mutedStyle);
             if(menuTab!=10&&!CanAccessCurrent(LocalPlayer()))menuTab=10;
-            switch(menuTab){case 10:DrawGarageMenu();break;case 0:DrawCarMenu();break;case 1:DrawRadioMenu();break;case 2:DrawLightsMenu();break;case 3:DrawNeonMenu();break;case 4:DrawNitroMenu();break;case 5:DrawWheelMenu();break;case 6:DrawBodyMenu();break;case 7:DrawTrunkMenu();break;case 8:DrawDrivingDisplayMenu();break;case 9:DrawTurretMenu();break;}
-            GUI.Label(new Rect(23,522,516,28),menuKey.Value+": schließen  ·  Einstellungen werden gespeichert",mutedStyle);
-        } finally {GUI.matrix=oldMatrix;GUI.enabled=oldEnabled;}
+            MenuNavigation(CanAccessCurrent(LocalPlayer()));
+            GUI.BeginGroup(new Rect(180,0,560,522));
+            try {
+                GUI.Label(new Rect(25,99,510,28),menuAssets?.Titles[menuTab]??MenuNames[menuTab],titleStyle);
+                switch(menuTab){case 10:DrawGarageMenu();break;case 0:DrawCarMenu();break;case 1:DrawRadioMenu();break;case 2:DrawLightsMenu();break;case 3:DrawNeonMenu();break;case 4:DrawNitroMenu();break;case 5:DrawWheelMenu();break;case 6:DrawBodyMenu();break;case 7:DrawTrunkMenu();break;case 8:DrawDrivingDisplayMenu();break;case 9:DrawTurretMenu();break;}
+            }finally{GUI.EndGroup();}
+            GUI.Label(new Rect(23,530,700,25),menuKey.Value+": schließen  ·  ↑↓: Kategorie  ·  Titelleiste ziehen: verschieben",mutedStyle);
+            if(GUI.changed&&(inputEvent==EventType.MouseUp||inputEvent==EventType.MouseDown||inputEvent==EventType.MouseDrag||inputEvent==EventType.KeyDown))MenuSound(0);
+        } finally {GUI.matrix=oldMatrix;GUI.enabled=oldEnabled;GUI.skin=oldSkin;GUI.changed|=oldChanged;}
     }
     void DrawCarMenu() {
         GUI.Label(new Rect(25,145,510,30),"Fahrmodus",labelStyle);
@@ -104,14 +121,14 @@ public partial class Plugin {
         int mode=GUI.Toolbar(new Rect(25,180,510,30),current,IsHummer?new[]{"Gelände","Straße"}:new[]{"Gelände","Straße","Drift"});
         if(mode!=current){driftMode.Value=mode==2;terrainMode.Value=mode==0;ApplyDriveMode();}
         GUI.Label(new Rect(25,218,510,52),mode==2?"Heckantrieb, lockeres Heck, schnelles Gegenlenken.\nLeertaste: Hinterrad-Handbremse · S: bremsen":(mode==0?"Für kurze Strecken und unebenen Boden.":"Straßenmodus mit Heckantrieb.")+"\nW + S im Stand: Burnout · Leertaste: abbrechen",mutedStyle);
-        if(GUI.Button(new Rect(25,280,245,38),driving?"Aussteigen":"Einsteigen")){
+        if(MenuButton(new Rect(25,280,245,38),driving?"Aussteigen":"Einsteigen")){
             var local=LocalPlayer();CloseVehicleMenu();if(driving)Exit();else if(CanAccessCurrent(local))Enter(local);return;
         }
-        if(GUI.Button(new Rect(285,280,245,38),"Fahrzeug entfernen")){Cleanup();return;}
+        if(MenuButton(new Rect(285,280,245,38),"Fahrzeug entfernen")){Cleanup();return;}
         keepRunning.Value=GUI.Toggle(new Rect(25,340,510,32),keepRunning.Value," Beim Aussteigen weiterlaufen lassen");
         GUI.Label(new Rect(25,378,510,48),"Motor im Leerlauf, aktiviertes Neon und gedämpfte Musik. Auch neben dem Auto ein-/ausschaltbar.",mutedStyle);
-        if(GUI.Button(new Rect(25,445,245,38),"Türen und Motorhaube"))menuTab=6;
-        if(GUI.Button(new Rect(285,445,245,38),"Kofferraum-Ausbau"))menuTab=7;
+        if(MenuButton(new Rect(25,445,245,38),"Türen und Motorhaube"))menuTab=6;
+        if(MenuButton(new Rect(285,445,245,38),"Kofferraum-Ausbau"))menuTab=7;
     }
     void DrawNitroMenu() {
         if(IsHummer){GUI.Label(new Rect(25,150,510,80),"Der H2 startet mit Serienmotor. Nitro und Auspuffeffekte sind hier noch nicht eingerichtet.",labelStyle);return;}
@@ -129,12 +146,12 @@ public partial class Plugin {
         if(vehicleRadio==null||vehicleRadio.Count==0){GUI.Label(new Rect(25,260,510,95),"Noch keine Musik verfügbar. Die NFS-Musik muss zuerst lokal importiert werden.",labelStyle);return;}
         GUI.Label(new Rect(25,255,510,48),vehicleRadio.CurrentTitle,labelStyle);
         GUI.enabled=(driving||ParkedRunning)&&radioEnabled.Value;
-        if(GUI.Button(new Rect(25,310,160,34),"◀ Zurück"))vehicleRadio.Previous();
-        if(GUI.Button(new Rect(195,310,165,34),vehicleRadio.Paused?"Abspielen":"Pause"))vehicleRadio.TogglePause();
-        if(GUI.Button(new Rect(370,310,160,34),"Weiter ▶"))vehicleRadio.Next();
+        if(MenuButton(new Rect(25,310,160,34),"◀ Zurück"))vehicleRadio.Previous();
+        if(MenuButton(new Rect(195,310,165,34),vehicleRadio.Paused?"Abspielen":"Pause"))vehicleRadio.TogglePause();
+        if(MenuButton(new Rect(370,310,160,34),"Weiter ▶"))vehicleRadio.Next();
         songScroll=GUI.BeginScrollView(new Rect(25,360,510,130),songScroll,new Rect(0,0,488,vehicleRadio.Count*44));
         var titles=vehicleRadio.TrackTitles;
-        try {for(int i=0;i<vehicleRadio.Count;i++)if(GUI.Button(new Rect(0,i*44,483,42),(i==vehicleRadio.CurrentIndex?"▶ ":"")+titles[i],songButtonStyle))vehicleRadio.Select(i);}
+        try {for(int i=0;i<vehicleRadio.Count;i++)if(MenuButton(new Rect(0,i*44,483,42),(i==vehicleRadio.CurrentIndex?"▶ ":"")+titles[i],songButtonStyle))vehicleRadio.Select(i);}
         finally {GUI.EndScrollView();GUI.enabled=true;}
         GUI.Label(new Rect(25,493,510,23),driving||ParkedRunning?vehicleRadio.Status:hasBeenDriven?"Zum Musikhören einsteigen oder Weiterlaufen aktivieren.":"Zum Musikhören einmal einsteigen.",mutedStyle);
     }
@@ -151,7 +168,7 @@ public partial class Plugin {
         int selected=Math.Max(0,Array.IndexOf(VehicleLighting.HeadlightPresets,headlightPreset.Value));
         int choice=GUI.SelectionGrid(new Rect(25,279,510,148),selected,VehicleLighting.HeadlightPresets,4,songButtonStyle);
         if(choice!=selected)headlightPreset.Value=VehicleLighting.HeadlightPresets[choice];
-        if(GUI.Button(new Rect(25,444,510,32),"Scheinwerfer zurücksetzen")) {headlightPreset.Value="Serie";headlightStrength.Value=1;}
+        if(MenuButton(new Rect(25,444,510,32),"Scheinwerfer zurücksetzen")) {headlightPreset.Value="Serie";headlightStrength.Value=1;}
         GUI.enabled=true;
         GUI.Label(new Rect(25,483,510,36),"Farbe und Stärke gelten vorne. Fahrlicht geht beim Einstieg an; Brems- und Rückfahrlicht reagieren automatisch.",mutedStyle);
     }

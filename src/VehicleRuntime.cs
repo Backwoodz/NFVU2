@@ -19,6 +19,7 @@ internal sealed class VehicleRuntime {
     public float rearWheelVisualOffset;
     public PhysicsMaterial chassisMaterial;
     public VehicleHandling handling;
+    public VehicleRideHeight rideHeight;
     public VehicleShowroom showroom;
     public VehicleImpact vehicleImpact;
     public bool hasBeenDriven;

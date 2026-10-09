@@ -5,6 +5,7 @@ import json
 
 REQUIRED=('Rachel350Z.dll','body.json')
 OPTIONAL=(('radio', 'radio', {'.wav','.ogg','.json'}),
+          ('menu', 'menu', {'.wav','.json'}),
           ('audio-turbo', 'audio/turbo', {'.wav','.json'}),
           ('audio-effects', 'audio/effects', {'.wav','.json'}),
           ('hud', 'hud', {'.json'}),

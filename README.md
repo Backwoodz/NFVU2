@@ -2,7 +2,7 @@
 
 **Need for Valheim: Underground 2** — ein privater Fahrzeug-Mod-Prototyp für Valheim.
 
-Aktueller Stand: **0.12.0**, gebaut und automatisiert geprüft; Spieltest noch offen.
+Aktueller Stand: **0.13.1**, gebaut und automatisiert geprüft; Spieltest noch offen.
 Die vorherige Version 0.2.1 ist vom Nutzer in Valheim bestätigt. Ein aus eigenen NFS-Underground-2-Dateien ausgelesener
 Nissan 350Z lässt sich in einer lokalen Valheim-Einzelspielerwelt spawnen und fahren.
 Mauskamera, Gelände-/Straßenmodus und Fahrzeug-Sound sind im Spiel bestätigt.
@@ -78,6 +78,42 @@ NFS-Prozess ist eine mögliche spätere Forschungsaufgabe und noch nicht impleme
 
 ## Bedienung
 
+Seit 0.13.1 lässt sich das F9-Menü mit gedrückter linker Maustaste an der
+Titelleiste verschieben. Die Position bleibt auch nach Neustart gespeichert;
+bei kleinerer Auflösung wird das gesamte Menü wieder in den Bildschirm gerückt.
+Schließen und Fokusverlust beenden das Ziehen. Kategorien links sind verfügbar,
+sobald ein Fahrzeug gespawnt und in Reichweite ist; ohne Auto bleibt die Garage.
+
+Neu in 0.13.0: F9 hat eine seitliche Kategorienleiste mit originalen NFSU2-Icons,
+ausgewählten deutschen Menübezeichnungen und originalen Frontend-Sounds.
+Die Anordnung, Aktionen und Zuordnung der drei Sounds sind NFVU2-Anpassungen;
+es wird kein vollständiger NFS-Menüablauf emuliert. Pfeil hoch/runter wechselt
+die Kategorie. `Menu.SoundVolume` regelt die Navigationslautstärke (0 = stumm).
+Import: `python tools/export_menu.py`; ohne Medien bleibt das Menü bedienbar.
+
+F9 → Räder ergänzt **Tieferlegung von 0 bis 12 cm** in 0,5-cm-Schritten,
+getrennt für 350Z/H2 gespeichert. Sie hebt die Radaufhängungspunkte relativ
+zum Fahrzeug an: Der Aufbau setzt sich tiefer, die Bodenfreiheit sinkt.
+Federweg, Federn, Dämpfer und bisherige Fahrmodi behalten ihre Abstimmung.
+Zurücksetzen stellt auch die Serienhöhe wieder her. Beim Aussteigen bleibt
+der tatsächliche vordere Lenkwinkel erhalten; beim Wiedereinstieg läuft die
+Lenkung wieder weich zum Eingabewert.
+
+F9 → Turret → **Nach dem Aussteigen automatisch bewachen** ist standardmäßig
+an, sobald der Turret selbst eingeschaltet und das Auto einmal gefahren wurde.
+Der Turret sucht mit aktivem Laserschalter sichtbar im vorderen 180°-Sektor
+(±90° zur Fahrzeugfront) und erfasst feindliche Kreaturen bis 30 m.
+Er richtet den Lauf aus, schießt bei freier Schusslinie und lädt automatisch
+nach. Spieler, zahme Tiere, eigene Karosserie und Deckung blockieren die Linie;
+Spieler, zahme und friedliche Kreaturen werden nicht als Ziele ausgewählt.
+Die Automatik ist unabhängig vom weiterlaufenden Motor/Radio und arbeitet
+auch an anderen geparkten 350Z in der Garage. Menüs, Fokusverlust und Tod des
+lokalen Spielers pausieren sie. Beim Einstieg übernimmt die Maus; eine
+gehaltene Feuertaste muss vor dem ersten manuellen Schuss losgelassen werden.
+Munition und Lasereinstellungen gelten auch für die Automatik. Suchbewegung,
+30-m-Reichweite und Ziel-/Feuerlogik sind NFVU2-Anpassungen. Der Suchsektor
+orientiert sich an der [offiziellen Rust-Wiki](https://wiki.facepunch.com/rust/Item/autoturret).
+
 | Taste | Funktion |
 |---|---|
 | F6 | In der Garage ausgewähltes Fahrzeug zusätzlich erstellen |
@@ -127,6 +163,7 @@ python tools/export_rachel.py
 python tools/export_hummer.py
 python tools/prepare_hummer_audio.py
 python tools/export_hud.py
+python tools/export_menu.py
 python tools/extract_audio.py
 python tools/decode_audio.py
 python tools/prepare_audio.py
@@ -298,7 +335,8 @@ Radversatz vorne/hinten (−10 bis +20 cm je Rad) und die gemeinsame Felgengrö�
 Negativer Sturz neigt die Oberkante nach innen; positiver Versatz schiebt die
 Räder nach außen. Die Reifenflanke passt sich an die Felge an, der äußere
 Reifendurchmesser bleibt bei 70 cm. Diese Einstellungen sind optisch;
-Radstand, WheelCollider und Fahrwerk bleiben unverändert. Bremsen folgen Sturz
+Radstand und Radkollision bleiben für diese optischen Regler unverändert.
+Der zusätzliche Tieferlegungsregler versetzt die Aufhängungspunkte. Bremsen folgen Sturz
 und Versatz, behalten aber ihre Größe. Änderungen erscheinen direkt, bleiben
 gespeichert und können gemeinsam zurückgesetzt werden.
 Nitro wirkt bei Vorwärtsfahrt mit Gas und Bodenkontakt; im Stand entstehen

@@ -10,7 +10,7 @@ public struct Vector3 {
     public static Vector3 operator *(Vector3 a,float f)=>new Vector3(a.x*f,a.y*f,a.z*f);
 }
 public class Transform {
-    public Vector3 position,up=new Vector3(0,1,0),forward=new Vector3(0,0,1);
+    public Vector3 position,localPosition,up=new Vector3(0,1,0),forward=new Vector3(0,0,1);
     public Vector3 InverseTransformPoint(Vector3 point)=>point;
 }
 public class Rigidbody {

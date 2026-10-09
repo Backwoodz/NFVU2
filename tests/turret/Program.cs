@@ -6,6 +6,20 @@ class TurretTests {
     static int checks;
     static void Check(bool ok,string name){if(!ok)throw new Exception(name);checks++;Console.WriteLine("PASS "+name);}
     static void Main(string[] args) {
+        Check(TurretAutoRules.InSector(30,90,55)&&TurretAutoRules.InSector(1,-90,-65),"auto acquisition includes 180-degree sector and pitch boundary");
+        Check(!TurretAutoRules.InSector(30.01f,0,0)&&!TurretAutoRules.InSector(10,90.01f,0)&&!TurretAutoRules.InSector(10,-91,0)&&!TurretAutoRules.InSector(10,0,-66),"outside range, rear sector and unreachable elevation are excluded");
+        Check(!TurretAutoRules.InSector(float.NaN,0,0)&&!TurretAutoRules.InSector(1,float.NaN,0)&&!TurretAutoRules.InSector(1,0,float.NaN),"nonfinite target geometry fails closed");
+        Check(Enumerable.Range(0,1000).All(i=>Math.Abs(TurretAutoRules.ScanYaw(i*.1f))<=90)&&TurretAutoRules.ScanYaw(5)>80&&TurretAutoRules.ScanYaw(15)<-80,"idle sweep visits both sides within frontal arc");
+        var automatic=new TurretState();
+        Check(automatic.Step(.02f,true,true,true),"automatic target can fire without a physical mouse release");
+        for(int i=0;i<40;i++)automatic.Step(.02f,true,false,true);
+        Check(automatic.Ammo==29,"target loss stops automatic fire");
+        Check(!automatic.Step(.1f,true,true,false),"manual takeover with held mouse stays disarmed");
+        automatic.Step(.1f,true,false,false);Check(automatic.Step(.1f,true,true,false),"release rearms manual fire after automatic mode");
+        automatic.Step(.1f,false,true,true);int parkedAmmo=automatic.Ammo;
+        Check(!automatic.Step(.1f,false,true,true)&&automatic.Ammo==parkedAmmo,"pause blocks autonomous fire");
+        int autoShots=0;for(int i=0;i<700;i++)if(automatic.Step(.02f,true,true,true))autoShots++;
+        Check(autoShots>60&&automatic.Ammo>=0&&automatic.Ammo<=30,"automatic mode reloads across multiple magazines");
         var s=new TurretState();
         Check(!s.Step(.02f,true,true)&&s.Ammo==30,"entering with held right mouse cannot fire");
         s.Step(.02f,true,false);Check(s.Step(.02f,true,true)&&s.Ammo==29,"release then press fires one round");

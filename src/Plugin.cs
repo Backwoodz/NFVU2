@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Rachel350Z {
 // Disposable local prototype. No ZNetView: never use in multiplayer or persist into saves.
-[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.12.0")]
+[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.13.1")]
 public partial class Plugin : BaseUnityPlugin {
     VehicleOrbitCamera orbitCamera;
     ValheimMusicDucking fleetMusic;
@@ -127,6 +127,8 @@ public partial class Plugin : BaseUnityPlugin {
         handling=new VehicleHandling(body,wheels,terrainMode.Value,message=>Logger.LogInfo(message));
         if(driftMode.Value&&!IsHummer)handling.SetDriftMode();
         if(IsHummer)HummerTuning.Configure(body,wheels);
+        current.rideHeight=new VehicleRideHeight(body,wheels);
+        current.rideHeight.Apply(lowering.Value);
         dashboard=VehicleDashboard.Create(Path.Combine(Path.GetDirectoryName(Info.Location),"hud","hud.json"),message=>Logger.LogWarning(message));
         vehicleImpact=car.AddComponent<VehicleImpact>();
         vehicleImpact.Initialize(body,box,message=>Logger.LogWarning(message));
@@ -185,6 +187,7 @@ public partial class Plugin : BaseUnityPlugin {
     void FixedUpdate() {ForEachVehicle(StepVehicle);}
     void StepVehicle() {
         if(body==null||wheels==null)return;
+        current.rideHeight?.Apply(lowering.Value);
         vehicleImpact?.Step(player,driving&&!audioBlocked&&!menuOpen&&Application.isFocused);
         bool handbrake=driftMode.Value&&driving&&brake>0&&!audioBlocked&&!menuOpen&&Application.isFocused;
         handling?.Step(driving,throttle,steer,handbrake?0:brake,burnoutHeld&&!audioBlocked&&!menuOpen&&Application.isFocused,handbrake);

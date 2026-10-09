@@ -23,6 +23,10 @@ public sealed class VehicleTurret : IDisposable {
     AudioClip tail,reload,online;
     float flashLeft,yawAngle,pitchAngle;
     int shotIndex;bool enabled,disposed,pendingOnline;
+    Character autoTarget;
+    float searchLeft,scanTime;
+    public bool Automatic {get;private set;}
+    public bool Tracking=>Automatic&&autoTarget!=null;
     public bool Enabled=>enabled&&!disposed;
     public Vector3 AimPoint {get;private set;}
     public bool Obstructed {get;private set;}
@@ -94,15 +98,25 @@ public sealed class VehicleTurret : IDisposable {
     }
     // Trace the actual bore, retaining the car's hull as a blocker.
     bool Ray(Vector3 origin,Vector3 direction,Character driver,out RaycastHit closest,bool ignoreVehicle=false) {
-        closest=default(RaycastHit);bool found=false;
-        foreach(var hit in Physics.RaycastAll(origin,direction,Range,Physics.DefaultRaycastLayers,QueryTriggerInteraction.Ignore)) {
-            if(hit.collider==null||(driver!=null&&hit.collider.transform.IsChildOf(driver.transform)))continue;
-            if(ignoreVehicle&&hit.collider.transform.IsChildOf(vehicle))continue;
-            if(!found||hit.distance<closest.distance){closest=hit;found=true;}
-        }
-        return found;
+        return TurretTargeting.Ray(origin,direction,Range,vehicle,driver,out closest,ignoreVehicle);
     }
-    public void Tick(bool requested,bool active,bool held,Character driver,float volume,bool laserEnabled,bool explosive,float laserStrength,Color laserColor) {
+    bool VisibleEnemy(Character candidate,Character owner) {
+        return TurretTargeting.VisibleEnemy(candidate,owner,root,pitch.position,vehicle);
+    }
+    Vector3 AutomaticAim(float dt,Character owner) {
+        scanTime+=dt;searchLeft-=dt;
+        if(!VisibleEnemy(autoTarget,owner))autoTarget=null;
+        if(autoTarget==null&&searchLeft<=0) {
+            searchLeft=.25f;float nearest=float.PositiveInfinity;
+            foreach(var candidate in Character.GetAllCharacters()) {
+                if(candidate==null)continue;
+                float distance=(candidate.transform.position-pitch.position).sqrMagnitude;
+                if(distance<nearest&&VisibleEnemy(candidate,owner)){autoTarget=candidate;nearest=distance;}
+            }
+        }
+        return autoTarget!=null?autoTarget.GetCenterPoint():yaw.position+root.TransformDirection(Quaternion.Euler(0,TurretAutoRules.ScanYaw(scanTime),0)*Vector3.forward)*TurretAutoRules.Range;
+    }
+    public void Tick(bool requested,bool active,bool held,Character driver,float volume,bool laserEnabled,bool explosive,float laserStrength,Color laserColor,bool automatic=false) {
         if(disposed)return;
         float dt=Mathf.Clamp(Time.deltaTime,0,.1f);
         volume=float.IsNaN(volume)||float.IsInfinity(volume)?0:Mathf.Clamp01(volume);
@@ -113,10 +127,13 @@ public sealed class VehicleTurret : IDisposable {
             pendingOnline=enabled;
         }
         active=active&&enabled&&Camera.main!=null&&driver!=null;
+        if(driver!=null&&driver.IsDead())active=false;
+        Automatic=active&&automatic;
+        if(!Automatic){autoTarget=null;searchLeft=0;scanTime=0;}
         explosion?.Tick(active,volume);
         laserMount.gameObject.SetActive(laserEnabled&&LaserAvailable);
         if(!active) {
-            State.Step(dt,false,held);foreach(var s in sources)s.Stop();
+            State.Step(dt,false,held,automatic);foreach(var s in sources)s.Stop();
             flashLeft=0;flash.enabled=tracer.enabled=false;light.intensity=0;
             laserBeam.enabled=laserDot.enabled=laserCore.enabled=false;
             gun.localPosition=Vector3.zero;gun.localRotation=Quaternion.identity;return;
@@ -125,8 +142,12 @@ public sealed class VehicleTurret : IDisposable {
         if(pendingOnline){actionAudio.PlayOneShot(online,.7f);pendingOnline=false;}
         // Raised aiming camera and an upper viewport target keep the car below
         // the sightline. Resolve the world target first, then converge the bore.
-        var sightRay=camera.ViewportPointToRay(new Vector3(TurretAimSettings.ViewX,TurretAimSettings.ViewY,0));
-        Vector3 target=Ray(sightRay.origin,sightRay.direction,driver,out var sight,true)?sight.point:sightRay.GetPoint(Range);
+        Vector3 target;
+        if(Automatic)target=AutomaticAim(dt,driver);
+        else {
+            var sightRay=camera.ViewportPointToRay(new Vector3(TurretAimSettings.ViewX,TurretAimSettings.ViewY,0));
+            target=Ray(sightRay.origin,sightRay.direction,driver,out var sight,true)?sight.point:sightRay.GetPoint(Range);
+        }
         var aim=root.InverseTransformDirection(target-yaw.position);
         float nextYaw=Mathf.MoveTowardsAngle(yawAngle,Mathf.Atan2(aim.x,aim.z)*Mathf.Rad2Deg,240*dt);
         yaw.localRotation=Quaternion.Euler(0,nextYaw,0);
@@ -137,12 +158,13 @@ public sealed class VehicleTurret : IDisposable {
         if(moving&&volume>0){if(!servoAudio.isPlaying)servoAudio.Play();}else servoAudio.Stop();
         // Recoil is cosmetic; aiming/damage use the mount's pre-recoil bore.
         gun.localPosition=Vector3.zero;gun.localRotation=Quaternion.identity;
-        bool hit=Ray(muzzle.position,pitch.forward,driver,out var impact);
+        bool hit=Ray(muzzle.position,pitch.forward,Automatic?null:driver,out var impact);
         AimPoint=hit?impact.point:muzzle.position+pitch.forward*Range;
         Obstructed=hit&&impact.collider.transform.IsChildOf(vehicle);
         Aligned=Vector3.Angle(pitch.forward,target-muzzle.position)<2&&!Obstructed;
         flashLeft=Mathf.Max(0,flashLeft-dt);
-        if(State.Step(dt,true,held)) {
+        bool trigger=Automatic?TurretTargeting.CanFire(autoTarget,driver,Aligned,hit,impact.collider):held;
+        if(State.Step(dt,true,trigger,Automatic)) {
             fireAudio.PlayOneShot(shots[shotIndex++%shots.Length]);fireAudio.PlayOneShot(tail,.4f);
             flashLeft=.045f;tracer.SetPosition(0,muzzle.position);tracer.SetPosition(1,AimPoint);
             if(hit&&!Obstructed)Damage(impact,pitch.forward,driver);
@@ -165,7 +187,7 @@ public sealed class VehicleTurret : IDisposable {
             laserColor.a=1;laserDot.startColor=laserDot.endColor=laserColor;
             var tint=new Color(strength,strength,strength,1);
             foreach(var property in new[]{"_TintColor","_Color"})if(laserMaterial.HasColor(property))laserMaterial.SetColor(property,tint);
-            bool laserHit=Ray(laser.position,(AimPoint-laser.position).normalized,driver,out var laserImpact);
+            bool laserHit=Ray(laser.position,(AimPoint-laser.position).normalized,Automatic?null:driver,out var laserImpact);
             Vector3 end=laserHit?laserImpact.point+laserImpact.normal*.005f:AimPoint;
             laserBeam.SetPosition(0,laser.position);laserBeam.SetPosition(1,end);
             laserCore.SetPosition(0,laser.position);laserCore.SetPosition(1,end);
