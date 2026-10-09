@@ -2,7 +2,8 @@
 
 **Need for Valheim: Underground 2** — ein privater Fahrzeug-Mod-Prototyp für Valheim.
 
-Aktueller Stand: **0.14.3**; Chromrand, dezenterer Goldstern und korrigierte Scheibentönung noch im Spiel prüfen.
+Aktueller Stand: **0.15.2** mit überarbeitetem Nitro-Eingabeweg, näheren Flammen und sichtbarerem Reifenprofil.
+Grundfunktion des Flugmodus bestätigt; neue Abstimmung und Darstellung noch im Spiel prüfen.
 Innenraum und Ein-/Ausstieg von 0.14.0 funktionieren laut Nutzerrückmeldung.
 Die vorherige Version 0.2.1 ist vom Nutzer in Valheim bestätigt. Ein aus eigenen NFS-Underground-2-Dateien ausgelesener
 Nissan 350Z lässt sich in einer lokalen Valheim-Einzelspielerwelt spawnen und fahren.
@@ -79,6 +80,42 @@ Die Fahrphysik nutzt Unity WheelCollider. Eine Bridge zu einem parallel laufende
 NFS-Prozess ist eine mögliche spätere Forschungsaufgabe und noch nicht implementiert.
 
 ## Bedienung
+
+F9 → Fahrzeug → **Fliegen** aktiviert im besetzten Auto den Flugmodus. Alle vier
+Räder klappen in etwa 1,2 Sekunden um 90° mit der Felgen-Sichtseite nach oben, das Auto hebt sanft
+ab und schwebt. W/S fliegt vorwärts/rückwärts, A/D dreht das Fahrzeug, Shift
+steigt und Leertaste sinkt. Nach dem Loslassen bremst es ab und hält seine
+Position. Die Maus steuert weiter die Kamera. Menü und Fokusverlust sperren
+Flugeingaben; die Stabilisierung bleibt aktiv.
+
+Vier blaue Düsen verwenden die originale NFS-Nitro-Flammentextur und einen
+tiefer abgestimmten lokalen Nitro-/Gasloop. Größe und Sound reagieren auf den
+Schub. Bewegung, Flugregelung und Klappanimation sind NFVU2-Anpassungen.
+Schweben verbraucht keinen Nitrotank. W + linke Maustaste aktiviert Flug-Nitro
+mit zusätzlichem Vorwärtsschub bis etwa 158 km/h und sechs Sekunden Tank.
+Nach dem Loslassen lädt dieser nach zwei Sekunden Pause bei Bewegung wieder auf.
+Beim 350Z teilen Boden und Flug denselben Tank; der H2 hat Nitro nur im Flug.
+Purge und Burnout bleiben in der Luft gesperrt. Der H2 verwendet ebenfalls den 350Z-FIREB-Atlas.
+Shift steigt mit bis zu 12 m/s, Leertaste sinkt mit bis zu 16 m/s; nahe am
+Boden wird abgebremst. Die Räder neigen sich mit Vorwärts-/Rückwärts- und
+Lenkeingaben; die unterhalb ansetzenden Flammen zeigen entgegen der Schubrichtung.
+Der Tacho ergänzt einen separaten analogen Geschwindigkeitsmesser in KM/H/MPH;
+die große originale NFS-Skala bleibt der Drehzahlmesser mit verstärktem Zeiger.
+
+Seit 0.15.2 liest Nitro zusätzlich Valheims `ZInput.GetMouseButton`; im Flug
+funktioniert alternativ W + linke Strg. Nach dem Schließen des Menüs die
+Boosttaste erst kurz loslassen. Eine Statuszeile zeigt Aktivierung, Tank und
+Loslass-Sperre; begrenzte Diagnosezeilen protokollieren den Eingabeweg.
+Die Original-Reifentextur war bereits importiert, wurde aber stark abgedunkelt.
+Der 350Z nutzt nun ein frisches Gummimaterial mit weniger Farbmultiplikation.
+Der 128×128-Felgenatlas enthält Profil und Seitenwand; es sind keine HD-Reifen.
+
+Zum Landen in F9 einen Bodenmodus wählen: kontrollierter Sinkflug, danach
+Räder ausklappen und Rückkehr zu Gelände/Straße/Drift. W/S und A/D erlauben
+während des Anflugs eine Korrektur; „Fliegen“ bricht die Landung ab. F7 und der
+Aussteigen-Knopf sind erst nach der Landung verfügbar. F8 entfernt das Fahrzeug
+auch im Flug und stellt den Spieler wieder her. Der Flugzustand gehört zum
+einzelnen Fahrzeug und wird nicht als Startmodus gespeichert.
 
 Seit 0.13.1 lässt sich das F9-Menü mit gedrückter linker Maustaste an der
 Titelleiste verschieben. Die Position bleibt auch nach Neustart gespeichert;

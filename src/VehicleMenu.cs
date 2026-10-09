@@ -38,7 +38,7 @@ public partial class Plugin {
         neonColor=BindVehicle("Neon","Color","Grün",new ConfigDescription("Underbody neon colour.",new AcceptableValueList<string>(ColorNames)));
     }
     bool CanUseVehicleMenu(MonoBehaviour local)=>local!=null&&!Multiplayer();
-    void BlockDrivingInput(){throttle=steer=0;brake=1;honking=false;burnoutHeld=false;nitroHeld=false;nitroInput.Reset();vehicleNitro?.State.Stop();orbitCamera?.InputFrame(false,mouseSensitivity.Value,invertMouseY.Value);}
+    void BlockDrivingInput(){throttle=steer=0;current.flightVertical=0;brake=1;honking=false;burnoutHeld=false;nitroHeld=false;nitroInput.Reset();ActiveNitro?.Stop();orbitCamera?.InputFrame(false,mouseSensitivity.Value,invertMouseY.Value);}
     void SetVehicleMenu(bool open) {
         if(open==menuOpen)return;
         if(open){
@@ -84,12 +84,13 @@ public partial class Plugin {
     void OnGUI() {
         if(!menuOpen||audioBlocked||!Application.isFocused)StopMenuDrag();
         if(!ready||LocalPlayer()==null)return;
-        var text=driving?DriveModeName+" | WASD: fahren | Leertaste: "+(driftMode.Value?"Handbremse":"bremsen")+" | H: Hupe | F7: aussteigen\nMaus: umschauen | Mausrad: Zoom | "+menuKey.Value+": Fahrzeugmenü":status;
+        var text=driving?DriveModeName+(Flying?" | W/S: vor/zurück | A/D: drehen | Shift: hoch | Leertaste: runter\nF9 → Fahrzeug: landen | Zum Aussteigen zuerst landen":" | WASD: fahren | Leertaste: "+(driftMode.Value?"Handbremse":"bremsen")+" | H: Hupe | F7: aussteigen\nMaus: umschauen | Mausrad: Zoom | "+menuKey.Value+": Fahrzeugmenü"):status;
         GUI.Box(new Rect(15,Screen.height-80,Mathf.Min(920,Screen.width-30),60),text);
+        if(driving&&Flying)GUI.Box(new Rect(15,Screen.height-120,480,32),FlightBoostLabel+" | Tank "+Mathf.RoundToInt((ActiveNitro?.Charge??0)*100)+" %");
         DrawDashboard();
         DrawTurretAim();
-        if(driving&&!hudEnabled.Value&&vehicleNitro!=null&&nitroEnabled.Value)
-            GUI.Box(new Rect(15,Screen.height-120,310,32),"LMB: Nitro / Purge  |  Tank "+Mathf.RoundToInt(vehicleNitro.State.Charge*100)+" %");
+        if(driving&&!Flying&&!hudEnabled.Value&&ActiveNitro!=null&&nitroEnabled.Value)
+            GUI.Box(new Rect(15,Screen.height-120,310,32),(Flying?"LMB + W: Flug-Nitro":"LMB: Nitro / Purge")+" | Tank "+Mathf.RoundToInt(ActiveNitro.Charge*100)+" %");
         if(!menuOpen||audioBlocked)return;
         EnsureMenuStyles();
         float scale=Mathf.Max(.1f,Mathf.Min(1,Mathf.Min((Screen.width-32f)/740f,(Screen.height-140f)/560f)));
@@ -103,7 +104,7 @@ public partial class Plugin {
             var oldColor=GUI.color;GUI.color=MenuAccent;GUI.DrawTexture(new Rect(0,0,740,3),Texture2D.whiteTexture);GUI.color=oldColor;
             GUI.Label(new Rect(22,15,650,36),"NFVU2  /  "+(CanAccessCurrent(LocalPlayer())?VehicleName:"Garage"),titleStyle);
             if(GUI.Button(new Rect(690,19,30,30),"×")){CloseVehicleMenu();return;}
-            GUI.Label(new Rect(23,57,660,25),"UNDERGROUND GARAGE   /   "+(driving?"Fahrzeug bremst":"Tuning & Fahrzeugsteuerung"),mutedStyle);
+            GUI.Label(new Rect(23,57,660,25),"UNDERGROUND GARAGE   /   "+(Flying?DriveModeName:driving?"Fahrzeug bremst":"Tuning & Fahrzeugsteuerung"),mutedStyle);
             if(menuTab!=10&&!CanAccessCurrent(LocalPlayer()))menuTab=10;
             MenuNavigation(CanAccessCurrent(LocalPlayer()));
             GUI.BeginGroup(new Rect(180,0,560,522));
@@ -117,13 +118,21 @@ public partial class Plugin {
     }
     void DrawCarMenu() {
         GUI.Label(new Rect(25,145,510,30),"Fahrmodus",labelStyle);
-        int current=!IsHummer&&driftMode.Value?2:terrainMode.Value?0:1;
-        int mode=GUI.Toolbar(new Rect(25,180,510,30),current,IsHummer?new[]{"Gelände","Straße"}:new[]{"Gelände","Straße","Drift"});
-        if(mode!=current){driftMode.Value=mode==2;terrainMode.Value=mode==0;ApplyDriveMode();}
-        GUI.Label(new Rect(25,218,510,52),mode==2?"Heckantrieb, lockeres Heck, schnelles Gegenlenken.\nLeertaste: Hinterrad-Handbremse · S: bremsen":(mode==0?"Für kurze Strecken und unebenen Boden.":"Straßenmodus mit Heckantrieb.")+"\nW + S im Stand: Burnout · Leertaste: abbrechen",mutedStyle);
-        if(MenuButton(new Rect(25,280,245,38),driving?"Aussteigen":"Einsteigen")){
-            var local=LocalPlayer();CloseVehicleMenu();if(driving)Exit();else if(CanAccessCurrent(local))Enter(local);return;
+        int flightIndex=IsHummer?2:3;
+        int selected=Flying&&!current.flight.State.Landing?flightIndex:!IsHummer&&driftMode.Value?2:terrainMode.Value?0:1;
+        int mode=GUI.Toolbar(new Rect(25,180,510,30),selected,IsHummer?new[]{"Gelände","Straße","Fliegen"}:new[]{"Gelände","Straße","Drift","Fliegen"});
+        if(mode!=selected){
+            if(mode==flightIndex)SelectFlightMode();
+            else {driftMode.Value=!IsHummer&&mode==2;terrainMode.Value=mode==0;if(Flying)current.flight.Land();else ApplyDriveMode();}
         }
+        string description=Flying?(current.flight.State.Landing?"Landet automatisch und klappt die Räder aus.\nW/S und A/D: Landeplatz korrigieren · Fliegen: abbrechen":"W/S: vor/zurück · A/D: drehen · Shift: hoch · Leertaste: runter\nOhne Eingabe schweben. Bodenmodus wählen zum Landen."):
+            (!driving?"Für den Flugmodus zuerst einsteigen.\n":"")+(mode==2&&!IsHummer?"Drift: Heckantrieb · Leertaste: Handbremse":mode==0?"Geländemodus mit Allradhilfe.":"Straßenmodus mit Heckantrieb.");
+        GUI.Label(new Rect(25,218,510,52),description,mutedStyle);
+        GUI.enabled=!Flying&&(!driving||DriverInputReady);
+        if(MenuButton(new Rect(25,280,245,38),driving?"Aussteigen":"Einsteigen")){
+            var local=LocalPlayer();CloseVehicleMenu();if(driving)RequestExit();else if(CanAccessCurrent(local))Enter(local);return;
+        }
+        GUI.enabled=true;
         if(MenuButton(new Rect(285,280,245,38),"Fahrzeug entfernen")){Cleanup();return;}
         keepRunning.Value=GUI.Toggle(new Rect(25,340,510,32),keepRunning.Value," Beim Aussteigen weiterlaufen lassen");
         GUI.Label(new Rect(25,378,510,48),"Motor im Leerlauf, aktiviertes Neon und gedämpfte Musik. Auch neben dem Auto ein-/ausschaltbar.",mutedStyle);
@@ -131,9 +140,9 @@ public partial class Plugin {
         if(MenuButton(new Rect(285,445,245,38),"Kofferraum-Ausbau"))menuTab=7;
     }
     void DrawNitroMenu() {
-        if(IsHummer){GUI.Label(new Rect(25,150,510,80),"Der H2 startet mit Serienmotor. Nitro und Auspuffeffekte sind hier noch nicht eingerichtet.",labelStyle);return;}
+        if(IsHummer){nitroEnabled.Value=GUI.Toggle(new Rect(25,145,510,32),nitroEnabled.Value," Nitro im Flug aktivieren");GUI.Label(new Rect(25,195,510,110),"Im Flug W + linke Maustaste halten: mehr Vorwärtsschub.\nSechs Sekunden Tank, Nachladen nach dem Loslassen bei Bewegung. Am Boden bleibt der H2 ohne Nitro.",labelStyle);return;}
         nitroEnabled.Value=GUI.Toggle(new Rect(25,145,510,32),nitroEnabled.Value," Nitro aktivieren");
-        GUI.Label(new Rect(25,195,510,75),"Linke Maustaste halten: Beim Vorwärtsfahren mit Gas gibt es Schub und grüne Auspuffflammen.",labelStyle);
+        GUI.Label(new Rect(25,195,510,75),"W + linke Maustaste: Nitro am Boden und im Flug. In der Luft verstärkt es die vier Rad-Düsen und den Vorwärtsschub.",labelStyle);
         GUI.Label(new Rect(25,275,510,70),"Im Stand strömt stattdessen Gas aus den Düsen vorne und an der Haube.",labelStyle);
         GUI.Label(new Rect(25,350,510,60),"Sechs Sekunden Boost. Nach dem Loslassen lädt der Tank beim Fahren wieder auf.",mutedStyle);
         backfireEnabled.Value=GUI.Toggle(new Rect(25,427,510,32),backfireEnabled.Value," Auspuffflammen beim Gaswegnehmen");

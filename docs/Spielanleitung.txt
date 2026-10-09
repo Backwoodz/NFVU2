@@ -290,3 +290,19 @@ Beim Sitzen ist das linke Fenster offen: linker Arm am Fenster, rechte Hand
 am Lenkrad. Zum Öffnen der Fahrertür zieht der Fahrer den Arm nach innen.
 Türen lassen sich im Stand auch vom Sitz aus im Menü bedienen. Die Sperre
 gilt nur während des Ein-/Ausstiegs; beim Losfahren schließen sie automatisch.
+
+FLUGMODUS (ab 0.15.0)
+Im Auto: F9 -> Fahrzeug -> Fliegen. Die Räder klappen waagerecht; das Auto schwebt.
+W/S: vorwärts/rückwärts. A/D: drehen. Shift: steigen. Leertaste: sinken.
+Ohne Eingabe bremst es ab und hält seine Position. Maus bleibt Kamerasteuerung.
+Vier blaue Flammen und ein tiefer Nitro-Sound begleiten das Schweben ohne Tankverbrauch.
+Ab 0.15.1: Shift bis 12 m/s hoch, Leertaste bis 16 m/s runter; Bodenabbremsung aktiv.
+W + linke Maustaste: Flug-Nitro, bis etwa 158 km/h, sechs Sekunden Tank.
+Ab 0.15.2 alternativ W + linke Strg; nach Menüs die Taste kurz loslassen.
+Die Statuszeile zeigt NITRO AKTIV, leeren Tank oder die Loslass-Sperre an.
+Nach dem Loslassen zwei Sekunden warten, dann bei Bewegung automatisch nachladen.
+Felgen-Sichtseite oben; Räder neigen sich, Flammen strahlen unterhalb entgegen dem Schub.
+Zusätzlicher analoger Geschwindigkeitsmesser neben dem großen NFS-Drehzahlmesser.
+Zum Landen in F9 Gelände/Straße/Drift wählen. W/S und A/D korrigieren den Anflug.
+Erst nach Landung und ausgeklappten Rädern wieder aussteigen. Fliegen bricht die Landung ab.
+F8 entfernt das Fahrzeug auch im Flug. Der neue Flugmodus benötigt noch den Spieltest.

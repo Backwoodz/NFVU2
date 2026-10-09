@@ -24,6 +24,8 @@ public static class HudFile {
 public static class HudMath {
     public static float Unit(float value)=>float.IsNaN(value)||float.IsInfinity(value)?0:DrivingMath.Clamp(value,0,1);
     public static float NeedleAngle(float rpm)=>180+240*Unit(rpm/7500);
+    public static float SpeedDialMaximum(bool mph)=>mph?160:240;
+    public static float SpeedNeedleAngle(float metresPerSecond,bool mph)=>-130+260*Unit(Speed(metresPerSecond,mph)/SpeedDialMaximum(mph));
     public static float Speed(float metresPerSecond,bool mph)=>float.IsNaN(metresPerSecond)||float.IsInfinity(metresPerSecond)?0:Math.Abs(metresPerSecond)*(mph?2.2369363f:3.6f);
     // Top-down source pixels, counterclockwise-looking left endpoint to upper-right.
     public static float NitroPixelProgress(int x,int y)=>Unit(((float)Math.Atan2(y-122,x-100)*(180f/(float)Math.PI)+180)/137);

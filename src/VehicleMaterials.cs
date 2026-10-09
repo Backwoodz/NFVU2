@@ -52,7 +52,7 @@ public static class VehicleMaterials {
         var result = new Material[model.materials.Length];
         try {
             Shader wheelShader = null;
-            if (model.materials.Any(m => IsWheelMetal(m.name))) {
+            if (model.materials.Any(m => IsWheelMetal(m.name)||IsWheelRubber(m.name))) {
                 wheelShader = Resources.FindObjectsOfTypeAll<Material>()
                     .Where(m => m != null && m.shader != null && m.shader.isSupported && m.shader.name == "Standard")
                     .Select(m => m.shader).FirstOrDefault() ?? Shader.Find("Standard");
@@ -75,19 +75,20 @@ public static class VehicleMaterials {
             for (int i = 0; i < result.Length; i++) {
                 var data = model.materials[i]; var c = data.color;
                 bool wheelMetal = IsWheelMetal(data.name);
+                bool wheelRubber = IsWheelRubber(data.name);
                 // Preserve the paint/cabin path. Polished rims must not inherit a
                 // building prop's maps, disabled reflections or shader keywords.
-                var material = wheelMetal
+                var material = wheelMetal||wheelRubber
                     ? new Material(wheelShader) { name = "350Z_" + data.name, renderQueue = 2000 }
                     : Clone(templates[0], "350Z_" + data.name, new Color(c[0], c[1], c[2], c[3]));
                 result[i] = material;
-                if (wheelMetal) foreach (var property in new[] { "_Color", "_BaseColor" })
+                if (wheelMetal||wheelRubber) foreach (var property in new[] { "_Color", "_BaseColor" })
                     if (material.HasColor(property)) material.SetColor(property, new Color(c[0], c[1], c[2], c[3]));
                 foreach (var property in new[] { "_MainTex", "_BaseMap", "_Albedo" })
                     if (data.texture >= 0 && material.HasTexture(property)) material.SetTexture(property, textures[data.texture]);
                 if (material.HasFloat("_Metallic")) material.SetFloat("_Metallic", data.metallic);
                 foreach (var property in new[] { "_Glossiness", "_Smoothness" }) if (material.HasFloat(property)) material.SetFloat(property, data.smoothness);
-                if (wheelMetal) {
+                if (wheelMetal||wheelRubber) {
                     material.DisableKeyword("_METALLICGLOSSMAP"); material.DisableKeyword("_SPECGLOSSMAP");
                     material.DisableKeyword("_GLOSSYREFLECTIONS_OFF"); material.DisableKeyword("_SPECULARHIGHLIGHTS_OFF");
                     material.DisableKeyword("_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A"); material.DisableKeyword("_EMISSION");
@@ -109,6 +110,7 @@ public static class VehicleMaterials {
     }
     static bool IsWheelMetal(string name) => (name ?? "").StartsWith("wheel_chrome_", StringComparison.Ordinal) ||
         (name ?? "").StartsWith("wheel_gold_", StringComparison.Ordinal);
+    static bool IsWheelRubber(string name)=>(name??"").StartsWith("78743ca1_",StringComparison.Ordinal);
     // Materials loaded by the game retain their actual asset-bundle shader
     // references; Shader.Find by an assumed name does not provide that guarantee.
     public static Material[] Create(MonoBehaviour local, Action<string> log) {

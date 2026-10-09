@@ -1,5 +1,65 @@
 # Versionsgeschichte
 
+## 0.15.2 — Nitro-Eingabe, Flammenanschluss und Reifenmaterial
+
+- Flammenansatz von 48 auf 26 cm Abstand zum Radmittelpunkt korrigiert;
+  die nicht gestreckten Partikel bleiben erhalten.
+- Nutzer meldet weiterhin fehlendes Flug-Nitro. Installierte 0.15.1 und aktive
+  Nitro-Konfiguration bestätigt; im bisherigen Log fehlen Eingabedaten.
+  Zusätzlich zu Unity-Legacy-Mouse wird nun Valheims vorhandenes
+  `ZInput.GetMouseButton` gelesen. W + linke Strg als Flug-Alternative,
+  sichtbarer Boost-/Tank-/Loslassstatus und begrenzte Diagnoseausgaben.
+  Der konkrete Laufzeitfehler ist damit noch nicht als reproduziert behauptet.
+- Originaler 128×128-Racing-Hart-Atlas enthält Reifenprofil und Seitenwand;
+  Textur und UV-Zuordnung waren vorhanden. Die 350Z-Gummifarbe multiplizierte
+  diese auf 16 % herunter. Jetzt 80 %, nicht metallisch und rau, mit frischem
+  Material statt geerbter Prop-Einstellungen. Keine neuen Reifenassets.
+- Tests prüfen native Eingabe bei ausgefallenem Legacy-Mauswert, Tastaturalternative,
+  Loslass-Sperre, Flugschub sowie bestehende Bodensteuerung; Reifen gerendert.
+  Tatsächliche Eingabe und Effektposition benötigen den Spieltest.
+
+## 0.15.1 — Flugtempo, Schubrichtung, Luft-Nitro und Tachonadel
+
+- Nutzer bestätigt den Flugmodus. Steigen jetzt bis 12 m/s, manuelles Sinken
+  bis 16 m/s, automatische Landung bis 10 m/s mit Abbremsen vor dem Boden.
+  Die frühere Zwei-Meter-Zielbegrenzung drosselte die vertikale Geschwindigkeit.
+- Felgen-Sichtseite beim Klappen nach oben gedreht. Räder, Bremsen und Spinner
+  neigen sich mit dem Schub. Vorwärts zeigt die Flamme nach hinten, rückwärts
+  nach vorne, beim Lenken zur Gegenseite; beim Loslassen gleitet die Neigung zurück.
+- Düsen unter die Räder versetzt; normale statt gestreckter Partikel vermeiden
+  die rückwärts über den Austritt hinausragenden Flammensprites. Emission startet
+  erst gegen Ende des Umklappens, damit keine Flammen durch den Aufbau laufen.
+- W + linke Maustaste aktiviert Nitro im Flug: höheres Vorwärtstempo und mehr
+  Schub, Tankverbrauch und Nachladung. Gemeinsamer Boden-/Flugtank beim 350Z;
+  H2 mit eigenem Flug-Nitro. Keine zusätzliche Boden-Nitrofreigabe bei Sprüngen.
+- Deutlicher Drehzahlzeiger über den übrigen HUD-Ebenen und zusätzliche analoge
+  Geschwindigkeitsanzeige mit passender KM/H-/MPH-Skala, neben dem NFS-Instrument.
+- Build und gezielte Flug-, Nitro-, HUD-, Fahrwerks-, H2- und Audioprüfungen;
+  HUD-Vorschau gerendert. Neue Fahr- und Effektwirkung noch in Unity prüfen.
+
+## 0.15.0 — Flugmodus mit umklappenden Rädern
+
+- F9 → Fahrzeug → Fliegen für 350Z/H2: animierte 90°-Radklappung, sanftes
+  Abheben, Schweben mit Positionshaltung. W/S vor/zurück, A/D drehen,
+  Shift steigen, Leertaste sinken. Vorwärts maximal etwa 65 km/h.
+- Vier blaue Rad-Düsen aus dem vorhandenen NFS-FIREB-Atlas; tiefer abgestimmter
+  lokaler Nitroloop mit Schubmodulation und Purge-Sound als optionalem Fallback.
+  Keine neuen Originalassets, eigene Flugregelung und Animationsabläufe.
+- Separater Flugcontroller übernimmt Kräfte und deaktiviert temporär die
+  WheelCollider. Der bewährte VehicleHandling-Controller bleibt unverändert;
+  Gravitation, Dämpfung und Radcollider werden bei Landung/Abbau zurückgesetzt.
+- Auswahl eines Bodenmodus startet eine kontrollierte Landung mit anschließendem
+  Ausklappen. F7 und Menü-Ausstieg warten darauf; letzterer nutzt wieder den
+  regulären Ausstiegsablauf. F8/Tod/Weltwechsel haben weiterhin einen Abbaupfad.
+- Nitro/Burnout und Reifengeräusche sind im Flug gesperrt. Menü/Fokusverlust
+  neutralisieren Eingaben; Schwebestabilisierung bleibt aktiv. Jeder Wagen
+  besitzt seinen eigenen Flugzustand; neue Fahrzeuge starten am Boden.
+- Neue Zustands-/Controllerprüfungen mit kontrollierten Physikantworten.
+  Tatsächliches Flugverhalten, Kollisionen, Partikel und Audio benötigen Unity.
+
+Build, vollständiger Testsatz (49 Python-Tests und 546 C#-Prüfungen einschließlich
+32 Flugprüfungen) sowie Radgeometrie-Vorschau geprüft. Keine Unity-Laufzeittests.
+
 ## 0.14.3 — Polierte Chrom-/Goldfelgen
 
 Der Felgenrand war nur 28 % metallisch, der Stern 22 %. Eine zusätzliche

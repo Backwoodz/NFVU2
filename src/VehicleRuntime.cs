@@ -19,6 +19,13 @@ internal sealed class VehicleRuntime {
     public float rearWheelVisualOffset;
     public PhysicsMaterial chassisMaterial;
     public VehicleHandling handling;
+    public VehicleFlight flight;
+    public VehicleNitroEffects flightEffects;
+    public VehicleEffectsAudio flightAudio;
+    public float flightVertical;
+    public bool nativeBoostMouse,legacyBoostMouse,keyboardBoost;
+    public float boostLogTimer;
+    public int boostLogCount;
     public VehicleRideHeight rideHeight;
     public VehicleShowroom showroom;
     public VehicleInterior interior;

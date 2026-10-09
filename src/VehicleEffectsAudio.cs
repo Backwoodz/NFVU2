@@ -16,6 +16,22 @@ public sealed class VehicleEffectsAudio : IDisposable {
     public bool BackfireAvailable => !disposed&&backfire!=null;
     public bool NitroAvailable => !disposed&&nitro!=null;
     public bool PurgeAvailable => !disposed&&purge!=null;
+    public static VehicleEffectsAudio CreateThruster(GameObject car,Action<string> log) {
+        var result=new VehicleEffectsAudio();
+        try {
+            result.root=new GameObject("NFVU2_ThrusterAudio");result.root.transform.SetParent(car.transform,false);
+            result.root.transform.localPosition=new Vector3(0,.2f,0);
+            var mixer=Resources.FindObjectsOfTypeAll<AudioMixerGroup>().FirstOrDefault(g=>g.name.Equals("SFX",StringComparison.OrdinalIgnoreCase));
+            var folder=Path.Combine(Path.GetDirectoryName(typeof(VehicleEffectsAudio).Assembly.Location),"audio","effects");
+            result.nitro=result.Load(folder,"nitro.wav",true,mixer,log);
+            if(result.nitro==null)result.nitro=result.Load(folder,"purge.wav",true,mixer,log);
+            log("Flight sound: "+(result.nitro!=null?"local NFS gas loop, lowered pitch with thrust modulation":"optional local clips missing"));return result;
+        }catch(Exception e){result.Dispose();log("Flight audio unavailable: "+e.Message);return null;}
+    }
+    public void TickFlight(bool active,float fold,float power,bool blocked,float volume) {
+        if(nitro!=null)nitro.pitch=Mathf.Lerp(.65f,1.05f,power);
+        Tick(active&&fold>.01f,false,false,blocked,volume*fold*Mathf.Lerp(.45f,.85f,power));
+    }
     public static VehicleEffectsAudio Create(GameObject car,Action<string> log) {
         var result=new VehicleEffectsAudio();
         try {
@@ -35,7 +51,7 @@ public sealed class VehicleEffectsAudio : IDisposable {
         if(!File.Exists(path))return null;
         try {
             var data=WavPcm16.Read(File.OpenRead(path));
-            var clip=AudioClip.Create("350Z_"+name,data.Samples.Length,data.Channels,data.SampleRate,false);clips.Add(clip);
+            var clip=AudioClip.Create("350Z_"+name,data.Samples.Length/data.Channels,data.Channels,data.SampleRate,false);clips.Add(clip);
             if(!clip.SetData(data.Samples,0))throw new InvalidDataException("Unable to upload "+name);
             var source=root.AddComponent<AudioSource>();sources.Add(source);
             source.playOnAwake=false;source.loop=loop;source.clip=clip;source.volume=0;

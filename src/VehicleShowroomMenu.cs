@@ -32,7 +32,7 @@ public partial class Plugin {
         GUI.Label(new Rect(25,150,510,80),"Die Modelldaten enthalten noch keinen Kofferraumausbau und keine Animationen.",labelStyle);return false;
     }
     void MotionButton(Rect rect,int part,string label) {
-        bool stationary=body!=null&&body.linearVelocity.magnitude<=.5f;
+        bool stationary=!Flying&&body!=null&&body.linearVelocity.magnitude<=.5f;
         GUI.enabled=(stationary||showroom.State.Open[part])&&!(driving&&cabinDriver!=null&&!DriverInputReady&&part==1);
         if(MenuButton(rect,label+(showroom.State.Open[part]?" schließen":" öffnen")))showroom.State.Toggle(part,stationary);
         GUI.enabled=true;

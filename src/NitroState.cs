@@ -27,6 +27,18 @@ public sealed class NitroState {
         Boosting=true;Charge=Math.Max(0,Charge-dt/6);refillDelay=2;
         if(Charge<=0){Boosting=false;exhausted=true;}
     }
+    public void StepFlight(float dt,bool allowed,bool held,float throttle,float speed) {
+        Boosting=Purging=false;
+        if(!allowed||!Finite(dt)||!Finite(throttle)||!Finite(speed))return;
+        dt=DrivingMath.Clamp(dt,0,.1f);
+        if(!held) {
+            exhausted=false;refillDelay=Math.Max(0,refillDelay-dt);
+            if(refillDelay==0&&speed>2)Charge=Math.Min(1,Charge+dt/10);
+        }
+        if(!held||throttle<=0||speed>=48||exhausted||Charge<=0)return;
+        Boosting=true;Charge=Math.Max(0,Charge-dt/6);refillDelay=2;
+        if(Charge<=0){Boosting=false;exhausted=true;}
+    }
     public void Stop(){Boosting=Purging=false;}
     public static float Acceleration(bool boosting,float forwardSpeed,float speed,bool grounded,bool terrain) {
         if(!boosting||!grounded||!Finite(forwardSpeed)||!Finite(speed)||forwardSpeed<1.5f)return 0;
@@ -37,6 +49,8 @@ public sealed class NitroState {
 }
 public sealed class NitroInputGate {
     bool needsRelease=true;
+    public bool NeedsRelease=>needsRelease;
+    public bool ReadSources(bool nativeMouse,bool legacyMouse,bool keyboard,bool allowed)=>Read(nativeMouse||legacyMouse||keyboard,allowed);
     public bool Read(bool held,bool allowed) {
         if(!allowed){needsRelease=true;return false;}
         if(!held)needsRelease=false;

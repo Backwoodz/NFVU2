@@ -1,5 +1,45 @@
 # Nächste Aufgaben
 
+## Nitro und Reifen in 0.15.2
+
+- Im Flug Menü schließen, Tasten loslassen, W + LMB bzw. W + linke Strg:
+  „NITRO AKTIV“, sinkender Tank und Tempo deutlich über 65 km/h prüfen.
+  Falls weiterhin ohne Wirkung, `Flight nitro:` im Log auswerten: native/Legacy-
+  Mauswerte, Strg, Freigabe, Phase, Gas, Tank und Geschwindigkeit. Ohne diese
+  Laufzeitdaten ist die Ursache des gemeldeten Ausfalls noch nicht bestätigt.
+- Flammen dürfen weder über den Reifen hinausragen noch darunter frei schweben.
+  Neutral, voller Schub, Neigung und H2 vergleichen.
+- Original-Reifenprofil bei Tageslicht/Nacht und nach Felgengrößenänderung prüfen.
+
+## Flugkorrekturen und HUD in 0.15.1
+
+- Steigen/Sinken in großer Höhe und nahe Boden/Decken prüfen; nach schnellem
+  Sinken muss die Bodenabbremsung vor dem Aufsetzen greifen. Auto-Landung separat.
+- Bei allen vier Rädern zeigt die fertige Felgenseite nach oben; Flammen nur
+  unterhalb. W/S sowie A/D, Loslassen und Nitro: Neigung/Flammenrichtung folgt.
+- 350Z/H2: W + LMB im Flug, leerer Tank, Nachladen, Menü, Fokusverlust,
+  Flug-/Bodenwechsel und Landung. Kein Nitro-Verbrauch durch bloßes Schweben.
+- HUD: alle elf Designs und 65–140 % Skalierung, KM/H und MPH, Stillstand,
+  Rückwärtsfahrt und hohes Flugtempo. Beide Zeiger deutlich, Zahlen unverdeckt.
+
+## Flugmodus in 0.15.0
+
+- 350Z und H2: im Sitz F9 → Fahrzeug → Fliegen; vier Räder klappen gleichmäßig
+  mit Bremsen/Spinnern nach unten, vier Düsen folgen der äußeren Felgenseite.
+  Sturz, Radgröße, Radversatz und Tieferlegung kombinieren; keine Mesh-Überlappung.
+- W/S vor/zurück, A/D drehen, beide Shift-Tasten hoch, Leertaste runter;
+  gegenläufige Tasten heben sich auf. Loslassen bremst und hält die Position.
+- Bodenfreiheit, Hänge, Felsen, Hausdächer, Decken und hohe Starts testen.
+  Schweberegelung und Kollisionen müssen in Unity bestätigt/abgestimmt werden.
+- Menü, Chat, Fokusverlust, Pause: keine alten Eingaben oder ungewollter
+  Sinkflug durch die bisherige Bremsbelegung der Leertaste.
+- Bodenmodus in großer Höhe auswählen: kontrollierte Landung, Räder ausklappen,
+  anschließend Anfahren/Bremsen/Drift/Nitro. Landung durch Fliegen abbrechen.
+- Aussteigen erst am Boden; F8, Tod und Weltwechsel während des Fluges prüfen.
+  Mehrere Autos behalten eigene Zustände; kein Flugzustand nach neuem Spawn.
+- Vier Flammen, Soundübergänge, Lautstärke 0 und fehlende optionale Audiodateien.
+  Partikel und Sound im Spiel prüfen; automatische Tests ersetzen dies nicht.
+
 ## Felgen in 0.14.3
 
 - Bei Tageslicht um den 350Z gehen: Chromrand soll helle/dunkle Umgebung

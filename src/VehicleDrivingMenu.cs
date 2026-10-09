@@ -19,8 +19,8 @@ public partial class Plugin {
         hudColor=Config.Bind("HUD","Color","Cyan",new ConfigDescription("Gauge accent colour.",new AcceptableValueList<string>(ColorNames)));
         if(driftMode.Value)terrainMode.Value=false;
     }
-    void ApplyDriveMode(){if(driftMode.Value&&!IsHummer)handling?.SetDriftMode();else handling?.SetTerrainMode(terrainMode.Value);if(IsHummer&&body!=null)HummerTuning.Configure(body,wheels);}
-    string DriveModeName=>driftMode.Value&&!IsHummer?"Drift / Heckantrieb":terrainMode.Value?"Gelände / Allradhilfe":"Straße / Heckantrieb";
+    void ApplyDriveMode(){if(Flying)return;if(driftMode.Value&&!IsHummer)handling?.SetDriftMode();else handling?.SetTerrainMode(terrainMode.Value);if(IsHummer&&body!=null)HummerTuning.Configure(body,wheels);}
+    string DriveModeName=>Flying?(current.flight.State.Landing?"Flugmodus / Landung":current.flight.State.Phase==FlightPhase.Folding?"Flugmodus / Start":"Flugmodus / Schweben"):driftMode.Value&&!IsHummer?"Drift / Heckantrieb":terrainMode.Value?"Gelände / Allradhilfe":"Straße / Heckantrieb";
     void DrawDrivingDisplayMenu() {
         hudEnabled.Value=GUI.Toggle(new Rect(25,142,250,28),hudEnabled.Value," Tacho anzeigen");
         hudMph.Value=GUI.Toggle(new Rect(310,142,210,28),hudMph.Value," MPH statt KM/H");
@@ -39,10 +39,10 @@ public partial class Plugin {
         if(!driving||body==null||!hudEnabled.Value||audioBlocked)return;
         float speed=body.linearVelocity.magnitude,rpm=vehicleAudio?.Rpm??950;
         int gear=vehicleAudio?.Gear??(throttle<0?-1:1);
-        float charge=vehicleNitro?.State.Charge??0;
-        bool nos=vehicleNitro!=null&&nitroEnabled.Value;
+        float charge=ActiveNitro?.Charge??0;
+        bool nos=ActiveNitro!=null&&nitroEnabled.Value;
         if(dashboard==null){GUI.Box(new Rect(Screen.width-280,Screen.height-165,265,65),Mathf.RoundToInt(HudMath.Speed(speed,hudMph.Value))+(hudMph.Value?" MPH":" KM/H")+" | "+(gear<0?"R":"G "+gear)+"\nNOS "+(nos?Mathf.RoundToInt(charge*100)+" %":"AUS"));return;}
-        dashboard.Draw(hudDesign.Value,hudScale.Value,NeonColors[Math.Max(0,Array.IndexOf(ColorNames,hudColor.Value))],hudMph.Value,speed,rpm,gear,charge,nos,vehicleNitro!=null&&vehicleNitro.State.Boosting);
+        dashboard.Draw(hudDesign.Value,hudScale.Value,NeonColors[Math.Max(0,Array.IndexOf(ColorNames,hudColor.Value))],hudMph.Value,speed,rpm,gear,charge,nos,ActiveNitro!=null&&ActiveNitro.Boosting);
     }
 }
 }

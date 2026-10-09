@@ -15,6 +15,43 @@ public sealed class VehicleNitroEffects : IDisposable {
     GameObject root;
     bool boosting, purging, backfireHeld, blockedLast, disposed;
     float backfireCooldown;
+    Transform[] flightWheels;
+
+    public static VehicleNitroEffects CreateWheelThrusters(GameObject car, ModelData model, Transform[] wheels, Action<string> log) {
+        var effects=new VehicleNitroEffects();
+        try {
+            if(model.nitroFlameTexture<0||model.nitroFlameTexture>=model.textures.Length)
+                throw new InvalidOperationException("Original nitro flame atlas missing");
+            effects.root=new GameObject("NFVU2_WheelThrusters");effects.root.transform.SetParent(car.transform,false);
+            effects.flightWheels=wheels;
+            var material=effects.CreateMaterial(effects.CreateMask(model.textures[model.nitroFlameTexture],false),"NFVU2_WheelFlame",new Color(.12f,.65f,1f,1));
+            for(int i=0;i<4;i++) {
+                var ps=effects.CreateEmitter(new ModelEffectEmitter{position=new ModelVertex(),direction=new ModelVertex{y=-1}},material,false,false);
+                effects.flames.Add(ps);ps.name="WheelThruster"+i;
+                var main=ps.main;main.startLifetime=new ParticleSystem.MinMaxCurve(.2f,.32f);
+                main.startSize=new ParticleSystem.MinMaxCurve(.19f,.3f);main.startSpeed=new ParticleSystem.MinMaxCurve(4,6);main.maxParticles=64;
+                var shape=ps.shape;shape.radius=.08f;shape.angle=5;
+                // Stretched billboards extend behind their spawn point. Small
+                // regular billboards keep the plume entirely below the wheel.
+                ps.GetComponent<ParticleSystemRenderer>().renderMode=ParticleSystemRenderMode.Billboard;
+            }
+            log("Flight: four wheel thrusters using original NFS FIREB atlas; NFVU2 animation.");return effects;
+        }catch(Exception e){effects.Dispose();log("Flight flames unavailable: "+e.Message);return null;}
+    }
+    public void TickFlight(float fold,float power,bool blocked,bool originalWheels=true) {
+        if(disposed||flightWheels==null)return;
+        bool active=fold>.85f&&!blocked;
+        for(int i=0;i<flames.Count;i++) {
+            var wheel=flightWheels[i];if(wheel==null)continue;
+            var direction=originalWheels?-wheel.right:wheel.up*(i%2==0?-1:1);
+            flames[i].transform.SetPositionAndRotation(wheel.position+direction*.26f,
+                Quaternion.LookRotation(direction,wheel.forward));
+            var emission=flames[i].emission;emission.rateOverTime=active?Mathf.Lerp(75,150,power)*fold:0;
+            var main=flames[i].main;main.startSpeed=Mathf.Lerp(3,6,power);
+        }
+        if(blocked){StopAll();return;}
+        if(boosting!=active){SetActive(flames,active);boosting=active;}
+    }
 
     public static VehicleNitroEffects Create(GameObject car, ModelData model, Action<string> log) {
         var effects = new VehicleNitroEffects();

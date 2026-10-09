@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Rachel350Z {
 // Disposable local prototype. No ZNetView: never use in multiplayer or persist into saves.
-[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.14.3")]
+[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.15.2")]
 [DefaultExecutionOrder(10000)]
 public partial class Plugin : BaseUnityPlugin {
     VehicleOrbitCamera orbitCamera;
@@ -33,6 +33,7 @@ public partial class Plugin : BaseUnityPlugin {
         soundVolume=BindVehicle("Audio","Volume",.8f,new ConfigDescription("Vehicle sound volume. 0 mutes engine, tyres and horn; 1 is full volume.",new AcceptableValueRange<float>(0,1)));
         orbitCamera=new VehicleOrbitCamera(message=>Logger.LogInfo(message));
         InitializeMenu();
+        InitializeBoostInput();
         fleetMusic=new ValheimMusicDucking(message=>Logger.LogWarning(message));
         ready=playerType!=null;Logger.LogInfo("350Z prototype loaded. Single-player, temporary vehicle only.");
     }
@@ -78,8 +79,9 @@ public partial class Plugin : BaseUnityPlugin {
             if(Input.GetKeyDown(KeyCode.F8)&&CanAccessCurrent(local))Cleanup();
             if(Input.GetKeyDown(KeyCode.F7)) { if(driving)RequestExit();else if(CanAccessCurrent(local))Enter(local); }
             if(driving&&!DriverInputReady){BlockDrivingInput();return;}
-            nitroHeld=nitroInput.Read(Input.GetMouseButton(0),driving&&nitroEnabled.Value);
-            if(driving){burnoutHeld=Input.GetKey(KeyCode.W)&&Input.GetKey(KeyCode.S);throttle=(Input.GetKey(KeyCode.W)?1:0)-(Input.GetKey(KeyCode.S)?1:0);steer=(Input.GetKey(KeyCode.D)?1:0)-(Input.GetKey(KeyCode.A)?1:0);brake=Input.GetKey(KeyCode.Space)?1:0;honking=Input.GetKey(KeyCode.H);orbitCamera.InputFrame(true,mouseSensitivity.Value,invertMouseY.Value);}
+            nitroHeld=ReadBoostInput();
+            if(driving){burnoutHeld=!Flying&&Input.GetKey(KeyCode.W)&&Input.GetKey(KeyCode.S);throttle=(Input.GetKey(KeyCode.W)?1:0)-(Input.GetKey(KeyCode.S)?1:0);steer=(Input.GetKey(KeyCode.D)?1:0)-(Input.GetKey(KeyCode.A)?1:0);brake=!Flying&&Input.GetKey(KeyCode.Space)?1:0;honking=Input.GetKey(KeyCode.H);orbitCamera.InputFrame(true,mouseSensitivity.Value,invertMouseY.Value);
+                current.flightVertical=FlightState.Axis(Input.GetKey(KeyCode.LeftShift)||Input.GetKey(KeyCode.RightShift),Input.GetKey(KeyCode.Space),Flying);}
         }catch(Exception e){Logger.LogError(e);CleanupAll();status="Fehler – siehe BepInEx/LogOutput.log";}
     }
     void Spawn(MonoBehaviour local) {
@@ -139,6 +141,7 @@ public partial class Plugin : BaseUnityPlugin {
         vehicleImpact.Initialize(body,box,message=>Logger.LogWarning(message));
         burnoutEffects=VehicleBurnoutEffects.Create(car,model,wheels,visuals,message=>Logger.LogInfo(message));
         if(!IsHummer)vehicleNitro=new VehicleNitro(body,wheels);
+        InitializeFlight(model);
         try {if(!IsHummer)nitroEffects=VehicleNitroEffects.Create(car,model,message=>Logger.LogInfo(message));}
         catch(Exception e){Logger.LogWarning("350Z nitro effects unavailable: "+e);}
         if(!IsHummer)effectsAudio=VehicleEffectsAudio.Create(car,message=>Logger.LogInfo(message));
@@ -179,6 +182,7 @@ public partial class Plugin : BaseUnityPlugin {
     }
     void Enter(MonoBehaviour local) {
         if(Multiplayer())return;
+        if(Flying){status="Bitte warten, bis das Fahrzeug gelandet ist.";return;}
         if(local is Player native&&(native.IsDead()||native.IsAttached()||native.IsTeleporting())){status="Zum Einsteigen zuerst die aktuelle Aktion beenden.";return;}
         if(body.linearVelocity.magnitude>.5f){status="Zum Einsteigen muss das Fahrzeug stehen.";return;}
         Vector3 outside=Vector3.zero;
@@ -206,12 +210,18 @@ public partial class Plugin : BaseUnityPlugin {
     void FixedUpdate() {ForEachVehicle(StepVehicle);}
     void StepVehicle() {
         if(body==null||wheels==null)return;
-        current.rideHeight?.Apply(lowering.Value);
+        if(!Flying)current.rideHeight?.Apply(lowering.Value);
         vehicleImpact?.Step(player,driving&&!audioBlocked&&!menuOpen&&Application.isFocused);
-        bool handbrake=driftMode.Value&&driving&&brake>0&&!audioBlocked&&!menuOpen&&Application.isFocused;
-        handling?.Step(driving&&DriverInputReady,throttle,steer,handbrake?0:brake,burnoutHeld&&!audioBlocked&&!menuOpen&&Application.isFocused,handbrake);
-        if(IsHummer)HummerTuning.AfterStep(wheels);
-        vehicleNitro?.Step(driving,audioBlocked||menuOpen||!DriverInputReady||burnoutHeld||!Application.isFocused||!nitroEnabled.Value,nitroHeld,throttle,brake>0,terrainMode.Value);
+        if(Flying) {
+            current.flight.Step(driving&&DriverInputReady&&!audioBlocked&&!menuOpen&&Application.isFocused,throttle,steer,current.flightVertical,nitroHeld&&nitroEnabled.Value);
+            TraceFlightBoost();
+            if(!Flying){if(driving)BlockDrivingInput();ApplyDriveMode();}
+        } else {
+            bool handbrake=driftMode.Value&&driving&&brake>0&&!audioBlocked&&!menuOpen&&Application.isFocused;
+            handling?.Step(driving&&DriverInputReady,throttle,steer,handbrake?0:brake,burnoutHeld&&!audioBlocked&&!menuOpen&&Application.isFocused,handbrake);
+            if(IsHummer)HummerTuning.AfterStep(wheels);
+            vehicleNitro?.Step(driving,audioBlocked||menuOpen||!DriverInputReady||burnoutHeld||!Application.isFocused||!nitroEnabled.Value,nitroHeld,throttle,brake>0,terrainMode.Value);
+        }
         if(driving&&player!=null&&cabinDriver==null)player.transform.position=car.transform.TransformPoint(new Vector3(0,.8f,.3f));
     }
     void LateUpdate() {ForEachVehicle(TickVehicle);UpdateGameCrosshair();fleetMusic?.Tick(driving&&!audioBlocked&&vehicleRadio!=null&&vehicleRadio.CabinAudible);}
@@ -222,7 +232,7 @@ public partial class Plugin : BaseUnityPlugin {
             int color=Math.Max(0,Array.IndexOf(ColorNames,trunkNeonColor.Value));
             float showroomDt=driving&&cabinDriver!=null&&(audioBlocked||!Application.isFocused||menuOpen&&!DriverInputReady)?0:Time.deltaTime;
             int activeDoorStyle=driving&&cabinDriver!=null&&!DriverInputReady?showroom.State.DoorStyle:doorStyle.Value;
-            showroom.Tick(showroomDt,body.linearVelocity.magnitude>.5f,activeDoorStyle,driving||ParkedRunning,trunkNeonEnabled.Value,trunkNeonPulsing.Value,NeonColors[color]);
+            showroom.Tick(showroomDt,Flying||body.linearVelocity.magnitude>.5f,activeDoorStyle,driving||ParkedRunning,trunkNeonEnabled.Value,trunkNeonPulsing.Value,NeonColors[color]);
         }
         catch(Exception e){showroom.Dispose();showroom=null;Logger.LogWarning("350Z showroom disabled: "+e);}
         current.interior?.Tick(wheels!=null?wheels[0].steerAngle:0,windowTint.Value,driving&&cabinDriver!=null);
@@ -236,11 +246,12 @@ public partial class Plugin : BaseUnityPlugin {
             }
         } catch(Exception e){Logger.LogError("Cabin animation stopped: "+e);Exit();return;}
         ApplyNeonSettings();
-        bool burnout=driving&&burnoutHeld&&handling!=null&&handling.BurnoutActive&&!audioBlocked&&!menuOpen&&Application.isFocused;
+        bool burnout=!Flying&&driving&&burnoutHeld&&handling!=null&&handling.BurnoutActive&&!audioBlocked&&!menuOpen&&Application.isFocused;
         wheelSizeVisuals?.Apply(IsHummer?h2RimInches.Value:rimInches.Value);
         if(wheels!=null && visuals!=null)for(int i=0;i<4;i++)if(wheels[i]!=null && visuals[i]!=null){
             UpdateWheelVisual(i);
         }
+        TickFlight();
         if(driving)orbitCamera.LateFrame(body.linearVelocity,dynamicCamera.Value,cameraFollow.Value,audioBlocked||menuOpen,turret!=null&&turretEnabled.Value);
         TickTurret();
         if(vehicleLighting!=null)try {
@@ -260,11 +271,11 @@ public partial class Plugin : BaseUnityPlugin {
         if(showroom!=null)try {showroom.TickSubwoofers(vehicleRadio?.SubwooferOffset??0);}
         catch(Exception e){showroom.Dispose();showroom=null;Logger.LogWarning("350Z subwoofer visuals disabled: "+e);}
         if(vehicleAudio!=null)try {
-            vehicleAudio.Tick(driving,throttle,brake>0||burnoutHeld&&!burnout,honking,audioBlocked,terrainMode.Value,soundVolume.Value,burnout,ParkedRunning);
+            vehicleAudio.Tick(driving,throttle,brake>0||burnoutHeld&&!burnout,honking,audioBlocked,terrainMode.Value,soundVolume.Value,burnout,ParkedRunning,Flying);
         } catch(Exception e) {
             vehicleAudio.Dispose();vehicleAudio=null;Logger.LogWarning("350Z sound disabled after audio error: "+e);
         }
-        bool effectsBlocked=!driving||audioBlocked||menuOpen||!Application.isFocused;
+        bool effectsBlocked=Flying||!driving||audioBlocked||menuOpen||!Application.isFocused;
         if(burnoutEffects!=null)try {burnoutEffects.Tick(burnout,effectsBlocked,driftMode.Value&&body!=null&&body.linearVelocity.magnitude>3);}
         catch(Exception e){burnoutEffects.Dispose();burnoutEffects=null;Logger.LogWarning("350Z tyre smoke disabled: "+e);}
         bool backfire=backfireState.Step(Time.deltaTime,!effectsBlocked,
@@ -292,6 +303,7 @@ public partial class Plugin : BaseUnityPlugin {
         position=Vector3.zero;return false;
     }
     void RequestExit() {
+        if(Flying){status="Zum Aussteigen unter F9 einen Bodenmodus wählen und landen.";return;}
         if(cabinDriver==null){Exit();return;}
         if(!cabinDriver.Motion.CanDrive)return;
         if(body.linearVelocity.magnitude>.5f){status="Zum Aussteigen erst anhalten.";return;}
@@ -308,12 +320,13 @@ public partial class Plugin : BaseUnityPlugin {
         RestoreGameCrosshair();
         CloseVehicleMenu();
         driving=false;throttle=steer=0;brake=1;honking=false;burnoutHeld=false;
+        current.flightVertical=0;current.flight?.Land();
         vehicleImpact?.Step(null,false);
         nitroHeld=false;nitroInput.Reset();vehicleNitro?.State.Stop();
         orbitCamera?.End();
         if(player!=null){player.transform.position=animatedExit;
             if(hadCabin&&!animated&&car!=null&&FindCabinExit(player,out var emergency))player.transform.position=emergency;
-            else if(!hadCabin&&car!=null){var candidate=car.transform.TransformPoint(new Vector3(2.5f,2,0));if(Physics.Raycast(candidate,Vector3.down,out var hit,10,~0,QueryTriggerInteraction.Ignore))player.transform.position=hit.point+Vector3.up*.3f;}
+            else if(!hadCabin&&car!=null&&!Flying){var candidate=car.transform.TransformPoint(new Vector3(2.5f,2,0));if(Physics.Raycast(candidate,Vector3.down,out var hit,10,~0,QueryTriggerInteraction.Ignore))player.transform.position=hit.point+Vector3.up*.3f;}
             player.transform.rotation=Quaternion.Euler(0,player.transform.eulerAngles.y,0);
             for(int i=0;playerRenderers!=null&&i<playerRenderers.Length;i++)if(playerRenderers[i]!=null)playerRenderers[i].enabled=renderStates[i];
             for(int i=0;playerColliders!=null&&i<playerColliders.Length;i++)if(playerColliders[i]!=null)playerColliders[i].enabled=colliderStates[i];
@@ -325,6 +338,9 @@ public partial class Plugin : BaseUnityPlugin {
         if(driving)Exit();
         RestoreGameCrosshair();
         CloseVehicleMenu();
+        current.flight?.Dispose();current.flight=null;
+        current.flightEffects?.Dispose();current.flightEffects=null;
+        current.flightAudio?.Dispose();current.flightAudio=null;
         turret?.Dispose();turret=null;
         dashboard?.Dispose();dashboard=null;
         current.interior?.Dispose();current.interior=null;

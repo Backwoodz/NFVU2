@@ -84,7 +84,7 @@ public sealed class VehicleAudio : IDisposable {
         source.dopplerLevel=.25f;source.spread=0;source.outputAudioMixerGroup=mixer;
         return source;
     }
-    public void Tick(bool driving,float throttle,bool braking,bool honking,bool blocked,bool terrain,float volume,bool burnout=false,bool parkedRunning=false) {
+    public void Tick(bool driving,float throttle,bool braking,bool honking,bool blocked,bool terrain,float volume,bool burnout=false,bool parkedRunning=false,bool flying=false) {
         if(disposed)return;
         if(blocked) {
             if(!paused){foreach(var source in sources)source.Pause();paused=true;}
@@ -93,7 +93,8 @@ public sealed class VehicleAudio : IDisposable {
         if(paused){if(playing)foreach(var source in sources)source.UnPause();paused=false;}
         float dt=Mathf.Min(Time.unscaledDeltaTime,.1f);
         float forward=Vector3.Dot(body.linearVelocity,body.transform.forward),speed=body.linearVelocity.magnitude;
-        float wheelRpm=(Mathf.Abs(wheels[2].rpm)+Mathf.Abs(wheels[3].rpm))*.5f;
+        float wheelRpm=flying?0:(Mathf.Abs(wheels[2].rpm)+Mathf.Abs(wheels[3].rpm))*.5f;
+        if(flying){forward=speed=throttle=0;braking=burnout=false;}
         if(!driving){forward=speed=wheelRpm=throttle=0;braking=honking=burnout=false;}
         model.Step(dt,driving||parkedRunning,forward,wheelRpm,burnout?1:throttle,braking,terrain,burnout);
         turboModel.Step(dt,driving,model.Rpm,braking?0:Mathf.Max(0,throttle),model.IsShifting,model.Gear<0);
@@ -113,7 +114,7 @@ public sealed class VehicleAudio : IDisposable {
             coast[i].volume=gain*engineGain*Mathf.Sqrt(1-powerMix)*(suv?.65f:1);
         }
         int grounded=0;float slip=0;
-        foreach(var wheel in wheels)if(wheel.GetGroundHit(out var hit)) {
+        foreach(var wheel in wheels)if(wheel.enabled&&wheel.GetGroundHit(out var hit)) {
             grounded++;
             float value=Mathf.Max(Mathf.Abs(hit.sidewaysSlip),Mathf.Abs(hit.forwardSlip));
             if(!float.IsNaN(value)&&!float.IsInfinity(value))slip=Mathf.Max(slip,value);

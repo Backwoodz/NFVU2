@@ -48,9 +48,13 @@ public partial class Plugin {
     }
 
     void UpdateWheelVisual(int index) {
-        wheels[index].GetWorldPose(out var pos,out var rot);
+        Vector3 pos;Quaternion rot;
+        if(Flying)current.flight.WheelPose(index,out pos,out rot);else wheels[index].GetWorldPose(out pos,out rot);
+        float fold=Flying?current.flight.State.Blend:0;
+        var vectoring=Flying?car.transform.rotation*Quaternion.Euler(current.flight.WheelPitch*fold,0,current.flight.WheelRoll*fold)*Quaternion.Inverse(car.transform.rotation):Quaternion.identity;
         if(!originalWheels) {
-            visuals[index].SetPositionAndRotation(pos,rot*Quaternion.Euler(0,0,90));return;
+            var folding=Quaternion.AngleAxis(FlightState.WheelTilt(index,0,fold),Vector3.forward);
+            visuals[index].SetPositionAndRotation(pos,vectoring*car.transform.rotation*folding*Quaternion.Inverse(car.transform.rotation)*rot*Quaternion.Euler(0,0,90));return;
         }
         float side=index%2==0?-1:1;
         float camber=WheelFitMath.Sanitize((index<2?frontCamber:rearCamber).Value,-15,10,0);
@@ -59,14 +63,16 @@ public partial class Plugin {
         // so neither offset nor tilt rotates around the axle during driving.
         pos+=car.transform.up*wheelVisualLift+car.transform.forward*(index<2?frontWheelVisualOffset:rearWheelVisualOffset)
             +car.transform.right*(side*offset);
-        var steering=car.transform.rotation*Quaternion.Euler(0,wheels[index].steerAngle,0);
-        var tilt=Quaternion.AngleAxis(-side*camber,Vector3.forward);
+        pos+=car.transform.right*(side*.22f*fold);
+        rot=Quaternion.Slerp(rot,car.transform.rotation,fold);
+        var steering=car.transform.rotation*Quaternion.Euler(0,wheels[index].steerAngle*(1-fold),0);
+        var tilt=Quaternion.AngleAxis(FlightState.WheelTilt(index,camber,fold),Vector3.forward);
         var mirror=Quaternion.Euler(0,index%2==0?180:0,0);
-        visuals[index].SetPositionAndRotation(pos,steering*tilt*Quaternion.Inverse(steering)*rot*mirror);
-        if(brakeVisuals[index]!=null)brakeVisuals[index].SetPositionAndRotation(pos,steering*tilt*mirror);
+        visuals[index].SetPositionAndRotation(pos,vectoring*steering*tilt*Quaternion.Inverse(steering)*rot*mirror);
+        if(brakeVisuals[index]!=null)brakeVisuals[index].SetPositionAndRotation(pos,vectoring*steering*tilt*mirror);
         if(current.spinners!=null&&current.spinners[index]!=null) {
             var motion=current.spinnerMotion[index];motion.Step(Time.deltaTime,wheels[index].rpm);
-            current.spinners[index].SetPositionAndRotation(pos,steering*tilt*Quaternion.AngleAxis(motion.Angle,Vector3.right)*mirror);
+            current.spinners[index].SetPositionAndRotation(pos,vectoring*steering*tilt*Quaternion.AngleAxis(motion.Angle,Vector3.right)*mirror);
             float scale=WheelFitMath.Sanitize(h2RimInches.Value,22,28,26)/26;
             current.spinners[index].localScale=new Vector3(1,scale,scale);
         }
