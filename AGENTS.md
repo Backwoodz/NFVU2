@@ -14,5 +14,10 @@
   user-specific absolute paths, logs, credentials or personal identifiers.
 - Do not overwrite the installed mod while Valheim is running. Keep a backup
   before replacing an installed version and verify the copied file's checksum.
+- Keep only the two newest timestamped installation backups per backup folder.
+  Remove older backups only after a successful, checksum-verified installation
+  or activation/deactivation. Apply this to local extension installers as well.
+  Preserve separately named backups (for example Flatgrass), source assets and
+  private plugin sources. Never follow junctions/symlinks during backup cleanup.
 - Be precise about provenance: the current model is a stock 350Z; Rachel's
   complete tuning/paint setup and a dual-game bridge remain future work.

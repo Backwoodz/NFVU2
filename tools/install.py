@@ -3,6 +3,8 @@ import csv
 import hashlib
 import io
 import json
+import os
+import re
 import shutil
 import subprocess
 from datetime import datetime
@@ -32,6 +34,31 @@ def contained(root,name):
     target=(root/name).resolve()
     if not target.is_relative_to(root.resolve()):raise ValueError('Install path escapes its directory')
     return target
+
+
+def prune_backups(folder):
+    """Retain two dated snapshots; leave separately named backups untouched."""
+    def linked(path):
+        return path.is_symlink() or getattr(os.path,'isjunction',lambda p:False)(path)
+    folder=Path(folder)
+    if linked(folder):raise ValueError('Backup directory is a link')
+    root=folder.resolve()
+    candidates=sorted((p for p in folder.iterdir()
+                       if re.fullmatch(r'\d{8}-\d{6}-\d{6}',p.name)
+                       and not linked(p) and p.is_dir()),key=lambda p:p.name,reverse=True)
+    stale=candidates[2:]
+    # Validate all deletion targets before removing anything. Do not traverse
+    # links even when they point to another directory inside the backup root.
+    for backup in stale:
+        if not backup.resolve().is_relative_to(root) or backup.resolve()==root:
+            raise ValueError('Backup cleanup path escapes its directory')
+        for current,dirs,files in os.walk(backup,followlinks=False):
+            for name in dirs+files:
+                path=Path(current)/name
+                if linked(path) or not path.resolve().is_relative_to(backup.resolve()):
+                    raise ValueError('Backup cleanup refuses linked contents')
+    for backup in stale:shutil.rmtree(backup)
+    return len(stale)
 
 def install_payload(source,destination,backup,guard=require_closed):
     guard()
@@ -74,6 +101,7 @@ def install_payload(source,destination,backup,guard=require_closed):
             if (backup/name).exists():shutil.copy2(backup/name,installed)
             elif installed.exists():installed.unlink()
         raise
+    if re.fullmatch(r'\d{8}-\d{6}-\d{6}',backup.name):prune_backups(backup.parent)
     return len(names)
 
 def main():

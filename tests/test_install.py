@@ -9,6 +9,40 @@ import install
 from mod_files import sync_optional_assets
 
 class InstallTests(unittest.TestCase):
+    def test_successful_install_retains_two_newest_backups_and_named_backup(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);source,dest,_=self.fixture(root)
+            backups=root/'backups';backups.mkdir()
+            for name in ['20261007-000000-000001','20261008-000000-000001','flatgrass-20261007']:
+                (backups/name).mkdir();(backups/name/'snapshot').write_bytes(b'old')
+            newest=backups/'20261009-000000-000001'
+            install.install_payload(source,dest,newest,lambda:None)
+            self.assertEqual({p.name for p in backups.iterdir()},
+                             {'20261008-000000-000001',newest.name,'flatgrass-20261007'})
+            self.assertEqual((newest/'Rachel350Z.dll').read_bytes(),b'old')
+
+    def test_failed_install_does_not_prune_backups(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);source,dest,_=self.fixture(root);backups=root/'backups';backups.mkdir()
+            old=['20261007-000000-000001','20261008-000000-000001']
+            for name in old:(backups/name).mkdir()
+            original=install.checksum
+            def corrupt(path):return 'bad' if Path(path)==dest/'radio/song.wav' else original(path)
+            with patch.object(install,'checksum',corrupt):
+                with self.assertRaises(RuntimeError):
+                    install.install_payload(source,dest,backups/'20261009-000000-000001',lambda:None)
+            for name in old:self.assertTrue((backups/name).exists())
+
+    def test_backup_cleanup_refuses_linked_contents(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);backups=root/'backups';backups.mkdir()
+            for day in [7,8,9]:(backups/f'2026100{day}-000000-000001').mkdir()
+            nested=backups/'20261007-000000-000001/nested';nested.mkdir()
+            (nested/'keep').write_bytes(b'keep')
+            with patch.object(install.os.path,'isjunction',lambda p:Path(p)==nested,create=True):
+                with self.assertRaises(ValueError):install.prune_backups(backups)
+            self.assertEqual((nested/'keep').read_bytes(),b'keep')
+
     def fixture(self,root):
         source=root/'build';dest=root/'installed'
         source.mkdir();dest.mkdir()
