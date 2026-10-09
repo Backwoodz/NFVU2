@@ -1,5 +1,14 @@
 # Nächste Aufgaben
 
+## Scheinwerfer-Show in 0.19.0
+
+- F9 → Lichter auf 350Z/H2: Show-off aktivieren, aussteigen, zweimal physisch
+  links/rechts aus Fahrersicht plus Pause; Kegel und Lampenflächen synchron.
+- Farbe/Stärke, Stärke null, Reset, Aktivieren neben bereits gefahrenem Auto,
+  Einsteigen während Blitz/Pause, zwei Autos mit unabhängigen Einstellungen.
+- Ohne Motor-Weiterlaufen, manueller Lichtschalter, Brems-/Rückfahrlicht,
+  Fokusverlust/Pause und Cleanup prüfen. Neuer Menüpunkt bei kleiner Auflösung.
+
 ## Metallic-Lack in 0.18.4
 
 - 350Z und H2 frisch spawnen: Metallic-Reflexionen bei Sonne/Schatten/Nacht,

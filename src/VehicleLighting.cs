@@ -13,7 +13,7 @@ public sealed class VehicleLighting : IDisposable {
     static readonly Color[] HeadlightColors={new Color(1,.94f,.82f),new Color(.92f,.96f,1),
         new Color(1,.08f,.035f),new Color(.12f,.35f,1),new Color(.18f,1,.1f),new Color(.62f,.15f,1),new Color(1,.85f,.12f),
         Color.white,new Color(.65f,.8f,1),new Color(1,.08f,.035f),new Color(.12f,.35f,1),new Color(.18f,1,.1f),new Color(.62f,.15f,1),new Color(1,.85f,.12f)};
-    sealed class Surface { public Renderer renderer; public Material original, material; public string role; }
+    sealed class Surface { public Renderer renderer; public Material original, material; public string role; public float localX; }
     readonly List<Surface> surfaces = new List<Surface>();
     readonly List<Light> lights = new List<Light>();
     readonly List<string> roles = new List<string>();
@@ -22,6 +22,7 @@ public sealed class VehicleLighting : IDisposable {
     Color headlightColor=HeadlightColors[0];
     float headlightPower=1;
     public bool Enabled { get => state.Enabled; set => state.Enabled = value; }
+    public bool ShowOffEnabled { get => state.ShowOffEnabled; set => state.ShowOffEnabled=value; }
     public bool RearLightsOn => state.RearLightsOn;
     public Vector3[] RearLightPositions() => lights.Where((light,index)=>light!=null&&roles[index]=="taillight")
         .Select(light=>light.transform.localPosition).ToArray();
@@ -39,7 +40,8 @@ public sealed class VehicleLighting : IDisposable {
                 var renderer = node != null ? node.GetComponent<Renderer>() : null;
                 if (renderer == null) continue;
                 var material = new Material(renderer.sharedMaterial) { name = "350Z_Lit_" + p.name };
-                result.surfaces.Add(new Surface { renderer = renderer, original = renderer.sharedMaterial, material = material, role = p.lightRole });
+                result.surfaces.Add(new Surface { renderer = renderer, original = renderer.sharedMaterial, material = material, role = p.lightRole,
+                    localX=p.indices.Average(index=>p.vertices[index].x) });
                 renderer.sharedMaterial = material;
             }
             foreach (var data in model.lights ?? new ModelLight[0]) {
@@ -58,13 +60,13 @@ public sealed class VehicleLighting : IDisposable {
         } catch { result.Dispose(); throw; }
     }
     static Vector3 Vector(ModelVertex v) => new Vector3(v.x, v.y, v.z);
-    public void Tick(bool driving, bool braking, float forwardSpeed=0, float throttle=0) {
+    public void Tick(bool driving, bool braking, float forwardSpeed=0, float throttle=0, float deltaTime=0, bool paused=false) {
         if (disposed) return;
-        state.Update(driving, braking, forwardSpeed, throttle);
+        state.Update(driving, braking, forwardSpeed, throttle,deltaTime,paused);
         for (int i = 0; i < lights.Count; i++) {
             lights[i].enabled = roles[i] == "reverse" ? state.ReverseLightsOn : roles[i] == "taillight" ? state.RearLightsOn : Enabled;
             if (roles[i] == "headlight") {
-                lights[i].enabled=Enabled&&headlightPower>0;
+                lights[i].enabled=state.HeadlightOn(lights[i].transform.localPosition.x)&&headlightPower>0;
                 lights[i].color=headlightColor;lights[i].intensity=3.5f*headlightPower;
             }
             if (roles[i] == "taillight") lights[i].intensity = state.BrakeLightsOn ? 1.4f : .5f;
@@ -72,6 +74,7 @@ public sealed class VehicleLighting : IDisposable {
         foreach (var surface in surfaces) {
             bool brakeOnly = surface.role == "brakelight";
             bool active = surface.role == "reverse" ? state.ReverseLightsOn : brakeOnly ? state.BrakeLightsOn : surface.role == "taillight" ? state.RearLightsOn : Enabled;
+            if(surface.role=="headlight")active=state.HeadlightOn(surface.localX)&&headlightPower>0;
             Color color = surface.role == "reverse" ? Color.white : surface.role == "headlight" ? headlightColor : new Color(1, .015f, .005f);
             float power = surface.role == "headlight" ? 2.5f*headlightPower : surface.role == "reverse" ? .7f : braking && driving ? 2.8f : .65f;
             VehicleMaterials.SetEmission(surface.material, active ? color * power : Color.black);

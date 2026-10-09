@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Rachel350Z {
 // Disposable local prototype. No ZNetView: never use in multiplayer or persist into saves.
-[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.18.4")]
+[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.19.0")]
 [DefaultExecutionOrder(10000)]
 public partial class Plugin : BaseUnityPlugin {
     VehicleOrbitCamera orbitCamera;
@@ -182,8 +182,9 @@ public partial class Plugin : BaseUnityPlugin {
         TickTurret();
         if(vehicleLighting!=null)try {
             vehicleLighting.SetHeadlights(headlightPreset.Value,headlightStrength.Value);
+            vehicleLighting.ShowOffEnabled=headlightShowOff.Value;
             float speed=Vector3.Dot(body.linearVelocity,car.transform.forward);
-            vehicleLighting.Tick(driving,driving&&(burnoutHeld||brake>0||DrivingMath.DirectionBrake(speed,throttle)),speed,burnout?1:throttle);
+            vehicleLighting.Tick(driving,driving&&(burnoutHeld||brake>0||DrivingMath.DirectionBrake(speed,throttle)),speed,burnout?1:throttle,Time.deltaTime,!Application.isFocused||Time.timeScale<=0);
         }
         catch(Exception e){vehicleLighting.Dispose();vehicleLighting=null;Logger.LogWarning("350Z lighting disabled: "+e);}
         if(vehicleNeon!=null)try {vehicleNeon.Tick(driving||ParkedRunning,Time.deltaTime);}

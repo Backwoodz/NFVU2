@@ -33,6 +33,8 @@ public partial class Plugin {
     ConfigEntry<string> headlightPreset {get=>VehicleConfig(z_headlightPreset);set=>z_headlightPreset=value;}
     ConfigEntry<float> z_headlightStrength;
     ConfigEntry<float> headlightStrength {get=>VehicleConfig(z_headlightStrength);set=>z_headlightStrength=value;}
+    ConfigEntry<bool> z_headlightShowOff;
+    ConfigEntry<bool> headlightShowOff {get=>VehicleConfig(z_headlightShowOff);set=>z_headlightShowOff=value;}
     ConfigEntry<float> z_frontCamber;
     ConfigEntry<float> frontCamber {get=>VehicleConfig(z_frontCamber);set=>z_frontCamber=value;}
     ConfigEntry<float> z_rearCamber;

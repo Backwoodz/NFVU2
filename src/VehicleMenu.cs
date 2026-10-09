@@ -28,6 +28,7 @@ public partial class Plugin {
         keepRunning=BindVehicle("Vehicle","KeepRunningAfterExit",true,"After driving, keep the engine idling, enabled neon and muffled spatial radio running outside. Can be toggled beside the car.");
         headlightPreset=BindVehicle("Lights","HeadlightPreset","Serie",new ConfigDescription("Front headlight colour preset. Names follow NFSU2; RGB values are adapted for Unity.",new AcceptableValueList<string>(VehicleLighting.HeadlightPresets)));
         headlightStrength=BindVehicle("Lights","HeadlightStrength",1f,new ConfigDescription("Front headlight strength multiplier: 0 to 3. Rear, reverse and plate lights are independent.",new AcceptableValueRange<float>(0,3)));
+        headlightShowOff=BindVehicle("Lights","ShowOffAfterExit",false,"After exiting: two left flashes, two right flashes, pause, repeat. Left/right from the driver's seat. Stops on entry; independent of parked engine/radio.");
         menuKey=Config.Bind("Controls","VehicleMenu",new KeyboardShortcut(KeyCode.F9),"Open the garage anywhere, or vehicle controls while seated/within 5 metres.");
         nitroEnabled=BindVehicle("Nitro","Enabled",true,"Hold left mouse: forward throttle boosts; stationary purges. Six seconds of boost, refills while driving after release.");
         backfireEnabled=BindVehicle("Nitro","LiftOffBackfire",false,"Optional high-RPM lift-off effect. Uses original assets with NFVU2 trigger thresholds, not verified NFS tuning rules.");
@@ -169,18 +170,21 @@ public partial class Plugin {
         GUI.enabled=vehicleLighting!=null;
         bool lights=GUI.Toggle(new Rect(25,140,510,32),vehicleLighting!=null&&vehicleLighting.Enabled," Scheinwerfer, Rücklicht und Kennzeichenlicht");
         if(vehicleLighting!=null)vehicleLighting.Enabled=lights;
+        bool showOff=GUI.Toggle(new Rect(25,176,510,30),headlightShowOff.Value," Show-off beim Aussteigen: 2× links / 2× rechts");
+        if(showOff!=headlightShowOff.Value)headlightShowOff.Value=showOff;
+        GUI.Label(new Rect(25,207,510,32),"Doppelblinken im Wechsel, dann Pause. Links/rechts aus Fahrersicht. Stoppt beim Einsteigen.",mutedStyle);
         float strength=headlightStrength.Value;
         if(float.IsNaN(strength)||float.IsInfinity(strength))strength=1;
-        GUI.Label(new Rect(25,181,510,26),"Scheinwerferstärke   "+Mathf.RoundToInt(strength*100)+" %",labelStyle);
-        float next=Mathf.Round(GUI.HorizontalSlider(new Rect(25,216,510,20),strength,0,3)*20)/20;
+        GUI.Label(new Rect(25,242,510,26),"Scheinwerferstärke   "+Mathf.RoundToInt(strength*100)+" %",labelStyle);
+        float next=Mathf.Round(GUI.HorizontalSlider(new Rect(25,271,510,20),strength,0,3)*20)/20;
         if(next!=headlightStrength.Value)headlightStrength.Value=next;
-        GUI.Label(new Rect(25,247,510,25),"Scheinwerferfarbe",labelStyle);
+        GUI.Label(new Rect(25,296,510,25),"Scheinwerferfarbe",labelStyle);
         int selected=Math.Max(0,Array.IndexOf(VehicleLighting.HeadlightPresets,headlightPreset.Value));
-        int choice=GUI.SelectionGrid(new Rect(25,279,510,148),selected,VehicleLighting.HeadlightPresets,4,songButtonStyle);
+        int choice=GUI.SelectionGrid(new Rect(25,324,510,112),selected,VehicleLighting.HeadlightPresets,4,songButtonStyle);
         if(choice!=selected)headlightPreset.Value=VehicleLighting.HeadlightPresets[choice];
-        if(MenuButton(new Rect(25,444,510,32),"Scheinwerfer zurücksetzen")) {headlightPreset.Value="Serie";headlightStrength.Value=1;}
+        if(MenuButton(new Rect(25,446,510,30),"Scheinwerfer zurücksetzen")) {headlightPreset.Value="Serie";headlightStrength.Value=1;headlightShowOff.Value=false;}
         GUI.enabled=true;
-        GUI.Label(new Rect(25,483,510,36),"Farbe und Stärke gelten vorne. Fahrlicht geht beim Einstieg an; Brems- und Rückfahrlicht reagieren automatisch.",mutedStyle);
+        GUI.Label(new Rect(25,482,510,36),"Farbe und Stärke gelten auch für die Show. Brems- und Rückfahrlicht bleiben automatisch.",mutedStyle);
     }
     void DrawNeonMenu() {
         GUI.enabled=vehicleNeon!=null;

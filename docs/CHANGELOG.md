@@ -1,5 +1,19 @@
 # Versionsgeschichte
 
+## 0.19.0 — Scheinwerfer-Show nach dem Aussteigen
+
+- F9 → Lichter: „Show-off beim Aussteigen“, standardmäßig aus, für 350Z und H2
+  separat gespeichert. Nach dem Aussteigen zweimal links, zweimal rechts,
+  dann Pause; 2,4-s-Zyklus mit vier 160-ms-Blitzen. Links/rechts aus Fahrersicht.
+- Lichtkegel und leuchtende Lampenflächen folgen derselben Phase. Seiten aus
+  Fahrzeugkoordinaten statt spiegelverkehrter NFS-Teilenamen bestimmt.
+- Einsteigen beendet die Show und aktiviert normales Fahrlicht. Abschalten
+  stellt den normalen Lichtzustand wieder her; erneutes Aktivieren startet links.
+  Pause/Fokusverlust friert die Phase ein. Eigenständiger Zustand pro Fahrzeug.
+- Farbe und Stärke gelten auch für die Show; Motor-/Radio-Weiterlaufen ist
+  unabhängig. Brems-/Rückfahr-/Rücklicht unverändert. Reset schaltet Show-off aus.
+- Automatische Ablaufprüfungen; sichtbare Lichtkegel, Emission und Menü im Spiel prüfen.
+
 ## 0.18.4 — Metallic-Lack
 
 - Lackflächen werden beim Import ausdrücklich markiert. 350Z-Lack/Vinyl und

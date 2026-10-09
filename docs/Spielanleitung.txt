@@ -1,4 +1,12 @@
-NFVU2 0.18.4 – 350Z und Hummer H2, lokaler Test für Valheim
+NFVU2 0.19.0 – 350Z und Hummer H2, lokaler Test für Valheim
+
+NEU: SCHEINWERFER-SHOW
+F9 → Lichter → „Show-off beim Aussteigen“ aktivieren (standardmäßig aus).
+Nach dem Aussteigen blinken die Frontscheinwerfer zweimal links, zweimal
+rechts, dann folgt eine Pause. Links/rechts aus Fahrersicht. Wiederholt sich,
+bis du einsteigst oder die Show ausschaltest. Farbe und Stärke gelten auch
+für die Show. Funktioniert unabhängig vom Motor-Weiterlaufen; pro Fahrzeugtyp
+gespeichert. „Scheinwerfer zurücksetzen“ schaltet die Show wieder aus.
 
 NEU: METALLIC-LACK
 350Z und Hummer H2 haben stärker reflektierenden Lack mit höherem Glanz.

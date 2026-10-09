@@ -2,7 +2,12 @@
 
 **Need for Valheim: Underground 2** — ein privater Fahrzeug-Mod-Prototyp für Valheim.
 
-Aktueller Stand: **0.18.4** mit stärker reflektierendem Metallic-Lack für 350Z
+Aktueller Stand: **0.19.0** mit optionaler Scheinwerfer-Show nach dem Aussteigen.
+F9 → Lichter → „Show-off beim Aussteigen“: zweimal links, zweimal rechts,
+dann Pause; wiederholt sich bis zum Einsteigen oder Abschalten. Links/rechts
+aus Fahrersicht. Farbe/Stärke werden übernommen, Standard aus, pro Fahrzeugtyp gespeichert.
+
+Seit **0.18.4** mit stärker reflektierendem Metallic-Lack für 350Z
 und Hummer H2. Lackflächen erhalten ein eigenes Material mit höherem Glanz;
 Farbe und Vinyl bleiben erhalten. Darstellung im Spiel noch prüfen.
 
