@@ -1,5 +1,15 @@
 # Versionsgeschichte
 
+## 0.18.4 — Metallic-Lack
+
+- Lackflächen werden beim Import ausdrücklich markiert. 350Z-Lack/Vinyl und
+  gelbe H2-Karosserie erhalten ein frisches Material mit Metallic 0,72 und
+  Smoothness 0,88; geladener Standard-Shader mit geprüftem nativem Fallback.
+  Keine geerbten Gebäude-Normal-/Glanzmasken. Farbe und Vinyl bleiben erhalten.
+  Carbonhaube, Scheiben, Innenraum und Felgen behalten ihre eigenen Einstellungen.
+- Importzuordnung automatisch geprüft; Glanz und Reflexionen müssen bei
+  Sonne/Schatten/Nacht im Spiel geprüft werden.
+
 ## 0.17.0 — Nitro-Tunnelblick und Rücklichtspuren
 
 - Sechs radial versetzte Bildlagen verwischen beim tatsächlichen Nitro-Boost

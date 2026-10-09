@@ -1,5 +1,10 @@
 # Nächste Aufgaben
 
+## Metallic-Lack in 0.18.4
+
+- 350Z und H2 frisch spawnen: Metallic-Reflexionen bei Sonne/Schatten/Nacht,
+  Vinylfarben, Carbonhaube und Kunststoff vergleichen. Lackshader im Log prüfen.
+
 ## Nitro-Bildeffekte in 0.17.0
 
 - 350Z am Boden/im Flug und H2 im Flug: W + LMB/Strg, Loslassen und leerer

@@ -26,7 +26,7 @@ public sealed class ModelPart { public string name, group, lightRole, movingPart
 public sealed class ModelLight { public string role; public ModelVertex position, direction; }
 public struct ModelVertex { public float x, y, z; }
 public struct ModelUV { public float u, v; }
-public sealed class ModelMaterial { public string name; public float[] color; public float metallic, smoothness; public int texture; }
+public sealed class ModelMaterial { public string name; public float[] color; public float metallic, smoothness; public int texture; public bool bodyPaint; }
 public sealed class ModelTexture { public string name; public int width, height; public byte[] rgba; }
 
 // Use the managed JSON reader shipped with Valheim. Unity's native serializer

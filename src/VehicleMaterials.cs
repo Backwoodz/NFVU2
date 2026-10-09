@@ -58,12 +58,13 @@ public static class VehicleMaterials {
         bool success=false;
         try {
             Shader wheelShader = null;
-            if (model.materials.Any(m => IsWheelMetal(m.name)||IsWheelRubber(m.name))) {
+            if (model.materials.Any(m => m.bodyPaint||IsWheelMetal(m.name)||IsWheelRubber(m.name))) {
                 wheelShader = Resources.FindObjectsOfTypeAll<Material>()
                     .Where(m => m != null && m.shader != null && m.shader.isSupported && m.shader.name == "Standard")
                     .Select(m => m.shader).FirstOrDefault() ?? Shader.Find("Standard");
                 if (wheelShader == null || !wheelShader.isSupported) wheelShader = templates[0].shader;
                 log("350Z wheel metal shader: " + wheelShader.name + "; fresh material, environment reflections, no emission");
+                if(model.materials.Any(m=>m.bodyPaint))log("Vehicle metallic paint shader: "+wheelShader.name+"; metallic 0.72, smoothness 0.88");
             }
             for (int i = 0; i < textures.Length; i++) {
                 var data = model.textures[i];
@@ -83,29 +84,38 @@ public static class VehicleMaterials {
                 var data = model.materials[i]; var c = data.color;
                 bool wheelMetal = IsWheelMetal(data.name);
                 bool wheelRubber = IsWheelRubber(data.name);
-                // Preserve the paint/cabin path. Polished rims must not inherit a
+                bool paint=data.bodyPaint;
+                float metallic=paint ? .72f : data.metallic,smoothness=paint ? .88f : data.smoothness;
+                // Paint and polished rims must not inherit a
                 // building prop's maps, disabled reflections or shader keywords.
-                var material = wheelMetal||wheelRubber
+                var material = paint||wheelMetal||wheelRubber
                     ? new Material(wheelShader) { name = "350Z_" + data.name, renderQueue = 2000 }
                     : Clone(templates[0], "350Z_" + data.name, new Color(c[0], c[1], c[2], c[3]));
                 result[i] = material;
-                if (wheelMetal||wheelRubber) foreach (var property in new[] { "_Color", "_BaseColor" })
+                if (paint||wheelMetal||wheelRubber) foreach (var property in new[] { "_Color", "_BaseColor" })
                     if (material.HasColor(property)) material.SetColor(property, new Color(c[0], c[1], c[2], c[3]));
                 foreach (var property in new[] { "_MainTex", "_BaseMap", "_Albedo" })
-                    if (data.texture >= 0 && material.HasTexture(property)) material.SetTexture(property, textures[data.texture]);
-                if (material.HasFloat("_Metallic")) material.SetFloat("_Metallic", data.metallic);
-                foreach (var property in new[] { "_Glossiness", "_Smoothness" }) if (material.HasFloat(property)) material.SetFloat(property, data.smoothness);
-                if (wheelMetal||wheelRubber) {
+                    if (material.HasTexture(property)) material.SetTexture(property,data.texture>=0?textures[data.texture]:Texture2D.whiteTexture);
+                if (material.HasFloat("_Metallic")) material.SetFloat("_Metallic", metallic);
+                foreach (var property in new[] { "_Glossiness", "_Smoothness" }) if (material.HasFloat(property)) material.SetFloat(property,smoothness);
+                if (paint||wheelMetal||wheelRubber) {
                     material.DisableKeyword("_METALLICGLOSSMAP"); material.DisableKeyword("_SPECGLOSSMAP");
                     material.DisableKeyword("_GLOSSYREFLECTIONS_OFF"); material.DisableKeyword("_SPECULARHIGHLIGHTS_OFF");
                     material.DisableKeyword("_SMOOTHNESS_TEXTURE_ALBEDO_CHANNEL_A"); material.DisableKeyword("_EMISSION");
                     foreach (var property in new[] { "_MetallicGlossMap", "_SpecGlossMap", "_OcclusionMap" })
                         if (material.HasTexture(property)) material.SetTexture(property, Texture2D.whiteTexture);
                     if (material.HasFloat("_OcclusionStrength")) material.SetFloat("_OcclusionStrength", 0);
-                    if (material.HasFloat("_GlossMapScale")) material.SetFloat("_GlossMapScale", data.smoothness);
+                    if (material.HasFloat("_GlossMapScale")) material.SetFloat("_GlossMapScale",smoothness);
                     foreach (var property in new[] { "_GlossyReflections", "_SpecularHighlights" })
                         if (material.HasFloat(property)) material.SetFloat(property, 1);
                     if (material.HasColor("_EmissionColor")) material.SetColor("_EmissionColor", Color.black);
+                    if(paint) {
+                        foreach(var property in new[]{"_UseGlossmap","_MetallicAlphaGloss","_UseStyles","_NoiseGlowEnabled"})
+                            if(material.HasFloat(property))material.SetFloat(property,0);
+                        foreach(var property in new[]{"_BumpMap","_NormalMap"})
+                            if(material.HasTexture(property))material.SetTexture(property,Texture2D.normalTexture);
+                        if(material.HasTexture("_EmissionMap"))material.SetTexture("_EmissionMap",Texture2D.blackTexture);
+                    }
                 }
                 yield return 0;
             }

@@ -1,4 +1,8 @@
-NFVU2 0.17.0 – 350Z und Hummer H2, lokaler Test für Valheim
+NFVU2 0.18.4 – 350Z und Hummer H2, lokaler Test für Valheim
+
+NEU: METALLIC-LACK
+350Z und Hummer H2 haben stärker reflektierenden Lack mit höherem Glanz.
+Die Änderung gilt für frisch gespawnte Fahrzeuge. Farbe und Vinyl bleiben erhalten.
 
 NEU: NITRO-TUNNELBLICK UND RÜCKLICHTSPUREN
 Beim Boost verwischt der Bildrand nach außen. Das Auto und die Bildmitte

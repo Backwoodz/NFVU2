@@ -249,7 +249,7 @@ def main():
         # Multiplying it by .16 hid almost all of that detail in Valheim.
         if group=='wheel' and key==0x78743ca1:color=[.8,.8,.8,1.];metal=0.;smooth=.12
         prefix=appearance+'_' if appearance.startswith('wheel_') else ''
-        desc={'name':f'{prefix}{key:08x}_{len(materials)}','color':color,'metallic':metal,'smoothness':smooth,'texture':tex}
+        desc={'name':f'{prefix}{key:08x}_{len(materials)}','color':color,'metallic':metal,'smoothness':smooth,'texture':tex,'bodyPaint':key==0xd6d6080a and tex==vinyl_id and not hood}
         material_ids[identity]=len(materials);materials.append(desc);return len(materials)-1
     parts=[]
     def transform(v,matrix,exhaust=False,normal=False):

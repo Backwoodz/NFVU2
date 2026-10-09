@@ -49,6 +49,7 @@ class Program {
         Check(model.parts.Any(p=>p.group=="spinner"&&p.name.StartsWith("SPINNER_STYLE01_26_34_SPIN")),"separate original spinner insert imports");
         Check(model.animations==null&&model.trunkLayouts==null&&model.parts.All(p=>!p.name.Contains("ENGINE")&&!p.name.Contains("TRUNK_AUDIO")),"H2 omits engine and trunk upgrade models");
         Check(model.materials.Any(m=>m.color[0]==1&&m.color[1]>.6f&&m.color[1]<.8f&&m.color[2]<.02f),"H2 default body paint is yellow");
+        Check(model.materials.Count(m=>m.bodyPaint)==7&&model.materials.Where(m=>m.bodyPaint).All(m=>m.texture==-1&&m.color[0]==1&&m.color[2]<.02f),"metallic paint marks seven yellow H2 surfaces, excluding glass and chrome");
         var tyre=model.parts.Single(p=>p.group=="wheel"&&model.materials[p.material].name.StartsWith("78743ca1_"));
         var points=tyre.indices.Select(i=>tyre.vertices[i]).ToArray();
         Check(Math.Abs(points.Max(v=>Math.Sqrt(v.y*v.y+v.z*v.z))-.4364)<.00001,"H2 tyre diameter is 87.28 cm");

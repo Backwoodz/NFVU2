@@ -2,7 +2,11 @@
 
 **Need for Valheim: Underground 2** — ein privater Fahrzeug-Mod-Prototyp für Valheim.
 
-Aktueller Stand: **0.17.0** mit Nitro-Tunnelblick und kurzen roten Rücklichtspuren.
+Aktueller Stand: **0.18.4** mit stärker reflektierendem Metallic-Lack für 350Z
+und Hummer H2. Lackflächen erhalten ein eigenes Material mit höherem Glanz;
+Farbe und Vinyl bleiben erhalten. Darstellung im Spiel noch prüfen.
+
+Seit **0.17.0**: Nitro-Tunnelblick und kurze rote Rücklichtspuren.
 F9 → Nitro: beide Effekte einzeln schalten und die gemeinsame Stärke regeln.
 Sie folgen dem tatsächlichen Boost am Boden und im Flug. Eine eigene Nachbildung
 des NFS-Looks; die genaue Originalsteuerung ist weiterhin nicht rekonstruiert.

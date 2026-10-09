@@ -84,7 +84,7 @@ def main():
             elif key==0x78743ca1:color=[.13,.13,.14,1];smooth=.12
             elif tex<0:color=[.055,.055,.06,1]
             if group=='brake' and key==0xd6640dff:color=[.65,.04,.025,1];tex=-1
-            material=len(materials);materials.append(dict(name=('wheel_chrome_' if chrome else '78743ca1_' if key==0x78743ca1 else 'h2_')+name+str(number),color=color,metallic=metal,smoothness=smooth,texture=tex))
+            material=len(materials);materials.append(dict(name=('wheel_chrome_' if chrome else '78743ca1_' if key==0x78743ca1 else 'h2_')+name+str(number),color=color,metallic=metal,smoothness=smooth,texture=tex,bodyPaint=key==0xd6d6080a))
             def vertex(v,normal=False):
                 x,y,z=v
                 if group=='body':r=(y,z+(0 if normal else LIFT),x)

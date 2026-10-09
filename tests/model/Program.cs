@@ -20,6 +20,7 @@ class Program {
     }
     static void Main(string[] args) {
         var model=ModelFile.Load(args[0]);
+        Check(model.materials.Count(m=>m.bodyPaint)==2&&model.materials.Where(m=>m.bodyPaint).All(m=>m.texture>=0&&model.textures[m.texture].name=="rachel_paint"),"metallic paint marks only painted 350Z surfaces, excluding carbon and trim");
         Check(model.schemaVersion==2 && model.preset=="DDAY_PLAYER_CAR","original beginning-of-game preset");
         Check(model.parts.Any(p=>p.name.StartsWith("350Z_KITW02_BODY_A")) && model.parts.Any(p=>p.name.StartsWith("SPOILER_STYLE02_A")),"widebody and spoiler imported");
         Check(model.parts.Any(p=>p.group=="wheel") && model.parts.Any(p=>p.group=="brake"),"original rim and brake geometry");
