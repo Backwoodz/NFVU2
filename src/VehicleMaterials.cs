@@ -47,9 +47,15 @@ public static class VehicleMaterials {
         return material;
     }
     public static Material[] CreateForModel(MonoBehaviour local, ModelData model, Action<string> log, out Texture2D[] textures) {
-        textures = new Texture2D[model.textures.Length];
+        Material[] result=null;Texture2D[] loaded=null;
+        foreach(var step in CreateForModelSteps(local,model,log,(m,t)=>{result=m;loaded=t;})){}
+        textures=loaded;return result;
+    }
+    public static System.Collections.Generic.IEnumerable<int> CreateForModelSteps(MonoBehaviour local,ModelData model,Action<string> log,Action<Material[],Texture2D[]> completed) {
+        var textures = new Texture2D[model.textures.Length];
         var templates = Create(local, log);
         var result = new Material[model.materials.Length];
+        bool success=false;
         try {
             Shader wheelShader = null;
             if (model.materials.Any(m => IsWheelMetal(m.name)||IsWheelRubber(m.name))) {
@@ -71,6 +77,7 @@ public static class VehicleMaterials {
                 // just the supplied level, then Apply generates the smaller mips.
                 texture.SetPixelData<byte>(pixels, 0);
                 texture.Apply(true, true);
+                yield return 0;
             }
             for (int i = 0; i < result.Length; i++) {
                 var data = model.materials[i]; var c = data.color;
@@ -100,13 +107,16 @@ public static class VehicleMaterials {
                         if (material.HasFloat(property)) material.SetFloat(property, 1);
                     if (material.HasColor("_EmissionColor")) material.SetColor("_EmissionColor", Color.black);
                 }
+                yield return 0;
             }
-            return result;
-        } catch {
-            foreach (var m in result) if (m != null) UnityEngine.Object.Destroy(m);
-            foreach (var t in textures) if (t != null) UnityEngine.Object.Destroy(t);
-            textures = null; throw;
-        } finally { foreach (var m in templates) UnityEngine.Object.Destroy(m); }
+            completed(result,textures);success=true;
+        } finally {
+            if(!success) {
+                foreach(var m in result)if(m!=null)UnityEngine.Object.Destroy(m);
+                foreach(var t in textures)if(t!=null)UnityEngine.Object.Destroy(t);
+            }
+            foreach(var m in templates)UnityEngine.Object.Destroy(m);
+        }
     }
     static bool IsWheelMetal(string name) => (name ?? "").StartsWith("wheel_chrome_", StringComparison.Ordinal) ||
         (name ?? "").StartsWith("wheel_gold_", StringComparison.Ordinal);

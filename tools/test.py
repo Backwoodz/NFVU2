@@ -4,7 +4,7 @@ from build import build
 from build_support import compile_cs,test_refs,runtime_config
 
 def main():
-    suites=['model','handling','audio','radio','nitro','impact','showroom','driving','turret','targeting','terrain','hummer','menu','cabin','flight']
+    suites=['model','handling','audio','radio','nitro','impact','showroom','driving','turret','targeting','terrain','hummer','menu','cabin','flight','loading']
     parser=argparse.ArgumentParser();parser.add_argument('--skip-build',action='store_true');parser.add_argument('--handling-only',action='store_true')
     parser.add_argument('--suite',action='append',choices=suites,help='Run only these C# suites; repeat to combine.')
     args=parser.parse_args()
@@ -25,6 +25,9 @@ def main():
         if suite=='model':
             jsondll=out/'Newtonsoft.Json.dll';shutil.copy2(valheim_dir()/'valheim_Data/Managed/Newtonsoft.Json.dll',jsondll);refs.append(jsondll)
             arguments=[str(LOCAL/'model/body.json')]
+        if suite=='loading':
+            jsondll=out/'Newtonsoft.Json.dll';shutil.copy2(valheim_dir()/'valheim_Data/Managed/Newtonsoft.Json.dll',jsondll);refs.append(jsondll)
+            arguments=[str(OUTPUT/'mod')]
         if suite=='audio':arguments=[str(out/'preview-state.csv'),str(OUTPUT/'mod/audio/effects')]
         if suite=='radio':
             jsondll=out/'Newtonsoft.Json.dll';shutil.copy2(valheim_dir()/'valheim_Data/Managed/Newtonsoft.Json.dll',jsondll);refs.append(jsondll)

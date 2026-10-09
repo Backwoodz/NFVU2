@@ -87,6 +87,7 @@ public partial class Plugin {
         var text=driving?DriveModeName+(Flying?" | W/S: vor/zurück | A/D: drehen | Shift: hoch | Leertaste: runter\nF9 → Fahrzeug: landen | Zum Aussteigen zuerst landen":" | WASD: fahren | Leertaste: "+(driftMode.Value?"Handbremse":"bremsen")+" | H: Hupe | F7: aussteigen\nMaus: umschauen | Mausrad: Zoom | "+menuKey.Value+": Fahrzeugmenü"):status;
         GUI.Box(new Rect(15,Screen.height-80,Mathf.Min(920,Screen.width-30),60),text);
         if(driving&&Flying)GUI.Box(new Rect(15,Screen.height-120,480,32),FlightBoostLabel+" | Tank "+Mathf.RoundToInt((ActiveNitro?.Charge??0)*100)+" %");
+        DrawSpawnProgress();
         DrawDashboard();
         DrawTurretAim();
         if(driving&&!Flying&&!hudEnabled.Value&&ActiveNitro!=null&&nitroEnabled.Value)
@@ -140,14 +141,14 @@ public partial class Plugin {
         if(MenuButton(new Rect(285,445,245,38),"Kofferraum-Ausbau"))menuTab=7;
     }
     void DrawNitroMenu() {
-        if(IsHummer){nitroEnabled.Value=GUI.Toggle(new Rect(25,145,510,32),nitroEnabled.Value," Nitro im Flug aktivieren");GUI.Label(new Rect(25,195,510,110),"Im Flug W + linke Maustaste halten: mehr Vorwärtsschub.\nSechs Sekunden Tank, Nachladen nach dem Loslassen bei Bewegung. Am Boden bleibt der H2 ohne Nitro.",labelStyle);return;}
-        nitroEnabled.Value=GUI.Toggle(new Rect(25,145,510,32),nitroEnabled.Value," Nitro aktivieren");
-        GUI.Label(new Rect(25,195,510,75),"W + linke Maustaste: Nitro am Boden und im Flug. In der Luft verstärkt es die vier Rad-Düsen und den Vorwärtsschub.",labelStyle);
-        GUI.Label(new Rect(25,275,510,70),"Im Stand strömt stattdessen Gas aus den Düsen vorne und an der Haube.",labelStyle);
-        GUI.Label(new Rect(25,350,510,60),"Sechs Sekunden Boost. Nach dem Loslassen lädt der Tank beim Fahren wieder auf.",mutedStyle);
-        backfireEnabled.Value=GUI.Toggle(new Rect(25,427,510,32),backfireEnabled.Value," Auspuffflammen beim Gaswegnehmen");
-        GUI.Label(new Rect(25,464,510,44),effectsAudio!=null&&effectsAudio.BackfireAvailable?"Kurzer Flammenstoß nach hoher Drehzahl; separat zuschaltbar.":"Kurzer Flammenstoß nach hoher Drehzahl. Knallgeräusch noch nicht verfügbar.",mutedStyle);
+        nitroEnabled.Value=GUI.Toggle(new Rect(25,145,510,30),nitroEnabled.Value,IsHummer?" Nitro im Flug aktivieren":" Nitro aktivieren");
+        GUI.Label(new Rect(25,186,510,66),IsHummer
+            ?"Im Flug W + LMB/Strg: mehr Schub. Am Boden bleibt der H2 ohne Nitro. Sechs Sekunden Tank; Nachladen bei Bewegung."
+            :"W + LMB/Strg: Nitro am Boden und im Flug. Im Stand: Purge. Sechs Sekunden Tank; Nachladen bei Bewegung.",labelStyle);
+        if(!IsHummer)backfireEnabled.Value=GUI.Toggle(new Rect(25,270,510,30),backfireEnabled.Value," Auspuffflammen beim Gaswegnehmen");
+        DrawNitroVisualSettings();
     }
+
     void DrawRadioMenu() {
         radioEnabled.Value=GUI.Toggle(new Rect(25,143,510,28),radioEnabled.Value," Radio einschalten");
         GUI.Label(new Rect(25,185,510,25),"Lautstärke  "+Mathf.RoundToInt(radioVolume.Value*100)+" %",labelStyle);

@@ -1,5 +1,55 @@
 # Nächste Aufgaben
 
+## Nitro-Bildeffekte in 0.17.0
+
+- 350Z am Boden/im Flug und H2 im Flug: W + LMB/Strg, Loslassen und leerer
+  Tank. Purge/Schweben ohne Boost ohne Filter/Spuren. Rückleuchten aus/an.
+- F9 → Nitro: beide Schalter einzeln, Stärke 0/70/100 %. Menü, Pause, Chat,
+  Inventar, Alt-Tab, Ausstieg, Tod, Weltwechsel, Fahrzeugwechsel: keine Reste.
+- DX11/Vulkan, HDR, Auflösungswechsel, Kameraorbit/-zoom und Hindernisse prüfen:
+  kein kopfstehendes/dunkles Bild, Fahrzeug/HUD lesbar, keine Rücklichtspuren
+  durch Gebäude. Länge/Position der Spuren an beiden Autos visuell abstimmen.
+- GPU-Frametimes bei 1080p/1440p/4K messen. Sechs Bildlagen plus halbe Auflösung
+  für die GPU-Abtasttextur; keine CPU-Bildrücklesung. Bei Stärke 0/ausgeblendeten
+  Effekten ist der Kamera-Callback deaktiviert. Kein Unity-Laufzeittest erfolgt.
+
+## Flug-Auspuff und NFS-Bildeffekte in 0.16.1
+
+- 350Z im Flug: W + LMB/Strg aktiviert die vier vorhandenen Auspuffflammen
+  und den normalen Nitro-Sound zusätzlich zu den Rad-Düsen. Tank leer,
+  Loslassen, Menü, Fokusverlust und Landen beenden Boost-Effekte korrekt.
+- Schweben ohne Boost bleibt ohne Auspuff-Nitro; kein Purge/Reifenrauch
+  oder Schubknallen im Flug. Boden-Nitro und Purge erneut vergleichen.
+- NFSU2 Motion Blur, Light Trails und Light Glow sind getrennt belegt
+  (REFERENCES). Radiales Verwischen um den Fluchtpunkt plus kurz auslaufende
+  Lichtspuren ist eine plausible NFVU2-Nachbildung; noch keine verifizierte
+  Rekonstruktion des NFS-Shaders oder seiner Nitro-Steuerung.
+- Originale Filter-Shader inzwischen disassembliert: gewichtete Mischung
+  von 1–4 Textur-Abtastungen, separate Helligkeits- und Farbverarbeitung.
+  Nitro-Zuordnung und Rücklichtspur bleiben offen. Wegen gepacktem/geschütztem
+  EXE-Code als nächsten Nachweis Laufzeit-/Grafikdaten des Originals verwenden:
+  Texturen, UVs, Gewichte, Blendmodus und Spur-Geometrie vergleichen.
+- Für eine spätere Nachbildung: Fahrzeug/HUD lesbar halten, Stärke regelbar
+  und abschaltbar, nur bei tatsächlichem Boost, weich ausblenden. Grafiklast
+  messen; keine CPU-Bildrücklesung pro Frame. Gegen Original-NFS vergleichen.
+
+## Hintergrund-Spawn in 0.16.0
+
+- 350Z mit Innenraum und H2 jeweils erstmals und mehrfach spawnen: Ladeanzeige
+  animiert, Welt/Spieler bewegen sich weiter, vollständiges Auto erscheint.
+  Im Log „Vehicle data ready“ und „Vehicle spawn completed“ vergleichen;
+  Frametimes im Spiel messen, besonders Textur-Uploads/Shader beim ersten Sichtkontakt.
+- F6 mehrfach, F8 und Abbrechen in verschiedenen Ladeabschnitten; danach
+  erneut spawnen. Keine Geister-Collider, halben Autos, Sounds oder Meshreste.
+- Bei schon vorhandenen Autos darf F8 während Laden nur den Ladevorgang
+  abbrechen. Deren Radio, Turret und Physik müssen normal weiterlaufen.
+- Während Laden bewegen, F9 öffnen, Alt-Tab, Tod, Teleport und Welt verlassen.
+  Kein verspäteter Spawn in der nächsten Welt; kein Einstieg in Teilressourcen.
+- Innenraum, bewegliche Türen, Scheibentönung, Lenkrad, HUD, Motor/Nitro/Turret-
+  Audio, Beleuchtung und H2-Spinner nach Aktivierung prüfen. Vier-Auto-Grenze.
+- Automatische Lade-/Cachetests ersetzen keine Unity-Laufzeitprüfung. Einzelne
+  unteilbare Unity-Aufrufe und GC können weiterhin kurze Spitzen verursachen.
+
 ## Nitro und Reifen in 0.15.2
 
 - Im Flug Menü schließen, Tasten loslassen, W + LMB bzw. W + linke Strg:

@@ -1,5 +1,64 @@
 # Versionsgeschichte
 
+## 0.17.0 — Nitro-Tunnelblick und Rücklichtspuren
+
+- Sechs radial versetzte Bildlagen verwischen beim tatsächlichen Nitro-Boost
+  den Bildrand. Ein weicher Schutzbereich hält die Fahrzeugprojektion und
+  die Bildmitte scharf; HUD/Overlay werden danach gezeichnet. GPU-Kopie in
+  halber Auflösung, keine CPU-Bildrücklesung. Filter nur während Boost/Fade aktiv.
+- Zwei kurze rote Lichtbänder folgen den Rücklichtpositionen. Weicher Querschnitt,
+  verjüngtes Ende und ungefähr drei Meter Maximallänge. Tiefentest bleibt aktiv.
+  Nur bei eingeschalteten Rückleuchten und tatsächlichem Boost, auch im Flug.
+- F9 → Nitro: Tunnelblick und Rücklichtspuren separat abschaltbar; gemeinsame
+  Stärke 0–100 %, Standard 70 %. Gemeinsame Einstellungen für beide Fahrzeuge.
+  Menü, Pause, Fokusverlust, Ausstieg, Welt-/Kamerawechsel räumen Effekte auf.
+- Eigene UVs, Gewichtung, Maske und Spurzeiten; keine unveränderte Übernahme
+  der NFS-Shader. Die ergänzend geprüfte yugecin-Quelle liefert Grafikschalter
+  und Parameternamen, keine vollständige Nitro-/Spur-Implementierung.
+- Keine Änderung von Fahrzeugsteuerung, Nitro-Schub, Tank oder Auspuffeffekten.
+  Automatische Prüfungen ersetzen keine Unity-Darstellungs-/GPU-Messung.
+
+## 0.16.1 — Auspuff-Nitro auch im Flug
+
+- Die gemeinsame Effektsperre enthielt bisher den gesamten Flugmodus und
+  unterdrückte dadurch die vorhandenen 350Z-Auspuffflammen und Nitro-Sounds.
+  Beide folgen jetzt dem aktiven Nitro-Zustand auf Boden und im Flug.
+  Ohne tatsächlichen Boost bleiben sie aus; die vier Schwebe-Düsen sind unabhängig.
+- Reifenrauch, Purge und Schubknallen bleiben im Flug gesperrt. Menü,
+  Fokusverlust, Ausstieg und noch nicht abgeschlossener Einstieg sperren
+  weiterhin die Auspuffeffekte. Keine Änderung von Schub, Tank oder Fahrwerk.
+- 41 Nitro- und 37 Flugprüfungen bestanden; Partikel und Sound benötigen
+  weiterhin den Unity-Spieltest.
+- NFSU2-Bildfilter und Lichtspuren untersucht: getrennte Grafikoptionen,
+  eingebettete D3D9-Filter und lokale Flare-Textur nachgewiesen. Die genaue
+  Nitro-Kopplung, Filtergewichte und Trail-Historie bleiben unbestätigt.
+  Quellen und Grenzen in REFERENCES; noch kein neuer Bildschirmfilter eingebaut.
+
+## 0.16.0 — Fahrzeuge im Hintergrund vorbereiten und schrittweise spawnen
+
+- Bisher liefen Dateilesen, JSON-Auswertung, Textur-Uploads, Mesh-Aufbau und
+  Audioerstellung zusammen im Spawnaufruf. Der optionale Innenraum ergänzt
+  rund 24 MB JSON. Modelldaten und PCM-Sounds werden nun auf einem Worker
+  vorbereitet; der JSON-Reader liest aus dem Stream statt einer zusätzlichen
+  vollständigen Dateikopie als String.
+- Ladeanzeige mit aktuellem Abschnitt und animiertem Balken beim Einlesen.
+  Aufbau von Karosserie, Rädern, Innenraum, Turret, Tacho und Motorclips in
+  kleinen Arbeitsschritten mit etwa 3 ms Budget je Update. Einzelne Unity-
+  Aufrufe können das Budget überschreiten; keine harte Framerate-Garantie.
+- Unveränderte verwaltete Modell-/Sounddaten werden innerhalb derselben Welt
+  wiederverwendet. Keine geteilten veränderbaren Unity-Materialien oder Meshes.
+  Dateigröße/Änderungszeit invalidieren den Cache; Weltwechsel gibt ihn frei.
+- Das Auto bleibt bis zum Abschluss inaktiv und außerhalb der Fahrzeugliste.
+  Spawnplatz wird vor Freigabe erneut geprüft. F8/Abbrechen, Tod, Teleport,
+  Weltwechsel und Ladefehler entsorgen Teilressourcen. Bereits vorhandene
+  Fahrzeuge bleiben unabhängig; parallele Spawns und Einstieg während Laden
+  werden gesperrt. Fehlende optionale Module behalten ihren bisherigen Fallback.
+- Automatische Prüfungen für Hintergrundladen echter Assets, Cache/Invalidierung,
+  Abbruch, Fehler und Ressourcen-Finalisierung. Im .NET-Test etwa 1,4 Sekunden
+  beim ersten Einlesen gegenüber etwa 4 ms aus dem Cache; das sind keine Unity-
+  Frametimes. Log ergänzt Gesamtdauer und längsten Hauptthread-Arbeitsschritt.
+- Plugin-ID, DLL-Name und VehicleHandling bleiben erhalten. Spieltest offen.
+
 ## 0.15.2 — Nitro-Eingabe, Flammenanschluss und Reifenmaterial
 
 - Flammenansatz von 48 auf 26 cm Abstand zum Radmittelpunkt korrigiert;

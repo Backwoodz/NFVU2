@@ -8,7 +8,9 @@ public static class HudFile {
     public static HudData Load(string path) {
         var file=new FileInfo(path);
         if(!file.Exists||file.Length==0||file.Length>8*1024*1024)throw new InvalidDataException("Missing or oversized HUD data");
-        var data=JsonConvert.DeserializeObject<HudData>(File.ReadAllText(path),new JsonSerializerSettings{TypeNameHandling=TypeNameHandling.None,MaxDepth=12});
+        HudData data;
+        using(var stream=File.OpenText(path))using(var reader=new JsonTextReader(stream))
+            data=JsonSerializer.Create(new JsonSerializerSettings{TypeNameHandling=TypeNameHandling.None,MaxDepth=12,CheckAdditionalContent=true}).Deserialize<HudData>(reader);
         if(data==null||data.schemaVersion!=1||data.designs==null||data.designs.Length!=11)throw new InvalidDataException("Invalid HUD catalog");
         foreach(var d in data.designs) {
             if(d==null||string.IsNullOrWhiteSpace(d.name)||d.name.Length>40)throw new InvalidDataException("Invalid HUD design");

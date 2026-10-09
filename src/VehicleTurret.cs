@@ -33,17 +33,11 @@ public sealed class VehicleTurret : IDisposable {
     public bool Aligned {get;private set;}
     public bool LaserAvailable=>laser!=null;
     public bool ExplosiveAvailable=>explosion!=null;
-    public static VehicleTurret Create(GameObject car,MonoBehaviour local,string folder,Action<string> log) {
-        var result=new VehicleTurret();
-        try {result.Load(car,local,folder,log);return result;}
-        catch(Exception e){result.Dispose();log?.Invoke("350Z optional Rust turret unavailable: "+e.Message);return null;}
-    }
     static Vector3 V(ModelVertex v)=>new Vector3(v.x,v.y,v.z);
     static Transform Node(string name,Transform parent,Vector3 position) {
         var t=new GameObject(name).transform;t.SetParent(parent,false);t.localPosition=position;return t;
     }
-    void Load(GameObject car,MonoBehaviour local,string folder,Action<string> log) {
-        var model=ModelFile.Load(Path.Combine(folder,"turret.json"));
+    public IEnumerable<int> LoadSteps(GameObject car,MonoBehaviour local,string folder,ModelData model,Action<string> log,SpawnAudio prepared) {
         if(model.turretRig==null)throw new InvalidDataException("Missing turret rig");model.turretRig.Validate();
         vehicle=car.transform;
         // Seat the tripod into the curved roof; the former front foot overhung the windscreen.
@@ -53,7 +47,7 @@ public sealed class VehicleTurret : IDisposable {
         muzzle=Node("Muzzle",gun,V(model.turretRig.muzzle));
         laserMount=Node("Rust_LaserModule",gun,Vector3.zero);
         if(model.turretRig.laser.HasValue)laser=Node("LaserEmitter",gun,V(model.turretRig.laser.Value));
-        materials=VehicleMaterials.CreateForModel(local,model,log,out textures);
+        foreach(var step in VehicleMaterials.CreateForModelSteps(local,model,log,(m,t)=>{materials=m;textures=t;}))yield return step;
         foreach(var p in model.parts) {
             string role=p.name.Split('|')[0];
             var parent=role=="base"?root:role=="yaw"?yaw:role=="pitch"?pitch:role=="gun"?gun:role=="laser"?laserMount:null;
@@ -64,11 +58,12 @@ public sealed class VehicleTurret : IDisposable {
             mesh.uv=p.uv.Select(v=>new Vector2(v.u,v.v)).ToArray();mesh.colors=Enumerable.Repeat(Color.white,p.vertices.Length).ToArray();
             mesh.RecalculateTangents();mesh.RecalculateBounds();
             t.gameObject.AddComponent<MeshFilter>().sharedMesh=mesh;t.gameObject.AddComponent<MeshRenderer>().sharedMaterial=materials[p.material];
+            yield return 0;
         }
         var mixer=Resources.FindObjectsOfTypeAll<AudioMixerGroup>().FirstOrDefault(g=>g.name.Equals("SFX",StringComparison.OrdinalIgnoreCase));
         fireAudio=Source(muzzle,mixer);actionAudio=Source(pitch,mixer);servoAudio=Source(yaw,mixer);servoAudio.loop=true;
-        for(int i=0;i<3;i++)shots[i]=Clip(folder,"shot"+(i+1)+".wav");
-        tail=Clip(folder,"tail.wav");reload=Clip(folder,"reload.wav");online=Clip(folder,"online.wav");servoAudio.clip=Clip(folder,"servo.wav");
+        for(int i=0;i<3;i++){shots[i]=Clip(prepared,folder,"shot"+(i+1)+".wav");yield return 0;}
+        tail=Clip(prepared,folder,"tail.wav");yield return 0;reload=Clip(prepared,folder,"reload.wav");yield return 0;online=Clip(prepared,folder,"online.wav");yield return 0;servoAudio.clip=Clip(prepared,folder,"servo.wav");yield return 0;
         glow=VehicleMaterials.CreateGlowMaterial(Texture2D.whiteTexture);
         tracer=Line("Tracer",root,.013f);flash=Line("MuzzleFlash",muzzle,.07f);
         laserBeam=Line("LaserBeam",root,.005f);laserBeam.startColor=new Color(1,.015f,.01f,.5f);laserBeam.endColor=new Color(1,.01f,.01f,.25f);
@@ -76,13 +71,13 @@ public sealed class VehicleTurret : IDisposable {
         laserCore=Line("LaserCore",root,.008f);
         laserMaterial=new Material(glow){name="Rust_LaserGlow"};
         laserBeam.sharedMaterial=laserDot.sharedMaterial=laserCore.sharedMaterial=laserMaterial;
-        if(File.Exists(Path.Combine(folder,"explosion.wav")))explosion=new TurretExplosion(Clip(folder,"explosion.wav"),mixer,log);
+        if(File.Exists(Path.Combine(folder,"explosion.wav")))explosion=new TurretExplosion(Clip(prepared,folder,"explosion.wav"),mixer,log);
         light=muzzle.gameObject.AddComponent<Light>();light.color=new Color(1,.65f,.22f);light.range=3;light.intensity=0;light.shadows=LightShadows.None;
         root.gameObject.SetActive(false);
         log?.Invoke("350Z Rust turret: "+model.parts.Length+" original mesh sections and "+clips.Count+" original sound clips.");
     }
-    AudioClip Clip(string folder,string name) {
-        var data=WavPcm16.Read(File.OpenRead(Path.Combine(folder,name)),30);
+    AudioClip Clip(SpawnAudio prepared,string folder,string name) {
+        var data=prepared.FileData(Path.Combine(folder,name));
         var clip=AudioClip.Create("Rust_"+name,data.Samples.Length/data.Channels,data.Channels,data.SampleRate,false);clips.Add(clip);
         if(!clip.SetData(data.Samples,0))throw new InvalidDataException("Could not upload "+name);return clip;
     }

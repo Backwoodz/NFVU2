@@ -16,15 +16,15 @@ public sealed class VehicleEffectsAudio : IDisposable {
     public bool BackfireAvailable => !disposed&&backfire!=null;
     public bool NitroAvailable => !disposed&&nitro!=null;
     public bool PurgeAvailable => !disposed&&purge!=null;
-    public static VehicleEffectsAudio CreateThruster(GameObject car,Action<string> log) {
+    public static VehicleEffectsAudio CreateThruster(GameObject car,Action<string> log,SpawnAudio prepared) {
         var result=new VehicleEffectsAudio();
         try {
             result.root=new GameObject("NFVU2_ThrusterAudio");result.root.transform.SetParent(car.transform,false);
             result.root.transform.localPosition=new Vector3(0,.2f,0);
             var mixer=Resources.FindObjectsOfTypeAll<AudioMixerGroup>().FirstOrDefault(g=>g.name.Equals("SFX",StringComparison.OrdinalIgnoreCase));
             var folder=Path.Combine(Path.GetDirectoryName(typeof(VehicleEffectsAudio).Assembly.Location),"audio","effects");
-            result.nitro=result.Load(folder,"nitro.wav",true,mixer,log);
-            if(result.nitro==null)result.nitro=result.Load(folder,"purge.wav",true,mixer,log);
+            result.nitro=result.Load(folder,"nitro.wav",true,mixer,log,prepared);
+            if(result.nitro==null)result.nitro=result.Load(folder,"purge.wav",true,mixer,log,prepared);
             log("Flight sound: "+(result.nitro!=null?"local NFS gas loop, lowered pitch with thrust modulation":"optional local clips missing"));return result;
         }catch(Exception e){result.Dispose();log("Flight audio unavailable: "+e.Message);return null;}
     }
@@ -32,25 +32,25 @@ public sealed class VehicleEffectsAudio : IDisposable {
         if(nitro!=null)nitro.pitch=Mathf.Lerp(.65f,1.05f,power);
         Tick(active&&fold>.01f,false,false,blocked,volume*fold*Mathf.Lerp(.45f,.85f,power));
     }
-    public static VehicleEffectsAudio Create(GameObject car,Action<string> log) {
+    public static VehicleEffectsAudio Create(GameObject car,Action<string> log,SpawnAudio prepared) {
         var result=new VehicleEffectsAudio();
         try {
             result.root=new GameObject("350Z_EffectsAudio");result.root.transform.SetParent(car.transform,false);
             result.root.transform.localPosition=new Vector3(0,.55f,-1.4f);
             var mixer=Resources.FindObjectsOfTypeAll<AudioMixerGroup>().FirstOrDefault(g=>g.name.Equals("SFX",StringComparison.OrdinalIgnoreCase));
             var folder=Path.Combine(Path.GetDirectoryName(typeof(VehicleEffectsAudio).Assembly.Location),"audio","effects");
-            result.nitro=result.Load(folder,"nitro.wav",true,mixer,log);
-            result.purge=result.Load(folder,"purge.wav",true,mixer,log);
-            result.backfire=result.Load(folder,"backfire.wav",false,mixer,log);
+            result.nitro=result.Load(folder,"nitro.wav",true,mixer,log,prepared);
+            result.purge=result.Load(folder,"purge.wav",true,mixer,log,prepared);
+            result.backfire=result.Load(folder,"backfire.wav",false,mixer,log,prepared);
             log?.Invoke("350Z effect audio: "+result.sources.Count+" optional local clips loaded.");
             return result;
         }catch(Exception e){result.Dispose();log?.Invoke("350Z effect audio unavailable: "+e.Message);return null;}
     }
-    AudioSource Load(string folder,string name,bool loop,AudioMixerGroup mixer,Action<string> log) {
+    AudioSource Load(string folder,string name,bool loop,AudioMixerGroup mixer,Action<string> log,SpawnAudio prepared) {
         var path=Path.Combine(folder,name);
         if(!File.Exists(path))return null;
         try {
-            var data=WavPcm16.Read(File.OpenRead(path));
+            var data=prepared.FileData(path);
             var clip=AudioClip.Create("350Z_"+name,data.Samples.Length/data.Channels,data.Channels,data.SampleRate,false);clips.Add(clip);
             if(!clip.SetData(data.Samples,0))throw new InvalidDataException("Unable to upload "+name);
             var source=root.AddComponent<AudioSource>();sources.Add(source);

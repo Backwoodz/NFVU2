@@ -2,7 +2,12 @@
 
 **Need for Valheim: Underground 2** — ein privater Fahrzeug-Mod-Prototyp für Valheim.
 
-Aktueller Stand: **0.15.2** mit überarbeitetem Nitro-Eingabeweg, näheren Flammen und sichtbarerem Reifenprofil.
+Aktueller Stand: **0.17.0** mit Nitro-Tunnelblick und kurzen roten Rücklichtspuren.
+F9 → Nitro: beide Effekte einzeln schalten und die gemeinsame Stärke regeln.
+Sie folgen dem tatsächlichen Boost am Boden und im Flug. Eine eigene Nachbildung
+des NFS-Looks; die genaue Originalsteuerung ist weiterhin nicht rekonstruiert.
+Grafikdarstellung und GPU-Last müssen noch im Spiel geprüft werden.
+Spawn-Ablauf automatisch geprüft; tatsächliche Frametimes und Darstellung im Spiel noch offen.
 Grundfunktion des Flugmodus bestätigt; neue Abstimmung und Darstellung noch im Spiel prüfen.
 Innenraum und Ein-/Ausstieg von 0.14.0 funktionieren laut Nutzerrückmeldung.
 Die vorherige Version 0.2.1 ist vom Nutzer in Valheim bestätigt. Ein aus eigenen NFS-Underground-2-Dateien ausgelesener
@@ -81,6 +86,23 @@ NFS-Prozess ist eine mögliche spätere Forschungsaufgabe und noch nicht impleme
 
 ## Bedienung
 
+F6 oder der Spawnknopf startet einen Ladevorgang mit Anzeige des aktuellen
+Abschnitts. Dateilesen, JSON-Auswertung und Sounddekodierung laufen im Hintergrund;
+Unity-Texturen, Meshes und Audioclips werden schrittweise erstellt. Das fertige
+Fahrzeug erscheint anschließend an einem erneut geprüften freien Platz vor dem
+Spieler. Währenddessen kann man weiterlaufen; weitere Spawns und Einsteigen
+warten auf den Abschluss. F8 oder „Abbrechen“ verwirft den Ladevorgang, ohne ein
+bereits vorhandenes Auto zu entfernen. Tod, Teleport und Weltwechsel brechen ab.
+
+Unveränderte Modell- und Sounddaten werden für weitere Spawns derselben Welt
+zwischengespeichert; Unity-Ressourcen bleiben pro Auto unabhängig. Geänderte
+Dateigröße oder Änderungszeit erzwingen neues Einlesen. Der Cache benötigt
+zusätzlichen Arbeitsspeicher und wird beim Verlassen der Welt freigegeben.
+Das Arbeitsbudget für den Aufbau beträgt ungefähr 3 ms pro Frame; einzelne
+Unity-Aufrufe sind nicht unterbrechbar und können länger dauern. Das Log nennt
+Gesamtdauer und längsten Hauptthread-Schritt. Ruckelfreiheit ist noch nicht im
+Spiel gemessen. Die Fahrwerksabstimmung bleibt unverändert.
+
 F9 → Fahrzeug → **Fliegen** aktiviert im besetzten Auto den Flugmodus. Alle vier
 Räder klappen in etwa 1,2 Sekunden um 90° mit der Felgen-Sichtseite nach oben, das Auto hebt sanft
 ab und schwebt. W/S fliegt vorwärts/rückwärts, A/D dreht das Fahrzeug, Shift
@@ -95,6 +117,8 @@ Schweben verbraucht keinen Nitrotank. W + linke Maustaste aktiviert Flug-Nitro
 mit zusätzlichem Vorwärtsschub bis etwa 158 km/h und sechs Sekunden Tank.
 Nach dem Loslassen lädt dieser nach zwei Sekunden Pause bei Bewegung wieder auf.
 Beim 350Z teilen Boden und Flug denselben Tank; der H2 hat Nitro nur im Flug.
+Beim tatsächlichen Flug-Boost laufen am 350Z zusätzlich die normalen grünen
+Auspuffflammen und der Nitro-Sound. Reines Schweben aktiviert diese nicht.
 Purge und Burnout bleiben in der Luft gesperrt. Der H2 verwendet ebenfalls den 350Z-FIREB-Atlas.
 Shift steigt mit bis zu 12 m/s, Leertaste sinkt mit bis zu 16 m/s; nahe am
 Boden wird abgebremst. Die Räder neigen sich mit Vorwärts-/Rückwärts- und

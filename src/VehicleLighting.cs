@@ -22,6 +22,9 @@ public sealed class VehicleLighting : IDisposable {
     Color headlightColor=HeadlightColors[0];
     float headlightPower=1;
     public bool Enabled { get => state.Enabled; set => state.Enabled = value; }
+    public bool RearLightsOn => state.RearLightsOn;
+    public Vector3[] RearLightPositions() => lights.Where((light,index)=>light!=null&&roles[index]=="taillight")
+        .Select(light=>light.transform.localPosition).ToArray();
     public void SetHeadlights(string preset,float strength) {
         int index=Math.Max(0,Array.IndexOf(HeadlightPresets,preset));
         headlightColor=HeadlightColors[index];

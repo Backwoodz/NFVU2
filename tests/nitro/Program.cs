@@ -82,6 +82,7 @@ class NitroTests {
         Check(!pop.Step(.02f,true,4800,0,10,true),"menu or exit cancels armed lift-off effect");
         for(int i=0;i<30;i++)pop.Step(.02f,true,5000,1,0,true);
         Check(!pop.Step(.02f,true,4800,0,0,true),"stationary revving does not trigger lift-off effect");
-        Console.WriteLine(checks+" nitro checks passed; actual acceleration and particles require a Unity test.");
+        VisualChecks.Run(Check);
+        Console.WriteLine(checks+" nitro checks passed; actual acceleration, screen rendering and particles require a Unity test.");
     }
 }

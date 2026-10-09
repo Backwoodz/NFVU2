@@ -49,10 +49,6 @@ public partial class Plugin {
         laserBlue=Config.Bind("Turret","LaserBlue",.02f,new ConfigDescription("Laser blue channel.",new AcceptableValueRange<float>(0,1)));
         turretAmmo=Config.Bind("Turret","Ammo","Normal",new ConfigDescription("Explosiv adds blast damage and persistent small craters on terrain hits, within Valheim's dig limit.",new AcceptableValueList<string>("Normal","Explosiv")));
     }
-    void SpawnTurret(MonoBehaviour local) {
-        var folder=Path.Combine(Path.GetDirectoryName(Info.Location),"turret");
-        if(File.Exists(Path.Combine(folder,"turret.json")))turret=VehicleTurret.Create(car,local,folder,message=>Logger.LogWarning(message));
-    }
     void TickTurret() {
         bool automatic=!driving&&hasBeenDriven&&turretAutomatic.Value;
         if(turret!=null)try {turret.Tick(turretEnabled.Value,(driving&&DriverInputReady||automatic)&&!audioBlocked&&!menuOpen&&Application.isFocused,

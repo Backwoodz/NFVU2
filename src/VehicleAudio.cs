@@ -10,7 +10,7 @@ public sealed class VehicleAudio : IDisposable {
     readonly EngineSoundModel model;
     readonly bool suv;
     readonly int[] bands;
-    VehicleAudio(bool hummer=false){suv=hummer;model=new EngineSoundModel(hummer);bands=hummer?EngineSoundModel.HummerBands:EngineSoundModel.Bands;}
+    public VehicleAudio(bool hummer=false){suv=hummer;model=new EngineSoundModel(hummer);bands=hummer?EngineSoundModel.HummerBands:EngineSoundModel.Bands;}
     readonly TurboSoundModel turboModel=new TurboSoundModel();
     public float Rpm => model.Rpm;
     public float Load => model.Load;
@@ -25,14 +25,11 @@ public sealed class VehicleAudio : IDisposable {
     Rigidbody body;
     WheelCollider[] wheels;
     AudioMixerGroup mixer;
+    SpawnAudio prepared;
     float roadLevel,skidLevel,hornLevel;
     bool paused,playing,disposed;
-    public static VehicleAudio Create(GameObject car,Rigidbody body,WheelCollider[] wheels,Action<string> log,bool hummer=false) {
-        var audio=new VehicleAudio(hummer);
-        try {audio.Initialize(car,body,wheels,log);return audio;}
-        catch(Exception e){audio.Dispose();log("350Z audio unavailable: "+e);return null;}
-    }
-    void Initialize(GameObject car,Rigidbody carBody,WheelCollider[] carWheels,Action<string> log) {
+    public IEnumerable<int> LoadSteps(GameObject car,Rigidbody carBody,WheelCollider[] carWheels,Action<string> log,SpawnAudio audio) {
+        prepared=audio;
         body=carBody;wheels=carWheels;
         root=new GameObject("350Z_Sound");root.transform.SetParent(car.transform,false);root.transform.localPosition=new Vector3(0,.65f,0);
         mixer=Resources.FindObjectsOfTypeAll<AudioMixerGroup>().FirstOrDefault(g=>g.name.Equals("SFX",StringComparison.OrdinalIgnoreCase));
@@ -40,16 +37,19 @@ public sealed class VehicleAudio : IDisposable {
         for(int i=0;i<power.Length;i++) {
             if(suv) {
                 var path=Path.Combine(Path.GetDirectoryName(typeof(VehicleAudio).Assembly.Location),"audio","hummer","engine_"+bands[i]+".wav");
-                var data=WavPcm16.Read(File.OpenRead(path));
+                var data=prepared.FileData(path);
                 power[i]=CreateSource("h2_power_"+bands[i],80,data);coast[i]=CreateSource("h2_coast_"+bands[i],80,data);
             } else {
                 power[i]=CreateSource("engine_on_"+bands[i]+".wav",80);
+                yield return 0;
                 coast[i]=CreateSource("engine_off_"+bands[i]+".wav",80);
             }
+            yield return 0;
         }
-        road=CreateSource("road.wav",160);skid=CreateSource("skid.wav",120);horn=CreateSource("horn.wav",60);
-        reverseWhine=CreateSource("reverse_whine_synth",110,ReverseGearSound.Create());reverseWhine.dopplerLevel=0;
+        road=CreateSource("road.wav",160);yield return 0;skid=CreateSource("skid.wav",120);yield return 0;horn=CreateSource("horn.wav",60);yield return 0;
+        reverseWhine=CreateSource("reverse_whine_synth",110,prepared.Reverse);reverseWhine.dopplerLevel=0;
         if(!suv)LoadTurbo(log);
+        prepared=null;
         log((suv?"H2 original GIN_Hummer engine; ":"350Z original engine; ")+"audio ready: "+clips.Count+" clips; original engine and tyre recordings; synthesized horn and reverse-gear whine. Mixer: "+(mixer!=null?mixer.name:"AudioListener master"));
     }
     void LoadTurbo(Action<string> log) {
@@ -61,7 +61,7 @@ public sealed class VehicleAudio : IDisposable {
         // Validate the complete optional set before creating any sources.
         int firstSource=sources.Count,firstClip=clips.Count;
         try {
-            var data=names.Select(name=>WavPcm16.Read(File.OpenRead(Path.Combine(folder,name)))).ToArray();
+            var data=names.Select(name=>prepared.FileData(Path.Combine(folder,name))).ToArray();
             turboCharge=CreateSource(names[0],95,data[0]);
             turboLow=CreateSource(names[1],90,data[1]);turboLow.loop=false;
             turboHigh=CreateSource(names[2],90,data[2]);turboHigh.loop=false;
@@ -74,7 +74,7 @@ public sealed class VehicleAudio : IDisposable {
         }
     }
     AudioSource CreateSource(string name,int priority,WavData data=null) {
-        if(data==null)data=WavPcm16.Read(typeof(VehicleAudio).Assembly.GetManifestResourceStream("Rachel350Z.Audio."+name));
+        if(data==null)data=prepared.Embedded(name);
         var clip=AudioClip.Create("350Z_"+name,data.Samples.Length/data.Channels,data.Channels,data.SampleRate,false);
         clips.Add(clip);
         if(!clip.SetData(data.Samples,0))throw new InvalidOperationException("Could not load audio: "+name);
@@ -142,7 +142,7 @@ public sealed class VehicleAudio : IDisposable {
         }
     }
     public void Dispose() {
-        if(disposed)return;disposed=true;
+        if(disposed)return;disposed=true;prepared=null;
         foreach(var source in sources)if(source!=null){source.Stop();source.clip=null;}
         if(root!=null)UnityEngine.Object.Destroy(root);
         foreach(var clip in clips)if(clip!=null)UnityEngine.Object.Destroy(clip);

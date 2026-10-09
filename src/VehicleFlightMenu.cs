@@ -5,14 +5,14 @@ namespace Rachel350Z {
 public partial class Plugin {
     bool Flying=>current.flight!=null&&current.flight.Active;
     NitroState ActiveNitro=>Flying?current.flight.Nitro:vehicleNitro?.State;
-    void InitializeFlight(ModelData model) {
+    void InitializeFlight(ModelData model,SpawnAudio prepared) {
         current.flight=new VehicleFlight(body,wheels,vehicleNitro?.State);
         try {
             // The H2 has no exhaust nitro, but can use the 350Z's shared FIREB atlas.
-            var effectsModel=IsHummer?ModelFile.Load(Path.Combine(Path.GetDirectoryName(Info.Location),"body.json")):model;
+            var effectsModel=model;
             current.flightEffects=VehicleNitroEffects.CreateWheelThrusters(car,effectsModel,visuals,message=>Logger.LogInfo(message));
         }catch(Exception e){Logger.LogWarning("Flight flame atlas unavailable: "+e.Message);}
-        current.flightAudio=VehicleEffectsAudio.CreateThruster(car,message=>Logger.LogInfo(message));
+        current.flightAudio=VehicleEffectsAudio.CreateThruster(car,message=>Logger.LogInfo(message),prepared);
     }
     void SelectFlightMode() {
         if(!driving||!DriverInputReady){status="Zum Fliegen zuerst einsteigen.";return;}

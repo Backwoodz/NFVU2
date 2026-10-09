@@ -8,18 +8,13 @@ public sealed class VehicleDashboard : IDisposable {
     Texture2D nitroBacking;
     Texture2D speedDial;
     GUIStyle speedStyle,smallStyle,gearStyle,dialStyle;
-    public static VehicleDashboard Create(string path,Action<string> log) {
-        var hud=new VehicleDashboard();
-        try {hud.Load(HudFile.Load(path));return hud;}
-        catch(Exception e){hud.Dispose();log("350Z original HUD unavailable: "+e.Message);return null;}
-    }
     Texture2D Texture(ModelTexture data,byte[] pixels=null) {
         var result=new Texture2D(data.width,data.height,TextureFormat.RGBA32,false){name="350Z_HUD_"+data.name,wrapMode=TextureWrapMode.Clamp,filterMode=FilterMode.Bilinear};
         textures.Add(result);pixels=pixels??data.rgba;var flipped=new byte[pixels.Length];int row=data.width*4;
         for(int y=0;y<data.height;y++)Array.Copy(pixels,y*row,flipped,(data.height-1-y)*row,row);
         result.SetPixelData<byte>(flipped,0);result.Apply(false,true);return result;
     }
-    void Load(HudData data) {
+    public IEnumerable<int> LoadSteps(HudData data) {
         speedDial=new Texture2D(128,128,TextureFormat.RGBA32,false){name="NFVU2_SpeedDial",filterMode=FilterMode.Bilinear};textures.Add(speedDial);
         var dialPixels=new Color[128*128];
         for(int y=0;y<128;y++)for(int x=0;x<128;x++) {
@@ -27,13 +22,14 @@ public sealed class VehicleDashboard : IDisposable {
             dialPixels[y*128+x]=radius>63?Color.clear:radius>60?new Color(.3f,.35f,.4f,.95f):new Color(.025f,.035f,.045f,.94f);
         }
         speedDial.SetPixels(dialPixels);speedDial.Apply(false,true);
-        for(int i=0;i<11;i++){faces[i]=Texture(data.designs[i].fill);lines[i]=Texture(data.designs[i].lines);needles[i]=Texture(data.designs[i].needle);}
+        for(int i=0;i<11;i++){faces[i]=Texture(data.designs[i].fill);yield return 0;lines[i]=Texture(data.designs[i].lines);yield return 0;needles[i]=Texture(data.designs[i].needle);yield return 0;}
         nitroBacking=Texture(data.nitroBacking);
         for(int level=0;level<nitroLevels.Length;level++) {
             var pixels=(byte[])data.nitro.rgba.Clone();
             for(int y=0;y<data.nitro.height;y++)for(int x=0;x<data.nitro.width;x++)
                 if(level==0||HudMath.NitroPixelProgress(x,y)>level/48f)pixels[(y*data.nitro.width+x)*4+3]=0;
             nitroLevels[level]=Texture(data.nitro,pixels);
+            yield return 0;
         }
     }
     public void Draw(int design,float scale,Color accent,bool mph,float speed,float rpm,int gear,float charge,bool nitroEnabled,bool boosting) {

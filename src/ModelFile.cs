@@ -37,8 +37,9 @@ public static class ModelFile {
         if (!file.Exists) throw new FileNotFoundException("350Z model file missing", path);
         if (file.Length == 0 || file.Length > 32 * 1024 * 1024)
             throw new InvalidDataException("350Z model file has an invalid size: " + file.Length);
-        var model = JsonConvert.DeserializeObject<ModelData>(File.ReadAllText(path),
-            new JsonSerializerSettings { TypeNameHandling = TypeNameHandling.None, MaxDepth = 32 });
+        ModelData model;
+        using(var stream=File.OpenText(path))using(var reader=new JsonTextReader(stream))
+            model=JsonSerializer.Create(new JsonSerializerSettings{TypeNameHandling=TypeNameHandling.None,MaxDepth=32,CheckAdditionalContent=true}).Deserialize<ModelData>(reader);
         if (model?.parts == null || model.parts.Length == 0 || model.parts.Length > 256)
             throw new InvalidDataException("350Z model must contain between 1 and 256 parts: " + path);
         if (model.schemaVersion != 0 && model.schemaVersion != 2) throw new InvalidDataException("Unsupported visual model schema");

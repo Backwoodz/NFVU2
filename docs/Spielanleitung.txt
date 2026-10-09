@@ -1,4 +1,26 @@
-NFVU2 0.13.1 – 350Z und Hummer H2, lokaler Test für Valheim
+NFVU2 0.17.0 – 350Z und Hummer H2, lokaler Test für Valheim
+
+NEU: NITRO-TUNNELBLICK UND RÜCKLICHTSPUREN
+Beim Boost verwischt der Bildrand nach außen. Das Auto und die Bildmitte
+bleiben möglichst scharf. Die eingeschalteten Rücklichter ziehen kurze rote
+Spuren hinter sich her, auch im Flug. Loslassen blendet den Effekt aus.
+F9 → Nitro: Tunnelblick und Rücklichtspuren einzeln schalten; Effektstärke
+von 0 bis 100 %. Standard: beide an, 70 %. Gilt gemeinsam für beide Autos.
+Menü, Pause, Alt-Tab und Aussteigen beenden die Effekte sofort.
+
+NEU: AUSPUFF-NITRO IM FLUG
+Beim 350Z aktiviert W + linke Maustaste oder linke Strg im Flug zusätzlich
+die normalen Auspuffflammen und den Nitro-Sound. Die Rad-Düsen laufen weiter.
+Ohne Boost keine Auspuffflammen; Purge und Reifenrauch bleiben am Boden.
+
+NEU: LADEN IM HINTERGRUND
+F6 oder Garage → Spawnen: Oben erscheint eine Ladeanzeige mit dem aktuellen
+Abschnitt. Währenddessen kannst du weiterlaufen. Das fertige Auto erscheint
+an einem freien Platz vor dir; weitere Spawns und Einsteigen warten darauf.
+F8 oder „Abbrechen“ beendet nur den laufenden Ladevorgang. Bereits vorhandene
+Autos bleiben stehen. Tod, Teleport und Weltwechsel brechen ebenfalls ab.
+Weitere Spawns profitieren vom Datencache bis zum Verlassen der Welt.
+Einzelne Textur-/Grafikschritte können weiterhin kurze Ruckler verursachen.
 
 NEU: VERSCHIEBBARES MENÜ
 F9 öffnen, Titelleiste mit linker Maustaste greifen und an die gewünschte

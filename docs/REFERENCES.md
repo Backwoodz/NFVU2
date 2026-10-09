@@ -1,5 +1,83 @@
 # Technische Quellen
 
+## NFSU2-Nitro-Bildfilter und Lichtspuren, Untersuchung 2026-10-09
+
+- [yugecin: NFSU2-Grafikoptionen](https://yugecin.github.io/nfsu2-re/docs.html)
+  ordnet Motion Blur, Light Trails und Light Glow den separaten Schaltern
+  `g_MotionBlurEnable`, `g_LightStreaksEnable`, `g_LightGlowEnable` zu.
+  Dieselben Namen wurden in der lokalen `SPEED2.EXE` gefunden, bei Datei-
+  Offsets `0x3a37e4`, `0x3a37cc`, `0x3a37b8`. Das belegt getrennte Optionen,
+  noch keinen exakten Algorithmus oder ausschließliche Nitro-Aktivierung.
+- Lokale EXE: SHA-256
+  `2cbd698fee8338a13d1891bc17d27e6641b4b9dd40580de818594b9140222899`.
+  Aus deren PE-Ressourcen wurden ausschließlich zur lokalen Untersuchung
+  `IDI_FILTER_FX` (14376 Byte), `IDI_OVERBRIGHT_FX` (5692 Byte) und
+  `IDI_SCREENFILTER_FX` (16116 Byte) gelesen. Enthaltene Namen zeigen
+  vier Filtertexturen mit Gewichten, einen Overbright- sowie einen separaten
+  Farb-/Bildfilter. Das ist ein Nachweis der D3D9-Filterbausteine, keine
+  vollständige Analyse der Draw-Aufrufe oder des Nitro-Filterkerns.
+- Fortgesetzte Untersuchung: 20 eingebettete Vertex-/Pixelshader dieser drei
+  Ressourcen mit Microsofts lokalem D3DX9-Disassembler ausgewertet, ohne
+  die Spiel-EXE auszuführen. `IDI_FILTER_FX` enthält vier Varianten mit
+  jeweils 1, 2, 3 oder 4 Abtastungen: komponentenweise gewichtete Summe
+  `output = sum(texture_i(uv_i) * weight_i)`. Die zugehörigen Vertexshader
+  reichen Position und vier UV-Sätze unverändert weiter. Radiale Verschiebung,
+  Fluchtpunkt, Gewichtswerte und eventuell vorherige Frames sind darin nicht
+  festgelegt; dafür müssten gebundene Texturen, Vertexdaten und Draw-Aufrufe
+  des laufenden Spiels untersucht werden. Vier Eingänge bedeuten weder vier
+  vorherige Frames noch den Nachweis, dass Nitro diesen Filter verwendet.
+- `IDI_OVERBRIGHT_FX` liest eine Textur, zieht einen einstellbaren Offset
+  ab, verstärkt und begrenzt RGB, gewichtet es nach Helligkeit und quadriert
+  das Ergebnis. Dieser Shader isoliert/verstärkt helle Anteile; er berechnet
+  selbst keine räumliche Unschärfe. Die untersuchten `SCREENFILTER`-Varianten
+  enthalten Farb-/Gain-/Rampmap-Verarbeitung. Aus dem Namen „Screenfilter“
+  allein lässt sich deshalb kein Nitro-Tunnelblick ableiten.
+- Grenze der statischen Codeanalyse: Die lokale EXE hat einen zusätzlichen
+  Einstieg bei VA `0x93309e`; ihre `.text`-Sektion besitzt nahezu maximale
+  Byte-Entropie (ca. 7,999 Bit/Byte) und liefert keinen plausiblen normalen
+  x86-Code. Das spricht für eine gepackte/geschützte Codeabbildung. Direkte
+  Aufrufer der lesbaren Effektnamen lassen sich daraus nicht zuverlässig
+  rekonstruieren. Ein bestimmtes Schutzverfahren ist damit nicht identifiziert.
+  Die nächsten belastbaren Belege wären eine lesbare Laufzeitabbildung und
+  ein Grafikmitschnitt derselben Fahrsituation mit/ohne Nitro sowie mit einzeln
+  geschalteten Motion Blur, Light Trails und Light Glow. Dabei insbesondere
+  Texturhistorie, UVs, Filtergewichte, Blendzustände und Spur-Geometrie prüfen.
+- [NFSU2_CustomShaders: eEffect.h, Revision 1e850a4](https://github.com/ArchieGoldmill/NFSU2_CustomShaders/blob/1e850a41661181cef4e65effb6ba75ac8bc7251f/eEffect.h)
+  dokumentiert dazu passende Effektarten und Shaderparameter wie
+  `FILTERWEIGHTS`, `SCREENOFFSET`, `MOTIONALPHA`. Diese Parameternamen stehen
+  auch in der lokalen EXE; `MOTIONALPHA` wurde als Zeichenfolge in keiner
+  PE-Ressource nachgewiesen. Das schließt eine andere Verwendung nicht aus.
+  Fremde Mod-Shaders sind kein Beweis
+  für die unveränderte originale Nitro-Implementierung.
+- Lokales `GLOBAL/GlobalB.lzc`, dekomprimiert: Originaltextur
+  `SFX_FLARE_STREAK_A`, 128 × 128, erfolgreich mit dem vorhandenen Decoder
+  ausgelesen und visuell geprüft. Sie zeigt einen kleinen hellen Flare auf
+  dunklem Grund. Die konkrete Zuordnung zur Rücklichtspur und deren
+  Lebensdauer/Blendmodus sind damit noch nicht nachgewiesen. Originaldaten
+  und extrahierte Effekte bleiben unter `.local/effects-research/`.
+- Ableitung für eine mögliche NFVU2-Nachbildung: separater radialer Bildfilter
+  (Verwischen zum/vom Fluchtpunkt), kurz auslaufende Lichtspuren an den
+  Rückleuchten und weiches Leuchten. Exakte NFS-Samplepositionen, Gewichte,
+  Bewegungs-/Nitro-Kopplung und zeitliche Historie bleiben Forschungsfragen.
+  In 0.17.0 als eigene Nachbildung implementiert: sechs radial versetzte
+  Bildlagen mit weicher Fahrzeug-/Zentrumsmaske sowie kurze rote 3D-Lichtbänder.
+  UV-Versatz, Gewichtung, Hüllkurve, Spurtextur und Zeitwerte sind NFVU2-Werte.
+- Ergänzend das vollständige [yugecin-Repository, Revision 192090c](https://github.com/yugecin/nfsu2-re/tree/192090c564159b6a25e8dda06a8701477f7b5f1b)
+  geprüft: `docs/docs.txt` führt die drei Schalter auf, `docs/dumps/hashes.txt`
+  die Filterparameternamen. Keine vollständige Nitro-Filter-/Lichtspurlogik
+  gefunden. Daraus werden keine unverifizierten NFS-Originalwerte übernommen.
+- Unity [OnRenderImage](https://docs.unity3d.com/ScriptReference/MonoBehaviour.OnRenderImage.html)
+  und [GL.LoadOrtho](https://docs.unity3d.com/ScriptReference/GL.LoadOrtho.html):
+  Kamera-Bildfilter im Built-in-Renderer. `UI/Default` ist im lokal installierten
+  Valheim `unity_builtin_extra` nachgewiesen. NFVU2 verwendet eine eigene
+  Materialinstanz und UV-Geometrie, verteilt keine Spielshader. Ein SRP-Wechsel
+  deaktiviert den Bildschirmfilter; die Welt-Lichtspuren bleiben unabhängig.
+  Die lokale D3D11-Variante zusätzlich disassembliert: `_MainTex_ST`-Transformation
+  im Vertexshader, Alpha-Vormultiplikation im Pixelshader, Blend One/InvSrcAlpha.
+  Die radiale Verschiebung benötigt deshalb keine Mesh-Änderung pro Bildlage.
+
+## Weitere Quellen
+
 - Lokale `GLOBAL/HUD_CustomTextures_00.bin` bis `_10.bin`: elf originale
   TACH_FILL_CUSTOM-Flächen, 3RDPERSON_7500LINES_CUSTOM-Skalen und
   3RDPERSON_RPMDIAL_CUSTOM-Zeiger. Padding wird für das neue Layout beschnitten.
