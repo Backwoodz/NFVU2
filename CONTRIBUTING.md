@@ -91,6 +91,14 @@ The supported build entry point remains `tools/build.py`.
 
 ## Build the player installer
 
+The project skills separate local builds from GitHub publication:
+`/installer` (or `$installer`) builds and verifies a local setup, then removes
+older local installers after success. `/release` (or `$release`) prepares a new
+version, builds and tests it, commits and pushes the release changes, creates
+a version tag and publishes a GitHub Release with the installer and checksum.
+Use `/release` only when you intend to publish; creating or editing the skill
+does not publish anything. A normal push does not invoke either skill.
+
 After building and testing the mod:
 
 ```powershell

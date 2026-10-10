@@ -1,5 +1,12 @@
 # Nächste Aufgaben
 
+## Fadenkreuz im Fahrzeug in 0.22.3
+
+- Das native Valheim-Fadenkreuz wird beim Sitzen im 350Z und H2 unabhängig
+  vom Geschütz ausgeblendet. Die eigene Geschütz-Zielmarkierung bleibt erhalten.
+- Im Spiel ohne Geschütz, mit ein-/ausgeschaltetem Geschütz, im Flug und nach
+  Ausstieg/Fahrzeugentfernung prüfen; zu Fuß muss das normale Fadenkreuz zurückkehren.
+
 ## Rust-Menülogo in 0.22.2
 
 - Drehung des Rust-Logos erfolgt jetzt vor Menüskalierung und Positionierung;

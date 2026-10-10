@@ -1,5 +1,9 @@
 # NFVU2 development notes
 
+- For `/installer`, `$installer`, or a request to build a local installer,
+  read and follow `.agents/skills/installer/SKILL.md`.
+- For `/release`, `$release`, or an explicit GitHub publication request,
+  read and follow `.agents/skills/release/SKILL.md`.
 - This repository is the source of truth for further NFVU2 development.
 - Read README.md and docs/ROADMAP.md for current scope and known limitations.
 - Keep original game files, extracted assets, downloaded tools and generated

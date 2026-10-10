@@ -1,0 +1,4 @@
+interface:
+  display_name: "NFVU2 Installer"
+  short_description: "Aktuellen NFVU2-Installer bauen und prüfen"
+  default_prompt: "Nutze $installer, um aus dem aktuellen NFVU2-Projektstand einen geprüften lokalen Windows-Installer zu bauen."

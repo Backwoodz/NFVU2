@@ -23,7 +23,7 @@ public partial class Plugin {
         crosshairHud=null;savedCrosshairs=null;savedCrosshairActive=null;
     }
     void UpdateGameCrosshair() {
-        if(!driving||turret==null||!turret.Enabled){RestoreGameCrosshair();return;}
+        if(!driving){RestoreGameCrosshair();return;}
         var hud=Hud.instance;
         if(hud==null){RestoreGameCrosshair();return;}
         if(savedCrosshairs==null||crosshairHud!=hud) {

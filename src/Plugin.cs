@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Rachel350Z {
 // Disposable local prototype. No ZNetView: never use in multiplayer or persist into saves.
-[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.22.2")]
+[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.22.3")]
 [DefaultExecutionOrder(10000)]
 public partial class Plugin : BaseUnityPlugin {
     VehicleOrbitCamera orbitCamera;

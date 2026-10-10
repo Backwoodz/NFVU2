@@ -1,0 +1,4 @@
+interface:
+  display_name: "NFVU2 GitHub Release"
+  short_description: "NFVU2 mit Installer auf GitHub veröffentlichen"
+  default_prompt: "Nutze $release, um den aktuellen NFVU2-Stand mit geprüftem Installer und Prüfsumme als neuen GitHub-Release zu veröffentlichen."

@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.22.3 — Vehicle crosshair fix
+
+- Hide Valheim's crosshair while seated in either vehicle, including when no
+  turret is equipped. Restore it on exit; keep the turret's own aim marker.
+- Windows setup revision 5 packages the crosshair fix; vehicle handling is unchanged.
+- Add project skills for local installer builds and GitHub release publication.
+
 ## 0.22.2 — Rust menu badge fix
 
 - Keep the Rust logo on the Turret menu entry when the menu is moved or scaled.
