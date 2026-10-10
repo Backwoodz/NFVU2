@@ -38,7 +38,13 @@ EA-Trax-Songs und echten Künstler-/Titelnamen. Die Zuordnung in
 `tools/music_titles.json` wird durch MPF- und Audio-Prüfsummen abgesichert;
 weitere Containerstreams werden nicht als Songs angeboten. Bestehende
 Importe können mit `python tools/extract_music.py --refresh-titles` aktualisiert
-werden. Turbo-Samples liegen separat
+werden. `python tools/prepare_radio.py --ffmpeg path/to/ffmpeg.exe` erzeugt
+anschließend kleinere Ogg-Vorbis-Kopien unter `.local/radio-ogg/` (Zielbitrate
+192 kbit/s). WAV-Master bleiben unverändert; Songs werden vollständig
+zurückdekodiert und auf Stereo, Abtastrate und Dauer geprüft. Der Build nutzt
+die komprimierte Playlist nach Prüfsummenabgleich automatisch. Nach erneutem
+Import oder Titeländerungen die Ogg-Vorbereitung wiederholen.
+Turbo-Samples liegen separat
 unter `.local/audio-turbo/`, Nitro-/Purge-Sounds unter `.local/audio-effects/`;
 Build, Paket und Installer übernehmen die Medienordner.
 Die 19 kurzen Motor-/Fahrgeräusche bleiben in der DLL eingebettet.

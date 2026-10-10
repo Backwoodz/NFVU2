@@ -15,11 +15,11 @@ static class Tests {
     static void Fails(Action action, string name) { try { action(); } catch (IOException) { checks++; return; } throw new Exception("Expected failure: " + name); }
     static void Put(string root, string name, string data) { string p = Path.Combine(root, name); Directory.CreateDirectory(Path.GetDirectoryName(p)); File.WriteAllText(p, data); }
     static string Read(string root, string name) { return File.ReadAllText(Path.Combine(root, name)); }
-    static MemoryStream Payload(string dll = "new", bool stale = false, bool corrupt = false) {
+    static MemoryStream Payload(string dll = "new", bool stale = false, bool corrupt = false, bool ogg = false) {
         var stream = new MemoryStream();
         var files = new Dictionary<string, string> {
             {InstallerCore.ModRoot+"Rachel350Z.dll", dll}, {InstallerCore.ModRoot+"body.json", "model"},
-            {InstallerCore.ModRoot+"radio/song.wav", "music"}, {"winhttp.dll", "loader"},
+            {InstallerCore.ModRoot+(ogg?"radio/song.ogg":"radio/song.wav"), "music"}, {"winhttp.dll", "loader"},
             {"BepInEx/core/BepInEx.dll", "test-loader"}, {"doorstop_config.ini", "config"}
         };
         if (stale) files.Add(InstallerCore.ModRoot+"menu/old.json", "old");
@@ -71,6 +71,11 @@ static class Tests {
             Check(Read(root, InstallerCore.ModRoot+"Rachel350Z.dll") == "update", "update");
             Check(!File.Exists(Path.Combine(root, InstallerCore.ModRoot+"menu/old.json")), "stale removed");
             Check(Read(root, InstallerCore.ModRoot+"radio/song.wav") == "music", "radio retained by update");
+            Put(root, InstallerCore.ModRoot+"radio/personal.wav", "custom song");
+            using (var zip = Payload("update", ogg: true)) Core(root).Install(zip);
+            Check(!File.Exists(Path.Combine(root, InstallerCore.ModRoot+"radio/song.wav")), "Ogg update removes owned WAV");
+            Check(Read(root, InstallerCore.ModRoot+"radio/song.ogg") == "music", "Ogg update installs replacement music");
+            Check(Read(root, InstallerCore.ModRoot+"radio/personal.wav") == "custom song", "Ogg update preserves personal music");
             Check(Directory.GetDirectories(Path.Combine(root, ".nfvu2/backups")).Length == 3, "two backups plus named");
             Fails(() => Core(root).Uninstall(true), "other mods block loader removal");
             Check(Core(root).HasInstallation, "blocked uninstall untouched");

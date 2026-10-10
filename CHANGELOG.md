@@ -2,6 +2,13 @@
 
 ## Unreleased — Windows setup and public-facing documentation
 
+- Setup revision 3 supports a smaller radio payload: prepare verified Ogg
+  Vorbis copies at a 192 kbit/s target while retaining local WAV masters.
+  The build preserves all tracks, titles and order, validates source/output
+  checksums and rejects stale compressed copies. The encoder stays local.
+- Installer regression checks cover WAV-to-Ogg updates, removal of obsolete
+  owned WAV files and preservation of personal music files.
+
 - Added an offline Windows setup EXE with game selection, installation,
   updates and removal; no Python or developer tools needed by players.
 - Bundled BepInExPack Valheim for fresh installs; existing loaders are preserved.

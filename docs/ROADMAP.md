@@ -1,5 +1,16 @@
 # Nächste Aufgaben
 
+## Kleinerer Radio-Installer (Setup-Revision 3)
+
+- 27 Songs als Ogg Vorbis mit Zielbitrate 192 kbit/s, lokale WAV-Master erhalten.
+- Lokaler Setup-Vergleich: 746,68 MB (r2) auf 148,30 MB (r3), rund 80 % kleiner.
+- Vollständiges Zurückdekodieren, Stereo/Abtastrate/Dauer und Prüfsummen werden
+  automatisch geprüft. Songwechsel, Titelreihenfolge, Pause/Fortsetzen und
+  Klangvergleich mit WAV im Spiel prüfen; insbesondere Becken, Gesang und Bass.
+- WAV-zu-OGG-Update entfernt die bisher vom Installer verwalteten WAV-Dateien;
+  persönliche Dateien bleiben erhalten. Spielstände und Radioeinstellungen
+  bleiben vom Paketwechsel unberührt.
+
 ## Controller und Nitro in 0.22.1
 
 - Installation und Spielstart mit dem vorherigen Wizard wurden vom Nutzer bestätigt.

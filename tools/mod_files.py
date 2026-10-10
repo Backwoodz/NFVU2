@@ -17,7 +17,7 @@ OPTIONAL=(('radio', 'radio', {'.wav','.ogg','.json'}),
 def asset_files(folder,extensions):
     folder=Path(folder)
     manifest=folder/'tracks.json'
-    if folder.name=='radio' and manifest.is_file():
+    if folder.name in ('radio','radio-ogg') and manifest.is_file():
         entries=json.loads(manifest.read_text(encoding='utf-8-sig'))
         if not isinstance(entries,list):raise ValueError('Radio manifest must be a track list')
         selected=[manifest];seen=set()
@@ -46,6 +46,9 @@ def sync_optional_assets(local,output):
     output=Path(output).resolve()
     for source_name,folder,extensions in OPTIONAL:
         source=Path(local)/source_name
+        if source_name=='radio':
+            from prepare_radio import compressed_source
+            source=compressed_source(local)
         target=(output/folder).resolve()
         if not target.is_relative_to(output):raise ValueError('Asset target escaped build directory')
         # Remove only this generator's allowlisted stale files in its fixed folder.

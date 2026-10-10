@@ -42,6 +42,33 @@ reconstruction of Rachel's appearance or driving behaviour.
 
 ## Build and test
 
+For a smaller player download, prepare Ogg Vorbis copies of the radio after
+importing its WAV masters. Use a local [FFmpeg](https://ffmpeg.org/download.html)
+build with [libvorbis](https://ffmpeg.org/ffmpeg-codecs.html#libvorbis):
+
+```powershell
+python tools/prepare_radio.py --ffmpeg path/to/ffmpeg.exe
+```
+
+The default is a 192 kbit/s target, keeping the source sample rate and stereo.
+Every song is decoded again to check completeness and duration. Masters remain
+in `.local/radio/`; compressed copies go to `.local/radio-ogg/`. The build uses
+the verified Ogg playlist automatically, retaining song titles and order.
+If the masters or playlist change, rerun preparation; stale compressed copies
+are rejected. Without a compressed folder, the original WAV build still works.
+
+For the local test setup, FFmpeg can also be obtained from the pinned
+[imageio-ffmpeg wheel](https://pypi.org/project/imageio-ffmpeg/0.6.0/):
+
+```powershell
+python -m pip install --target .local/tools/audio-encoder imageio-ffmpeg==0.6.0
+python tools/prepare_radio.py
+```
+
+The encoder is a developer tool and is not included in the player installer.
+Listen to the compressed music in Valheim before publishing; automated decoding
+does not establish perceptual quality or Unity streaming behavior.
+
 ```powershell
 python tools/build.py
 python tools/test.py --skip-build
