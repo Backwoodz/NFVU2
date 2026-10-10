@@ -1,5 +1,14 @@
 # Nächste Aufgaben
 
+## Rust-Menülogo in 0.22.2
+
+- Drehung des Rust-Logos erfolgt jetzt vor Menüskalierung und Positionierung;
+  der Sticker bleibt dadurch am Turret-Eintrag.
+- Der Nutzer bestätigt den Fix nach Installation von 0.22.2 im Spiel.
+- Im Spiel bei Standardposition und verschobenem Menü, großer und kleiner
+  Auflösung sowie DE/EN prüfen: Logo innerhalb der Turret-Zeile, Anzeige ohne Logo.
+- Drei animierte Ingame-Vorschauen zeigen Front, Heck und Flugmodus in der README.
+
 ## Kleinerer Radio-Installer (Setup-Revision 3)
 
 - 27 Songs als Ogg Vorbis mit Zielbitrate 192 kbit/s, lokale WAV-Master erhalten.

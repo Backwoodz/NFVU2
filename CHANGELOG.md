@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.22.2 — Rust menu badge fix
+
+- Keep the Rust logo on the Turret menu entry when the menu is moved or scaled.
+  Preserve the tilted sticker style without shifting it onto the Display entry.
+- Add three animated in-game previews to the README: front, rear and flight mode.
+- Windows setup revision 4 packages the updated mod; vehicle handling is unchanged.
+
 ## 0.22.1 — First public installer release
 
 Windows setup revision 4 includes the complete radio playlist in Ogg Vorbis
