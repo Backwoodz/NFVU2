@@ -17,7 +17,7 @@ or take off and fly. Viking transportation got a little out of hand.
 
 Windows 10/11, 64-bit. **Single-player only**; cars are temporary and are not saved with the world.
 
-**[Download the Windows installer (148 MB)](https://github.com/Backwoodz/NFVU2/releases/download/v0.22.2/NFVU2-Setup-0.22.2-r4.exe)**
+**[Download the Windows installer (148 MB)](https://github.com/Backwoodz/NFVU2/releases/download/v0.22.3/NFVU2-Setup-0.22.3-r5.exe)**
 
 1. Download the installer above, or get **NFVU2-Setup-*.exe** from [Releases](https://github.com/Backwoodz/NFVU2/releases).
    Use the installer asset, not GitHub's “Source code” download.
