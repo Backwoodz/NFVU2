@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Audio;
 
@@ -54,17 +53,7 @@ public sealed class TurretExplosion : IDisposable {
         obj.transform.SetPositionAndRotation(point,Quaternion.LookRotation(impact.normal));
         particles[index].Stop(true,ParticleSystemStopBehavior.StopEmittingAndClear);particles[index].Play();particles[index].Emit(35);
         sounds[index].Stop();sounds[index].volume=volume;sounds[index].Play();ages[index]=.16f;
-        var seen=new HashSet<Character>();
-        foreach(var collider in Physics.OverlapSphere(point,TurretBlastRules.Radius,Physics.DefaultRaycastLayers,QueryTriggerInteraction.Ignore)) {
-            var target=collider.GetComponentInParent<Character>();
-            if(target==null||!seen.Add(target)||target==driver||target.IsPlayer()||target.IsTamed()||target.IsDead()||!BaseAI.IsEnemy(target,driver))continue;
-            Vector3 closest=collider.ClosestPoint(point);float damage=TurretBlastRules.Damage(Vector3.Distance(closest,point));
-            if(damage<=0)continue;
-            if(Physics.Linecast(point,target.GetCenterPoint(),out var cover,Physics.DefaultRaycastLayers,QueryTriggerInteraction.Ignore)
-                &&cover.collider.GetComponentInParent<Character>()!=target)continue;
-            var hit=new HitData{m_point=closest,m_dir=(target.transform.position-point).normalized,m_hitCollider=collider,m_pushForce=7,m_blockable=true,m_dodgeable=true};
-            hit.SetAttacker(driver);hit.m_damage.m_blunt=damage*.8f;hit.m_damage.m_fire=damage*.2f;target.Damage(hit);
-        }
+        TurretDamage.Blast(impact,driver);
         if(!terrainFailed)try {TurretTerrain.Excavate(impact);}
         catch(Exception e){terrainFailed=true;log?.Invoke("350Z crater deformation disabled: "+e.Message);}
     }

@@ -23,6 +23,7 @@ public sealed class MenuData {
 internal sealed class VehicleMenuAssets : IDisposable {
     public readonly Texture2D[] Icons=new Texture2D[11];
     public readonly string[] Titles=new string[11];
+    public Texture2D RustLogo {get;private set;}
     readonly List<AudioClip> clips=new List<AudioClip>();
     AudioSource source;
     GameObject audioObject;
@@ -39,6 +40,18 @@ internal sealed class VehicleMenuAssets : IDisposable {
                 tex.SetPixelData<byte>(flipped,0);tex.Apply(false,true);
             }
         }catch(Exception e){log("Original menu artwork unavailable: "+e.Message);}
+        try {
+            var path=Path.Combine(folder,"rust-logo.json");
+            if(File.Exists(path)) {
+                if(new FileInfo(path).Length>512*1024)throw new InvalidDataException("Oversized Rust logo");
+                var t=JsonConvert.DeserializeObject<ModelTexture>(File.ReadAllText(path),new JsonSerializerSettings{TypeNameHandling=TypeNameHandling.None,MaxDepth=8});
+                if(t==null||t.width<1||t.height<1||t.width>512||t.height>128||t.rgba==null||t.rgba.Length!=(long)t.width*t.height*4)throw new InvalidDataException("Invalid Rust logo");
+                result.RustLogo=new Texture2D(t.width,t.height,TextureFormat.RGBA32,false){name="Official_Rust_Branding",wrapMode=TextureWrapMode.Clamp};
+                var pixels=new byte[t.rgba.Length];int row=t.width*4;
+                for(int y=0;y<t.height;y++)Array.Copy(t.rgba,y*row,pixels,(t.height-1-y)*row,row);
+                result.RustLogo.SetPixelData<byte>(pixels,0);result.RustLogo.Apply(false,true);
+            }
+        }catch(Exception e){log("Optional Rust logo unavailable: "+e.Message);}
         try {
             foreach(var role in new[]{"navigate","accept","back"}) {
                 var wav=WavPcm16.Read(File.OpenRead(Path.Combine(folder,role+".wav")));
@@ -59,6 +72,7 @@ internal sealed class VehicleMenuAssets : IDisposable {
         if(audioObject!=null)UnityEngine.Object.Destroy(audioObject);
         foreach(var clip in clips)UnityEngine.Object.Destroy(clip);
         foreach(var icon in Icons)if(icon!=null)UnityEngine.Object.Destroy(icon);
+        if(RustLogo!=null)UnityEngine.Object.Destroy(RustLogo);
     }
 }
 }

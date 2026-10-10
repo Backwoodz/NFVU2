@@ -102,6 +102,11 @@ class AudioTests {
         Check(turbo.Charge==0&&turbo.BlowOff==0,"exit resets turbo without a spurious release");
         turbo.Step(float.NaN,true,float.PositiveInfinity,float.NaN,false,false);
         Check(!float.IsNaN(turbo.Charge)&&turbo.BlowOff==0,"invalid samples cannot poison turbo state");
+        Check(ExhaustSoundProfile.Pitch(0)==1&&ExhaustSoundProfile.PowerMix(0,.4f)==.4f,"original exhaust profile preserves recorded pitch and load mix");
+        Check(ExhaustSoundProfile.Pitch(1)<1&&ExhaustSoundProfile.Pitch(2)>1,"deep and sport profiles audibly separate engine pitch");
+        Check(ExhaustSoundProfile.Clamp(-1)==0&&ExhaustSoundProfile.Pitch(999)==1,"unknown exhaust profiles safely restore original sound");
+        for(int profile=0;profile<3;profile++)foreach(float mix in new[]{0f,.2f,.8f,1f})
+            Check(ExhaustSoundProfile.PowerMix(profile,mix)>=0&&ExhaustSoundProfile.PowerMix(profile,mix)<=1,"exhaust mix keeps power/coast crossfade bounded");
         using(var writer=new StreamWriter(args[0])){
             writer.WriteLine("time,rpm,load,level,shift,speed,gear,turbo,blowoff");model=new EngineSoundModel();turbo=new TurboSoundModel();
             for(int i=0;i<900;i++){

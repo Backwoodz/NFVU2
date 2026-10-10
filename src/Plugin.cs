@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Rachel350Z {
 // Disposable local prototype. No ZNetView: never use in multiplayer or persist into saves.
-[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.20.5")]
+[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.21.0")]
 [DefaultExecutionOrder(10000)]
 public partial class Plugin : BaseUnityPlugin {
     VehicleOrbitCamera orbitCamera;
@@ -34,6 +34,7 @@ public partial class Plugin : BaseUnityPlugin {
         orbitCamera=new VehicleOrbitCamera(message=>Logger.LogInfo(message));
         InitializeControls();
         InitializeMenu();
+        InitializeExhaustMenu();
         InitializeNitroVisuals();
         InitializeBoostInput();
         fleetMusic=new ValheimMusicDucking(message=>Logger.LogWarning(message));
@@ -160,6 +161,7 @@ public partial class Plugin : BaseUnityPlugin {
     void LateUpdate() {ForEachVehicle(TickVehicle);LateMenuCamera();TickNitroVisuals();UpdateGameCrosshair();UpdateVehicleHints();fleetMusic?.Tick(driving&&!audioBlocked&&vehicleRadio!=null&&vehicleRadio.CabinAudible);}
     void TickVehicle() {
         if(car==null)return;
+        TickExhaustCustomization();
         if(showroom!=null)try {
             ApplyShowroomSettings();
             int color=Math.Max(0,Array.IndexOf(ColorNames,trunkNeonColor.Value));

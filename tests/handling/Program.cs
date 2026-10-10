@@ -43,7 +43,7 @@ class HandlingTests {
             Check(wheels.All(w=>w.brakeTorque==0),"gas fully releases parking brake, terrain="+terrain);
             Check(terrain?wheels[0].motorTorque>0:wheels[0].motorTorque==0,"front-wheel mode, terrain="+terrain);
             for(int i=0;i<50;i++){foreach(var w in wheels)w.contact=true;controller.Step(true,1,0,0);}
-            Check(Math.Abs(wheels.Sum(w=>w.motorTorque)-(terrain?3840:2640))<.1f,"20 percent more launch torque after contact returns, terrain="+terrain);
+            Check(Math.Abs(wheels.Sum(w=>w.motorTorque)-(terrain?6200:4262.5f))<.1f,"stronger low-speed torque after contact returns, terrain="+terrain);
             controller.Step(true,1,0,1);
             Check(wheels.All(w=>w.motorTorque==0&&w.brakeTorque>0),"brake overrides throttle, terrain="+terrain);
             controller.Step(true,1,0,0);
@@ -72,8 +72,20 @@ class HandlingTests {
             wheels[3].contact=true;controller.Step(true,0,0,0,true);controller.Step(false,0,0,0,true);
             Check(!controller.BurnoutActive&&wheels.All(w=>w.motorTorque==0&&w.brakeTorque>0),"exit cancels burnout and parks all wheels, terrain="+terrain);
         }
-        Check(DrivingMath.LaunchTorqueFactor(0,1)==1.2f&&DrivingMath.LaunchTorqueFactor(4.5f,1)>1&&DrivingMath.LaunchTorqueFactor(6,1)==1,"launch assistance tapers out at six metres per second");
-        Check(DrivingMath.LaunchTorqueFactor(-2,-1)==1&&DrivingMath.LaunchTorqueFactor(0,0)==1,"reverse and coasting receive no launch assistance");
+        Check(DrivingMath.LaunchTorqueFactor(0,1)==1.55f&&DrivingMath.LaunchTorqueFactor(5.5f,1)>1&&DrivingMath.LaunchTorqueFactor(7,1)==1,"forward launch assistance tapers out at seven metres per second");
+        Check(DrivingMath.LaunchTorqueFactor(-2,-1)==1.7f&&DrivingMath.LaunchTorqueFactor(-5,-1)==1&&DrivingMath.LaunchTorqueFactor(0,0)==1,"reverse gets low-speed launch assistance while coasting gets none");
+        foreach(bool terrain in new[]{false,true})foreach(float direction in new[]{-1f,1f}) {
+            var body=new Rigidbody{linearVelocity=new Vector3(0,0,-direction*.9f)};
+            var wheels=Wheels(true);var controller=new VehicleHandling(body,wheels,terrain);
+            for(int i=0;i<10;i++)controller.Step(true,direction,0,0);
+            Check(wheels.Sum(w=>w.motorTorque)*direction>4000&&wheels.All(w=>w.brakeTorque==0),"slow slope rollback receives sustained launch torque in both directions, terrain="+terrain+", direction="+direction);
+            body.linearVelocity=new Vector3(0,0,-direction*3);
+            controller.Step(true,direction*.2f,0,0);
+            Check(wheels.All(w=>w.motorTorque==0&&w.brakeTorque>0),"analogue reverse request brakes faster opposing motion, terrain="+terrain+", direction="+direction);
+            body.linearVelocity=new Vector3(0,0,direction*40);
+            for(int i=0;i<30;i++)controller.Step(true,direction,0,0);
+            Check(wheels.All(w=>w.motorTorque==0),"increased power retains speed cutoff in both directions");
+        }
         {
             var body=new Rigidbody();var wheels=Wheels(true);var controller=new VehicleHandling(body,wheels,true);
             controller.SetDriftMode();
@@ -115,7 +127,7 @@ class HandlingTests {
             Check(wheels.All(w=>w.suspensionSpring.spring==(terrain?84000:96000))&&body.centerOfMass.y==.2f,"H2 supports its heavier body without altering 350Z defaults, terrain="+terrain);
             for(int i=0;i<100;i++){controller.Step(true,1,0,0);HummerTuning.AfterStep(wheels);}
             float torque=wheels.Sum(w=>w.motorTorque);
-            Check(Math.Abs(torque-(terrain?3840:2640)*2.35f)<1,"H2 torque scaling does not accumulate between ticks, terrain="+terrain);
+            Check(Math.Abs(torque-(terrain?6200:4262.5f)*2.35f)<1,"H2 torque scaling does not accumulate between ticks, terrain="+terrain);
             controller.Step(false,0,0,0);HummerTuning.AfterStep(wheels);
             Check(wheels.All(w=>w.motorTorque==0&&w.brakeTorque==6400),"parked H2 holds all wheels, terrain="+terrain);
             controller.SetTerrainMode(terrain);HummerTuning.Configure(body,wheels);

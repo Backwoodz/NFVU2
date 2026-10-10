@@ -156,6 +156,27 @@ Subwoofer in 0.11.0: [Unity OnAudioFilterRead](https://docs.unity3d.com/6000.0/D
 für die Analyse der interleavten Samples auf dem Audiothread. Der Callback
 ändert keine Samples und ruft keine Unity-API auf; Basshüllkurve und
 Membranverformung sind eigene NFVU2-Implementierungen.
+# Rust-Logo in 0.21.0
+
+- [Offizieller Facepunch-Rust-Pressebereich](https://facepunch.com/games/rust)
+  und das dort verlinkte [Logoarchiv](https://facepunch.com/s/rust-logos.zip).
+  `tools/import_rust_logo.py` importiert `Rust_Branding-1080.png`, entfernt
+  ausschließlich transparenten Außenrand und verkleinert proportional.
+  Originalfarben und vollständige Wort-/Bildmarke bleiben erhalten; die
+  schräge Platzierung im Menü ist NFVU2-Gestaltung. © Facepunch Studios Limited.
+  Download, Pixel und Prüfsummen bleiben in ignorierten lokalen Dateien.
+
+## Auspuff und Klang in 0.21.0
+
+- Lokales `CARS/EXHAUST/GEOMETRY.BIN`: `STYLE01_LEVEL1_A` bis
+  `STYLE10_LEVEL1_A`. Endrohröffnungen werden aus zusammenhängenden originalen
+  dunklen Mündungsflächen bestimmt; Montage verwendet die vorhandenen Sockets.
+- [NFSU2 Car Sound Tuner, Erklärung der Originaldaten](https://github.com/nlgxzef/NFSU2CarSoundTuner#explanation):
+  NFSU2 besitzt Soundzuordnungen für Leistungsstufen Stock/Street/Pro/Extreme.
+  Das belegt keine frei wählbaren Auspuff-Soundpresets im Originalmenü.
+  NFVU2 verwendet weiterhin seine bereits importierten Aufnahmen; „Tief“ und
+  „Sport“ verändern Tonhöhe und Last-/Schubmischung als eigene Abstimmungen.
+
 # Menü und Parkautomatik in 0.13.0
 
 - Lokale NFSU2-Dateien: `FRONTEND/FrontB.lzc`,

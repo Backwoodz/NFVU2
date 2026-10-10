@@ -1,5 +1,31 @@
 # Nächste Aufgaben
 
+## Menü, Antrieb und Auspuff in 0.21.0
+
+- Controller: alle Kategorien mit Stick/Steuerkreuz erreichen, rechts/A in den
+  Inhalt, links am Zeilenanfang zurück; LB Seitenleiste, RB Inhalt. Regler und
+  Auswahlfelder mit A bearbeiten, A/B beendet Bearbeitung. Laser-Untermenü,
+  Songliste, deaktivierte Controls, Mauswechsel und Wiederöffnen prüfen.
+- Ohne Auto bzw. außerhalb 5 m nur Garage/Einstellungen; Spawn, Entfernen und
+  Annähern aktualisieren die sichtbaren Kategorien. 720p/1080p: Auspuff-Eintrag,
+  Rust-Logo, „by BCKWDZ“, Fokusrahmen und DE/EN ohne Überschneidung prüfen.
+- 350Z und H2: Anfahren vorwärts/rückwärts auf derselben Steigung vergleichen;
+  Rollen entgegen der gewählten Fahrtrichtung über 1,25 m/s muss zunächst
+  abbremsen; darunter greift der Anfahrschub auch mit Controller-Teilgas.
+  Gelände/Straße/Drift, Controller-Teilgas, Burnout und Bremsen prüfen.
+- Normale Munition: ungerüsteter 40-HP-Gegner etwa drei Treffer; Sterne,
+  Resistenzen und größere Gegner bleiben relevant. Explosivmunition gegen
+  große Bäume, gefällte Stämme und mehrere Felsabschnitte testen; native
+  Zerstörung/Beute, Deckung, Spieler, zahme Tiere und Bauwerke prüfen.
+- Auspuff: Klangwechsel bei laufendem und abgestelltem Motor, Lautstärke null,
+  gespeicherte Einstellungen pro Modell, mehrere Fahrzeuge; Nitrofarbe am
+  Boden/im Flug, Purge, Schubflammen, Licht und Wechsel zwischen Autos prüfen.
+- Alle zehn 350Z-Blenden wechseln: genau eine Variante sichtbar, zwei bzw.
+  vier Nitroflammen an den Rohröffnungen, keine alten Flammen nach Wechsel;
+  STYLE08 entspricht dem bisherigen Modell. H2-Endrohre bleiben modellfest.
+- Automatische Tests prüfen Logik und Adapter mit Test-Doubles. Fahrgefühl,
+  Unity-Kollisionen, Hörwirkung und tatsächliches Menülayout bleiben Spieltests.
+
 ## Controller und Sprache in 0.20.0
 
 - 0.20.5: Hinweise unten rechts auf Xbox/PS5, Mauswechsel, DE/EN, 720p/1080p,

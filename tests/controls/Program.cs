@@ -13,7 +13,7 @@ static class Program {
         Check(flying.Contains("name=\"button_lb\">  Descend")&&flying.Contains("name=\"button_rb\">  Ascend")&&!flying.Contains("Fire turret")&&flying.Contains("Turret: automatic"),"flight hints replace manual turret with altitude controls and automatic fire");
         Check(flying.Contains("name=\"button_b\">  Land & exit"),"flight exit hint describes landing first");
         var menu=string.Join("\n",VehicleHintContent.Build(true,true,true,true,false,"F9",en));
-        Check(menu.Contains("Close menu")&&menu.Contains("Category")&&menu.Contains("Camera")&&!menu.Contains("Nitro")&&!menu.Contains("Fire turret"),"open menu hints show only available interface and camera actions");
+        Check(menu.Contains("Close menu")&&menu.Contains("Categories / Content")&&menu.Contains("Select / edit")&&menu.Contains("Camera")&&!menu.Contains("Nitro")&&!menu.Contains("Fire turret"),"open menu hints describe pane focus and editing without driving actions");
         var keyboard=string.Join("\n",VehicleHintContent.Build(false,false,true,false,false,"F10",en));
         Check(!keyboard.Contains("<sprite")&&keyboard.Contains("F10  Mod menu")&&keyboard.Contains("Shift  Ascend")&&keyboard.Contains("Space  Descend"),"keyboard flight hints use actual keys and configured menu shortcut");
         Check(!string.Join("\n",VehicleHintContent.Build(true,false,false,false,true,"F9",de)).Contains("Nitro"),"H2 ground hints omit unavailable nitro");
@@ -30,6 +30,20 @@ static class Program {
         Check(throttle<0&&brake==0,"LT/L2 reverses after stopping");
         ControlRules.Pedals(.7f,0,-5,out throttle,out brake);
         Check(throttle==0&&Math.Abs(brake-.7f)<.001,"RT/R2 brakes reverse travel before forward drive");
+        foreach(float pressure in new[]{.2f,1f}) {
+            ControlRules.Pedals(pressure,0,-.9f,out throttle,out brake);
+            Check(throttle==pressure&&brake==0,"controller forward hill start catches slow rollback at trigger pressure "+pressure);
+            ControlRules.Pedals(0,pressure,.9f,out throttle,out brake);
+            Check(throttle==-pressure&&brake==0,"controller reverse hill start catches slow forward roll at trigger pressure "+pressure);
+            ControlRules.Pedals(pressure,0,-3,out throttle,out brake);
+            Check(throttle==0&&brake==pressure,"controller direction braking stays proportional at trigger pressure "+pressure);
+        }
+        ControlRules.Pedals(.8f,.3f,3,out throttle,out brake);
+        Check(throttle==0&&brake==.3f,"both triggers while rolling forward preserve reverse-trigger brake priority");
+        ControlRules.Pedals(.8f,.3f,-3,out throttle,out brake);
+        Check(throttle==0&&brake==.8f,"both triggers while reversing preserve gas-trigger brake priority");
+        ControlRules.Pedals(.8f,.3f,0,out throttle,out brake);
+        Check(Math.Abs(throttle-.5f)<.001f&&brake==0,"both triggers at rest retain their analogue difference");
         var gate=new ReleaseGate();gate.Block();
         Check(!gate.Allow(true)&&!gate.Allow(true),"held gas/nitro cannot resume after a menu or focus interruption");
         Check(gate.Allow(false)&&gate.Allow(true),"release permits fresh control input");
@@ -42,6 +56,26 @@ static class Program {
         Check(!ControlRules.AutomaticTurret(false,false,false,true),"fresh unoccupied cars do not fire");
         Check(ControlRules.MenuMove(0,-1,5)==4&&ControlRules.MenuMove(4,1,5)==0,"controller menu focus wraps");
         Check(ControlRules.MenuMove(0,1,0)==0,"empty or disabled menu is safe");
+        for(int tab=0;tab<13;tab++)Check(ControlRules.MenuTabVisible(tab,false)==(tab==10||tab==11),"without a nearby car only garage and interface settings are visible: "+tab);
+        Check(ControlRules.MenuNextTab(10,1,13,false)==11&&ControlRules.MenuNextTab(11,1,13,false)==10&&ControlRules.MenuNextTab(10,-1,13,false)==11,"no-car navigation cycles only visible entries in both directions");
+        Check(ControlRules.MenuNextTab(11,1,13,true)==12&&ControlRules.MenuNextTab(12,1,13,true)==0&&ControlRules.MenuNextTab(0,-1,13,true)==12,"vehicle navigation includes exhaust and wraps without hardcoded tab counts");
+        var focus=new MenuFocusState();
+        Check(focus.Sidebar&&!focus.Editing,"menu begins in sidebar");
+        Check(!focus.Confirm(false)&&!focus.Sidebar,"confirm enters selected category content without triggering first action");
+        Check(focus.Confirm(false),"confirm on an ordinary content control invokes it");
+        Check(!focus.Confirm(true)&&focus.Editing,"confirm starts editing a setting without changing it");
+        Check(!focus.Back()&&!focus.Editing&&!focus.Sidebar,"back finishes editing while keeping content focus");
+        Check(!focus.Back()&&focus.Sidebar&&focus.Back(),"back returns to sidebar then closes");
+        focus.SelectPane(false);focus.Confirm(true);focus.SelectPane(true);
+        Check(focus.Sidebar&&!focus.Editing,"LB immediately returns to sidebar and leaves editing");
+        focus.SelectPane(false);focus.Confirm(true);focus.Confirm(true);
+        Check(!focus.Sidebar&&!focus.Editing,"confirm again finishes editing without losing content focus");
+        var bounds=new[]{new MenuControlBounds(100,200,32),new MenuControlBounds(300,200,32),new MenuControlBounds(100,250,32),new MenuControlBounds(100,300,32)};
+        Check(ControlRules.MenuHorizontalNeighbor(0,1,bounds)==1&&ControlRules.MenuHorizontalNeighbor(1,-1,bounds)==0,"left/right navigate buttons sharing a row");
+        Check(ControlRules.MenuHorizontalNeighbor(2,-1,bounds)==-1&&ControlRules.MenuHorizontalNeighbor(2,1,bounds)==-1,"row edges do not jump into unrelated controls");
+        Check(ControlRules.MenuHorizontalNeighbor(5,-1,bounds)==-1&&ControlRules.MenuHorizontalNeighbor(0,-1,Array.Empty<MenuControlBounds>())==-1,"disappearing controls cannot break horizontal navigation");
+        var scrolled=new[]{new MenuControlBounds(100,200,32),new MenuControlBounds(300,200,32,1)};
+        Check(ControlRules.MenuHorizontalNeighbor(0,1,scrolled)==-1,"clipped song rows cannot become horizontal neighbors of controls outside their scroll region");
         Check(InterfaceText.Translate("Scheibentönung   75 %",true)=="Window tint   75 %","English dynamic tuning label retains the numeric value");
         Check(InterfaceText.Translate("Fahrmodus",false)=="Fahrmodus","German mode preserves authored text");
         Check(InterfaceText.Translate("Kofferraum-Neon",true)=="Trunk neon","specific labels translate before general fragments");

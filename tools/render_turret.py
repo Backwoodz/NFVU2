@@ -1,8 +1,13 @@
-"""Blender --background --python tools/render_turret.py (local visual QA)."""
-import bpy,json,math
+"""Blender --background --python tools/render_turret.py -- [--exhaust-style 1..10] (local visual QA)."""
+import argparse,bpy,json,math,sys
 from pathlib import Path
 from mathutils import Vector,Matrix
 BASE=Path(__file__).resolve().parents[1];LOCAL=BASE/'.local';OUTPUT=BASE/'artifacts'
+parser=argparse.ArgumentParser(description='Render original turret and vehicle.')
+parser.add_argument('--exhaust-style',type=int,choices=range(1,11),default=8)
+args=parser.parse_args(sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else [])
+exhaust_style=args.exhaust_style
+suffix='' if exhaust_style==8 else f'-exhaust{exhaust_style:02}'
 bpy.ops.object.select_all(action='SELECT');bpy.ops.object.delete(use_global=False)
 
 def vec(v):return Vector((v['x'],v['y'],v['z']))
@@ -19,7 +24,7 @@ def add_model(folder,turret=False):
         materials.append(mat)
     for p in data['parts']:
         if p['group']=='audio':continue
-        if p.get('optionGroup') in ('engine','trunk') and p['option']!=('0' if p['optionGroup']=='engine' else '2'):continue
+        if p.get('optionGroup') in ('engine','trunk','exhaust') and p['option']!={'engine':'0','trunk':'2','exhaust':str(exhaust_style)}[p['optionGroup']]:continue
         points=[vec(v) for v in p['vertices']];normals=[vec(v) for v in p['normals']]
         if turret:
             role=p['name'].split('|')[0];rig=data['turretRig'];offset=Vector((0,0,0))
@@ -45,4 +50,4 @@ bpy.ops.object.camera_add();cam=bpy.context.object;s=bpy.context.scene;s.camera=
 s.render.resolution_x=1100;s.render.resolution_y=800;s.render.resolution_percentage=100;s.world.color=(.2,.2,.2);s.view_settings.view_transform='Filmic';cam.data.lens=48
 for name,pos,target in [('car',(-5,6,3.5),(0,0,1)),('detail',(-1.7,2,2.6),(0,0,1.65)),('laser',(-.6,.5,1.92),(0,-.24,1.72))]:
     cam.location=pos;cam.rotation_euler=(Vector(target)-cam.location).to_track_quat('-Z','Y').to_euler()
-    s.render.filepath=str(OUTPUT/('turret-'+name+'.png'));bpy.ops.render.render(write_still=True)
+    s.render.filepath=str(OUTPUT/('turret-'+name+suffix+'.png'));bpy.ops.render.render(write_still=True)

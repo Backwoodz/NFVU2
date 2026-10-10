@@ -106,6 +106,8 @@ public partial class Plugin {
         LoadStage("Karosserie",.42f);
         var paint=vehicleMaterials[0];var dark=vehicleMaterials[1];
         foreach(var p in model.parts.Where(p=>!originalWheels||p.group=="body")){AddVisual(p,car.transform,model,paint,dark);yield return 0;}
+        current.exhaustVisuals=new VehicleExhaustVisuals(car,model);
+        current.exhaustVisuals.Apply(exhaustStyle.Value);
         LoadStage("Fahrwerk und Räder",.54f);
         // A shorter, raised hull catches fewer small rocks with its bumper corners.
         var box=car.AddComponent<BoxCollider>();box.center=IsHummer?new Vector3(0,1.02f,0):new Vector3(0,.76f,0);box.size=IsHummer?new Vector3(1.92f,1.42f,4.35f):new Vector3(1.62f,.8f,3.8f);

@@ -11,7 +11,7 @@ public partial class Plugin {
     VehicleMenuAssets menuAssets;
     ConfigEntry<float> menuVolume;
     int hoveredTab=-1;
-    static readonly string[] MenuNames={"Fahrzeug","Radio","Licht","Neon","Nitro","Räder","Türen","Ausbau","Anzeige","Turret","Garage","Einstellungen"};
+    static readonly string[] MenuNames={"Fahrzeug","Radio","Licht","Neon","Nitro","Räder","Türen","Ausbau","Anzeige","Turret","Garage","Einstellungen","Auspuff"};
     static readonly Color MenuAccent=new Color(.83f,.96f,.22f);
     Texture2D MenuTexture(Color color) {
         var texture=new Texture2D(1,1);texture.SetPixel(0,0,color);texture.Apply();menuTextures.Add(texture);return texture;
@@ -55,17 +55,22 @@ public partial class Plugin {
     void MenuNavigation(bool accessible) {
         var e=Event.current;
         if(e.type==EventType.KeyDown&&(e.keyCode==KeyCode.UpArrow||e.keyCode==KeyCode.DownArrow)) {
-            ChangeMenuTab(accessible?(menuTab+(e.keyCode==KeyCode.DownArrow?1:11))%12:menuTab==10?11:10);MenuSound(0);e.Use();
+            ChangeMenuTab(ControlRules.MenuNextTab(menuTab,e.keyCode==KeyCode.DownArrow?1:-1,MenuNames.Length,accessible));MenuSound(0);e.Use();
         }
-        int hover=-1;
+        int hover=-1,row=0;
         for(int i=0;i<MenuNames.Length;i++) {
-            var rect=new Rect(12,104+i*35,166,31);GUI.enabled=accessible||i==10||i==11;
-            if(GUI.enabled&&rect.Contains(e.mousePosition))hover=i;
-            if(UiButton(rect,MenuNames[i],i==menuTab?navSelectedStyle:navStyle)){ChangeMenuTab(i);MenuSound(1);}
+            if(!ControlRules.MenuTabVisible(i,accessible))continue;
+            float y=104+row++*32;
+            var rect=new Rect(12,y,166,28);
+            if(rect.Contains(e.mousePosition))hover=i;
+            if(UiButton(rect,MenuNames[i],i==menuTab?navSelectedStyle:navStyle)){ChangeMenuTab(i);FocusMenuPane(false);MenuSound(1);}
             var icon=i<11?menuAssets?.Icons[i]:null;
-            if(icon!=null)GUI.DrawTexture(new Rect(18,105+i*35,36,29),icon,ScaleMode.ScaleToFit,true);
-            else UiLabel(new Rect(24,108+i*35,30,23),i==9?"◎":"›",mutedStyle);
+            if(icon!=null)GUI.DrawTexture(new Rect(18,y+1,36,26),icon,ScaleMode.ScaleToFit,true);
+            else UiLabel(new Rect(24,y+3,30,23),i==9?"◎":"›",mutedStyle);
+            if(i==9)DrawRustMenuBadge(rect);
+            if(padActive&&uiNavigation.Sidebar&&i==menuTab&&e.type==EventType.Repaint)DrawMenuFocus(rect);
         }
+        if(!accessible)UiLabel(new Rect(20,184,150,112),"Fahrzeug spawnen und auf 5 m nähern, um Tuning freizuschalten.",mutedStyle);
         GUI.enabled=true;
         if(e.type==EventType.Repaint&&hover!=hoveredTab){if(hover>=0)MenuSound(0);hoveredTab=hover;}
     }

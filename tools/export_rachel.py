@@ -83,14 +83,20 @@ def wheel_finish_sections(part,section):
 
 
 def exhaust_mouths(part):
-    # Two eight-sided mouth loops occupy the minimum longitudinal plane.
-    end=min(v[0] for v in part['vertices'])
-    mouths=[]
-    for side in (-1,1):
-        ring={tuple(v) for v in part['vertices'] if abs(v[0]-end)<.00001 and v[1]*side>0}
-        if len(ring)!=8:raise ValueError('Re-identify STYLE08 exhaust mouth loops')
-        mouths.append(tuple(sum(v[a] for v in ring)/len(ring) for a in range(3)))
-    return mouths
+    # Connected dark mouth faces identify one or two actual openings, including
+    # slanted, oval and twin styles. Keep the emitter beyond the outermost lip.
+    sections=[s for s in part['slices'] if s['materialKey']==0x010cb64a]
+    if len(sections)!=1:raise ValueError('Re-identify original exhaust mouth material')
+    ids=sections[0]['indices'];groups=[]
+    for i in range(0,len(ids),3):
+        group=set(ids[i:i+3]);merged=[g for g in groups if g & group]
+        for other in merged:
+            group |= other;groups.remove(other)
+        groups.append(group)
+    if not 1<=len(groups)<=2 or any(len(g)<8 for g in groups):raise ValueError('Invalid original exhaust mouth topology')
+    return sorted(((min(part['vertices'][i][0] for i in g),
+                   sum(part['vertices'][i][1] for i in g)/len(g),
+                   sum(part['vertices'][i][2] for i in g)/len(g)) for g in groups),key=lambda mouth:mouth[1])
 
 
 def sport_brake_geometry(part):
@@ -169,9 +175,11 @@ def main():
     spoiler=pick(parse(ASSETS/'CARS/SPOILER/GEOMETRY.BIN'),'SPOILER_STYLE02')
     socket=pick(car,'350Z_BASE')['sockets'][0xc93b73fd]
     selected.append((spoiler,'body',socket,'SPOILER_STYLE02'))
-    exhaust=pick(parse(ASSETS/'CARS/EXHAUST/GEOMETRY.BIN'),'EXHAUST_STYLE08_LEVEL1')
-    for key in (0xbcf8a18b,0xbd7cf15e):
-        selected.append((exhaust,'body',pick(car,'350Z_KITW02_BODY')['sockets'][key],'EXHAUST_STYLE08_LEVEL1'))
+    exhaust_parts=parse(ASSETS/'CARS/EXHAUST/GEOMETRY.BIN')
+    for style in range(1,11):
+        family=f'EXHAUST_STYLE{style:02}_LEVEL1'
+        for key in (0xbcf8a18b,0xbd7cf15e):
+            selected.append((pick(exhaust_parts,family),'body',pick(car,'350Z_KITW02_BODY')['sockets'][key],family))
     rim=pick(parse(ASSETS/'CARS/WHEELS/GEOMETRY_RACINGHART.BIN'),'RACINGHART_STYLE07_20_26')
     source_radius=wheel_source_radius(rim)
     selected.append((rim,'wheel',None,'RACINGHART_STYLE07_20_26'))
@@ -309,7 +317,7 @@ def main():
             if 'DOOR_RIGHT' in family or 'DOOR_PANEL_RIGHT' in family or family.endswith('RIGHT_SIDE_MIRROR'):moving='rightDoor'
             if family in ('350Z_KIT00_TRUNK','350Z_KIT00_TRUNK_UNDER','SPOILER_STYLE02'):moving='trunk'
             if family in ('350Z_STYLE07_HOOD','350Z_KIT00_HOOD_UNDER'):moving='hood'
-            option_group='audio' if group=='audio' else 'trunk' if 'TRUNK_AUDIO' in family else 'engine' if 'ENGINE' in family else ''
+            option_group='audio' if group=='audio' else 'trunk' if 'TRUNK_AUDIO' in family else 'engine' if 'ENGINE' in family else 'exhaust' if family.startswith('EXHAUST_STYLE') else ''
             option=family if group=='audio' else str(int(family.split('_')[1][-2:])) if option_group else ''
             parts.append({'name':family+f'_A_slice{number}_{len(parts)}','group':group,'lightRole':role,
                           'movingPart':moving,'optionGroup':option_group,'option':option,
@@ -336,12 +344,16 @@ def main():
     for side in (-1,1):lamp('taillight',{'x':side*.62,'y':.71,'z':-1.97},{'x':0,'y':0,'z':-1})
     for side in (-1,1):lamp('reverse',{'x':side*.49,'y':.45,'z':-2.11},{'x':0,'y':-.12,'z':-1})
     lamp('plate',transform((.10,0,.045),plate_socket),transform((-.5,0,-1),plate_socket,normal=True))
-    emitters=[]
-    for key in (0xbcf8a18b,0xbd7cf15e):
-        socket=pick(car,'350Z_KITW02_BODY')['sockets'][key]
-        for mouth in exhaust_mouths(exhaust):
-            point=transform((mouth[0]-.006,mouth[1],mouth[2]),socket,exhaust=True)
-            emitters.append({'role':'exhaust','position':point,'direction':transform((-1,0,0),socket,exhaust=True,normal=True)})
+    exhaust_variants=[]
+    for style in range(1,11):
+        exhaust=pick(exhaust_parts,f'EXHAUST_STYLE{style:02}_LEVEL1');emitters=[]
+        for key in (0xbcf8a18b,0xbd7cf15e):
+            socket=pick(car,'350Z_KITW02_BODY')['sockets'][key]
+            for mouth in exhaust_mouths(exhaust):
+                point=transform((mouth[0]-.006,mouth[1],mouth[2]),socket,exhaust=True)
+                emitters.append({'role':'exhaust','position':point,'direction':transform((-1,0,0),socket,exhaust=True,normal=True)})
+        exhaust_variants.append({'style':style,'emitters':emitters})
+    emitters=list(exhaust_variants[7]['emitters'])
     # No verified NFS purge sockets were found. Mod-authored bumper positions
     # and hood surface anchors provide paired jets without changing geometry.
     for side in (-1,1):
@@ -350,7 +362,7 @@ def main():
     model={'schemaVersion':2,'preset':'DDAY_PLAYER_CAR','wheelVisualLift':WHEEL_LIFT,'lights':lights,'neonTexture':neon_id,
            'animations':showroom_assets.animations(ASSETS/'CARS/350Z/PARTS_ANIMATIONS.bin',BODY_LIFT),
            'trunkLayouts':layouts,'audioComponents':components,
-           'effectEmitters':emitters,'nitroFlameTexture':flame_id,'nitroPurgeTexture':purge_id,
+           'effectEmitters':emitters,'exhaustVariants':exhaust_variants,'nitroFlameTexture':flame_id,'nitroPurgeTexture':purge_id,
            'frontWheelVisualOffset':FRONT_WHEEL_OFFSET,'rearWheelVisualOffset':REAR_WHEEL_OFFSET,
            'previewHubHeight':.20,'parts':parts,'materials':materials,'textures':textures}
     (out/'body.json').write_text(json.dumps(model,separators=(',',':')),encoding='utf-8')
@@ -367,7 +379,8 @@ def main():
         'rearLenses':{'upperHousing':'complete original STYLE04 opaque lens inserts including upper reflector surrounds; clear outer covers still omitted','upperStrip':'original STYLE04 amber textured trim; passive','bumper':'original lens triangles split into inner reverse and outer amber, split inferred from stock layout; not recovered NFS atlas mapping'},
         'sportBrakes':{'source':'BRAKE_STYLE03_A + original BRAKE_STYLE03 rotor atlas','adaptation':'38cm round opaque rotor replaces alpha-masked square; original caliper geometry painted red; visual only'},
         'wheelFinish':{'source':'original RACINGHART_STYLE07 geometry and gold/silver atlas; shared material split at existing radial loops','adaptation':'fully metallic polished chrome lip and lightly cooled original gold star; fresh runtime material with environment reflections, no emission; NFVU2 finish approximation'},
-        'nitroEffects':{'textures':'original InGameCommon SFX_FIREB and SFX_SMOKE_B_CS; runtime tint/animation adapted','exhaust':'four original STYLE08 mouth-loop centres, offset 6mm outward','purge':'mod-authored bumper pair and measured hood surface pair; original nozzle sockets not identified'},
+        'exhaustVariants':{'source':'original CARS/EXHAUST STYLE01..STYLE10_LEVEL1_A at both original KITW02 exhaust sockets','default':'STYLE08 from DDAY_PLAYER_CAR','flames':'connected mouth-face centres, 6mm beyond outer lip; native NFS effect timing not recovered'},
+        'nitroEffects':{'textures':'original InGameCommon SFX_FIREB and SFX_SMOKE_B_CS; runtime tint/animation adapted','exhaust':'original mouth-face centres for selected style, offset 6mm outward','purge':'mod-authored bumper pair and measured hood surface pair; original nozzle sockets not identified'},
         'visualFit':{'wheelRadius':WHEEL_RADIUS,'wheelWidth':WHEEL_WIDTH,'wheelWidthFit':'outer face retained, widened inward; inverse-transpose normals','brakeRadius':BRAKE_RADIUS,'bodyLift':BODY_LIFT,'frontOffset':FRONT_WHEEL_OFFSET,'rearOffset':REAR_WHEEL_OFFSET,'preview':'approximate terrain-mode loaded suspension; not a Unity simulation'}},indent=2),encoding='utf-8')
     print(f'Rachel preset: {len(parts)} material slices, {sum(len(p["indices"])//3 for p in parts)} triangles, {len(textures)} textures')
 

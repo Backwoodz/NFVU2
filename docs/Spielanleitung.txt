@@ -1,4 +1,18 @@
-NFVU2 0.20.5 – 350Z und Hummer H2, lokaler Test für Valheim
+NFVU2 0.21.0 – 350Z und Hummer H2, lokaler Test für Valheim
+
+NEU: MENÜ, ANTRIEB UND AUSPUFF
+Ohne erreichbares Auto zeigt das Menü nur Garage und Einstellungen.
+Stick/Steuerkreuz hoch/runter wählt Kategorien; rechts oder A/Kreuz wechselt
+in den Inhalt. Dort navigieren die Richtungen zwischen Bedienelementen.
+Links am Zeilenanfang führt zurück zur Seitenleiste. LB/L1 springt direkt
+zur Seitenleiste, RB/R1 zum Inhalt. Bei Reglern und Auswahlfeldern zuerst
+A/Kreuz drücken, dann mit den Richtungen ändern; A oder B beendet Bearbeitung.
+B/Kreis führt schrittweise zurück. L3/F9 schließt weiterhin direkt.
+F9 → Auspuff: Original/Tief/Sport-Klangvariante, Nitroflammenfarbe und beim
+350Z zehn originale Auspuffblenden wählen. STYLE08 ist die bisherige Optik.
+Der Antrieb hat mehr Drehmoment und stärkeren Vorwärts-/Rückwärts-Anfahrschub.
+Normale Turret-Munition: 14 Stichschaden (drei Treffer bei 40 HP ohne Resistenz).
+Explosivmunition trifft jetzt auch große Bäume, Stämme und abbaubare Felsen.
 
 FAHRZEUGHINWEISE
 Im Fahrzeug erscheinen unten rechts die Fahrbefehle mit Valheims originalen
@@ -17,7 +31,7 @@ Xbox: RT Gas, LT Bremse/Rückwärts, linker Stick lenken, rechter Stick Kamera.
 B Ein-/Aussteigen, X Nitro, A Handbremse, LB Geschütz, R3 Hupe.
 PS5: R2/L2, Kreis Ein-/Aussteigen, Quadrat Nitro, Kreuz Handbremse, L1 Geschütz.
 L3 öffnet/schließt das Modmenü. Stick/Steuerkreuz navigiert, A/Kreuz bestätigt,
-links/rechts ändert Regler/Auswahl, LB/RB bzw. L1/R1 wechselt Kategorien.
+LB/L1 wählt die Seitenleiste, RB/R1 den Inhalt; A startet die Wertebearbeitung.
 B/Kreis geht zurück oder schließt das Menü, ohne dabei auszusteigen.
 Im Flug: RB/R1 hoch, LB/L1 runter. Geschütz automatisch; X/Quadrat Nitro.
 B/Kreis oder F7 im Flug: automatische Landung, danach Ausstiegsversuch.
@@ -66,7 +80,7 @@ NEU: VERSCHIEBBARES MENÜ
 F9 öffnen, Titelleiste mit linker Maustaste greifen und an die gewünschte
 Stelle ziehen. Die Position bleibt gespeichert. Bei Auflösungswechsel bleibt
 das Menü im sichtbaren Bildschirm. Der X-Button schließt weiterhin direkt.
-Ohne gespawntes Fahrzeug ist nur die Garage in der Seitenleiste verfügbar.
+Ohne erreichbares Fahrzeug sind Garage und Einstellungen sichtbar.
 
 NEU: TIEFERLEGUNG, NFS-MENÜ UND PARK-TURRET
 F9 → Räder: Tieferlegung zusätzlich zu Sturz, Versatz und Felgengröße.

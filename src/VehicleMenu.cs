@@ -53,11 +53,11 @@ public partial class Plugin {
                 if(menuCamera!=null){menuCameraEnabled=menuCamera.enabled;menuCamera.enabled=false;}
             }
             BeginMenuCamera();
-            uiFocus=0;controlsGate.Block();
+            uiFocus=0;uiNavigation.SelectPane(true);uiLastDirection=0;uiRepeat=0;uiWaitNeutral=true;controlsGate.Block();
             BlockDrivingInput();Cursor.lockState=CursorLockMode.None;Cursor.visible=true;
         }
         else {
-            controlsGate.Block();uiActivate=false;uiHorizontal=0;
+            controlsGate.Block();uiActivate=false;uiHorizontal=uiVertical=0;
             StopMenuDrag();SaveMenuPlacement();
             MenuSound(2);
             menuOpen=false;EndMenuCamera();
@@ -96,7 +96,8 @@ public partial class Plugin {
             UiBox(new Rect(15,Screen.height-120,310,32),(Flying?"LMB + W: Flug-Nitro":"LMB: Nitro / Purge")+" | Tank "+Mathf.RoundToInt(ActiveNitro.Charge*100)+" %");
         if(!menuOpen||audioBlocked)return;
         if(menuMouseLookHeld&&(Event.current.isMouse||Event.current.type==EventType.ScrollWheel))Event.current.Use();
-        uiCount=0;uiBuilding=false;
+        uiCount=0;uiRegion=0;uiBuilding=false;uiPointerInRegion=true;
+        if(Event.current.type==EventType.Repaint)uiBounds.Clear();
         EnsureMenuStyles();
         float scale=Mathf.Max(.1f,Mathf.Min(1,Mathf.Min((Screen.width-32f)/740f,(Screen.height-140f)/560f)));
         HandleMenuDrag(scale);
@@ -109,18 +110,19 @@ public partial class Plugin {
             var oldColor=GUI.color;GUI.color=MenuAccent;GUI.DrawTexture(new Rect(0,0,740,3),Texture2D.whiteTexture);GUI.color=oldColor;
             UiLabel(new Rect(22,15,650,36),"NFVU2  /  "+(CanAccessCurrent(LocalPlayer())?VehicleName:"Garage"),titleStyle);
             if(UiButton(new Rect(690,19,30,30),"×")){CloseVehicleMenu();return;}
-            UiLabel(new Rect(23,57,660,25),"UNDERGROUND GARAGE   /   "+(Flying?DriveModeName:driving?"Fahrzeug bremst":"Tuning & Fahrzeugsteuerung"),mutedStyle);
+            UiLabel(new Rect(23,57,660,25),"UNDERGROUND GARAGE   /   "+(Flying?DriveModeName:driving?"Fahrzeug bremst":"Tuning & Fahrzeugsteuerung")+"   /   by BCKWDZ",mutedStyle);
             if(menuTab!=10&&menuTab!=11&&!CanAccessCurrent(LocalPlayer()))ChangeMenuTab(10);
             MenuNavigation(CanAccessCurrent(LocalPlayer()));
             uiBuilding=true;
             GUI.BeginGroup(new Rect(180,0,560,522));
             try {
                 UiLabel(new Rect(25,99,510,28),MenuNames[menuTab],titleStyle);
-                switch(menuTab){case 11:DrawInterfaceSettings();break;case 10:DrawGarageMenu();break;case 0:DrawCarMenu();break;case 1:DrawRadioMenu();break;case 2:DrawLightsMenu();break;case 3:DrawNeonMenu();break;case 4:DrawNitroMenu();break;case 5:DrawWheelMenu();break;case 6:DrawBodyMenu();break;case 7:DrawTrunkMenu();break;case 8:DrawDrivingDisplayMenu();break;case 9:DrawTurretMenu();break;}
+                switch(menuTab){case 12:DrawExhaustMenu();break;case 11:DrawInterfaceSettings();break;case 10:DrawGarageMenu();break;case 0:DrawCarMenu();break;case 1:DrawRadioMenu();break;case 2:DrawLightsMenu();break;case 3:DrawNeonMenu();break;case 4:DrawNitroMenu();break;case 5:DrawWheelMenu();break;case 6:DrawBodyMenu();break;case 7:DrawTrunkMenu();break;case 8:DrawDrivingDisplayMenu();break;case 9:DrawTurretMenu();break;}
             }finally{GUI.EndGroup();}
             uiBuilding=false;uiLastCount=uiCount;uiFocus=Math.Min(uiFocus,Math.Max(0,uiCount-1));
-            if(Event.current.type==EventType.Repaint){uiActivate=false;uiHorizontal=0;}
-            UiLabel(new Rect(23,523,700,36),padActive?ButtonName("A","Kreuz")+": wählen · "+ButtonName("B","Kreis")+": zurück · "+ButtonName("LB/RB","L1/R1")+": Kategorie · L3: schließen\nRS: Kamera":menuKey.Value+": schließen · ↑↓: Kategorie\nRMB halten: Kamera · Titelleiste ziehen: verschieben",mutedStyle);
+            if(Event.current.type==EventType.Repaint){uiActivate=false;uiHorizontal=uiVertical=0;}
+            string controllerHint=uiNavigation.Editing?"↑↓←→: Wert ändern · "+ButtonName("A/B","Kreuz/Kreis")+": fertig":"↑↓←→: Navigation · "+ButtonName("A","Kreuz")+": wählen / bearbeiten · "+ButtonName("B","Kreis")+": zurück";
+            UiLabel(new Rect(23,523,700,36),padActive?controllerHint+"\n"+ButtonName("LB","L1")+": Kategorien · "+ButtonName("RB","R1")+": Inhalt · L3: schließen · RS: Kamera":menuKey.Value+": schließen · ↑↓: Kategorie\nRMB halten: Kamera · Titelleiste ziehen: verschieben",mutedStyle);
             if(GUI.changed&&(inputEvent==EventType.MouseUp||inputEvent==EventType.MouseDown||inputEvent==EventType.MouseDrag||inputEvent==EventType.KeyDown))MenuSound(0);
         } finally {uiBuilding=false;GUI.matrix=oldMatrix;GUI.enabled=oldEnabled;GUI.skin=oldSkin;GUI.changed|=oldChanged;}
     }
@@ -164,11 +166,12 @@ public partial class Plugin {
         if(MenuButton(new Rect(25,310,160,34),"◀ Zurück"))vehicleRadio.Previous();
         if(MenuButton(new Rect(195,310,165,34),vehicleRadio.Paused?"Abspielen":"Pause"))vehicleRadio.TogglePause();
         if(MenuButton(new Rect(370,310,160,34),"Weiter ▶"))vehicleRadio.Next();
-        if(padActive&&uiFocus>=uiCount){float y=(uiFocus-uiCount)*44;if(y<songScroll.y)songScroll.y=y;else if(y+44>songScroll.y+130)songScroll.y=y+44-130;}
+        if(padActive&&!uiNavigation.Sidebar&&uiFocus>=uiCount){float y=(uiFocus-uiCount)*44;if(y<songScroll.y)songScroll.y=y;else if(y+44>songScroll.y+130)songScroll.y=y+44-130;}
+        uiPointerInRegion=new Rect(25,360,510,130).Contains(Event.current.mousePosition);
         songScroll=GUI.BeginScrollView(new Rect(25,360,510,130),songScroll,new Rect(0,0,488,vehicleRadio.Count*44));
-        var titles=vehicleRadio.TrackTitles;
+        var titles=vehicleRadio.TrackTitles;uiRegion=1;
         try {for(int i=0;i<vehicleRadio.Count;i++)if(MenuButton(new Rect(0,i*44,483,42),(i==vehicleRadio.CurrentIndex?"▶ ":"")+titles[i],songButtonStyle,false))vehicleRadio.Select(i);}
-        finally {GUI.EndScrollView();GUI.enabled=true;}
+        finally {uiRegion=0;uiPointerInRegion=true;GUI.EndScrollView();GUI.enabled=true;}
         UiLabel(new Rect(25,493,510,23),driving||ParkedRunning?vehicleRadio.Status:hasBeenDriven?"Zum Musikhören einsteigen oder Weiterlaufen aktivieren.":"Zum Musikhören einmal einsteigen.",mutedStyle);
     }
     void DrawLightsMenu() {

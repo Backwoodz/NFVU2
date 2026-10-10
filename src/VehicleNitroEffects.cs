@@ -16,6 +16,32 @@ public sealed class VehicleNitroEffects : IDisposable {
     bool boosting, purging, backfireHeld, blockedLast, disposed;
     float backfireCooldown;
     Transform[] flightWheels;
+    Material flameMaterial;
+    Color flameColor;
+    ModelExhaustVariant[] exhaustVariants;
+    int exhaustStyle=-1;
+    public void SetExhaustStyle(int style) {
+        if(disposed||exhaustVariants==null||style==exhaustStyle)return;
+        var variant=Array.Find(exhaustVariants,v=>v.style==style);
+        if(variant==null)return;
+        exhaustStyle=style;
+        foreach(var group in new[]{flames,pops})for(int i=0;i<group.Count;i++) {
+            var system=group[i];system.Stop(false,ParticleSystemStopBehavior.StopEmittingAndClear);
+            bool active=i<variant.emitters.Length;system.gameObject.SetActive(active);
+            if(!active)continue;
+            var emitter=variant.emitters[i];var direction=Vector(emitter.direction).normalized;
+            system.transform.localPosition=Vector(emitter.position);
+            system.transform.localRotation=Quaternion.LookRotation(direction,
+                Mathf.Abs(Vector3.Dot(direction,Vector3.up))>.98f?Vector3.forward:Vector3.up);
+        }
+        boosting=false;
+    }
+    public void SetFlameColor(Color color) {
+        if(disposed||flameMaterial==null||flameColor==color)return;
+        flameColor=color;
+        foreach(string property in new[]{"_Color","_TintColor","_BaseColor"})
+            if(flameMaterial.HasColor(property))flameMaterial.SetColor(property,color);
+    }
 
     public static VehicleNitroEffects CreateWheelThrusters(GameObject car, ModelData model, Transform[] wheels, Action<string> log) {
         var effects=new VehicleNitroEffects();
@@ -25,6 +51,7 @@ public sealed class VehicleNitroEffects : IDisposable {
             effects.root=new GameObject("NFVU2_WheelThrusters");effects.root.transform.SetParent(car.transform,false);
             effects.flightWheels=wheels;
             var material=effects.CreateMaterial(effects.CreateMask(model.textures[model.nitroFlameTexture],false),"NFVU2_WheelFlame",new Color(.12f,.65f,1f,1));
+            effects.flameMaterial=material;
             for(int i=0;i<4;i++) {
                 var ps=effects.CreateEmitter(new ModelEffectEmitter{position=new ModelVertex(),direction=new ModelVertex{y=-1}},material,false,false);
                 effects.flames.Add(ps);ps.name="WheelThruster"+i;
@@ -72,10 +99,12 @@ public sealed class VehicleNitroEffects : IDisposable {
         }
         root = new GameObject("350Z_NitroEffects");
         root.transform.SetParent(car.transform, false);
+        exhaustVariants=model.exhaustVariants;
         Material flame = null, purge = null, pop = null;
         if (model.nitroFlameTexture >= 0 && model.nitroFlameTexture < model.textures.Length) {
             var texture = CreateMask(model.textures[model.nitroFlameTexture], false);
             flame = CreateMaterial(texture, "350Z_NitroFlame", new Color(.12f, 1f, .025f, 1f));
+            flameMaterial=flame;
             pop = CreateMaterial(texture, "350Z_Backfire", new Color(1f, .52f, .08f, 1f));
         }
         if (model.nitroPurgeTexture >= 0 && model.nitroPurgeTexture < model.textures.Length) {
@@ -188,7 +217,7 @@ public sealed class VehicleNitroEffects : IDisposable {
         if (boost != boosting) { SetActive(flames, boost); boosting = boost; }
         if (purge != purging) { SetActive(jets, purge); purging = purge; }
         if (backfire && !backfireHeld && !boost && backfireCooldown <= 0f) {
-            foreach (var system in pops) { system.Play(false); system.Emit(6); }
+            foreach (var system in pops) if(system.gameObject.activeSelf) { system.Play(false); system.Emit(6); }
             backfireCooldown = .15f;
         }
         backfireHeld = backfire;
@@ -196,7 +225,7 @@ public sealed class VehicleNitroEffects : IDisposable {
 
     static Vector3 Vector(ModelVertex value) { return new Vector3(value.x, value.y, value.z); }
     static void SetActive(List<ParticleSystem> systems, bool active) {
-        foreach (var system in systems)
+        foreach (var system in systems) if(system.gameObject.activeSelf)
             if (active) system.Play(false); else system.Stop(false, ParticleSystemStopBehavior.StopEmitting);
     }
     void StopAll() {

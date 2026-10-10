@@ -4,7 +4,7 @@ from build import build
 from build_support import compile_cs,test_refs,runtime_config
 
 def main():
-    suites=['model','handling','audio','radio','nitro','impact','showroom','driving','turret','targeting','terrain','hummer','menu','cabin','flight','loading','lighting','controls','hotbar']
+    suites=['model','handling','audio','radio','nitro','impact','showroom','driving','turret','targeting','terrain','blast','hummer','menu','cabin','flight','loading','lighting','controls','hotbar']
     parser=argparse.ArgumentParser();parser.add_argument('--skip-build',action='store_true');parser.add_argument('--handling-only',action='store_true')
     parser.add_argument('--suite',action='append',choices=suites,help='Run only these C# suites; repeat to combine.')
     args=parser.parse_args()
@@ -21,6 +21,7 @@ def main():
         elif suite=='impact':sources.extend(BASE/'src'/name for name in ('VehicleImpactRules.cs','VehicleImpact.cs'))
         elif suite=='terrain':sources.extend(BASE/'src'/name for name in ('TurretTerrain.cs','TurretState.cs'))
         elif suite=='targeting':sources.extend(BASE/'src'/name for name in ('TurretTargeting.cs','TurretState.cs'))
+        elif suite=='blast':sources.extend(BASE/'src'/name for name in ('TurretDamage.cs','TurretState.cs'))
         elif suite=='hotbar':
             sources.append(BASE/'src/VehicleHotbarCapture.cs')
             harmony=out/'0Harmony.dll';shutil.copy2(valheim_dir()/'BepInEx/core/0Harmony.dll',harmony);refs.append(harmony)

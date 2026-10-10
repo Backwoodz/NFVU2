@@ -14,9 +14,9 @@ public static class VehicleHintContent {
         if(menu) {
             row(close,"Menü schließen");
             if(controller)row(icon("button_b","button_circle"),"Zurück");
-            row(controller?icon("button_a","button_cross"):"LMB","Auswählen");
+            row(controller?icon("button_a","button_cross"):"LMB",controller?"Wählen / bearbeiten":"Auswählen");
             row(controller?icon("lstick","lstick"):"↑ / ↓",controller?"Navigation":"Kategorie");
-            if(controller)row(icon("button_lb","button_l1")+" / "+icon("button_rb","button_r1"),"Kategorie");
+            if(controller)row(icon("button_lb","button_l1")+" / "+icon("button_rb","button_r1"),"Kategorien / Inhalt");
             row(controller?icon("rstick","rstick"):"RMB","Kamera");
             return rows.ToArray();
         }

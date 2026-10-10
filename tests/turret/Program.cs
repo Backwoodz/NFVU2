@@ -56,7 +56,7 @@ class TurretTests {
         var rig=new TurretRig{yawPivot=model.turretRig.yawPivot,pitchOffset=model.turretRig.pitchOffset,muzzle=model.turretRig.muzzle};
         rig.muzzle.z=float.NaN;bool invalid=false;try{rig.Validate();}catch(InvalidDataException){invalid=true;}
         Check(invalid,"invalid pivot rejected before native transform upload");
-        Check(TurretBlastRules.Damage(0)==55&&TurretBlastRules.Damage(1)>0&&TurretBlastRules.Damage(1)<55,"explosion damage falls off from centre");
+        Check(TurretBlastRules.Damage(0)==20&&TurretBlastRules.Damage(1)>0&&TurretBlastRules.Damage(1)<20,"explosion damage falls off from centre");
         Check(TurretBlastRules.Damage(TurretBlastRules.Radius)==0&&TurretBlastRules.Damage(-1)==0&&TurretBlastRules.Damage(float.NaN)==0,"invalid or outside blast positions cause no area damage");
         Check(TurretAimSettings.ViewY>.5f&&TurretAimSettings.CameraHeight>2,"sight is above screen centre and camera pivot clears roof turret");
         Check(TurretAimSettings.PivotHeight(18)==TurretAimSettings.CameraHeight&&TurretAimSettings.PivotHeight(70)>3.5f,"steep downward aim raises camera further to keep bonnet below reticle");

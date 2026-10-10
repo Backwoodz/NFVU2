@@ -2,7 +2,36 @@
 
 **Need for Valheim: Underground 2** — ein privater Fahrzeug-Mod-Prototyp für Valheim.
 
-Aktueller Stand: **0.20.5** mit Controller-Steuerung, Menüfokus und DE/EN-Auswahl.
+Aktueller Stand: **0.21.0** mit überarbeitetem Menü, stärkerem Antrieb und Auspuff-Tuning.
+
+Das Menü hat getrennten Fokus für Kategorien und Inhalt: Stick/Steuerkreuz
+navigieren, rechts oder A/Kreuz öffnet den Inhalt; links am Zeilenanfang geht
+zurück zu den Kategorien. LB/L1 springt zur Seitenleiste, RB/R1 zum Inhalt.
+A/Kreuz startet/beendet die Bearbeitung von Reglern und Auswahlfeldern;
+B/Kreis geht einen Schritt zurück. Ohne erreichbares Fahrzeug erscheinen nur
+Garage und Einstellungen. Die Titelleiste trägt „by BCKWDZ“; der Turret-Eintrag
+zeigt optional das originale Rust-Logo aus Facepunchs lokal importiertem Paket.
+
+Normale Turret-Munition verursacht jetzt 14 statt 35 Stichschaden: ein Gegner
+mit 40 Lebenspunkten ohne Resistenz benötigt drei Treffer. Stärkere Gegner und
+Resistenzen behalten ihre Wirkung. Explosivmunition beschädigt zusätzlich
+große Bäume, Baumstämme und abbaubare Felsen über Valheims native Trefferlogik.
+Das Grunddrehmoment steigt um 25 %. Der zusätzliche Anfahrschub ergibt
+gegenüber vorher etwa 62 % mehr Moment vorwärts und 113 % mehr rückwärts;
+er läuft bis 7 bzw. 5 m/s aus. Langsames Rollen entgegen der gewünschten
+Richtung bis 1,25 m/s kann der Antrieb abfangen, schnelleres Rollen wird
+zunächst gebremst. Die Fahrphysik ist eine
+eigene Unity-WheelCollider-Abstimmung; Gänge sind bisher Teil des Soundmodells,
+keine übernommene NFS-Getriebesimulation. Details und offene Spieltests stehen
+in [ROADMAP](docs/ROADMAP.md).
+
+F9 → Auspuff ergänzt Original/Tief/Sport-Klangvarianten, die Farbe der
+Nitroflammen und zehn originale NFS-Auspuffblenden für den 350Z. Die
+Flammenöffnungen folgen der gewählten Blende; STYLE08 bleibt die Voreinstellung.
+Die Klangvarianten bearbeiten die bereits importierten Originalsamples; sie
+sind eigene NFVU2-Abstimmungen, keine belegten Original-NFS-Soundpresets.
+
+Controller-Steuerung, Menüfokus und DE/EN-Auswahl:
 Im Fahrzeug ersetzen Fahr-/Flughinweise unten rechts die nativen Kampfhinweise.
 Sie nutzen Valheims originale Xbox-/PS5-Symbole; der Tacho sitzt darüber.
 Tastatur, Controller, Sprache und Modmenü wechseln die Hinweise passend zum
@@ -19,8 +48,8 @@ reagiert dort aber nicht auf Controller-, Tastatur- oder Klick-Eingaben.
 Xbox: RT Gas, LT Bremse/Rückwärts, LS lenken, RS Kamera, B Ein-/Aussteigen,
 X Nitro, A Handbremse, LB Geschütz, R3 Hupe. PS5 entsprechend R2/L2,
 Kreis/Quadrat/Kreuz/L1. L3 öffnet/schließt das Menü; A/Kreuz bestätigt,
-B/Kreis zurück, LB/RB bzw. L1/R1 wechseln Kategorien. Stick/Steuerkreuz
-navigiert; links/rechts verändert Regler und Auswahlfelder.
+B/Kreis zurück, LB/L1 zur Seitenleiste, RB/R1 zum Inhalt. Stick/Steuerkreuz
+navigiert; nach A/Kreuz verändern Richtungseingaben Regler und Auswahlfelder.
 Im Flug: RB/R1 hoch, LB/L1 runter; Geschütz automatisch, X/Quadrat Nitro.
 B/Kreis bzw. F7 startet Landung mit anschließendem Ausstiegsversuch.
 Steuerkreuz links/rechts wechselt Songs, hoch/runter Fahrmodi. Tastatur:
@@ -265,6 +294,7 @@ python tools/export_hummer.py
 python tools/prepare_hummer_audio.py
 python tools/export_hud.py
 python tools/export_menu.py
+python tools/import_rust_logo.py --download
 python tools/extract_audio.py
 python tools/decode_audio.py
 python tools/prepare_audio.py

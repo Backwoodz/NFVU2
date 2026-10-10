@@ -1,17 +1,22 @@
-"""Blender --background --python tools/render_showroom.py -- [REG|SUICIDE|SCISSOR].
+"""Blender --background --python tools/render_showroom.py -- [REG|SUICIDE|SCISSOR] [layout] [engine] [--exhaust-style 1..10].
 
 Standalone visual check of imported geometry and the same pivot equation used
 by VehicleShowroom. This does not simulate Unity shaders or physics.
 """
-import bpy,json,math,sys
+import argparse,bpy,json,math,sys
 from pathlib import Path
 from mathutils import Vector,Quaternion
 BASE=Path(__file__).resolve().parents[1];LOCAL=BASE/'.local';OUTPUT=BASE/'artifacts'
 model=json.loads((LOCAL/'model/body.json').read_text())
-style=sys.argv[sys.argv.index('--')+1] if '--' in sys.argv else 'SCISSOR'
-args=sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else []
-layout=int(args[1]) if len(args)>1 else 2
-engine=int(args[2]) if len(args)>2 else 0
+parser=argparse.ArgumentParser(description='Render original showroom variants.')
+parser.add_argument('style',nargs='?',choices=('REG','SUICIDE','SCISSOR'),default='SCISSOR')
+parser.add_argument('layout',nargs='?',type=int,choices=range(4),default=2)
+parser.add_argument('engine',nargs='?',type=int,choices=range(3),default=0)
+parser.add_argument('--exhaust-style',type=int,choices=range(1,11),default=8)
+args=parser.parse_args(sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else [])
+style,layout,engine=args.style,args.layout,args.engine
+exhaust_style=args.exhaust_style
+suffix='' if exhaust_style==8 else f'-exhaust{exhaust_style:02}'
 bpy.ops.object.select_all(action='SELECT');bpy.ops.object.delete(use_global=False)
 materials=[]
 for m in model['materials']:
@@ -48,7 +53,7 @@ def add(part,slot=None,hub=None):
     obj=bpy.data.objects.new(part['name'],mesh);bpy.context.collection.objects.link(obj)
 for p in model['parts']:
     if p['group']=='audio':continue
-    if p.get('optionGroup') in ('engine','trunk') and p['option']!=str(engine if p['optionGroup']=='engine' else layout):continue
+    if p.get('optionGroup') in ('engine','trunk','exhaust') and p['option']!=str({'engine':engine,'trunk':layout,'exhaust':exhaust_style}[p['optionGroup']]):continue
     if p['group']=='body':add(p)
     else:
         for x in (-.8,.8):
@@ -72,4 +77,4 @@ s.render.resolution_x=1100;s.render.resolution_y=800;s.render.resolution_percent
 s.view_settings.view_transform='Filmic';camera.data.lens=45
 for name,location,target in [('rear',(3.6,-5.3,3.1),(0,-.7,.8)),('engine',(-3,4.2,2.5),(0,.8,.6)),('trunk',(1.7,-3.2,2.6),(0,-1.4,.65))]:
     camera.location=location;camera.rotation_euler=(Vector(target)-camera.location).to_track_quat('-Z','Y').to_euler()
-    s.render.filepath=str(OUTPUT/f'showroom-{style.lower()}-{name}.png');bpy.ops.render.render(write_still=True)
+    s.render.filepath=str(OUTPUT/f'showroom-{style.lower()}-{name}{suffix}.png');bpy.ops.render.render(write_still=True)

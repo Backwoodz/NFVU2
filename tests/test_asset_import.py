@@ -1,5 +1,6 @@
 """Regression checks against the user's ignored original assets."""
 import sys
+import json
 import unittest
 from pathlib import Path
 import numpy as np
@@ -43,6 +44,22 @@ class AssetImportTests(unittest.TestCase):
         alpha=np.array(smoke)[:,:,3]
         self.assertEqual(alpha[0,0],0)
         self.assertGreater(alpha.max(),100)
+
+    def test_exhaust_catalog_uses_original_geometry_and_matching_mouths(self):
+        model=json.loads((LOCAL/'model/body.json').read_text())
+        source=parse(LOCAL/'nfs-assets/CARS/EXHAUST/GEOMETRY.BIN')
+        variants=model['exhaustVariants']
+        self.assertEqual([v['style'] for v in variants],list(range(1,11)))
+        for style,openings in enumerate((1,1,2,2,1,1,1,2,2,1),1):
+            part=next(p for p in source if p['name']==f'EXHAUST_STYLE{style:02}_LEVEL1_A')
+            self.assertEqual(len(exhaust_mouths(part)),openings)
+            meshes=[p for p in model['parts'] if p.get('optionGroup')=='exhaust' and p['option']==str(style)]
+            self.assertEqual(sum(len(p['indices']) for p in meshes),2*sum(len(s['indices']) for s in part['slices']))
+            emitters=variants[style-1]['emitters']
+            self.assertEqual(len(emitters),openings*2)
+            self.assertTrue(all(e['direction']['z']<-.9 and e['position']['z']<-1.9 for e in emitters))
+            self.assertEqual(sum(e['position']['x']<0 for e in emitters),openings)
+        self.assertEqual(variants[7]['emitters'],[e for e in model['effectEmitters'] if e['role']=='exhaust'])
 
     def test_wide_tyre_keeps_diameter_outer_face_and_correct_normals(self):
         wheel=next(p for p in parse(LOCAL/'nfs-assets/CARS/WHEELS/GEOMETRY_RACINGHART.BIN') if p['key']==bin_hash('RACINGHART_STYLE07_20_26_A'))

@@ -28,6 +28,9 @@ public sealed class VehicleAudio : IDisposable {
     SpawnAudio prepared;
     float roadLevel,skidLevel,hornLevel;
     bool paused,playing,disposed;
+    int exhaustProfile;
+    float exhaustPitch=1f;
+    public void SetExhaustProfile(int profile){exhaustProfile=ExhaustSoundProfile.Clamp(profile);}
     public IEnumerable<int> LoadSteps(GameObject car,Rigidbody carBody,WheelCollider[] carWheels,Action<string> log,SpawnAudio audio) {
         prepared=audio;
         body=carBody;wheels=carWheels;
@@ -105,10 +108,12 @@ public sealed class VehicleAudio : IDisposable {
         if(!driving)volume*=.55f;
         foreach(var source in sources){source.minDistance=driving?6:2;source.maxDistance=driving?65:30;}
         float powerMix=Mathf.Lerp(.85f,.15f+.85f*model.Load,Mathf.Clamp01(speed/2));
+        powerMix=ExhaustSoundProfile.PowerMix(exhaustProfile,powerMix);
+        exhaustPitch=Mathf.MoveTowards(exhaustPitch,ExhaustSoundProfile.Pitch(exhaustProfile),dt*.6f);
         float engineGain=volume*model.Level*(.5f+.3f*model.Load)*model.ShiftGain;
         for(int i=0;i<power.Length;i++) {
             float gain=EngineSoundModel.BandGain(model.Rpm,i,bands);
-            float pitch=Mathf.Clamp(model.Rpm/bands[i],.5f,2);
+            float pitch=Mathf.Clamp(model.Rpm/bands[i]*exhaustPitch,.4f,2.2f);
             power[i].pitch=pitch;coast[i].pitch=pitch;
             power[i].volume=gain*engineGain*Mathf.Sqrt(powerMix);
             coast[i].volume=gain*engineGain*Mathf.Sqrt(1-powerMix)*(suv?.65f:1);

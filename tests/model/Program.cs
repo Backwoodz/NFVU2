@@ -69,6 +69,21 @@ class Program {
         ExpectInvalid<InvalidDataException>("empty-file","");
         ExpectInvalid<JsonException>("truncated-json","{\"parts\":[");
         var doc=JObject.Parse(File.ReadAllText(args[0]));
+        Check(model.exhaustVariants.Length==10&&model.exhaustVariants.All(v=>v.emitters.Length==2||v.emitters.Length==4),"all ten original tip choices have matching flame anchors");
+        doc["exhaustVariants"][0]["style"]=8;
+        ExpectInvalid<InvalidDataException>("duplicate-exhaust-style",doc.ToString(Formatting.None));
+        doc=JObject.Parse(File.ReadAllText(args[0]));doc["exhaustVariants"][0]["emitters"][0]["direction"]=new JObject{{"x",0},{"y",0},{"z",0}};
+        ExpectInvalid<InvalidDataException>("invalid-exhaust-direction",doc.ToString(Formatting.None));
+        doc=JObject.Parse(File.ReadAllText(args[0]));doc.Remove("exhaustVariants");
+        ExpectInvalid<InvalidDataException>("missing-exhaust-catalog",doc.ToString(Formatting.None));
+        foreach(var part in doc["parts"].Children<JObject>().Where(p=>(string)p["optionGroup"]=="exhaust").ToArray()) {
+            if((string)part["option"]!="8")part.Remove();
+            else {part["optionGroup"]="";part["option"]="";}
+        }
+        string legacyExhaustPath=Path.Combine(AppContext.BaseDirectory,"legacy-exhaust.json");
+        File.WriteAllText(legacyExhaustPath,doc.ToString(Formatting.None));
+        Check(ModelFile.Load(legacyExhaustPath).exhaustVariants==null,"existing single-style models remain loadable without new exhaust catalog");
+        doc=JObject.Parse(File.ReadAllText(args[0]));
         doc["parts"][0]["indices"][0]=-1;
         ExpectInvalid<InvalidDataException>("negative-index",doc.ToString(Formatting.None));
         doc["parts"][0]["indices"][0]=999999;
@@ -116,6 +131,11 @@ class Program {
         ExpectInvalid<InvalidDataException>("invalid-moving-part",doc.ToString(Formatting.None));
         doc=JObject.Parse(File.ReadAllText(args[0]));doc.Remove("lights");doc.Remove("neonTexture");
         doc.Remove("effectEmitters");doc.Remove("nitroFlameTexture");doc.Remove("nitroPurgeTexture");
+        doc.Remove("exhaustVariants");
+        foreach(var part in doc["parts"].Children<JObject>().Where(p=>(string)p["optionGroup"]=="exhaust").ToArray()) {
+            if((string)part["option"]!="8")part.Remove();
+            else {part["optionGroup"]="";part["option"]="";}
+        }
         foreach(var part in doc["parts"]) ((JObject)part).Remove("lightRole");
         string legacyPath=Path.Combine(AppContext.BaseDirectory,"legacy-visual-model.json");File.WriteAllText(legacyPath,doc.ToString(Formatting.None));
         var legacy=ModelFile.Load(legacyPath);
@@ -144,15 +164,15 @@ class Program {
         Check(!lamps.ReverseLightsOn,"exit clears reverse selection");
         lamps.Update(true,false,0,-1);lamps.Update(true,false,float.NaN,-1);
         Check(!lamps.ReverseLightsOn,"invalid velocity cannot leave reverse lamps on");
-        lamps.Update(true,true,.651f,-1);
+        lamps.Update(true,true,1.251f,-1);
         Check(!lamps.ReverseLightsOn,"reverse does not select above handling speed threshold");
-        lamps.Update(true,true,.65f,-1);
+        lamps.Update(true,true,1.25f,-1);
         Check(lamps.ReverseLightsOn,"reverse selects at exact handling threshold even with brake held");
         lamps.Update(true,false,1,0);
         Check(lamps.ReverseLightsOn,"slope rollback does not silently change selected reverse gear");
-        lamps.Update(true,true,-.651f,1);
+        lamps.Update(true,true,-1.251f,1);
         Check(lamps.ReverseLightsOn,"forward input still brakes below the negative handling threshold");
-        lamps.Update(true,false,-.65f,1);
+        lamps.Update(true,false,-1.25f,1);
         Check(!lamps.ReverseLightsOn,"forward selects at exact negative handling threshold");
         Check(DrivingMath.DirectionBrake(10,-1) && DrivingMath.TorqueFactor(10,-1,true)==0,"reverse input brakes forward motion");
         Check(DrivingMath.DirectionBrake(-5,1) && DrivingMath.TorqueFactor(-5,1,true)==0,"forward input brakes reverse motion");

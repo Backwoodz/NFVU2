@@ -1,5 +1,26 @@
 # Versionsgeschichte
 
+## 0.21.0 — Menüführung, Antrieb, Turret und Auspuff
+
+- Kategorien und Inhalt haben getrennten Controller-Fokus; Stick/Steuerkreuz
+  navigieren beide Bereiche. LB/RB springen zwischen ihnen; Regler und
+  Auswahlfelder haben einen mit A/B bedienbaren Bearbeitungsmodus.
+- Ohne erreichbares Auto bleiben Garage/Einstellungen sichtbar. Autorenzeile
+  „by BCKWDZ“ und optionales originales Rust-Logo am Turret-Eintrag ergänzt.
+- Normale Munition von 35 auf 14 Stichschaden reduziert; Explosivmunition
+  erhält native Holz-/Steinschäden für große Bäume und abbaubare Felsen.
+- Mehr Motormoment und gezielter Anfahrschub vorwärts/rückwärts; Federung und
+  Fahrwerksgeometrie bleiben von Audio- und Auspuffänderungen getrennt.
+- Neues Auspuff-Menü für Klangvarianten der vorhandenen Originalsamples und
+  Nitroflammenfarbe. Klangabstimmungen und Fahrphysik sind NFVU2-eigene Regeln.
+- Zehn originale 350Z-Auspuffblenden STYLE01–10 aus lokalen NFS-Dateien;
+  Flammenpositionen folgen den tatsächlichen Öffnungen. Bisherige STYLE08
+  bleibt Standard, ältere Modellimporte behalten ihre vorhandenen Endrohre.
+- Build, 53 Python-Tests und alle 20 C#-Testsuiten bestanden. Blender-Prüfung
+  von STYLE01/STYLE08 zeigt korrekt montierte Einzel-/Doppelrohre ohne
+  überlagerte Varianten. Plugin-ID und Rachel350Z.dll bleiben erhalten;
+  Controller, Fahrgefühl, Klang und Partikeleffekte benötigen Unity-Spieltests.
+
 ## 0.20.5 — Fahrzeughinweise mit Valheim-Controller-Symbolen
 
 - Native Kampf-/Bau-/Angelhinweise im Fahrzeug durch ein zweispaltiges Feld

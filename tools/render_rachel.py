@@ -1,9 +1,14 @@
-"""Run with Blender --background --python tools/render_rachel.py."""
-import bpy,json,math,sys
+"""Blender --background --python tools/render_rachel.py -- [--exhaust-style 1..10]."""
+import argparse,bpy,json,math,sys
 from pathlib import Path
 from mathutils import Vector
 BASE=Path(__file__).resolve().parents[1]
 LOCAL=BASE/'.local';OUTPUT=BASE/'artifacts'
+parser=argparse.ArgumentParser(description='Render original 350Z exterior variants.')
+parser.add_argument('--exhaust-style',type=int,choices=range(1,11),default=8)
+args=parser.parse_args(sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else [])
+exhaust_style=args.exhaust_style
+suffix='' if exhaust_style==8 else f'-exhaust{exhaust_style:02}'
 model=json.loads((LOCAL/'model/body.json').read_text())
 bpy.ops.object.select_all(action='SELECT');bpy.ops.object.delete(use_global=False)
 materials=[]
@@ -20,7 +25,7 @@ for m in model['materials']:
     materials.append(mat)
 for p in model['parts']:
     if p['group']=='audio':continue
-    if p.get('optionGroup') in ('engine','trunk') and p['option']!=('0' if p['optionGroup']=='engine' else '2'):continue
+    if p.get('optionGroup') in ('engine','trunk','exhaust') and p['option']!={'engine':'0','trunk':'2','exhaust':str(exhaust_style)}[p['optionGroup']]:continue
     mesh=bpy.data.meshes.new(p['name']);mesh.from_pydata([(v['x'],v['z'],v['y']) for v in p['vertices']],[],[p['indices'][i:i+3][::-1] for i in range(0,len(p['indices']),3)]);mesh.update()
     uv=mesh.uv_layers.new()
     for loop in mesh.loops:
@@ -46,10 +51,10 @@ bpy.ops.object.camera_add(location=(-5,6,2.15));camera=bpy.context.object;camera
 s=bpy.context.scene;s.camera=camera;s.render.engine='CYCLES';s.cycles.samples=32;s.render.resolution_x=1200;s.render.resolution_y=800;s.render.resolution_percentage=100;s.world.color=(.2,.2,.2)
 try:s.view_settings.view_transform='AgX'
 except TypeError:s.view_settings.view_transform='Filmic'
-s.render.filepath=str(OUTPUT/'rachel-vorschau.png')
-bpy.ops.wm.save_as_mainfile(filepath=str(LOCAL/'rachel-preview.blend'));bpy.ops.render.render(write_still=True)
-camera.location=(5,-6,2.15);camera.rotation_euler=(Vector((0,0,.50))-camera.location).to_track_quat('-Z','Y').to_euler();s.render.filepath=str(OUTPUT/'rachel-hinten.png');bpy.ops.render.render(write_still=True)
+s.render.filepath=str(OUTPUT/f'rachel-vorschau{suffix}.png')
+bpy.ops.wm.save_as_mainfile(filepath=str(LOCAL/f'rachel-preview{suffix}.blend'));bpy.ops.render.render(write_still=True)
+camera.location=(5,-6,2.15);camera.rotation_euler=(Vector((0,0,.50))-camera.location).to_track_quat('-Z','Y').to_euler();s.render.filepath=str(OUTPUT/f'rachel-hinten{suffix}.png');bpy.ops.render.render(write_still=True)
 camera.location=(-7,0,.55);camera.rotation_euler=(Vector((0,0,.55))-camera.location).to_track_quat('-Z','Y').to_euler();camera.data.type='ORTHO';camera.data.ortho_scale=5.1
-s.render.filepath=str(OUTPUT/'rachel-seite.png');bpy.ops.render.render(write_still=True)
+s.render.filepath=str(OUTPUT/f'rachel-seite{suffix}.png');bpy.ops.render.render(write_still=True)
 camera.location=(3.4,1.9,.7);camera.rotation_euler=(Vector((.8,axles[0],hub))-camera.location).to_track_quat('-Z','Y').to_euler();camera.data.ortho_scale=1.05
-s.render.filepath=str(OUTPUT/'rachel-rad-detail.png');bpy.ops.render.render(write_still=True)
+s.render.filepath=str(OUTPUT/f'rachel-rad-detail{suffix}.png');bpy.ops.render.render(write_still=True)

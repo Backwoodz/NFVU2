@@ -162,7 +162,7 @@ public sealed class VehicleTurret : IDisposable {
         if(State.Step(dt,true,trigger,Automatic)) {
             fireAudio.PlayOneShot(shots[shotIndex++%shots.Length]);fireAudio.PlayOneShot(tail,.4f);
             flashLeft=.045f;tracer.SetPosition(0,muzzle.position);tracer.SetPosition(1,AimPoint);
-            if(hit&&!Obstructed)Damage(impact,pitch.forward,driver);
+            if(hit&&!Obstructed)TurretDamage.Bullet(impact,pitch.forward,driver);
             if(hit&&!Obstructed&&explosive)explosion?.Impact(impact,driver,volume);
         }
         if(State.ReloadStarted)actionAudio.PlayOneShot(reload,.85f);
@@ -188,12 +188,6 @@ public sealed class VehicleTurret : IDisposable {
             laserCore.SetPosition(0,laser.position);laserCore.SetPosition(1,end);
             laserDot.enabled=laserHit;laserDot.SetPosition(0,end-camera.transform.right*.028f*width);laserDot.SetPosition(1,end+camera.transform.right*.028f*width);
         }
-    }
-    static void Damage(RaycastHit impact,Vector3 direction,Character driver) {
-        var target=impact.collider.GetComponentInParent<Character>();
-        if(target==null||target==driver||target.IsPlayer()||target.IsTamed()||target.IsDead()||!BaseAI.IsEnemy(target,driver))return;
-        var hit=new HitData{m_point=impact.point,m_dir=direction,m_hitCollider=impact.collider,m_pushForce=3,m_dodgeable=true,m_blockable=true};
-        hit.m_damage.m_pierce=35;hit.SetAttacker(driver);target.Damage(hit);
     }
     public void Dispose() {
         if(disposed)return;disposed=true;

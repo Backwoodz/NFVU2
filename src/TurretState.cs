@@ -53,11 +53,18 @@ public static class TurretAimSettings {
     public const float ViewX=.5f,ViewY=.62f,CameraHeight=2.25f,CameraMinDistance=4.5f;
     public static float PivotHeight(float pitch)=>CameraHeight+Math.Max(0,pitch-45)*.055f;
 }
+public static class TurretCombatRules {
+    // Roughly three ordinary hits on a 40 HP enemy before native armor/resistance.
+    public const float BulletDamage=14;
+    public const short ExplosiveToolTier=4;
+}
 public static class TurretBlastRules {
     public const float Radius=2.25f,CraterRadius=1.4f,CraterDepth=.18f;
-    public static float Damage(float distance) {
+    static float Falloff(float distance) {
         if(float.IsNaN(distance)||float.IsInfinity(distance)||distance<0||distance>=Radius)return 0;
-        return 55*(1-distance/Radius);
+        return 1-distance/Radius;
     }
+    public static float Damage(float distance) => 20*Falloff(distance);
+    public static float EnvironmentDamage(float distance) => 300*Falloff(distance);
 }
 }

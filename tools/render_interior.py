@@ -1,5 +1,7 @@
-"""Local cabin fit review: Blender --background --python tools/render_interior.py."""
+"""Local cabin fit review: Blender --background --python tools/render_interior.py -- [--exhaust-style 1..10]."""
+import argparse
 import base64
+import sys
 import json
 import math
 from pathlib import Path
@@ -7,6 +9,11 @@ import bpy
 from mathutils import Vector
 
 BASE = Path(__file__).resolve().parents[1]
+parser=argparse.ArgumentParser(description='Render original cabin fit.')
+parser.add_argument('--exhaust-style',type=int,choices=range(1,11),default=8)
+args=parser.parse_args(sys.argv[sys.argv.index('--')+1:] if '--' in sys.argv else [])
+exhaust_style=args.exhaust_style
+suffix='' if exhaust_style==8 else f'-exhaust{exhaust_style:02}'
 bpy.ops.object.select_all(action='SELECT'); bpy.ops.object.delete(use_global=False)
 
 def add_model(path, cabin=False):
@@ -31,7 +38,7 @@ def add_model(path, cabin=False):
         if p['group'] != 'body': continue
         if not cabin:
             if 'DOOR_PANEL_' in p['name'] or p['name'] in ('350Z_BASE_A_slice3_3','350Z_BASE_A_slice5_5','350Z_BASE_A_slice6_6'): continue
-            if p.get('optionGroup') and p['option'] != ('2' if p['optionGroup']=='trunk' else '0'): continue
+            if p.get('optionGroup') and p['option'] != {'engine':'0','trunk':'2','exhaust':str(exhaust_style)}.get(p['optionGroup']): continue
         mesh=bpy.data.meshes.new(p['name']); mesh.from_pydata([(v['x'],v['z'],v['y']) for v in p['vertices']], [], [p['indices'][i:i+3][::-1] for i in range(0,len(p['indices']),3)]); mesh.update()
         uv=mesh.uv_layers.new()
         for loop in mesh.loops:
@@ -58,8 +65,8 @@ for obj in bpy.context.scene.objects:
     if obj.type!='MESH' or obj.get('cabin'): continue
     if 'ROOF_' in obj.name or 'DOOR_RIGHT_' in obj.name or 'SIDE_MIRROR' in obj.name or obj.name in ('350Z_BASE_A_slice7_7','350Z_BASE_A_slice8_8'):
         obj.hide_render=True
-render('interior-fit.png',(-2.8,2.2,2.3),(0,0,.6))
+render(f'interior-fit{suffix}.png',(-2.8,2.2,2.3),(0,0,.6))
 for obj in bpy.context.scene.objects:
     if obj.type=='MESH' and not obj.get('cabin'): obj.hide_render=True
-render('interior-only.png',(-2.2,1.7,1.8),(0,.05,.58))
-bpy.ops.wm.save_as_mainfile(filepath=str(BASE/'.local/interior-preview.blend'))
+render(f'interior-only{suffix}.png',(-2.2,1.7,1.8),(0,.05,.58))
+bpy.ops.wm.save_as_mainfile(filepath=str(BASE/f'.local/interior-preview{suffix}.blend'))

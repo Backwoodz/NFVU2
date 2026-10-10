@@ -9,6 +9,7 @@ public sealed class ModelData {
     public ModelPart[] parts; public ModelMaterial[] materials; public ModelTexture[] textures;
     public ModelLight[] lights; public int neonTexture = -1;
     public ModelEffectEmitter[] effectEmitters;
+    public ModelExhaustVariant[] exhaustVariants;
     public int nitroFlameTexture = -1, nitroPurgeTexture = -1;
     public ModelAnimation[] animations;
     public ModelTrunkLayout[] trunkLayouts;
@@ -22,6 +23,7 @@ public sealed class ModelTrunkLayout { public string title; public ModelAudioSoc
 public sealed class ModelAudioSocket { public string size; public ModelVertex position,right,up,forward; }
 public sealed class ModelAudioComponent { public string id,title,kind,size; }
 public sealed class ModelEffectEmitter { public string role; public ModelVertex position,direction; }
+public sealed class ModelExhaustVariant { public int style; public ModelEffectEmitter[] emitters; }
 public sealed class ModelPart { public string name, group, lightRole, movingPart, optionGroup, option; public bool rotatesWithWheel; public int material; public ModelVertex[] vertices, normals; public ModelUV[] uv; public int[] indices; }
 public sealed class ModelLight { public string role; public ModelVertex position, direction; }
 public struct ModelVertex { public float x, y, z; }
@@ -40,8 +42,8 @@ public static class ModelFile {
         ModelData model;
         using(var stream=File.OpenText(path))using(var reader=new JsonTextReader(stream))
             model=JsonSerializer.Create(new JsonSerializerSettings{TypeNameHandling=TypeNameHandling.None,MaxDepth=32,CheckAdditionalContent=true}).Deserialize<ModelData>(reader);
-        if (model?.parts == null || model.parts.Length == 0 || model.parts.Length > 256)
-            throw new InvalidDataException("350Z model must contain between 1 and 256 parts: " + path);
+        if (model?.parts == null || model.parts.Length == 0 || model.parts.Length > 320)
+            throw new InvalidDataException("350Z model must contain between 1 and 320 parts: " + path);
         if (model.schemaVersion != 0 && model.schemaVersion != 2) throw new InvalidDataException("Unsupported visual model schema");
         if (model.schemaVersion == 2) {
             foreach (var offset in new[] { model.wheelVisualLift, model.frontWheelVisualOffset, model.rearWheelVisualOffset })
@@ -105,7 +107,30 @@ public static class ModelFile {
             }
         }
         ValidateShowroom(model);
+        ValidateExhaust(model);
         return model;
+    }
+    static void ValidateExhaust(ModelData model) {
+        if(model.exhaustVariants==null) {
+            foreach(var part in model.parts)if(part.optionGroup=="exhaust")throw new InvalidDataException("Exhaust meshes have no catalog");
+            return;
+        }
+        if(model.exhaustVariants.Length!=10)throw new InvalidDataException("Incomplete exhaust catalog");
+        int flameCount=0;
+        if(model.effectEmitters!=null)foreach(var emitter in model.effectEmitters)if(emitter.role=="exhaust")flameCount++;
+        var styles=new System.Collections.Generic.HashSet<int>();
+        foreach(var variant in model.exhaustVariants) {
+            if(variant==null||variant.style<1||variant.style>10||!styles.Add(variant.style)||variant.emitters==null||
+                (variant.emitters.Length!=2&&variant.emitters.Length!=4))throw new InvalidDataException("Invalid exhaust style");
+            if(variant.emitters.Length>flameCount)throw new InvalidDataException("Exhaust catalog exceeds the available flame emitters");
+            bool mesh=false;
+            foreach(var part in model.parts)if(part.optionGroup=="exhaust"&&part.option==variant.style.ToString())mesh=true;
+            if(!mesh)throw new InvalidDataException("Exhaust style has no mesh");
+            foreach(var emitter in variant.emitters) {
+                if(emitter==null||emitter.role!="exhaust"||!ValidVector(emitter.position)||!ValidVector(emitter.direction)||
+                    Dot(emitter.direction,emitter.direction)<.001f)throw new InvalidDataException("Invalid exhaust emitter");
+            }
+        }
     }
     static void ValidateShowroom(ModelData model) {
         if(model.animations==null&&model.trunkLayouts==null&&model.audioComponents==null)return;
@@ -146,8 +171,8 @@ public static class ModelFile {
                 if(part.optionGroup!="audio"||!names.Contains(part.option)||!string.IsNullOrEmpty(part.movingPart))throw new InvalidDataException("Unknown audio mesh");
                 available.Add(part.option);
             } else if(!string.IsNullOrEmpty(part.optionGroup)) {
-                int max=part.optionGroup=="trunk"?3:part.optionGroup=="engine"?2:-1;
-                if(part.group!="body"||!int.TryParse(part.option,out int index)||index<0||index>max)throw new InvalidDataException("Invalid showroom option");
+                int max=part.optionGroup=="trunk"?3:part.optionGroup=="engine"?2:part.optionGroup=="exhaust"?10:-1;
+                if(part.group!="body"||!int.TryParse(part.option,out int index)||index<(part.optionGroup=="exhaust"?1:0)||index>max)throw new InvalidDataException("Invalid showroom option");
             }
         }
         if(!available.SetEquals(names))throw new InvalidDataException("Audio component has no mesh");

@@ -74,7 +74,7 @@ public partial class Plugin {
         UiLabel(new Rect(25,394,510,25),"Lautstärke  "+Mathf.RoundToInt(turretVolume.Value*100)+" %",labelStyle);
         turretVolume.Value=UiSlider(new Rect(25,429,510,22),turretVolume.Value,0,1);
         GUI.enabled=true;
-        UiLabel(new Rect(25,466,510,50),turret==null?"Rust-Assets fehlen. Lokal mit tools/export_rust_turret.py importieren.":turretAmmo.Value=="Explosiv"?"Explosiv: Flächenschaden an Gegnern; Bodentreffer hinterlassen gespeicherte Krater.":"Automatik trifft nur sichtbare Gegner. Spieler, zahme Tiere, Auto und Deckung blockieren die Schusslinie.",mutedStyle);
+        UiLabel(new Rect(25,466,510,50),turret==null?"Rust-Assets fehlen. Lokal mit tools/export_rust_turret.py importieren.":turretAmmo.Value=="Explosiv"?"Explosiv: Flächenschaden; zerstört große Bäume und abbaubare Felsen. Bodentreffer hinterlassen Krater.":"Automatik trifft nur sichtbare Gegner. Spieler, zahme Tiere, Auto und Deckung blockieren die Schusslinie.",mutedStyle);
     }
     Color LaserColor=>new Color(LaserChannel(laserRed.Value),LaserChannel(laserGreen.Value),LaserChannel(laserBlue.Value),1);
     static float LaserChannel(float value)=>float.IsNaN(value)||float.IsInfinity(value)?0:Mathf.Clamp01(value);
