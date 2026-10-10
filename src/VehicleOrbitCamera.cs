@@ -52,6 +52,27 @@ public sealed class VehicleOrbitCamera {
         hadInput=true;
         if(Input.GetMouseButtonDown(2)){yaw=0;pitch=18;distance=6;chase.Reset(vehicle.eulerAngles.y);}
     }
+    public Vector2 ReadMouseDelta()=>mouseDelta();
+    // Menu look owns neither vehicle controls nor the menu cursor.
+    public void MenuFrame(Vector2 degrees,float scroll) {
+        hadInput=false;
+        if(!active||!Application.isFocused)return;
+        chase.Orbit(degrees.x);
+        yaw=DrivingMath.WrapAngle(yaw+degrees.x);
+        if(Mathf.Abs(degrees.y)>.01f)chase.Hold();
+        pitch=DrivingMath.Clamp(pitch-degrees.y,-10,70);
+        distance=DrivingMath.Clamp(distance-scroll*.65f,3,10);
+    }
+    public void ControllerFrame(Vector2 look,float degreesPerSecond,bool invert) {
+        if(!active)return;
+        Cursor.lockState=CursorLockMode.Locked;Cursor.visible=false;
+        float dt=Mathf.Min(Time.unscaledDeltaTime,.1f);
+        chase.Orbit(look.x*degreesPerSecond*dt);
+        yaw=DrivingMath.WrapAngle(yaw+look.x*degreesPerSecond*dt);
+        if(Mathf.Abs(look.y)>.01f)chase.Hold();
+        pitch=DrivingMath.Clamp(pitch-look.y*degreesPerSecond*dt*(invert?-1:1),-10,70);
+        hadInput=false;
+    }
     public void LateFrame(Vector3 velocity,bool dynamicFollow,float followRate,bool blocked,bool turretAim=false) {
         if(!active||vehicle==null)return;
         if(camera==null)camera=Camera.main;

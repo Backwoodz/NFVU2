@@ -32,18 +32,18 @@ public sealed class VehicleDashboard : IDisposable {
             yield return 0;
         }
     }
-    public void Draw(int design,float scale,Color accent,bool mph,float speed,float rpm,int gear,float charge,bool nitroEnabled,bool boosting) {
+    public void Draw(int design,float scale,Color accent,bool mph,float speed,float rpm,int gear,float charge,bool nitroEnabled,bool boosting,float bottomInset=90) {
         if(speedStyle==null) {
             speedStyle=new GUIStyle(GUI.skin.label){fontSize=42,fontStyle=FontStyle.Bold,alignment=TextAnchor.MiddleRight};
             smallStyle=new GUIStyle(GUI.skin.label){fontSize=14,alignment=TextAnchor.MiddleRight};
             gearStyle=new GUIStyle(smallStyle){fontSize=22,fontStyle=FontStyle.Bold};
             dialStyle=new GUIStyle(smallStyle){fontSize=11,alignment=TextAnchor.MiddleCenter};dialStyle.normal.textColor=Color.white;
         }
-        scale=Mathf.Min(Mathf.Clamp(scale,.65f,1.4f),Mathf.Min(Screen.width/620f,Screen.height/510f));
+        scale=Mathf.Min(Mathf.Clamp(scale,.65f,1.4f),Mathf.Min(Screen.width/620f,Mathf.Max(.1f,(Screen.height-bottomInset-60)/365f)));
         design=Mathf.Clamp(design,0,10);
         var matrix=GUI.matrix;var color=GUI.color;
         try {
-            GUI.matrix=Matrix4x4.TRS(new Vector3(Screen.width-325*scale-18,Screen.height-315*scale-90),Quaternion.identity,Vector3.one*scale);
+            GUI.matrix=Matrix4x4.TRS(new Vector3(Screen.width-325*scale-18,Screen.height-315*scale-bottomInset),Quaternion.identity,Vector3.one*scale);
             GUI.color=Color.white;GUI.DrawTexture(new Rect(0,30,280,280),faces[design]);
             GUI.color=accent;GUI.DrawTexture(new Rect(12,42,256,256),lines[design]);
             var nosRect=new Rect(-40,-50,460.8f,230.4f);

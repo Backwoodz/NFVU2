@@ -1,5 +1,34 @@
 # Nächste Aufgaben
 
+## Controller und Sprache in 0.20.0
+
+- 0.20.5: Hinweise unten rechts auf Xbox/PS5, Mauswechsel, DE/EN, 720p/1080p,
+  HUD-/Hinweisskalierung prüfen: Symbole, keine abgeschnittenen Zeilen, Tacho
+  darüber, Wechsel Boden/Flug/Menü und Wiederherstellung nach Aussteigen,
+  Inventar, Pause, Weltwechsel sowie HUD-Ausblenden.
+- 0.20.4: Kamera bei offenem Menü zu Fuß, im Fahrzeug und im Flug testen:
+  rechter Stick, RMB-Ziehen, keine Bewegung bei Menüklick/Regler/Titelleiste;
+  Cursor nach Loslassen, Schließen, Pause und Alt-Tab sowie Hindernisse prüfen.
+- 0.20.1: Schnellleiste im Fahrzeug und Modmenü per Steuerkreuz, Zahlentasten
+  und Klick prüfen: keine Auswahl/Benutzung, Anzeige bleibt aktuell; nach dem
+  Aussteigen bei geschlossenem Menü wieder normal bedienbar.
+- Xbox und PS5 per USB/Bluetooth prüfen: analoge Trigger, Stick-Totzone,
+  Kameraempfindlichkeit, Y-Invertierung, Wechsel zur Maus, Hotplug und Steam Input.
+- Zu Fuß L3 ohne gleichzeitige native Aktion; B/Kreis nahe am Auto nur Einsteigen.
+  Beim Fahren X/Quadrat Nitro, A/Kreuz Handbremse, LB/L1 manuelles Geschütz.
+- Sämtliche Menükategorien, deaktivierte Einträge, Regler, Farbfelder, Laser-Untermenü,
+  lange Songliste mit automatischem Scrollen und Maus-Fensterverschiebung testen.
+  A/Kreuz bestätigt, B/Kreis geht zurück; Menü darf keine Fahraktion auslösen.
+- Gehaltene Pedale/Nitro bei Menü, Pause/Fokusverlust und Controller-Wechsel:
+  zuerst loslassen. Kein Durchreichen an native Bewegung/Angriff beim Fahren.
+- 1–4 bzw. Steuerkreuz hoch/runter: Boden/Flug, H2 ohne Drift; F7/B/Kreis
+  im Flug landen und erst dann aussteigen. Blockierte Tür meldet Fehler.
+- Flug-Turret automatisch auch bei ausgeschalteter Park-Automatik; manueller
+  Schuss ausschließlich am Boden. Sichtprüfung, Reichweite und Deckung erhalten.
+- DE/EN sofort im Menü/HUD/Meldungen; Werte und Konfigurations-IDs unverändert.
+  Controller-Anzeige erzwingen, größere Hinweise bei kleinen Auflösungen und
+  Songtitel-Einblendung auch beim automatischen Titelwechsel prüfen.
+
 ## Scheinwerfer-Show in 0.19.0
 
 - F9 → Lichter auf 350Z/H2: Show-off aktivieren, aussteigen, zweimal physisch

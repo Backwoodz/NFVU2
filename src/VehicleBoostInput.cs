@@ -14,7 +14,7 @@ public partial class Plugin {
     bool ReadBoostInput() {
         current.nativeBoostMouse=nativeMouseHeld?.Invoke(0)??false;
         current.legacyBoostMouse=Input.GetMouseButton(0);
-        current.keyboardBoost=Flying&&Input.GetKey(KeyCode.LeftControl);
+        current.keyboardBoost=Input.GetKey(KeyCode.LeftControl);
         return nitroInput.ReadSources(current.nativeBoostMouse,current.legacyBoostMouse,current.keyboardBoost,driving&&nitroEnabled.Value);
     }
     void TraceFlightBoost() {

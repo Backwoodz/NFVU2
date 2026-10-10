@@ -40,16 +40,16 @@ public partial class Plugin {
         result=Vector3.zero;return false;
     }
     void DrawGarageMenu() {
-        GUI.Label(new Rect(25,145,510,30),"Fahrzeug spawnen",labelStyle);
+        UiLabel(new Rect(25,145,510,30),"Fahrzeug spawnen",labelStyle);
         int selected=spawnModel.Value=="Hummer H2"?1:0;
-        int next=GUI.Toolbar(new Rect(25,185,510,40),selected,new[]{"Nissan 350Z","Hummer H2"});
+        int next=UiToolbar(new Rect(25,185,510,40),selected,new[]{"Nissan 350Z","Hummer H2"});
         if(next!=selected)spawnModel.Value=next==1?"Hummer H2":"Nissan 350Z";
-        GUI.Label(new Rect(25,240,510,65),next==1?"Gelber H2 · 26-Zoll-Spinner · eigener SUV-Sound\nOhne Motorraum- und Kofferraumausbau.":"350Z mit deinen bisherigen Funktionen und Einstellungen.",mutedStyle);
+        UiLabel(new Rect(25,240,510,65),next==1?"Gelber H2 · 26-Zoll-Spinner · eigener SUV-Sound\nOhne Motorraum- und Kofferraumausbau.":"350Z mit deinen bisherigen Funktionen und Einstellungen.",mutedStyle);
         GUI.enabled=!SpawnBusy&&!driving&&fleet.Count<4;
-        if(MenuButton(new Rect(25,310,510,40),"Ausgewähltes Fahrzeug spawnen (F6)")){Spawn(LocalPlayer());return;}
+        if(MenuButton(new Rect(25,310,510,40),padActive?"Fahrzeug spawnen ("+ButtonName("A","Kreuz")+")":"Ausgewähltes Fahrzeug spawnen (F6)")){Spawn(LocalPlayer());return;}
         GUI.enabled=true;
-        GUI.Label(new Rect(25,366,510,60),"Gespawnt: "+fleet.Count+" / 4\n"+string.Join(" · ",fleet.Select(v=>v.Hummer?"H2":"350Z")),labelStyle);
-        GUI.Label(new Rect(25,436,510,72),"Bestehende Autos bleiben stehen. Zum Einsteigen oder Einstellen zum gewünschten Auto gehen: F7 / F9. F8 entfernt nur dieses Auto. Fahrzeuge bleiben bis zum Weltwechsel.",mutedStyle);
+        UiLabel(new Rect(25,366,510,60),"Gespawnt: "+fleet.Count+" / 4\n"+string.Join(" · ",fleet.Select(v=>v.Hummer?"H2":"350Z")),labelStyle);
+        UiLabel(new Rect(25,436,510,72),"Bestehende Autos bleiben stehen. Zum Einsteigen oder Einstellen zum gewünschten Auto gehen: F7 / F9. F8 entfernt nur dieses Auto. Fahrzeuge bleiben bis zum Weltwechsel.",mutedStyle);
     }
 }
 }

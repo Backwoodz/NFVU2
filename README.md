@@ -2,7 +2,36 @@
 
 **Need for Valheim: Underground 2** — ein privater Fahrzeug-Mod-Prototyp für Valheim.
 
-Aktueller Stand: **0.19.0** mit optionaler Scheinwerfer-Show nach dem Aussteigen.
+Aktueller Stand: **0.20.5** mit Controller-Steuerung, Menüfokus und DE/EN-Auswahl.
+Im Fahrzeug ersetzen Fahr-/Flughinweise unten rechts die nativen Kampfhinweise.
+Sie nutzen Valheims originale Xbox-/PS5-Symbole; der Tacho sitzt darüber.
+Tastatur, Controller, Sprache und Modmenü wechseln die Hinweise passend zum
+Kontext. Nach dem Aussteigen erscheinen wieder die normalen Valheim-Hinweise.
+Bei offenem Modmenü bleibt die Kamera per rechtem Stick oder gehaltener rechter
+Maustaste beweglich, im Fahrzeug und zu Fuß. Normale Mausbewegung bedient das
+Menü; Fahrzeugbewegung und Waffen bleiben dabei gesperrt.
+Nach erfolgreichem Fahrzeugspawn erscheint „Gespawnt: Nissan 350Z“ bzw.
+„Gespawnt: Hummer H2“ als gelbe Spielmeldung (DE/EN).
+Fahrmoduswechsel per Tastatur, Controller oder Menü erscheinen als gelbe
+Spielmeldung in der Mitte, etwa „Fahrmodus: 'Straße'“ (DE/EN).
+Die native Schnellleiste bleibt im Fahrzeug und bei geöffnetem Modmenü sichtbar,
+reagiert dort aber nicht auf Controller-, Tastatur- oder Klick-Eingaben.
+Xbox: RT Gas, LT Bremse/Rückwärts, LS lenken, RS Kamera, B Ein-/Aussteigen,
+X Nitro, A Handbremse, LB Geschütz, R3 Hupe. PS5 entsprechend R2/L2,
+Kreis/Quadrat/Kreuz/L1. L3 öffnet/schließt das Menü; A/Kreuz bestätigt,
+B/Kreis zurück, LB/RB bzw. L1/R1 wechseln Kategorien. Stick/Steuerkreuz
+navigiert; links/rechts verändert Regler und Auswahlfelder.
+Im Flug: RB/R1 hoch, LB/L1 runter; Geschütz automatisch, X/Quadrat Nitro.
+B/Kreis bzw. F7 startet Landung mit anschließendem Ausstiegsversuch.
+Steuerkreuz links/rechts wechselt Songs, hoch/runter Fahrmodi. Tastatur:
+1 Gelände, 2 Straße, 3 Drift (nur 350Z), 4 Flug; Pfeil links/rechts Songs.
+F7 funktioniert weiterhin direkt außerhalb des Menüs.
+F9/L3 → Einstellungen: Deutsch/English, Controller-Anzeige Auto/Xbox/PlayStation,
+Totzone, Kameraempfindlichkeit/Y-Invertierung und Größe der Bedienhinweise.
+Bedienhinweise folgen dem zuletzt benutzten Gerät; Songwechsel werden eingeblendet.
+Build und automatische Logiktests; Controller-Hardware und UI-Spieltest noch offen.
+
+Seit 0.19.0 mit optionaler Scheinwerfer-Show nach dem Aussteigen.
 F9 → Lichter → „Show-off beim Aussteigen“: zweimal links, zweimal rechts,
 dann Pause; wiederholt sich bis zum Einsteigen oder Abschalten. Links/rechts
 aus Fahrersicht. Farbe/Stärke werden übernommen, Standard aus, pro Fahrzeugtyp gespeichert.

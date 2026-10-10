@@ -76,8 +76,8 @@ public partial class Plugin {
     void DrawSpawnProgress() {
         if(!SpawnBusy)return;
         float width=Mathf.Min(460,Screen.width-30),x=(Screen.width-width)*.5f;
-        GUI.Box(new Rect(x,18,width,102),loadingName+" wird geladen …");
-        GUI.Label(new Rect(x+14,43,width-28,23),spawnStage);
+        UiBox(new Rect(x,18,width,102),loadingName+" wird geladen …");
+        UiLabel(new Rect(x+14,43,width-28,23),spawnStage);
         var color=GUI.color;
         GUI.color=new Color(.14f,.17f,.2f,1);GUI.DrawTexture(new Rect(x+14,72,width-28,6),Texture2D.whiteTexture);
         GUI.color=new Color(.2f,.85f,1,1);
@@ -86,7 +86,7 @@ public partial class Plugin {
             GUI.DrawTexture(new Rect(x+14+travel*(width-100),72,72,6),Texture2D.whiteTexture);
         }else GUI.DrawTexture(new Rect(x+14,72,(width-28)*spawnProgress,6),Texture2D.whiteTexture);
         GUI.color=color;
-        if(GUI.Button(new Rect(x+width-139,86,125,25),"Abbrechen (F8)"))CancelSpawn("Laden abgebrochen.");
+        if(UiButton(new Rect(x+width-139,86,125,25),"Abbrechen ("+(padActive?ButtonName("B","Kreis"):"F8")+")"))CancelSpawn("Laden abgebrochen.");
     }
     IEnumerable<int> BuildVehicle(MonoBehaviour local) {
         // Give OnGUI a frame before the first Unity object allocation.
@@ -180,6 +180,8 @@ public partial class Plugin {
         car.SetActive(true);
         fleet.Add(current);fleetOwner=local;spawnCommitted=true;
         status=VehicleName+" bereit. F7: einsteigen | "+menuKey.Value+": Fahrzeugmenü | F8: entfernen";
+        if(MessageHud.instance!=null)
+            MessageHud.instance.ShowMessage(MessageHud.MessageType.Center,Tr("Gespawnt:")+" "+VehicleName,log:false);
     }
 }
 }

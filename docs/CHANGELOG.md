@@ -1,5 +1,65 @@
 # Versionsgeschichte
 
+## 0.20.5 — Fahrzeughinweise mit Valheim-Controller-Symbolen
+
+- Native Kampf-/Bau-/Angelhinweise im Fahrzeug durch ein zweispaltiges Feld
+  unten rechts ersetzt; nutzt Valheims Schrift und vorhandene Xbox-/PS5-Sprites.
+- Passende Belegung für Straße, Flug und offenes Modmenü; LB/L1 im Flug ist
+  Sinken, das Geschütz wird als automatisch angezeigt. H2-Nitro nur im Flug.
+- Gerätewechsel, erzwungener Controller-Typ, DE/EN und Hinweisgröße berücksichtigt.
+  Tacho oberhalb der Hinweise, bisherige Textleiste im Fahrzeug entfällt.
+- Aussteigen stellt die nativen Hinweise wieder her; Inventar/Pause behalten
+  ihre nativen Hinweise. Ausgeblendetes HUD blendet auch Fahrzeughinweise aus.
+- Glyphnamen in installierten Spielassets geprüft; Zuordnungs- und bestehende
+  Logiktests bestanden. Layout-/Controller-Prüfung im Spiel steht noch aus.
+
+## 0.20.4 — Kamera im offenen Modmenü
+
+- Rechter Stick dreht die Kamera auch im Menü. Mit der Maus rechte Taste halten
+  und ziehen; im Fahrzeug zoomt währenddessen das Mausrad.
+- Zu Fuß bleibt die native Kamerapositionierung mit Hindernisprüfung erhalten.
+  Menüklicks, Songlisten-Scrollen und Verschieben lösen keine Kameradrehung aus.
+- Fahr-, Nitro- und Waffenaktionen bleiben gesperrt. Pause/Fokusverlust beendet
+  die Kamerabedienung. Hinweise zur Bedienung stehen im Menü (DE/EN).
+- Build und Logikprüfungen ersetzen keinen Kamera-/Cursor-Test im Spiel.
+
+## 0.20.3 — Fahrzeugspawn als Spielmeldung
+
+- Nach erfolgreichem Laden und Platzieren erscheint „Gespawnt: Nissan 350Z“
+  bzw. „Gespawnt: Hummer H2“ in der nativen gelben Mitte-Anzeige (DE/EN).
+- Abgebrochene oder fehlgeschlagene Ladevorgänge zeigen keine Erfolgsmeldung.
+
+## 0.20.2 — Fahrmodus als Spielmeldung
+
+- Erfolgreiche Fahrmoduswechsel per Tastatur, Controller und Menü zeigen eine
+  native gelbe Meldung in der Mitte: „Fahrmodus: 'Gelände/Straße/Drift/Fliegen'“.
+- DE/EN folgt der Spracheinstellung. Unveränderte Auswahl und abgelehnte
+  Flugstarts erzeugen keine Wechselmeldung; beim Landen erscheint der gewählte
+  Bodenmodus. Kein zusätzlicher Eintrag im Nachrichtenlog.
+
+## 0.20.1 — Schnellleiste während der Fahrzeugsteuerung sperren
+
+- Native Hotbar-Navigation und Gegenstandsbenutzung während Fahrt, Flug und
+  geöffnetem Modmenü gesperrt; zu Fuß bei geschlossenem Menü wieder verfügbar.
+- Die Anzeige von Inventar, Haltbarkeit und Stapelgrößen aktualisiert sich weiter.
+- Regressionstests für die Eingabefilterung; Prüfung im Spiel steht noch aus.
+
+## 0.20.0 — Controller, direkte Aktionen und Sprache
+
+- Analoge Xbox-/PS5-Steuerung, L3-Menü und B/Kreis Ein-/Aussteigen. Xbox:
+  X Nitro, A Handbremse, LB Geschütz; PS5 Quadrat, Kreuz, L1. Flug: RB/R1
+  steigen, LB/L1 sinken. Fluggeschütz nutzt automatisch vorhandene Zielerkennung.
+- Fahrmodi direkt per 1–4 oder Steuerkreuz hoch/runter, H2 überspringt Drift.
+  F7/B/Kreis im Flug landet vor dem Ausstiegsversuch. Songs per Pfeil-/Steuerkreuz
+  links/rechts, Titel-Einblendung nach tatsächlichem Wiedergabestart.
+- Controller-Menüfokus für Buttons, Toggles, Regler, Auswahlfelder und Songliste;
+  Kategorien per Schultertasten, zurück per B/Kreis; Mausbedienung erhalten.
+- DE/EN unter globalen Einstellungen, Gerätehinweise mit größerer einstellbarer
+  Schrift; Controller-Typ automatisch oder manuell Xbox/PlayStation.
+- Separate Eingabepolitik, Freigabe erst nach Loslassen nach Unterbrechungen,
+  gezielte Sperre nativer Spielersteuerung. Bestehende Fahrwerksabstimmung bleibt.
+- Automatische Logiktests; Controller-, UI- und Unity-Spieltests stehen noch aus.
+
 ## 0.19.0 — Scheinwerfer-Show nach dem Aussteigen
 
 - F9 → Lichter: „Show-off beim Aussteigen“, standardmäßig aus, für 350Z und H2

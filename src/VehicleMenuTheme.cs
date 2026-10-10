@@ -11,7 +11,7 @@ public partial class Plugin {
     VehicleMenuAssets menuAssets;
     ConfigEntry<float> menuVolume;
     int hoveredTab=-1;
-    static readonly string[] MenuNames={"Fahrzeug","Radio","Licht","Neon","Nitro","Räder","Türen","Ausbau","Anzeige","Turret","Garage"};
+    static readonly string[] MenuNames={"Fahrzeug","Radio","Licht","Neon","Nitro","Räder","Türen","Ausbau","Anzeige","Turret","Garage","Einstellungen"};
     static readonly Color MenuAccent=new Color(.83f,.96f,.22f);
     Texture2D MenuTexture(Color color) {
         var texture=new Texture2D(1,1);texture.SetPixel(0,0,color);texture.Apply();menuTextures.Add(texture);return texture;
@@ -23,8 +23,8 @@ public partial class Plugin {
         if(menuAssets==null)menuAssets=VehicleMenuAssets.Load(Path.Combine(Path.GetDirectoryName(Info.Location),"menu"),message=>Logger.LogInfo(message));
     }
     void MenuSound(int sound){if(!audioBlocked)menuAssets?.Play(sound,menuVolume.Value);}
-    bool MenuButton(Rect rect,string text,GUIStyle style=null) {
-        bool pressed=style==null?GUI.Button(rect,text):GUI.Button(rect,text,style);
+    bool MenuButton(Rect rect,string text,GUIStyle style=null,bool translate=true) {
+        bool pressed=UiButton(rect,text,style,translate);
         if(pressed)MenuSound(1);return pressed;
     }
     void BuildMenuSkin() {
@@ -55,16 +55,16 @@ public partial class Plugin {
     void MenuNavigation(bool accessible) {
         var e=Event.current;
         if(e.type==EventType.KeyDown&&(e.keyCode==KeyCode.UpArrow||e.keyCode==KeyCode.DownArrow)) {
-            menuTab=accessible?(menuTab+(e.keyCode==KeyCode.DownArrow?1:10))%11:10;MenuSound(0);e.Use();
+            ChangeMenuTab(accessible?(menuTab+(e.keyCode==KeyCode.DownArrow?1:11))%12:menuTab==10?11:10);MenuSound(0);e.Use();
         }
         int hover=-1;
         for(int i=0;i<MenuNames.Length;i++) {
-            var rect=new Rect(12,104+i*35,166,31);GUI.enabled=accessible||i==10;
+            var rect=new Rect(12,104+i*35,166,31);GUI.enabled=accessible||i==10||i==11;
             if(GUI.enabled&&rect.Contains(e.mousePosition))hover=i;
-            if(GUI.Button(rect,MenuNames[i],i==menuTab?navSelectedStyle:navStyle)){menuTab=i;MenuSound(1);}
-            var icon=menuAssets?.Icons[i];
+            if(UiButton(rect,MenuNames[i],i==menuTab?navSelectedStyle:navStyle)){ChangeMenuTab(i);MenuSound(1);}
+            var icon=i<11?menuAssets?.Icons[i]:null;
             if(icon!=null)GUI.DrawTexture(new Rect(18,105+i*35,36,29),icon,ScaleMode.ScaleToFit,true);
-            else GUI.Label(new Rect(24,108+i*35,30,23),i==9?"◎":"›",mutedStyle);
+            else UiLabel(new Rect(24,108+i*35,30,23),i==9?"◎":"›",mutedStyle);
         }
         GUI.enabled=true;
         if(e.type==EventType.Repaint&&hover!=hoveredTab){if(hover>=0)MenuSound(0);hoveredTab=hover;}

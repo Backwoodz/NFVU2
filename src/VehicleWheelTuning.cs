@@ -35,14 +35,14 @@ public partial class Plugin {
             frontWheelOffset.Value=rearWheelOffset.Value=0;if(IsHummer)h2RimInches.Value=26;else rimInches.Value=20;
         }
         GUI.enabled=true;
-        GUI.Label(new Rect(25,490,510,30),originalWheels?
+        UiLabel(new Rect(25,490,510,30),originalWheels?
             "Tieferlegung reduziert die Bodenfreiheit. Sturz und Versatz sind optisch.":
             "Für die importierten Originalräder verfügbar.",mutedStyle);
     }
     void WheelSlider(ConfigEntry<float> setting,string label,float y,float min,float max,float step,string unit) {
         float current=WheelFitMath.Sanitize(setting.Value,min,max,(float)setting.DefaultValue);
-        GUI.Label(new Rect(25,y,510,24),label+"   "+current.ToString("0.0")+unit,labelStyle);
-        float next=GUI.HorizontalSlider(new Rect(25,y+31,510,20),current,min,max);
+        UiLabel(new Rect(25,y,510,24),label+"   "+current.ToString("0.0")+unit,labelStyle);
+        float next=UiSlider(new Rect(25,y+31,510,20),current,min,max,step);
         next=Mathf.Round(next/step)*step;
         if(next!=setting.Value)setting.Value=next;
     }

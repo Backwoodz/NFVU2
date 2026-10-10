@@ -1,4 +1,32 @@
-NFVU2 0.19.0 – 350Z und Hummer H2, lokaler Test für Valheim
+NFVU2 0.20.5 – 350Z und Hummer H2, lokaler Test für Valheim
+
+FAHRZEUGHINWEISE
+Im Fahrzeug erscheinen unten rechts die Fahrbefehle mit Valheims originalen
+Xbox-/PS5-Symbolen statt Angriff/Sekundärangriff. Im Flug und im Modmenü
+wechselt die Belegung. Der Tacho steht darüber; zu Fuß kommen die normalen
+Valheim-Hinweise zurück. DE/EN und Hinweisgröße folgen den Einstellungen.
+
+KAMERA IM MODMENÜ
+Rechter Stick: Kamera frei drehen, auch zu Fuß bei geöffnetem Menü.
+Maus: rechte Taste halten und ziehen; im Fahrzeug mit Mausrad zoomen.
+Zum Klicken oder Verschieben des Menüs rechte Maustaste wieder loslassen.
+Fahrzeug- und Waffensteuerung bleiben im Menü gesperrt.
+
+NEU: CONTROLLER UND SPRACHE
+Xbox: RT Gas, LT Bremse/Rückwärts, linker Stick lenken, rechter Stick Kamera.
+B Ein-/Aussteigen, X Nitro, A Handbremse, LB Geschütz, R3 Hupe.
+PS5: R2/L2, Kreis Ein-/Aussteigen, Quadrat Nitro, Kreuz Handbremse, L1 Geschütz.
+L3 öffnet/schließt das Modmenü. Stick/Steuerkreuz navigiert, A/Kreuz bestätigt,
+links/rechts ändert Regler/Auswahl, LB/RB bzw. L1/R1 wechselt Kategorien.
+B/Kreis geht zurück oder schließt das Menü, ohne dabei auszusteigen.
+Im Flug: RB/R1 hoch, LB/L1 runter. Geschütz automatisch; X/Quadrat Nitro.
+B/Kreis oder F7 im Flug: automatische Landung, danach Ausstiegsversuch.
+Während der Fahrt: Steuerkreuz links/rechts Songs, hoch/runter Fahrmodi.
+Tastatur: 1 Gelände, 2 Straße, 3 Drift (nur 350Z), 4 Flug; Pfeil links/rechts Songs.
+F9/L3 → Einstellungen: DE/EN, Tastenanzeige Auto/Xbox/PlayStation,
+Totzone, Controller-Kamera, Y invertieren und Größe der Steuerungshinweise.
+Nach Menü/Pause/Fokusverlust gehaltene Fahrtasten zuerst loslassen.
+Controller-Hardware und Menüanzeige müssen noch im Spiel geprüft werden.
 
 NEU: SCHEINWERFER-SHOW
 F9 → Lichter → „Show-off beim Aussteigen“ aktivieren (standardmäßig aus).

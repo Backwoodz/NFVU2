@@ -29,7 +29,7 @@ public partial class Plugin {
     }
     bool ShowroomReady() {
         if(showroom!=null)return true;
-        GUI.Label(new Rect(25,150,510,80),"Die Modelldaten enthalten noch keinen Kofferraumausbau und keine Animationen.",labelStyle);return false;
+        UiLabel(new Rect(25,150,510,80),"Die Modelldaten enthalten noch keinen Kofferraumausbau und keine Animationen.",labelStyle);return false;
     }
     void MotionButton(Rect rect,int part,string label) {
         bool stationary=!Flying&&body!=null&&body.linearVelocity.magnitude<=.5f;
@@ -39,40 +39,40 @@ public partial class Plugin {
     }
     void DrawBodyMenu() {
         if(!ShowroomReady())return;
-        GUI.Label(new Rect(25,140,510,26),"Türen und Hauben",labelStyle);
+        UiLabel(new Rect(25,140,510,26),"Türen und Hauben",labelStyle);
         // The existing car conversion maps the NFS RIGHT mesh to Unity -X.
         MotionButton(new Rect(25,179,245,36),1,"Tür links");
         MotionButton(new Rect(285,179,245,36),0,"Tür rechts");
         MotionButton(new Rect(25,225,245,36),2,"Motorhaube");
         MotionButton(new Rect(285,225,245,36),3,"Kofferraum");
-        GUI.Label(new Rect(25,273,510,24),"Türmechanik",labelStyle);
+        UiLabel(new Rect(25,273,510,24),"Türmechanik",labelStyle);
         GUI.enabled=!(driving&&cabinDriver!=null&&!DriverInputReady);
-        doorStyle.Value=GUI.Toolbar(new Rect(25,302,505,32),doorStyle.Value,new[]{"Normal","Suicide","Scherentüren"});
+        doorStyle.Value=UiToolbar(new Rect(25,302,505,32),doorStyle.Value,new[]{"Normal","Suicide","Scherentüren"});
         GUI.enabled=true;
-        GUI.Label(new Rect(25,345,510,24),"Motoroptik",labelStyle);
-        engineStyle.Value=GUI.Toolbar(new Rect(25,374,505,32),engineStyle.Value,new[]{"Serie","Style 1","Style 2"});
+        UiLabel(new Rect(25,345,510,24),"Motoroptik",labelStyle);
+        engineStyle.Value=UiToolbar(new Rect(25,374,505,32),engineStyle.Value,new[]{"Serie","Style 1","Style 2"});
         bool tintAvailable=current.interior!=null&&current.interior.SupportsTint;
-        GUI.Label(new Rect(25,418,510,24),"Scheibentönung   "+Mathf.RoundToInt(CabinAppearance.Tint(windowTint.Value)*100)+" %",labelStyle);
+        UiLabel(new Rect(25,418,510,24),"Scheibentönung   "+Mathf.RoundToInt(CabinAppearance.Tint(windowTint.Value)*100)+" %",labelStyle);
         GUI.enabled=tintAvailable;
-        float tint=Mathf.Round(GUI.HorizontalSlider(new Rect(25,450,505,18),CabinAppearance.Tint(windowTint.Value),0,1)*100)/100;
+        float tint=Mathf.Round(UiSlider(new Rect(25,450,505,18),CabinAppearance.Tint(windowTint.Value),0,1)*100)/100;
         if(tintAvailable&&tint!=windowTint.Value)windowTint.Value=tint;
         GUI.enabled=true;
-        GUI.Label(new Rect(25,480,510,44),tintAvailable?"0 % klar · 100 % dunkel. Links beim Sitzen offen.\nTüren lassen sich im Stand auch von innen öffnen.":"Scheibentönung benötigt den Innenraum und einen transparenten Fenstershader.",mutedStyle);
+        UiLabel(new Rect(25,480,510,44),tintAvailable?"0 % klar · 100 % dunkel. Links beim Sitzen offen.\nTüren lassen sich im Stand auch von innen öffnen.":"Scheibentönung benötigt den Innenraum und einen transparenten Fenstershader.",mutedStyle);
     }
     void DrawTrunkMenu() {
         if(!ShowroomReady())return;
-        trunkLayout.Value=GUI.Toolbar(new Rect(25,143,505,32),trunkLayout.Value,showroom.Layouts.Select(l=>l.title).ToArray());
+        trunkLayout.Value=UiToolbar(new Rect(25,143,505,32),trunkLayout.Value,showroom.Layouts.Select(l=>l.title).ToArray());
         int slots=showroom.Layouts[trunkLayout.Value].sockets.Length;
         if(slots>0) {
             selectedAudioSlot=Mathf.Clamp(selectedAudioSlot,0,slots-1);
-            selectedAudioSlot=GUI.Toolbar(new Rect(25,188,505,30),selectedAudioSlot,Enumerable.Range(1,slots).Select(i=>"Platz "+i).ToArray());
+            selectedAudioSlot=UiToolbar(new Rect(25,188,505,30),selectedAudioSlot,Enumerable.Range(1,slots).Select(i=>"Platz "+i).ToArray());
             var choices=showroom.Choices(trunkLayout.Value,selectedAudioSlot);
-            audioSlots[selectedAudioSlot].Value=GUI.SelectionGrid(new Rect(25,225,505,128),audioSlots[selectedAudioSlot].Value,choices.Select(c=>c.title).ToArray(),4,songButtonStyle);
-        } else GUI.Label(new Rect(25,205,505,80),"Serien-Kofferraum. Wähle einen Ausbau, um Subwoofer, Verstärker und Bildschirme einzusetzen.",labelStyle);
-        trunkNeonEnabled.Value=GUI.Toggle(new Rect(25,363,250,28),trunkNeonEnabled.Value," Kofferraum-Neon");
-        trunkNeonPulsing.Value=GUI.Toggle(new Rect(285,363,245,28),trunkNeonPulsing.Value," Pulsierend");
+            audioSlots[selectedAudioSlot].Value=UiGrid(new Rect(25,225,505,128),audioSlots[selectedAudioSlot].Value,choices.Select(c=>c.title).ToArray(),4,songButtonStyle);
+        } else UiLabel(new Rect(25,205,505,80),"Serien-Kofferraum. Wähle einen Ausbau, um Subwoofer, Verstärker und Bildschirme einzusetzen.",labelStyle);
+        trunkNeonEnabled.Value=UiToggle(new Rect(25,363,250,28),trunkNeonEnabled.Value," Kofferraum-Neon");
+        trunkNeonPulsing.Value=UiToggle(new Rect(285,363,245,28),trunkNeonPulsing.Value," Pulsierend");
         int color=Math.Max(0,Array.IndexOf(ColorNames,trunkNeonColor.Value));
-        int next=GUI.SelectionGrid(new Rect(25,402,505,60),color,ColorNames,4);
+        int next=UiGrid(new Rect(25,402,505,60),color,ColorNames,4);
         if(next!=color)trunkNeonColor.Value=ColorNames[next];
         MotionButton(new Rect(25,478,245,34),3,"Kofferraum");
         if(MenuButton(new Rect(285,478,245,34),"Standard-System")) {

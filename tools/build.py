@@ -5,9 +5,10 @@ from build_support import standard_refs,compile_cs
 def build():
     game=valheim_dir();managed=game/'valheim_Data/Managed'
     refs=standard_refs()
-    for name in ('UnityEngine','UnityEngine.CoreModule','UnityEngine.AnimationModule','UnityEngine.PhysicsModule','UnityEngine.VehiclesModule','UnityEngine.InputLegacyModule','UnityEngine.IMGUIModule','UnityEngine.AudioModule','UnityEngine.ParticleSystemModule','UnityEngine.UnityWebRequestModule','UnityEngine.UnityWebRequestAudioModule','UnityEngine.TextRenderingModule','Newtonsoft.Json'):
+    for name in ('UnityEngine','UnityEngine.CoreModule','Unity.InputSystem','Unity.TextMeshPro','UnityEngine.UI','UnityEngine.UIModule','UnityEngine.AnimationModule','UnityEngine.PhysicsModule','UnityEngine.VehiclesModule','UnityEngine.InputLegacyModule','UnityEngine.IMGUIModule','UnityEngine.AudioModule','UnityEngine.ParticleSystemModule','UnityEngine.UnityWebRequestModule','UnityEngine.UnityWebRequestAudioModule','UnityEngine.TextRenderingModule','Newtonsoft.Json'):
         refs.append(managed/(name+'.dll'))
     refs.append(game/'BepInEx/core/BepInEx.dll')
+    refs.append(game/'BepInEx/core/0Harmony.dll')
     refs.append(managed/'assembly_valheim.dll')
     missing=[str(p) for p in refs if not p.exists()]
     if missing:raise SystemExit('Missing installed game/mod-loader references:\n'+'\n'.join(missing))

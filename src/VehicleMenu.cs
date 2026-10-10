@@ -39,7 +39,7 @@ public partial class Plugin {
         neonColor=BindVehicle("Neon","Color","Grün",new ConfigDescription("Underbody neon colour.",new AcceptableValueList<string>(ColorNames)));
     }
     bool CanUseVehicleMenu(MonoBehaviour local)=>local!=null&&!Multiplayer();
-    void BlockDrivingInput(){throttle=steer=0;current.flightVertical=0;brake=1;honking=false;burnoutHeld=false;nitroHeld=false;nitroInput.Reset();ActiveNitro?.Stop();orbitCamera?.InputFrame(false,mouseSensitivity.Value,invertMouseY.Value);}
+    void BlockDrivingInput(bool blockCamera=true){controlsGate.Block();handbrakeHeld=turretHeld=false;throttle=steer=0;current.flightVertical=0;brake=1;honking=false;burnoutHeld=false;nitroHeld=false;nitroInput.Reset();ActiveNitro?.Stop();if(blockCamera)orbitCamera?.InputFrame(false,mouseSensitivity.Value,invertMouseY.Value);}
     void SetVehicleMenu(bool open) {
         if(open==menuOpen)return;
         if(open){
@@ -52,12 +52,15 @@ public partial class Plugin {
                 menuCamera=type?.GetProperty("instance",BindingFlags.Public|BindingFlags.NonPublic|BindingFlags.Static)?.GetValue(null) as MonoBehaviour;
                 if(menuCamera!=null){menuCameraEnabled=menuCamera.enabled;menuCamera.enabled=false;}
             }
+            BeginMenuCamera();
+            uiFocus=0;controlsGate.Block();
             BlockDrivingInput();Cursor.lockState=CursorLockMode.None;Cursor.visible=true;
         }
         else {
+            controlsGate.Block();uiActivate=false;uiHorizontal=0;
             StopMenuDrag();SaveMenuPlacement();
             MenuSound(2);
-            menuOpen=false;
+            menuOpen=false;EndMenuCamera();
             if(menuPlayer!=null)menuPlayer.enabled=menuPlayerEnabled;
             if(menuCamera!=null)menuCamera.enabled=menuCameraEnabled;
             menuPlayer=null;menuCamera=null;
@@ -85,15 +88,15 @@ public partial class Plugin {
     void OnGUI() {
         if(!menuOpen||audioBlocked||!Application.isFocused)StopMenuDrag();
         if(!ready||LocalPlayer()==null)return;
-        var text=driving?DriveModeName+(Flying?" | W/S: vor/zurück | A/D: drehen | Shift: hoch | Leertaste: runter\nF9 → Fahrzeug: landen | Zum Aussteigen zuerst landen":" | WASD: fahren | Leertaste: "+(driftMode.Value?"Handbremse":"bremsen")+" | H: Hupe | F7: aussteigen\nMaus: umschauen | Mausrad: Zoom | "+menuKey.Value+": Fahrzeugmenü"):status;
-        GUI.Box(new Rect(15,Screen.height-80,Mathf.Min(920,Screen.width-30),60),text);
-        if(driving&&Flying)GUI.Box(new Rect(15,Screen.height-120,480,32),FlightBoostLabel+" | Tank "+Mathf.RoundToInt((ActiveNitro?.Charge??0)*100)+" %");
+        DrawControlHints();
         DrawSpawnProgress();
         DrawDashboard();
         DrawTurretAim();
         if(driving&&!Flying&&!hudEnabled.Value&&ActiveNitro!=null&&nitroEnabled.Value)
-            GUI.Box(new Rect(15,Screen.height-120,310,32),(Flying?"LMB + W: Flug-Nitro":"LMB: Nitro / Purge")+" | Tank "+Mathf.RoundToInt(ActiveNitro.Charge*100)+" %");
+            UiBox(new Rect(15,Screen.height-120,310,32),(Flying?"LMB + W: Flug-Nitro":"LMB: Nitro / Purge")+" | Tank "+Mathf.RoundToInt(ActiveNitro.Charge*100)+" %");
         if(!menuOpen||audioBlocked)return;
+        if(menuMouseLookHeld&&(Event.current.isMouse||Event.current.type==EventType.ScrollWheel))Event.current.Use();
+        uiCount=0;uiBuilding=false;
         EnsureMenuStyles();
         float scale=Mathf.Max(.1f,Mathf.Min(1,Mathf.Min((Screen.width-32f)/740f,(Screen.height-140f)/560f)));
         HandleMenuDrag(scale);
@@ -102,100 +105,102 @@ public partial class Plugin {
         try {
             GUI.skin=menuSkin;GUI.changed=false;
             GUI.matrix=Matrix4x4.TRS(new Vector3(menuPlacement.X,menuPlacement.Y,0),Quaternion.identity,Vector3.one*scale);
-            GUI.Box(new Rect(0,0,740,560),GUIContent.none,panelStyle);
+            UiBox(new Rect(0,0,740,560),GUIContent.none,panelStyle);
             var oldColor=GUI.color;GUI.color=MenuAccent;GUI.DrawTexture(new Rect(0,0,740,3),Texture2D.whiteTexture);GUI.color=oldColor;
-            GUI.Label(new Rect(22,15,650,36),"NFVU2  /  "+(CanAccessCurrent(LocalPlayer())?VehicleName:"Garage"),titleStyle);
-            if(GUI.Button(new Rect(690,19,30,30),"×")){CloseVehicleMenu();return;}
-            GUI.Label(new Rect(23,57,660,25),"UNDERGROUND GARAGE   /   "+(Flying?DriveModeName:driving?"Fahrzeug bremst":"Tuning & Fahrzeugsteuerung"),mutedStyle);
-            if(menuTab!=10&&!CanAccessCurrent(LocalPlayer()))menuTab=10;
+            UiLabel(new Rect(22,15,650,36),"NFVU2  /  "+(CanAccessCurrent(LocalPlayer())?VehicleName:"Garage"),titleStyle);
+            if(UiButton(new Rect(690,19,30,30),"×")){CloseVehicleMenu();return;}
+            UiLabel(new Rect(23,57,660,25),"UNDERGROUND GARAGE   /   "+(Flying?DriveModeName:driving?"Fahrzeug bremst":"Tuning & Fahrzeugsteuerung"),mutedStyle);
+            if(menuTab!=10&&menuTab!=11&&!CanAccessCurrent(LocalPlayer()))ChangeMenuTab(10);
             MenuNavigation(CanAccessCurrent(LocalPlayer()));
+            uiBuilding=true;
             GUI.BeginGroup(new Rect(180,0,560,522));
             try {
-                GUI.Label(new Rect(25,99,510,28),menuAssets?.Titles[menuTab]??MenuNames[menuTab],titleStyle);
-                switch(menuTab){case 10:DrawGarageMenu();break;case 0:DrawCarMenu();break;case 1:DrawRadioMenu();break;case 2:DrawLightsMenu();break;case 3:DrawNeonMenu();break;case 4:DrawNitroMenu();break;case 5:DrawWheelMenu();break;case 6:DrawBodyMenu();break;case 7:DrawTrunkMenu();break;case 8:DrawDrivingDisplayMenu();break;case 9:DrawTurretMenu();break;}
+                UiLabel(new Rect(25,99,510,28),MenuNames[menuTab],titleStyle);
+                switch(menuTab){case 11:DrawInterfaceSettings();break;case 10:DrawGarageMenu();break;case 0:DrawCarMenu();break;case 1:DrawRadioMenu();break;case 2:DrawLightsMenu();break;case 3:DrawNeonMenu();break;case 4:DrawNitroMenu();break;case 5:DrawWheelMenu();break;case 6:DrawBodyMenu();break;case 7:DrawTrunkMenu();break;case 8:DrawDrivingDisplayMenu();break;case 9:DrawTurretMenu();break;}
             }finally{GUI.EndGroup();}
-            GUI.Label(new Rect(23,530,700,25),menuKey.Value+": schließen  ·  ↑↓: Kategorie  ·  Titelleiste ziehen: verschieben",mutedStyle);
+            uiBuilding=false;uiLastCount=uiCount;uiFocus=Math.Min(uiFocus,Math.Max(0,uiCount-1));
+            if(Event.current.type==EventType.Repaint){uiActivate=false;uiHorizontal=0;}
+            UiLabel(new Rect(23,523,700,36),padActive?ButtonName("A","Kreuz")+": wählen · "+ButtonName("B","Kreis")+": zurück · "+ButtonName("LB/RB","L1/R1")+": Kategorie · L3: schließen\nRS: Kamera":menuKey.Value+": schließen · ↑↓: Kategorie\nRMB halten: Kamera · Titelleiste ziehen: verschieben",mutedStyle);
             if(GUI.changed&&(inputEvent==EventType.MouseUp||inputEvent==EventType.MouseDown||inputEvent==EventType.MouseDrag||inputEvent==EventType.KeyDown))MenuSound(0);
-        } finally {GUI.matrix=oldMatrix;GUI.enabled=oldEnabled;GUI.skin=oldSkin;GUI.changed|=oldChanged;}
+        } finally {uiBuilding=false;GUI.matrix=oldMatrix;GUI.enabled=oldEnabled;GUI.skin=oldSkin;GUI.changed|=oldChanged;}
     }
     void DrawCarMenu() {
-        GUI.Label(new Rect(25,145,510,30),"Fahrmodus",labelStyle);
+        UiLabel(new Rect(25,145,510,30),"Fahrmodus",labelStyle);
         int flightIndex=IsHummer?2:3;
         int selected=Flying&&!current.flight.State.Landing?flightIndex:!IsHummer&&driftMode.Value?2:terrainMode.Value?0:1;
-        int mode=GUI.Toolbar(new Rect(25,180,510,30),selected,IsHummer?new[]{"Gelände","Straße","Fliegen"}:new[]{"Gelände","Straße","Drift","Fliegen"});
-        if(mode!=selected){
-            if(mode==flightIndex)SelectFlightMode();
-            else {driftMode.Value=!IsHummer&&mode==2;terrainMode.Value=mode==0;if(Flying)current.flight.Land();else ApplyDriveMode();}
-        }
+        int mode=UiToolbar(new Rect(25,180,510,30),selected,IsHummer?new[]{"Gelände","Straße","Fliegen"}:new[]{"Gelände","Straße","Drift","Fliegen"});
+        if(mode!=selected)SelectControlMode(mode==flightIndex?3:mode);
         string description=Flying?(current.flight.State.Landing?"Landet automatisch und klappt die Räder aus.\nW/S und A/D: Landeplatz korrigieren · Fliegen: abbrechen":"W/S: vor/zurück · A/D: drehen · Shift: hoch · Leertaste: runter\nOhne Eingabe schweben. Bodenmodus wählen zum Landen."):
             (!driving?"Für den Flugmodus zuerst einsteigen.\n":"")+(mode==2&&!IsHummer?"Drift: Heckantrieb · Leertaste: Handbremse":mode==0?"Geländemodus mit Allradhilfe.":"Straßenmodus mit Heckantrieb.");
-        GUI.Label(new Rect(25,218,510,52),description,mutedStyle);
+        if(padActive)description=Flying?(current.flight.State.Landing?"Landet automatisch und klappt die Räder aus.":ButtonName("RT/LT","R2/L2")+": vor/zurück · LS: drehen · "+ButtonName("RB/LB","R1/L1")+": hoch/runter")+"\nBodenmodus wählen zum Landen.":ButtonName("RT/LT","R2/L2")+": Gas/Bremse · LS: lenken · "+ButtonName("A","Kreuz")+": Handbremse";
+        UiLabel(new Rect(25,218,510,52),description,mutedStyle);
         GUI.enabled=!Flying&&(!driving||DriverInputReady);
         if(MenuButton(new Rect(25,280,245,38),driving?"Aussteigen":"Einsteigen")){
             var local=LocalPlayer();CloseVehicleMenu();if(driving)RequestExit();else if(CanAccessCurrent(local))Enter(local);return;
         }
         GUI.enabled=true;
         if(MenuButton(new Rect(285,280,245,38),"Fahrzeug entfernen")){Cleanup();return;}
-        keepRunning.Value=GUI.Toggle(new Rect(25,340,510,32),keepRunning.Value," Beim Aussteigen weiterlaufen lassen");
-        GUI.Label(new Rect(25,378,510,48),"Motor im Leerlauf, aktiviertes Neon und gedämpfte Musik. Auch neben dem Auto ein-/ausschaltbar.",mutedStyle);
-        if(MenuButton(new Rect(25,445,245,38),"Türen und Motorhaube"))menuTab=6;
-        if(MenuButton(new Rect(285,445,245,38),"Kofferraum-Ausbau"))menuTab=7;
+        keepRunning.Value=UiToggle(new Rect(25,340,510,32),keepRunning.Value," Beim Aussteigen weiterlaufen lassen");
+        UiLabel(new Rect(25,378,510,48),"Motor im Leerlauf, aktiviertes Neon und gedämpfte Musik. Auch neben dem Auto ein-/ausschaltbar.",mutedStyle);
+        if(MenuButton(new Rect(25,445,245,38),"Türen und Motorhaube"))ChangeMenuTab(6);
+        if(MenuButton(new Rect(285,445,245,38),"Kofferraum-Ausbau"))ChangeMenuTab(7);
     }
     void DrawNitroMenu() {
-        nitroEnabled.Value=GUI.Toggle(new Rect(25,145,510,30),nitroEnabled.Value,IsHummer?" Nitro im Flug aktivieren":" Nitro aktivieren");
-        GUI.Label(new Rect(25,186,510,66),IsHummer
+        nitroEnabled.Value=UiToggle(new Rect(25,145,510,30),nitroEnabled.Value,IsHummer?" Nitro im Flug aktivieren":" Nitro aktivieren");
+        UiLabel(new Rect(25,186,510,66),padActive?ButtonName("X","Quadrat")+": Nitro · "+ButtonName("RT","R2")+": Gas\n"+(IsHummer?"Nitro nur im Flug.":"Nitro am Boden und im Flug. Im Stand: Purge."):IsHummer
             ?"Im Flug W + LMB/Strg: mehr Schub. Am Boden bleibt der H2 ohne Nitro. Sechs Sekunden Tank; Nachladen bei Bewegung."
             :"W + LMB/Strg: Nitro am Boden und im Flug. Im Stand: Purge. Sechs Sekunden Tank; Nachladen bei Bewegung.",labelStyle);
-        if(!IsHummer)backfireEnabled.Value=GUI.Toggle(new Rect(25,270,510,30),backfireEnabled.Value," Auspuffflammen beim Gaswegnehmen");
+        if(!IsHummer)backfireEnabled.Value=UiToggle(new Rect(25,270,510,30),backfireEnabled.Value," Auspuffflammen beim Gaswegnehmen");
         DrawNitroVisualSettings();
     }
 
     void DrawRadioMenu() {
-        radioEnabled.Value=GUI.Toggle(new Rect(25,143,510,28),radioEnabled.Value," Radio einschalten");
-        GUI.Label(new Rect(25,185,510,25),"Lautstärke  "+Mathf.RoundToInt(radioVolume.Value*100)+" %",labelStyle);
-        radioVolume.Value=GUI.HorizontalSlider(new Rect(25,220,505,22),radioVolume.Value,0,1);
-        if(vehicleRadio==null||vehicleRadio.Count==0){GUI.Label(new Rect(25,260,510,95),"Noch keine Musik verfügbar. Die NFS-Musik muss zuerst lokal importiert werden.",labelStyle);return;}
+        radioEnabled.Value=UiToggle(new Rect(25,143,510,28),radioEnabled.Value," Radio einschalten");
+        UiLabel(new Rect(25,185,510,25),"Lautstärke  "+Mathf.RoundToInt(radioVolume.Value*100)+" %",labelStyle);
+        radioVolume.Value=UiSlider(new Rect(25,220,505,22),radioVolume.Value,0,1);
+        if(vehicleRadio==null||vehicleRadio.Count==0){UiLabel(new Rect(25,260,510,95),"Noch keine Musik verfügbar. Die NFS-Musik muss zuerst lokal importiert werden.",labelStyle);return;}
         GUI.Label(new Rect(25,255,510,48),vehicleRadio.CurrentTitle,labelStyle);
         GUI.enabled=(driving||ParkedRunning)&&radioEnabled.Value;
         if(MenuButton(new Rect(25,310,160,34),"◀ Zurück"))vehicleRadio.Previous();
         if(MenuButton(new Rect(195,310,165,34),vehicleRadio.Paused?"Abspielen":"Pause"))vehicleRadio.TogglePause();
         if(MenuButton(new Rect(370,310,160,34),"Weiter ▶"))vehicleRadio.Next();
+        if(padActive&&uiFocus>=uiCount){float y=(uiFocus-uiCount)*44;if(y<songScroll.y)songScroll.y=y;else if(y+44>songScroll.y+130)songScroll.y=y+44-130;}
         songScroll=GUI.BeginScrollView(new Rect(25,360,510,130),songScroll,new Rect(0,0,488,vehicleRadio.Count*44));
         var titles=vehicleRadio.TrackTitles;
-        try {for(int i=0;i<vehicleRadio.Count;i++)if(MenuButton(new Rect(0,i*44,483,42),(i==vehicleRadio.CurrentIndex?"▶ ":"")+titles[i],songButtonStyle))vehicleRadio.Select(i);}
+        try {for(int i=0;i<vehicleRadio.Count;i++)if(MenuButton(new Rect(0,i*44,483,42),(i==vehicleRadio.CurrentIndex?"▶ ":"")+titles[i],songButtonStyle,false))vehicleRadio.Select(i);}
         finally {GUI.EndScrollView();GUI.enabled=true;}
-        GUI.Label(new Rect(25,493,510,23),driving||ParkedRunning?vehicleRadio.Status:hasBeenDriven?"Zum Musikhören einsteigen oder Weiterlaufen aktivieren.":"Zum Musikhören einmal einsteigen.",mutedStyle);
+        UiLabel(new Rect(25,493,510,23),driving||ParkedRunning?vehicleRadio.Status:hasBeenDriven?"Zum Musikhören einsteigen oder Weiterlaufen aktivieren.":"Zum Musikhören einmal einsteigen.",mutedStyle);
     }
     void DrawLightsMenu() {
         GUI.enabled=vehicleLighting!=null;
-        bool lights=GUI.Toggle(new Rect(25,140,510,32),vehicleLighting!=null&&vehicleLighting.Enabled," Scheinwerfer, Rücklicht und Kennzeichenlicht");
+        bool lights=UiToggle(new Rect(25,140,510,32),vehicleLighting!=null&&vehicleLighting.Enabled," Scheinwerfer, Rücklicht und Kennzeichenlicht");
         if(vehicleLighting!=null)vehicleLighting.Enabled=lights;
-        bool showOff=GUI.Toggle(new Rect(25,176,510,30),headlightShowOff.Value," Show-off beim Aussteigen: 2× links / 2× rechts");
+        bool showOff=UiToggle(new Rect(25,176,510,30),headlightShowOff.Value," Show-off beim Aussteigen: 2× links / 2× rechts");
         if(showOff!=headlightShowOff.Value)headlightShowOff.Value=showOff;
-        GUI.Label(new Rect(25,207,510,32),"Doppelblinken im Wechsel, dann Pause. Links/rechts aus Fahrersicht. Stoppt beim Einsteigen.",mutedStyle);
+        UiLabel(new Rect(25,207,510,32),"Doppelblinken im Wechsel, dann Pause. Links/rechts aus Fahrersicht. Stoppt beim Einsteigen.",mutedStyle);
         float strength=headlightStrength.Value;
         if(float.IsNaN(strength)||float.IsInfinity(strength))strength=1;
-        GUI.Label(new Rect(25,242,510,26),"Scheinwerferstärke   "+Mathf.RoundToInt(strength*100)+" %",labelStyle);
-        float next=Mathf.Round(GUI.HorizontalSlider(new Rect(25,271,510,20),strength,0,3)*20)/20;
+        UiLabel(new Rect(25,242,510,26),"Scheinwerferstärke   "+Mathf.RoundToInt(strength*100)+" %",labelStyle);
+        float next=Mathf.Round(UiSlider(new Rect(25,271,510,20),strength,0,3)*20)/20;
         if(next!=headlightStrength.Value)headlightStrength.Value=next;
-        GUI.Label(new Rect(25,296,510,25),"Scheinwerferfarbe",labelStyle);
+        UiLabel(new Rect(25,296,510,25),"Scheinwerferfarbe",labelStyle);
         int selected=Math.Max(0,Array.IndexOf(VehicleLighting.HeadlightPresets,headlightPreset.Value));
-        int choice=GUI.SelectionGrid(new Rect(25,324,510,112),selected,VehicleLighting.HeadlightPresets,4,songButtonStyle);
+        int choice=UiGrid(new Rect(25,324,510,112),selected,VehicleLighting.HeadlightPresets,4,songButtonStyle);
         if(choice!=selected)headlightPreset.Value=VehicleLighting.HeadlightPresets[choice];
         if(MenuButton(new Rect(25,446,510,30),"Scheinwerfer zurücksetzen")) {headlightPreset.Value="Serie";headlightStrength.Value=1;headlightShowOff.Value=false;}
         GUI.enabled=true;
-        GUI.Label(new Rect(25,482,510,36),"Farbe und Stärke gelten auch für die Show. Brems- und Rückfahrlicht bleiben automatisch.",mutedStyle);
+        UiLabel(new Rect(25,482,510,36),"Farbe und Stärke gelten auch für die Show. Brems- und Rückfahrlicht bleiben automatisch.",mutedStyle);
     }
     void DrawNeonMenu() {
         GUI.enabled=vehicleNeon!=null;
-        bool enabled=GUI.Toggle(new Rect(25,145,510,32),neonEnabled.Value," Unterbodenbeleuchtung einschalten");
-        bool pulse=GUI.Toggle(new Rect(25,190,510,32),neonPulsing.Value," Pulsierendes Licht");
-        GUI.Label(new Rect(25,244,510,30),"Farbe",labelStyle);
+        bool enabled=UiToggle(new Rect(25,145,510,32),neonEnabled.Value," Unterbodenbeleuchtung einschalten");
+        bool pulse=UiToggle(new Rect(25,190,510,32),neonPulsing.Value," Pulsierendes Licht");
+        UiLabel(new Rect(25,244,510,30),"Farbe",labelStyle);
         int selected=Math.Max(0,Array.IndexOf(ColorNames,neonColor.Value));
-        int choice=GUI.SelectionGrid(new Rect(25,285,510,100),selected,ColorNames,4);
+        int choice=UiGrid(new Rect(25,285,510,100),selected,ColorNames,4);
         if(enabled!=neonEnabled.Value||pulse!=neonPulsing.Value||choice!=selected){neonEnabled.Value=enabled;neonPulsing.Value=pulse;neonColor.Value=ColorNames[choice];ApplyNeonSettings();}
         GUI.enabled=true;
-        GUI.Label(new Rect(25,420,510,70),"Farbe und Pulsmodus bleiben gespeichert. Mit „Beim Aussteigen weiterlaufen lassen“ bleibt aktiviertes Neon auch draußen an.",mutedStyle);
+        UiLabel(new Rect(25,420,510,70),"Farbe und Pulsmodus bleiben gespeichert. Mit „Beim Aussteigen weiterlaufen lassen“ bleibt aktiviertes Neon auch draußen an.",mutedStyle);
     }
 }
 }

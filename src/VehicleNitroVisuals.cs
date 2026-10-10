@@ -67,11 +67,11 @@ public partial class Plugin {
         nitroVisualCar=null;nitroVisualCamera=null;screenAttempted=trailsAttempted=false;
     }
     void DrawNitroVisualSettings() {
-        nitroBlurEnabled.Value=GUI.Toggle(new Rect(25,322,510,28),nitroBlurEnabled.Value," Nitro-Tunnelblick");
-        nitroTrailsEnabled.Value=GUI.Toggle(new Rect(25,355,510,28),nitroTrailsEnabled.Value," Rote Rücklichtspuren bei Nitro");
-        GUI.Label(new Rect(25,394,510,25),"Effektstärke  "+Mathf.RoundToInt(nitroVisualStrength.Value*100)+" %",labelStyle);
-        nitroVisualStrength.Value=GUI.HorizontalSlider(new Rect(25,428,505,22),nitroVisualStrength.Value,0,1);
-        GUI.Label(new Rect(25,463,510,44),"Gilt für beide Autos, am Boden und im Flug.\nRücklichtspuren erscheinen bei eingeschaltetem Licht.",mutedStyle);
+        nitroBlurEnabled.Value=UiToggle(new Rect(25,322,510,28),nitroBlurEnabled.Value," Nitro-Tunnelblick");
+        nitroTrailsEnabled.Value=UiToggle(new Rect(25,355,510,28),nitroTrailsEnabled.Value," Rote Rücklichtspuren bei Nitro");
+        UiLabel(new Rect(25,394,510,25),"Effektstärke  "+Mathf.RoundToInt(nitroVisualStrength.Value*100)+" %",labelStyle);
+        nitroVisualStrength.Value=UiSlider(new Rect(25,428,505,22),nitroVisualStrength.Value,0,1);
+        UiLabel(new Rect(25,463,510,44),"Gilt für beide Autos, am Boden und im Flug.\nRücklichtspuren erscheinen bei eingeschaltetem Licht.",mutedStyle);
     }
 }
 }
