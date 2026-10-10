@@ -23,7 +23,7 @@ sealed class SetupWindow : Form {
     readonly ProgressBar progress = new ProgressBar { Dock = DockStyle.Fill, Visible = false, Style = ProgressBarStyle.Marquee };
     bool busy;
     public SetupWindow() {
-        Text = "NFVU2 Setup"; ClientSize = new Size(720, 610); MinimumSize = new Size(736, 649);
+        Text = "NFVU2 Setup"; ClientSize = new Size(720, 650); MinimumSize = new Size(736, 689);
         StartPosition = FormStartPosition.CenterScreen; Font = new Font("Segoe UI", 10);
         AutoScaleMode = AutoScaleMode.Dpi;
         var layout = new TableLayoutPanel { Dock = DockStyle.Fill, AutoScroll = true, Padding = new Padding(24), ColumnCount = 1, RowCount = 8 };
@@ -40,7 +40,7 @@ sealed class SetupWindow : Form {
         selection.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100)); selection.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
         selection.Controls.Add(path, 0, 0); selection.Controls.Add(browse, 1, 0); layout.Controls.Add(selection);
         layout.Controls.Add(loader);
-        layout.Controls.Add(new Label { Text = "BepInEx is included for fresh installs. Existing loaders are preserved.\nUninstall keeps your settings, saves and backups. Other mods are kept.", AutoSize = true, Margin = new Padding(0, 10, 0, 14) });
+        layout.Controls.Add(new Label { Text = "BepInEx lets Valheim load mods. NFVU2 needs it to run.\nSetup installs it automatically if needed; an existing installation is kept.\nLeave it installed if you use other mods.\nUninstall keeps your settings, saves, backups and other mods.", AutoSize = true, MaximumSize = new Size(620, 0), Margin = new Padding(0, 10, 0, 14) });
         var actions = new FlowLayoutPanel { AutoSize = true, Dock = DockStyle.Top, Margin = new Padding(0) };
         var notices = new Button { Text = "LICENSE", AutoSize = true };
         notices.Click += (_, __) => {

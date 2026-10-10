@@ -117,6 +117,9 @@ checking its source and updating its digest deliberately.
 The EXE is unsigned. Creating it does not publish a GitHub Release or change
 repository visibility. Release uploads should contain the player EXE and its
 checksum, with version-specific notes and results of the manual checks below.
+Create a version tag only for an actual release, pointing to the commit used
+to build its downloadable installer. Development snapshots and local setup
+revisions do not receive tags; the former prototype tag `v0.1.5` was retired.
 Generated packages contain the locally imported assets; their provenance is
 documented in [REFERENCES](docs/REFERENCES.md) and the asset pipeline notes.
 

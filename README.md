@@ -39,7 +39,15 @@ Choose English under **F9 → Einstellungen → Sprache** if needed.
 Settings, saves and other mods are kept. You can also remove BepInEx if this
 wizard installed it and no other mods need it.
 
-This is an experimental fan mod with its own driving physics. A complete
-Rachel recreation and a live NFS-to-Valheim bridge remain future work.
+### Preview
+
+<p>
+  <img src="docs/images/350z-front-preview.png" alt="350Z model preview: front and side view" width="49%">
+  <img src="docs/images/350z-rear-preview.png" alt="350Z model preview: rear and side view" width="49%">
+</p>
+
+*350Z model previews rendered in Blender. In-game lighting and appearance differ.*
+
+This is an experimental fan mod with its own driving physics.
 
 [Changelog](CHANGELOG.md) · [Contributing](CONTRIBUTING.md) · [Known limitations](docs/ROADMAP.md)

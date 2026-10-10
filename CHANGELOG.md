@@ -2,6 +2,10 @@
 
 ## Unreleased — Windows setup and public-facing documentation
 
+- Setup revision 4 explains that BepInEx loads mods, is required by NFVU2,
+  is installed automatically when needed and should be kept for other mods.
+- Retired the old prototype tag `v0.1.5`; reserve tags for actual releases.
+
 - Setup revision 3 supports a smaller radio payload: prepare verified Ogg
   Vorbis copies at a 192 kbit/s target while retaining local WAV masters.
   The build preserves all tracks, titles and order, validates source/output

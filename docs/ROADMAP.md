@@ -36,8 +36,9 @@
   des Computer-Use-Werkzeugs scheiterte mit einem Timeout. Layout noch offen.
 - Windows-EXE und SHA-256 werden lokal in `artifacts/installer/` erzeugt.
   Noch kein öffentlicher Release und kein Upload durch den Build.
-- Echte Ingame-Screenshots für die kurze englische README ergänzen, sobald
-  passende Aufnahmen vorliegen; vorhandene Blender-Bilder sind Vorschauen.
+- Zwei klar beschriftete Blender-Vorschauen des 350Z stehen in der README.
+  Durch echte Ingame-Screenshots ergänzen/ersetzen, sobald passende Aufnahmen
+  vorliegen; ein kurzer Gameplay-Clip kann später als GIF eingebunden werden.
 - Entwickleranleitung: [CONTRIBUTING](../CONTRIBUTING.md),
   Versionsgeschichte: [CHANGELOG](../CHANGELOG.md).
 

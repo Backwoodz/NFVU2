@@ -16,7 +16,7 @@ LOADER_VERSION = '5.4.2351'
 LOADER_URL = f'https://thunderstore.io/package/download/denikson/BepInExPack_Valheim/{LOADER_VERSION}/'
 LOADER_SHA256 = 'bce631497976a93977ceb08e166712e6c31d15244956f89f17df092a9b62e29f'
 MOD_ROOT = 'BepInEx/plugins/Rachel350Z/'
-SETUP_REVISION = 3
+SETUP_REVISION = 4
 
 
 def sha256(path):
