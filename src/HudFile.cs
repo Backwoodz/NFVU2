@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using Newtonsoft.Json;
 namespace Rachel350Z {
-public sealed class HudDesign { public string name; public ModelTexture fill,lines,needle; }
+public sealed class HudDesign { public string name; public ModelTexture fill,lines,needle,turboFill,turboLines; }
 public sealed class HudData { public int schemaVersion; public HudDesign[] designs; public ModelTexture nitro,nitroBacking; }
 public static class HudFile {
     public static HudData Load(string path) {
@@ -15,6 +15,8 @@ public static class HudFile {
         foreach(var d in data.designs) {
             if(d==null||string.IsNullOrWhiteSpace(d.name)||d.name.Length>40)throw new InvalidDataException("Invalid HUD design");
             Texture(d.fill);Texture(d.lines);Texture(d.needle);
+            // Older local imports remain usable with the procedural pressure dial.
+            if(d.turboFill!=null||d.turboLines!=null){Texture(d.turboFill);Texture(d.turboLines);}
         }
         Texture(data.nitro);Texture(data.nitroBacking);return data;
     }
@@ -26,8 +28,13 @@ public static class HudFile {
 public static class HudMath {
     public static float Unit(float value)=>float.IsNaN(value)||float.IsInfinity(value)?0:DrivingMath.Clamp(value,0,1);
     public static float NeedleAngle(float rpm)=>180+240*Unit(rpm/7500);
-    public static float SpeedDialMaximum(bool mph)=>mph?160:240;
-    public static float SpeedNeedleAngle(float metresPerSecond,bool mph)=>-130+260*Unit(Speed(metresPerSecond,mph)/SpeedDialMaximum(mph));
+    // Original TURBOLINES art: -30 at -165 degrees, zero at -75, +30 at +45.
+    // Negative (vacuum) and positive (boost) halves have different sweeps.
+    public static float TurboNeedleAngle(float pressure) {
+        if(float.IsNaN(pressure)||float.IsInfinity(pressure))pressure=0;
+        pressure=DrivingMath.Clamp(pressure,-30,30);
+        return -75+pressure*(pressure<0?3:4);
+    }
     public static float Speed(float metresPerSecond,bool mph)=>float.IsNaN(metresPerSecond)||float.IsInfinity(metresPerSecond)?0:Math.Abs(metresPerSecond)*(mph?2.2369363f:3.6f);
     // Top-down source pixels, counterclockwise-looking left endpoint to upper-right.
     public static float NitroPixelProgress(int x,int y)=>Unit(((float)Math.Atan2(y-122,x-100)*(180f/(float)Math.PI)+180)/137);

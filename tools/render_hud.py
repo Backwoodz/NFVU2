@@ -9,7 +9,7 @@ from project import LOCAL,OUTPUT
 
 def image(t):return Image.frombytes('RGBA',(t['width'],t['height']),base64.b64decode(t['rgba']))
 
-def render(design,charge=.65,rpm=4500,speed=86,mph=False):
+def render(design,charge=.65,rpm=4500,speed=86,mph=False,turbo_pressure=18,turbo_available=True):
     data=json.loads((LOCAL/'hud/hud.json').read_text());d=data['designs'][design]
     canvas=Image.new('RGBA',(515,400),(19,25,31,255));offset=(190,50)
     def paste(im,box,tint=None):
@@ -41,19 +41,26 @@ def render(design,charge=.65,rpm=4500,speed=86,mph=False):
     label(290,186,str(round(speed)),42,'white');label(290,237,'MPH' if mph else 'KM/H',14,accent);label(290,146,'G 3',22,accent)
     label(305,279,f'NOS {round(charge*100)} %',14,accent)
     label(285,316,d['name'],16,'white')
-    cx,cy=offset[0]-84,offset[1]+222
-    draw.ellipse((cx-68,cy-68,cx+68,cy+68),fill=(6,9,11),outline=(77,89,102),width=3)
-    maximum=160 if mph else 240
-    for i in range(21):
-        a=math.radians(-130+260*i/20);inner=52 if i%5==0 else 57
-        draw.line(((cx+math.sin(a)*inner,cy-math.cos(a)*inner),(cx+math.sin(a)*61,cy-math.cos(a)*61)),fill='white' if i%5==0 else accent,width=2)
-        if i%5==0:
-            font=ImageFont.truetype(str(Path(os.environ.get('WINDIR','C:/Windows'))/'Fonts/segoeuib.ttf'),11)
-            draw.text((cx+math.sin(a)*44,cy-math.cos(a)*44),str(round(maximum*i/20)),font=font,anchor='mm',fill='white')
-    draw.text((cx,cy+30),'MPH' if mph else 'KM/H',font=font,anchor='mm',fill='white')
-    a=math.radians(-130+260*min(1,abs(speed)/maximum))
-    draw.line(((cx,cy),(cx+math.sin(a)*51,cy-math.cos(a)*51)),fill='white',width=3)
-    draw.ellipse((cx-3,cy-3,cx+3,cy+3),fill=accent)
+    if turbo_available:
+        cx,cy=offset[0]-84,offset[1]+222
+        if d.get('turboFill') and d.get('turboLines'):
+            paste(image(d['turboFill']),(-152,154,136,136))
+            paste(image(d['turboLines']),(-152,154,136,136),accent)
+        else:
+            draw.ellipse((cx-68,cy-68,cx+68,cy+68),fill=(6,9,11),outline=(77,89,102),width=3)
+            for i in range(8):
+                a=math.radians(-165+30*i)
+                draw.line(((cx+math.sin(a)*54,cy-math.cos(a)*54),(cx+math.sin(a)*61,cy-math.cos(a)*61)),fill=accent,width=2)
+            for value in [-30,0,30]:
+                a=math.radians(-75+value*(3 if value<0 else 4))
+                label(-84+math.sin(a)*43+10,222-math.cos(a)*43-9,str(value),11,'white')
+        label(-49,291,'TURBO',11,'white')
+        pressure=max(-30,min(30,turbo_pressure)) if math.isfinite(turbo_pressure) else 0
+        a=math.radians(-75+pressure*(3 if pressure<0 else 4))
+        endpoint=(cx+math.sin(a)*51,cy-math.cos(a)*51)
+        draw.line(((cx,cy),endpoint),fill='black',width=6)
+        draw.line(((cx,cy),endpoint),fill='white',width=3)
+        draw.ellipse((cx-3,cy-3,cx+3,cy+3),fill=accent)
     return canvas
 
 if __name__=='__main__':
@@ -62,4 +69,8 @@ if __name__=='__main__':
     for i in range(11):sheet.alpha_composite(render(i),((i%4)*515,(i//4)*400))
     sheet.convert('RGB').save(OUTPUT/'hud-designs.png')
     render(0).save(OUTPUT/'hud-preview.png')
+    states=Image.new('RGBA',(515*4,400),(12,16,22,255))
+    for i,pressure in enumerate([-30,0,30]):states.alpha_composite(render(0,turbo_pressure=pressure),(i*515,0))
+    states.alpha_composite(render(0,turbo_available=False),(3*515,0))
+    states.convert('RGB').save(OUTPUT/'hud-turbo-states.png')
     print('HUD previews written to artifacts/')

@@ -1,4 +1,4 @@
-"""Import eleven original NFSU2 gauge designs and NOS artwork; local output only.
+"""Import eleven original NFSU2 gauge designs and turbo/NOS artwork; local output only.
 
 Texture names are truncated in the archive, so keys identify the exact variant.
 Layout, colours and live values are adapted by the Valheim HUD, not NFS scripts.
@@ -22,7 +22,12 @@ def export():
         fill=read('TACH_FILL_CUSTOM_').crop((0,0,size,size))
         lines=read('3RDPERSON_7500LINES_CUSTOM_')
         needle=read('3RDPERSON_RPMDIAL_CUSTOM_').crop((0,56,16,128))
-        designs.append(dict(name=f'NFSU2 {i+1:02d}',fill=rgba('fill',fill),lines=rgba('lines',lines),needle=rgba('needle',needle)))
+        # Turbo artwork uses the top-left 72px square in every style. The
+        # authored dial runs -30..0..30; it is not a second speedometer.
+        turbo_fill=read('3RDPERSON_TURBOFILL_CUSTOM_').crop((0,0,72,72))
+        turbo_lines=read('3RDPERSON_TURBOLINES_CUSTOM_').crop((0,0,72,72))
+        designs.append(dict(name=f'NFSU2 {i+1:02d}',fill=rgba('fill',fill),lines=rgba('lines',lines),needle=rgba('needle',needle),
+                            turboFill=rgba('turboFill',turbo_fill),turboLines=rgba('turboLines',turbo_lines)))
     race=TexturePack(base/'InGameRace.bun')
     data=dict(schemaVersion=1,designs=designs,
               nitro=rgba('TACH_NOS_ALPHA',race.decode(bin_hash('TACH_NOS_ALPHA'))[1]),
@@ -30,9 +35,9 @@ def export():
     out=LOCAL/'hud';out.mkdir(exist_ok=True)
     (out/'hud.json').write_text(json.dumps(data,separators=(',',':')),encoding='utf-8')
     (out/'provenance.json').write_text(json.dumps({'source':'GLOBAL/HUD_CustomTextures_00..10.bin and GLOBAL/InGameRace.bun',
-        'art':'Original TACH_FILL_CUSTOM, 7500LINES, RPMDIAL, TACH_NOS_ALPHA and TACH_NOS_BACKING',
-        'adaptation':'Padded canvas cropped; Unity layout, colours, NOS fill and telemetry authored for NFVU2. RPM/gear follows the acoustic gearbox.'},indent=2),encoding='utf-8')
-    print('Exported 11 original gauge designs and NOS textures to .local/hud/hud.json')
+        'art':'Original TACH_FILL_CUSTOM, 7500LINES, RPMDIAL, TURBOFILL, TURBOLINES, TACH_NOS_ALPHA and TACH_NOS_BACKING',
+        'adaptation':'Padded canvas cropped; Unity layout, colours, NOS fill and telemetry authored for NFVU2. RPM/gear follows the acoustic gearbox; signed turbo pressure follows the NFVU2 load model, not a recovered NFS pressure algorithm.'},indent=2),encoding='utf-8')
+    print('Exported 11 original gauge designs with turbo and NOS textures to .local/hud/hud.json')
     return data
 
 if __name__=='__main__':export()

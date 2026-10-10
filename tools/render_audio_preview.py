@@ -29,15 +29,32 @@ signal+=play('horn.wav',1)*horn*.8*level*.8
 turbo_folder=LOCAL/'audio-turbo'
 turbo_available=all((turbo_folder/name).is_file() for name in ('charge.wav','blowoff_low.wav','blowoff_high.wav'))
 if turbo_available and 'turbo' in state.dtype.names:
-    charge=col('turbo')
-    signal+=play('charge.wav',.85+.35*charge,turbo_folder)*.8*level*charge*.24
-    for variant,name,gain in [(1,'blowoff_low.wav',.55),(2,'blowoff_high.wav',.7)]:
-        with wave.open(str(turbo_folder/name),'rb') as w:
-            source_rate=w.getframerate();samples=np.frombuffer(w.readframes(w.getnframes()),dtype='<i2').astype(float)/32768
-        sample=np.interp(np.arange(round(len(samples)*rate/source_rate))*source_rate/rate,np.arange(len(samples)),samples)
-        for event in state[state['blowoff']==variant]:
-            start=round(event['time']*rate);end=min(len(signal),start+len(sample))
-            signal[start:end]+=sample[:end-start]*.8*level[start:end]*gain
+    signal+=play('charge.wav',col('charge_pitch'),turbo_folder)*.8*level*col('charge_gain')
+    def release_track(telemetry):
+        result=np.zeros(len(t));clips={}
+        for variant,name in [(1,'blowoff_low.wav'),(2,'blowoff_high.wav')]:
+            with wave.open(str(turbo_folder/name),'rb') as w:
+                source_rate=w.getframerate();samples=np.frombuffer(w.readframes(w.getnframes()),dtype='<i2').astype(float)/32768
+            clips[variant]=np.interp(np.arange(round(len(samples)*rate/source_rate))*source_rate/rate,np.arange(len(samples)),samples)
+        for event in telemetry[telemetry['blowoff']>0]:
+            sample=clips[int(event['blowoff'])]
+            start=round(event['time']*rate);end=min(len(result),start+len(sample))
+            # Runtime stops both previous release voices when a new event fires.
+            result[start:]=0;result[start:end]=sample[:end-start]*event['blowoff_gain']
+        return result
+    signal+=release_track(state)*.8*level
+    comparison=np.genfromtxt(OUTPUT/'tests/audio/turbo-comparison-state.csv',delimiter=',',names=True)
+    turbo_signal=.8*(play('charge.wav',np.interp(t,comparison['time'],comparison['charge_pitch']),turbo_folder)*np.interp(t,comparison['time'],comparison['charge_gain'])+release_track(comparison))
+    rms_sections=[float(np.sqrt(np.mean(turbo_signal[(t>=start)&(t<start+5)]**2))) for start in (0,5,10)]
+    assert 0<rms_sections[0]<rms_sections[1]*.5 and rms_sections[2]==0,'Turbo comparison must preserve load dynamics and silence without load'
+    assert np.max(np.abs(turbo_signal))<1,'Turbo comparison clips'
+    with wave.open(str(OUTPUT/'350Z-Turbovergleich.wav'),'wb') as w:
+        w.setparams((1,2,rate,len(turbo_signal),'NONE','not compressed'));w.writeframes(np.rint(turbo_signal*32767).astype('<i2').tobytes())
+    (OUTPUT/'tests/audio/turbo-comparison-report.json').write_text(json.dumps({
+        'sections':'0-5s partial load, 5-10s full load, 10-15s high RPM without load',
+        'rms':rms_sections,'full_vs_partial_db':float(20*np.log10(rms_sections[1]/rms_sections[0])),
+        'peak':float(np.max(np.abs(turbo_signal))),'clipped_samples':0,
+        'note':'Offline render of compiled turbo model and original local samples, not a Valheim or NFS recording.'},indent=2))
 peak=float(np.max(np.abs(signal)));rms=float(np.sqrt(np.mean(signal**2)))
 assert peak<1 and rms>.01,'Preview must be audible without clipping'
 target=OUTPUT/'350Z-Soundvorschau.wav'

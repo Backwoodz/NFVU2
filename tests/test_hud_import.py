@@ -10,11 +10,13 @@ class HudImportTests(unittest.TestCase):
         self.assertEqual(len({d['fill']['rgba'] for d in data['designs']}),11)
         for i,d in enumerate(data['designs']):
             self.assertEqual(d['fill']['width'],70 if i==10 else 140)
-            for part in ('fill','lines','needle'):
+            for part in ('fill','lines','needle','turboFill','turboLines'):
                 t=d[part];pixels=base64.b64decode(t['rgba'])
                 self.assertEqual(len(pixels),t['width']*t['height']*4)
                 self.assertEqual(min(pixels[3::4]),0)
                 self.assertGreater(max(pixels[3::4]),128)
+        self.assertEqual(len({d['turboFill']['rgba'] for d in data['designs']}),11)
+        self.assertTrue(all(d['turboLines']['width']==72 for d in data['designs']))
         self.assertEqual(data['nitro']['name'],'TACH_NOS_ALPHA')
         pixels=base64.b64decode(data['nitro']['rgba'])
         self.assertEqual(pixels[3],0) # no opaque black rectangle behind the arc

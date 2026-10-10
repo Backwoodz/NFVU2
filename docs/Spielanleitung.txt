@@ -1,4 +1,17 @@
-NFVU2 0.21.0 – 350Z und Hummer H2, lokaler Test für Valheim
+NFVU2 0.22.0 – 350Z und Hummer H2, lokaler Test für Valheim
+
+NEU: TURBOANZEIGE, SOUND UND KLEINE BÄUME
+Beim 350Z zeigt das kleine linke Instrument jetzt Turbo und Unterdruck.
+Geschwindigkeit steht weiterhin digital im Tacho, die große Skala zeigt RPM.
+Turbo und Blow-off reagieren auf Last und aufgebauten Ladedruck: wenig Gas
+ergibt einen leiseren Sound. Beim Gaswegnehmen fällt die Nadel kurz flatternd
+in den Unterdruckbereich. Der Hummer hat keine Turboanzeige.
+Kleine Bäume und Büsche lassen sich bereits im Schritttempo umfahren.
+Hängt das Auto direkt an einem kleinen Baum, weiter in dessen Richtung Gas
+geben. Große Bäume und Felsen benötigen weiterhin Explosivmunition.
+Zum Soundtest erst mit wenig, dann mit viel Gas beschleunigen und jeweils
+loslassen. Auch langsames Loslassen des Controller-Triggers ausprobieren.
+Die Druck-/Lautstärkekurve ist eine eigene Nachbildung auf Basis von NFS-Daten.
 
 NEU: MENÜ, ANTRIEB UND AUSPUFF
 Ohne erreichbares Auto zeigt das Menü nur Garage und Einstellungen.

@@ -39,16 +39,20 @@ if args.turbo_only:
         samples-=np.mean(samples)
         peak=float(np.max(np.abs(samples)));rms=float(np.sqrt(np.mean(samples*samples)))
         if rms<.0001:raise ValueError('Silent turbo sample')
-        samples*=min(.18/rms,.82/peak)
+        # A shared gain preserves the original relationship between charge and
+        # release recordings. Per-clip RMS normalisation erased that dynamic.
+        samples*=.8
+        if np.max(np.abs(samples))>.83:raise ValueError('Unexpected original turbo peak after shared gain')
         with wave.open(str(out/name),'wb') as w:
             w.setparams((1,2,rate,len(samples),'NONE','not compressed'));w.writeframes(np.rint(samples*32767).astype('<i2').tobytes())
         original=LOCAL/'nfs-assets'/row['source']
         manifest.append({'file':name,'source':row['source'],'source_sha256':hashlib.sha256(original.read_bytes()).hexdigest(),
                          'decoder_version':row['metadata'].get('version'),'subsong':index,'sample_rate':rate,'samples':len(samples),
                          'peak':float(np.max(np.abs(samples))),'rms':float(np.sqrt(np.mean(samples*samples))),
+                         'source_rms_after_edge_processing':rms,'shared_gain':.8,
                          'sha256':hashlib.sha256((out/name).read_bytes()).hexdigest()})
     (out/'manifest.json').write_text(json.dumps({'bank':f'TURBO_MED_{args.turbo_bank}_MB.abk','files':manifest,
-        'provenance':'Original local NFSU2 samples decoded with vgmstream. Role assignments are configurable approximations from loop/one-shot metadata, pending listening comparison. Boost envelopes and event triggers are our own acoustic approximation.',
+        'provenance':'Original local NFSU2 samples decoded with vgmstream. Shared gain 0.8 preserves relative sample levels; no per-clip RMS normalisation. Role assignments remain configurable approximations from loop/one-shot metadata. Pressure, dynamic volume and flutter are NFVU2 approximations; dataset ChargeTime and volume ratios are recovered parameters.',
         'mapping_reference':'https://github.com/nlgxzef/NFSU2CarSoundTuner/blob/master/CarSoundData/CarDataMapping/02.ini'},indent=2),encoding='utf-8')
     print('Prepared 3 original turbo clips in .local/audio-turbo; role assignment needs in-game listening verification.')
     raise SystemExit(0)

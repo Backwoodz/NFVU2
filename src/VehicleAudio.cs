@@ -16,6 +16,7 @@ public sealed class VehicleAudio : IDisposable {
     public float Load => model.Load;
     public bool IsShifting => model.IsShifting;
     public int Gear => model.Gear;
+    public float TurboPressure => suv?0:turboModel.Pressure;
     readonly List<AudioClip> clips=new List<AudioClip>();
     readonly List<AudioSource> sources=new List<AudioSource>();
     AudioSource[] power,coast;
@@ -26,7 +27,7 @@ public sealed class VehicleAudio : IDisposable {
     WheelCollider[] wheels;
     AudioMixerGroup mixer;
     SpawnAudio prepared;
-    float roadLevel,skidLevel,hornLevel;
+    float roadLevel,skidLevel,hornLevel,turboReleaseGain;
     bool paused,playing,disposed;
     int exhaustProfile;
     float exhaustPitch=1f;
@@ -87,10 +88,12 @@ public sealed class VehicleAudio : IDisposable {
         source.dopplerLevel=.25f;source.spread=0;source.outputAudioMixerGroup=mixer;
         return source;
     }
-    public void Tick(bool driving,float throttle,bool braking,bool honking,bool blocked,bool terrain,float volume,bool burnout=false,bool parkedRunning=false,bool flying=false) {
+    public void Tick(bool driving,float throttle,bool braking,bool honking,bool blocked,bool terrain,float volume,bool burnout=false,bool parkedRunning=false,bool flying=false,bool turboInputAllowed=true) {
         if(disposed)return;
         if(blocked) {
             if(!paused){foreach(var source in sources)source.Pause();paused=true;}
+            turboModel.Reset();turboReleaseGain=0;
+            if(turboLow!=null)turboLow.Stop();if(turboHigh!=null)turboHigh.Stop();
             return;
         }
         if(paused){if(playing)foreach(var source in sources)source.UnPause();paused=false;}
@@ -100,7 +103,7 @@ public sealed class VehicleAudio : IDisposable {
         if(flying){forward=speed=throttle=0;braking=burnout=false;}
         if(!driving){forward=speed=wheelRpm=throttle=0;braking=honking=burnout=false;}
         model.Step(dt,driving||parkedRunning,forward,wheelRpm,burnout?1:throttle,braking,terrain,burnout);
-        turboModel.Step(dt,driving,model.Rpm,braking?0:Mathf.Max(0,throttle),model.IsShifting,model.Gear<0);
+        turboModel.Step(dt,driving&&!flying&&!suv&&turboInputAllowed,model.Rpm,braking?0:Mathf.Max(0,throttle),model.IsShifting,model.Gear<0,model.Load);
         if(model.Level>.001f && !playing){foreach(var source in sources)if(source.loop)source.Play();playing=true;}
         else if(model.Level<=.001f && playing){foreach(var source in sources)source.Stop();playing=false;}
         if(!playing)return;
@@ -136,14 +139,19 @@ public sealed class VehicleAudio : IDisposable {
         reverseWhine.pitch=ReverseGearSound.Pitch(forward);
         horn.volume=volume*model.Level*hornLevel*.8f;
         if(turboCharge!=null) {
-            turboCharge.volume=volume*model.Level*turboModel.Charge*.24f;
-            turboCharge.pitch=Mathf.Lerp(.85f,1.2f,turboModel.Charge);
-            if(turboLow!=null)turboLow.volume=volume*model.Level*.55f;
-            if(turboHigh!=null)turboHigh.volume=volume*model.Level*.7f;
-            if(turboModel.BlowOff!=0) {
-                var source=turboModel.BlowOff==2?turboHigh:turboLow;
-                if(source!=null){source.Stop();source.Play();}
+            if(!driving||flying||model.Gear<0||!turboInputAllowed) {
+                turboReleaseGain=0;turboLow?.Stop();turboHigh?.Stop();
             }
+            turboCharge.volume=volume*model.Level*turboModel.ChargeGain;
+            turboCharge.pitch=turboModel.ChargePitch;
+            if(turboModel.BlowOff!=0) {
+                turboLow?.Stop();turboHigh?.Stop();
+                turboReleaseGain=turboModel.BlowOffGain;
+                var source=turboModel.BlowOff==2?turboHigh:turboLow;
+                if(source!=null){source.volume=volume*model.Level*turboReleaseGain;source.Play();}
+            }
+            if(turboLow!=null)turboLow.volume=volume*model.Level*turboReleaseGain;
+            if(turboHigh!=null)turboHigh.volume=volume*model.Level*turboReleaseGain;
         }
     }
     public void Dispose() {

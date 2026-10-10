@@ -4,6 +4,8 @@ using System.Collections.Generic;
 namespace Rachel350Z {
 // Game-independent rules: only these destructible vegetation prefabs can be hit.
 public static class VehicleImpactRules {
+    public const float VegetationMinSpeed=.25f;
+    public const float CharacterMinSpeed=2.5f;
     static readonly HashSet<string> vegetation=new HashSet<string>(StringComparer.Ordinal) {
         "Beech_small1","Beech_small2","FirTree_small","FirTree_small_dead",
         "Bush01","Bush01_heath","Bush01_deepnorth","Bush02_en"
@@ -15,7 +17,8 @@ public static class VehicleImpactRules {
         return vegetation.Contains(name);
     }
     public static float Damage(float closingSpeed,bool vegetation) {
-        if(float.IsNaN(closingSpeed)||float.IsInfinity(closingSpeed)||closingSpeed<2.5f)return 0;
+        if(float.IsNaN(closingSpeed)||float.IsInfinity(closingSpeed)
+            ||closingSpeed<(vegetation?VegetationMinSpeed:CharacterMinSpeed))return 0;
         float speed=Math.Min(closingSpeed,20);
         return vegetation?Math.Min(500,80+speed*speed*4):Math.Min(300,speed*speed*2);
     }

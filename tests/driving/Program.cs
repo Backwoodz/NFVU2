@@ -32,13 +32,24 @@ class DrivingTests {
         Check(Near(HudMath.Speed(10,false),36)&&Near(HudMath.Speed(10,true),22.369363f),"HUD converts actual speed to KM/H or MPH");
         Check(HudMath.Speed(-10,false)==36&&HudMath.Speed(float.NaN,false)==0,"HUD reverse and invalid speed stay readable");
         Check(HudMath.NeedleAngle(0)==180&&HudMath.NeedleAngle(7500)==420&&HudMath.NeedleAngle(9000)==420,"needle matches original 7500 RPM sweep and clamps overrev");
-        Check(HudMath.SpeedNeedleAngle(0,false)==-130&&Near(HudMath.SpeedNeedleAngle(120/3.6f,false),0)&&HudMath.SpeedNeedleAngle(100,false)==130,"speed needle follows actual speed and clamps at dial maximum");
-        Check(Near(HudMath.SpeedNeedleAngle(80/2.2369363f,true),0)&&HudMath.SpeedNeedleAngle(float.NaN,true)==-130,"MPH dial has matching labels and invalid speed falls to zero");
+        Check(HudMath.TurboNeedleAngle(-30)==-165&&HudMath.TurboNeedleAngle(0)==-75&&HudMath.TurboNeedleAngle(30)==45,"turbo needle matches the original vacuum, zero and boost ticks");
+        Check(HudMath.TurboNeedleAngle(-15)==-120&&HudMath.TurboNeedleAngle(15)==-15,"vacuum and boost use their respective original sweep halves");
+        Check(HudMath.TurboNeedleAngle(-100)==-165&&HudMath.TurboNeedleAngle(100)==45,"pressure needle clamps outside the signed dial range");
+        Check(HudMath.TurboNeedleAngle(float.NaN)==-75&&HudMath.TurboNeedleAngle(float.PositiveInfinity)==-75,"invalid pressure returns needle to zero");
         Check(HudMath.Unit(-1)==0&&HudMath.Unit(2)==1&&HudMath.Unit(float.NaN)==0,"nitro fill clamps depleted full and invalid tank levels");
         Check(HudMath.NitroPixelProgress(14,117)<.05f&&HudMath.NitroPixelProgress(160,45)>.9f,"NOS arc fills from lower left toward upper right");
         var data=HudFile.Load(args[0]);Check(data.designs.Length==11&&data.nitro.rgba.Length==256*128*4,"all eleven original gauges and NOS atlas load");
         string temp=Path.Combine(Path.GetTempPath(),"nfvu2-hud-"+Guid.NewGuid().ToString("N")+".json");
         try {
+            Check(data.designs[0].turboFill!=null&&data.designs[10].turboLines!=null,"original turbo artwork loads with all gauge styles");
+            var turboFill=data.designs[0].turboFill;var turboLines=data.designs[0].turboLines;
+            data.designs[0].turboFill=null;data.designs[0].turboLines=null;
+            File.WriteAllText(temp,JsonConvert.SerializeObject(data));
+            Check(HudFile.Load(temp).designs[0].turboFill==null,"legacy HUD catalog without turbo art supports the pressure fallback");
+            data.designs[0].turboFill=turboFill;File.WriteAllText(temp,JsonConvert.SerializeObject(data));
+            bool incomplete=false;try{HudFile.Load(temp);}catch(InvalidDataException){incomplete=true;}
+            Check(incomplete,"incomplete turbo artwork pair is rejected");
+            data.designs[0].turboLines=turboLines;
             var texture=data.designs[0].needle;texture.rgba=new byte[1];File.WriteAllText(temp,JsonConvert.SerializeObject(data));
             bool rejected=false;try{HudFile.Load(temp);}catch(InvalidDataException){rejected=true;}
             Check(rejected,"truncated HUD pixel data rejected before native upload");

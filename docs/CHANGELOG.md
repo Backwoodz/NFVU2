@@ -1,5 +1,29 @@
 # Versionsgeschichte
 
+## 0.22.0 — Turbolast, originale Druckanzeige und kleine Bäume
+
+- Kleine Bäume/Büsche ab 0,25 m/s statt 2,5 m/s; native Kontakte können die
+  Pflanze auch nach dem Abbremsen durch die Physik treffen. Gerichtetes Gas
+  bei echtem Kontakt befreit ein bereits hängendes Fahrzeug. Gegner behalten
+  ihre bisherige Schadensschwelle, Wände und große Bäume bleiben geschützt.
+- Turbo und Blow-off folgen einem gemeinsamen Lastzustand. Ereignislautstärke
+  wird vor Druckabbau gespeichert; keine starren Low-/High-Pegel mehr. Der
+  Import erhält relative Samplepegel mit gemeinsamem Gain statt RMS-Normalisierung.
+- Analoge Gasrücknahme über mehrere Frames erzeugt ebenfalls einen Blow-off;
+  kleine Trigger-Schwankungen nicht. Menü, Pause, Ausstieg und Flug setzen
+  den Turbo zurück, ohne eine künstliche Entladung auszulösen.
+- Originale Turbo-Zifferblätter aller elf NFS-Stile ersetzen die zusätzliche
+  Geschwindigkeitsanzeige. Digitale Geschwindigkeit bleibt erhalten; H2 ohne
+  Turbo blendet das kleine Instrument aus. Ältere HUD-Dateien bleiben lesbar.
+- Unterdruck und 0,42 s abklingendes Flattern ergänzen die Nadelbewegung.
+  Die Druck-/Gain-Kurve ist eigene NFVU2-Abstimmung, keine vollständige
+  Rekonstruktion der NFS-Auslöselogik. Belege/Abgrenzung siehe REFERENCES.
+- Offline-Soundvergleich: Teil-/Volllast unterscheiden sich um ca. 8,3 dB,
+  ohne Motorlast bleibt der Turbo still; keine übersteuerten Samples.
+  Unity-Physik, tatsächliche Mischlautstärke und HUD im Spiel noch prüfen.
+- Build, 54 Python-Tests sowie 87 Audio-, 24 HUD-/Fahranzeige-, 59 Kollisions-
+  und 31 Ladeprüfungen bestanden. Dies sind keine Unity-Laufzeittests.
+
 ## 0.21.0 — Menüführung, Antrieb, Turret und Auspuff
 
 - Kategorien und Inhalt haben getrennten Controller-Fokus; Stick/Steuerkreuz

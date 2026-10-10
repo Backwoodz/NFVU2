@@ -1,5 +1,25 @@
 # Nächste Aufgaben
 
+## Turbo und kleine Bäume in 0.22.0
+
+- Bei ca. 1–3 km/h kleine Buchen/Tannen/Büsche vorwärts/rückwärts umfahren;
+  nach Stillstand am Stamm weiter Gas geben. Seitlicher Kontakt, Rollen ohne
+  Gas, Bremse/Handbremse, Parken, Menü und Flug dürfen keine künstlichen Treffer
+  erzeugen. Gegner bleiben unter 9 km/h ohne Kollisionsschaden; Wände schützen.
+- 350Z: Teil-/Volllast, hohe Drehzahl ohne Last, abruptes und graduelles
+  Gaswegnehmen, Schaltvorgänge und erneutes Gasgeben hören. Blow-off richtet
+  sich nach vorherigem Ladedruck und darf ohne Last nicht losgehen.
+- Alle elf Zifferblätter: −30/0/+30, kurzer Unterdruck-Flattereffekt, digitale
+  Geschwindigkeit in KM/H/MPH, 720p/1080p, H2 ohne Turboinstrument prüfen.
+- Unter Last Menü/Pause/Alt-Tab, Ausstieg, Rückwärtsgang und Flug: keine alten
+  oder künstlich ausgelösten Blow-offs. Menü-Klangwahl bleibt hörbar.
+- Originale NFS-Trigger-/Druckkurve und Semantik der fünf Turbo-Substreams
+  bleiben offen. 1/2/3-Zuordnung sowie Druck/Gain/Flattern sind Annäherungen;
+  tatsächlichen NFS-Laufzeitverlauf später mit Hör-/Telemetriedaten vergleichen.
+- `tools/render_audio_preview.py` erzeugt aus kompiliertem Soundmodell eine
+  Motorvorschau und `350Z-Turbovergleich.wav`: 0–5 s Teilgas, 5–10 s Vollgas,
+  10–15 s hohe Drehzahl ohne Last. Das sind Offline-Renderings, keine Spielaufnahme.
+
 ## Menü, Antrieb und Auspuff in 0.21.0
 
 - Controller: alle Kategorien mit Stick/Steuerkreuz erreichen, rechts/A in den

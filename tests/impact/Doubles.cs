@@ -14,12 +14,14 @@ public class Component:Object {
 public class MonoBehaviour:Component {}
 public class Transform {
     public Quaternion rotation;
+    public Vector3 forward=new Vector3(0,0,1);
     public Vector3 TransformPoint(Vector3 point)=>point;
     public bool IsChildOf(Transform other)=>this==other;
 }
 public struct Quaternion {}
 public struct Vector3 {
     public float x,y,z;
+    public static Vector3 zero=>new Vector3();
     public Vector3(float x,float y,float z){this.x=x;this.y=y;this.z=z;}
     public float sqrMagnitude=>x*x+y*y+z*z;
     public float magnitude=>(float)Math.Sqrt(sqrMagnitude);
@@ -34,6 +36,7 @@ public struct RaycastHit {public Collider collider;public Vector3 point,normal;p
 public struct ContactPoint {public Vector3 point,normal;}
 public class Collision {
     public Collider collider;public ContactPoint[] contacts;
+    public Vector3 relativeVelocity;
     public int contactCount=>contacts.Length;
     public ContactPoint GetContact(int i)=>contacts[i];
 }
@@ -53,6 +56,7 @@ public static class Time {public static float time;public static float fixedDelt
 public static class Mathf {
     public static float Max(float a,float b)=>Math.Max(a,b);
     public static float Min(float a,float b)=>Math.Min(a,b);
+    public static float Abs(float a)=>Math.Abs(a);
 }
 }
 public class Character:UnityEngine.MonoBehaviour {

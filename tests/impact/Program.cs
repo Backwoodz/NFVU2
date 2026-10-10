@@ -13,7 +13,10 @@ class ImpactTests {
             Check(VehicleImpactRules.SmallVegetation(name+"(Clone)"),"eligible vegetation: "+name);
         foreach(string name in new[]{null,"Beech1","FirTree","Beech_Sapling","Beech_Stub","rock1","wood_wall","Bush01_unknown"})
             Check(!VehicleImpactRules.SmallVegetation(name),"protected object: "+name);
-        Check(VehicleImpactRules.Damage(0,false)==0&&VehicleImpactRules.Damage(2.49f,true)==0,"stationary and parking-speed contacts cause no damage");
+        Check(VehicleImpactRules.Damage(0,true)==0&&VehicleImpactRules.Damage(.24f,true)==0
+            &&VehicleImpactRules.Damage(2.49f,false)==0,"idle vegetation and slow character contacts cause no damage");
+        Check(VehicleImpactRules.Damage(.25f,true)>80&&VehicleImpactRules.Damage(.25f,false)==0,
+            "vegetation clears at 0.9 km/h without lowering character threshold");
         Check(VehicleImpactRules.Damage(float.NaN,false)==0&&VehicleImpactRules.Damage(float.PositiveInfinity,true)==0,"invalid speed rejected");
         Check(VehicleImpactRules.Damage(8,false)>VehicleImpactRules.Damage(3,false),"enemy damage grows with closing speed");
         Check(VehicleImpactRules.Damage(100,false)==300&&VehicleImpactRules.Damage(100,true)==500,"high-speed damage capped");
@@ -72,6 +75,49 @@ class ImpactTests {
         Check(enemy.hits==3,"initial overlap waits for a real contact normal");
         Physics.hits=new RaycastHit[32];Physics.hits[0]=enemyHit;car.Step(driver,true);
         Check(enemy.hits==3,"full sweep buffer falls back to physical contacts");
+        // Exercise slow forward/reverse sweeps and contact-only clearing separately.
+        var sapling=new Destructible{name="Beech_small1(Clone)"};var saplingCollider=Target(sapling);
+        var saplingHit=new RaycastHit{collider=saplingCollider,normal=new Vector3(0,0,-1),distance=.01f};
+        body.linearVelocity=new Vector3(0,0,.4f);Physics.hits=new[]{saplingHit};car.Step(driver,true);
+        Check(sapling.hits==1&&sapling.lastHit.m_damage.m_chop>80,"slow forward sweep chops a small tree");
+        Check(Math.Abs(Physics.castDistance-.038f)<.001f,"slow sweep stays within one fixed step and contact margin");
+        Time.time=4;body.linearVelocity=new Vector3(0,0,-.4f);saplingHit.normal=new Vector3(0,0,1);
+        Physics.hits=new[]{saplingHit};car.Step(driver,true);
+        Check(sapling.hits==2&&sapling.lastHit.m_dir.z<0,"slow reverse sweep clears vegetation in reverse direction");
+        Time.time=5;Physics.hits=new[]{saplingHit,new RaycastHit{collider=Target(wall),distance=.005f}};
+        car.Step(driver,true);Check(sapling.hits==2,"near wall blocks low-speed vegetation sweep");
+        Physics.hits=new[]{new RaycastHit{collider=Target(enemy),normal=new Vector3(0,0,1),distance=.01f}};
+        car.Step(driver,true);Check(enemy.hits==3,"slow sweep cannot damage a hostile character");
+        Physics.hits=new RaycastHit[0];body.linearVelocity=Vector3.zero;car.Step(driver,true);
+        collision=new Collision{collider=saplingCollider,relativeVelocity=new Vector3(0,0,.4f),
+            contacts=new[]{new ContactPoint{normal=new Vector3(0,0,-1)}}};
+        contact.Invoke(car,new object[]{collision});
+        Check(sapling.hits==3,"collision incoming speed clears tree even after body was stopped by physics");
+        contact.Invoke(car,new object[]{collision});
+        Check(sapling.hits==3,"slow contact still observes per-target cooldown");
+        Time.time=6;collision.relativeVelocity=Vector3.zero;car.Step(driver,true);
+        contact.Invoke(car,new object[]{collision});Check(sapling.hits==3,"stationary occupied car does not chop on contact");
+        car.Step(driver,true,1);
+        Check(sapling.hits==3,"stationary throttle alone cannot sweep through nearby objects");
+        collision.contacts[0]=new ContactPoint{normal=new Vector3(0,0,1)};
+        contact.Invoke(car,new object[]{collision});Check(sapling.hits==3,"forward throttle does not chop a tree behind the car");
+        collision.contacts[0]=new ContactPoint{normal=new Vector3(1,0,0)};
+        contact.Invoke(car,new object[]{collision});Check(sapling.hits==3,"forward throttle does not chop a tree touching the side");
+        collision.contacts[0]=new ContactPoint{normal=new Vector3(0,0,-1)};
+        var stay=typeof(VehicleImpact).GetMethod("OnCollisionStay",BindingFlags.Instance|BindingFlags.NonPublic);
+        stay.Invoke(car,new object[]{collision});
+        Check(sapling.hits==4,"powered physical contact frees a car already stuck against a sapling");
+        Time.time=7;car.Step(driver,true,-1);collision.contacts[0]=new ContactPoint{normal=new Vector3(0,0,1)};
+        stay.Invoke(car,new object[]{collision});Check(sapling.hits==5&&sapling.lastHit.m_dir.z<0,"reverse powered contact frees a stuck car");
+        Time.time=8;car.Step(null,false,-1);stay.Invoke(car,new object[]{collision});
+        Check(sapling.hits==5,"parked or blocked car cannot clear vegetation even with stale throttle");
+        car.Step(driver,true,-1);collision.collider=Target(enemy);collision.relativeVelocity=new Vector3(0,0,-8);
+        stay.Invoke(car,new object[]{collision});
+        Check(enemy.hits==3,"contact drive and vegetation velocity fallback never bypass character speed threshold");
+        collision.collider=Target(new Destructible{name="FirTree(Clone)"});stay.Invoke(car,new object[]{collision});
+        Check(collision.collider.GetComponentInParent<Destructible>().hits==0,"powered contact keeps large trees protected");
+        collision.collider=saplingCollider;saplingCollider.parents[typeof(Piece)]=new Piece();stay.Invoke(car,new object[]{collision});
+        Check(sapling.hits==5,"powered physical contact cannot damage a building component");
         Console.WriteLine(checks+" impact checks passed (test doubles, not Unity physics).");
     }
 }

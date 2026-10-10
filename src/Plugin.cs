@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Rachel350Z {
 // Disposable local prototype. No ZNetView: never use in multiplayer or persist into saves.
-[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.21.0")]
+[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.22.0")]
 [DefaultExecutionOrder(10000)]
 public partial class Plugin : BaseUnityPlugin {
     VehicleOrbitCamera orbitCamera;
@@ -139,7 +139,8 @@ public partial class Plugin : BaseUnityPlugin {
     void StepVehicle() {
         if(body==null||wheels==null)return;
         if(!Flying)current.rideHeight?.Apply(lowering.Value);
-        vehicleImpact?.Step(player,driving&&!audioBlocked&&!menuOpen&&Application.isFocused);
+        vehicleImpact?.Step(player,driving&&!Flying&&!audioBlocked&&!menuOpen&&Application.isFocused,
+            DriverInputReady&&brake<=0&&!handbrakeHeld&&!burnoutHeld?throttle:0);
         if(Flying) {
             current.flight.Step(driving&&DriverInputReady&&!audioBlocked&&!menuOpen&&Application.isFocused,throttle,steer,current.flightVertical,nitroHeld&&nitroEnabled.Value);
             TraceFlightBoost();
@@ -207,7 +208,7 @@ public partial class Plugin : BaseUnityPlugin {
         if(showroom!=null)try {showroom.TickSubwoofers(vehicleRadio?.SubwooferOffset??0);}
         catch(Exception e){showroom.Dispose();showroom=null;Logger.LogWarning("350Z subwoofer visuals disabled: "+e);}
         if(vehicleAudio!=null)try {
-            vehicleAudio.Tick(driving,throttle,brake>0||burnoutHeld&&!burnout,honking,audioBlocked,terrainMode.Value,soundVolume.Value,burnout,ParkedRunning,Flying);
+            vehicleAudio.Tick(driving,throttle,brake>0||burnoutHeld&&!burnout,honking,audioBlocked,terrainMode.Value,soundVolume.Value,burnout,ParkedRunning,Flying,!menuOpen&&DriverInputReady);
         } catch(Exception e) {
             vehicleAudio.Dispose();vehicleAudio=null;Logger.LogWarning("350Z sound disabled after audio error: "+e);
         }

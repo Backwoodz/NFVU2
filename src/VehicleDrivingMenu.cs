@@ -42,7 +42,7 @@ public partial class Plugin {
         float charge=ActiveNitro?.Charge??0;
         bool nos=ActiveNitro!=null&&nitroEnabled.Value;
         if(dashboard==null){UiBox(new Rect(Screen.width-280,Screen.height-VehicleHintBottomInset-75,265,65),Mathf.RoundToInt(HudMath.Speed(speed,hudMph.Value))+(hudMph.Value?" MPH":" KM/H")+" | "+(gear<0?"R":"G "+gear)+"\nNOS "+(nos?Mathf.RoundToInt(charge*100)+" %":"AUS"));return;}
-        dashboard.Draw(hudDesign.Value,hudScale.Value,NeonColors[Math.Max(0,Array.IndexOf(ColorNames,hudColor.Value))],hudMph.Value,speed,rpm,gear,charge,nos,ActiveNitro!=null&&ActiveNitro.Boosting,VehicleHintBottomInset);
+        dashboard.Draw(hudDesign.Value,hudScale.Value,NeonColors[Math.Max(0,Array.IndexOf(ColorNames,hudColor.Value))],hudMph.Value,speed,rpm,gear,charge,nos,ActiveNitro!=null&&ActiveNitro.Boosting,VehicleHintBottomInset,vehicleAudio?.TurboPressure??0,!IsHummer);
     }
 }
 }

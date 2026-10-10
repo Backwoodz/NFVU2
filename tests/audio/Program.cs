@@ -107,14 +107,15 @@ class AudioTests {
         Check(ExhaustSoundProfile.Clamp(-1)==0&&ExhaustSoundProfile.Pitch(999)==1,"unknown exhaust profiles safely restore original sound");
         for(int profile=0;profile<3;profile++)foreach(float mix in new[]{0f,.2f,.8f,1f})
             Check(ExhaustSoundProfile.PowerMix(profile,mix)>=0&&ExhaustSoundProfile.PowerMix(profile,mix)<=1,"exhaust mix keeps power/coast crossfade bounded");
+        TurboChecks.Run(Check,args[0]);
         using(var writer=new StreamWriter(args[0])){
-            writer.WriteLine("time,rpm,load,level,shift,speed,gear,turbo,blowoff");model=new EngineSoundModel();turbo=new TurboSoundModel();
+            writer.WriteLine("time,rpm,load,level,shift,speed,gear,turbo,blowoff,charge_gain,charge_pitch,blowoff_gain,pressure");model=new EngineSoundModel();turbo=new TurboSoundModel();
             for(int i=0;i<900;i++){
                 float t=i/60f;float speed=t<2?0:t<10?(t-2)*2:Math.Max(0,16-(t-10)*5);
                 float gas=t>=2&&t<10?1:0;
                 model.Step(1f/60,t<14,speed,WheelRpm(speed),gas,false);
-                turbo.Step(1f/60,t<14,model.Rpm,gas,model.IsShifting,false);
-                writer.WriteLine(string.Join(",",new[]{t,model.Rpm,model.Load,model.Level,model.ShiftGain,speed,(float)model.Gear,turbo.Charge,(float)turbo.BlowOff}.Select(v=>v.ToString("R",CultureInfo.InvariantCulture))));
+                turbo.Step(1f/60,t<14,model.Rpm,gas,model.IsShifting,false,model.Load);
+                writer.WriteLine(string.Join(",",new[]{t,model.Rpm,model.Load,model.Level,model.ShiftGain,speed,(float)model.Gear,turbo.Charge,(float)turbo.BlowOff,turbo.ChargeGain,turbo.ChargePitch,turbo.BlowOffGain,turbo.Pressure}.Select(v=>v.ToString("R",CultureInfo.InvariantCulture))));
             }
         }
         Console.WriteLine(checks+" audio checks passed against the compiled plugin. Unity playback still requires an in-game check.");

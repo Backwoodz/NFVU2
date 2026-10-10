@@ -2,7 +2,28 @@
 
 **Need for Valheim: Underground 2** — ein privater Fahrzeug-Mod-Prototyp für Valheim.
 
-Aktueller Stand: **0.21.0** mit überarbeitetem Menü, stärkerem Antrieb und Auspuff-Tuning.
+Aktueller Stand: **0.22.0** mit lastabhängigem Turbo-Sound, originaler
+Turboanzeige und leichterem Umfahren kleiner Bäume.
+
+Das kleine linke Rundinstrument zeigt wieder Turbo-/Unterdruck auf der
+originalen Skala −30 bis +30, für alle elf NFS-HUD-Stile. Geschwindigkeit
+bleibt digital; der H2 ohne Turbo hat kein zusätzliches kleines Instrument.
+Sound und Nadel nutzen denselben Last-/Ladedruckzustand: Teilgas ist leiser,
+Blow-off übernimmt den Druck vor dem Ablassen, Gaswegnehmen erzeugt kurz
+abklingendes Nadelflattern im Unterdruckbereich. Auch graduelles Loslassen
+des Controller-Triggers wird erkannt. Menü/Pause erzeugt keinen künstlichen
+Blow-off. Die Samples behalten ihre ursprünglichen relativen Lautstärken.
+Original belegt sind Grafiken, getrennte Turbo-Soundrollen, Pegelverhältnisse
+und eine Aufladezeit von 0,5 s. Druck-/Lautstärkekurve, Sample-Zuordnung und
+Flatterbewegung bleiben eigene Annäherungen; keine originale NFS-Simulation.
+
+Kleine freigegebene Bäume/Büsche werden bereits ab etwa 0,9 km/h getroffen;
+wenn sie das Auto schon angehalten haben, reicht Gas in Richtung des tatsächlichen
+Kontakts. Ohne Gas im Stillstand entsteht kein Schaden. Gegner behalten die
+bisherige Mindestgeschwindigkeit von 9 km/h. Große Bäume und Felsen sind
+weiterhin ein Fall für Explosivmunition, nicht die Karosserie.
+
+Seit 0.21.0 mit überarbeitetem Menü, stärkerem Antrieb und Auspuff-Tuning:
 
 Das Menü hat getrennten Fokus für Kategorien und Inhalt: Stick/Steuerkreuz
 navigieren, rechts oder A/Kreuz öffnet den Inhalt; links am Zeilenanfang geht
@@ -190,8 +211,9 @@ Purge und Burnout bleiben in der Luft gesperrt. Der H2 verwendet ebenfalls den 3
 Shift steigt mit bis zu 12 m/s, Leertaste sinkt mit bis zu 16 m/s; nahe am
 Boden wird abgebremst. Die Räder neigen sich mit Vorwärts-/Rückwärts- und
 Lenkeingaben; die unterhalb ansetzenden Flammen zeigen entgegen der Schubrichtung.
-Der Tacho ergänzt einen separaten analogen Geschwindigkeitsmesser in KM/H/MPH;
-die große originale NFS-Skala bleibt der Drehzahlmesser mit verstärktem Zeiger.
+Der Tacho zeigt die Geschwindigkeit digital in KM/H/MPH; das kleine linke
+Instrument ist seit 0.22.0 wieder die originale Turbo-/Unterdruckanzeige.
+Die große originale NFS-Skala bleibt der Drehzahlmesser mit verstärktem Zeiger.
 
 Seit 0.15.2 liest Nitro zusätzlich Valheims `ZInput.GetMouseButton`; im Flug
 funktioniert alternativ W + linke Strg. Nach dem Schließen des Menüs die

@@ -177,6 +177,30 @@ Membranverformung sind eigene NFVU2-Implementierungen.
   NFVU2 verwendet weiterhin seine bereits importierten Aufnahmen; „Tief“ und
   „Sport“ verändern Tonhöhe und Last-/Schubmischung als eigene Abstimmungen.
 
+## Turbo und Druckanzeige in 0.22.0
+
+- [350Z-Zuordnung](https://github.com/nlgxzef/NFSU2CarSoundTuner/blob/master/CarSoundData/CarTypeMapping/350Z.ini)
+  und [CarDataMapping 02](https://github.com/nlgxzef/NFSU2CarSoundTuner/blob/master/CarSoundData/CarDataMapping/02.ini):
+  Stock/Street/Pro/Extreme verwenden TurboDataSet 6/6/7/8.
+- [TurboDataSet 08](https://github.com/nlgxzef/NFSU2CarSoundTuner/blob/master/CarSoundData/TurboDataSet/08.ini):
+  `TURBO_MED_2_MB.abk`, `TurboChargeVol=8000`, `LowBoostBovVol=24500`,
+  `HighBoostBovVol=16500`, `ChargeTime=0.5`. Das sind rekonstruierte originale
+  Datentabellen des Community-Werkzeugs, keine offizielle Engine-Dokumentation.
+  Die Tabellen unterscheiden Low-/High-Boost-Blow-off; die genaue originale
+  Trigger-, Druck- und Lautstärkekurve konnte damit nicht belegt werden.
+- [vgmstream ABK-Parser](https://github.com/vgmstream/vgmstream/blob/master/src/meta/ea_schl_abk.c)
+  und lokale Dekodierung: fünf Substreams, davon 1 und 5 geloopt. Die verwendete
+  Rollenzuordnung 1=Aufladen, 2=Low, 3=High ist weiterhin eine NFVU2-Annahme.
+  Der gemeinsame Importfaktor 0.8 erhält die relativen Samplepegel; die frühere
+  unabhängige RMS-Normalisierung jedes Clips entfällt. Die Division der obigen
+  Werte durch 32768 ist unsere Unity-Gain-Umrechnung, keine belegte Mixer-Einheit.
+- Lokale HUD-Texturen `3RDPERSON_TURBOFILL_CUSTOM_XX` und zugehörige
+  `TURBOLINES`: originale Grafik für alle elf Designs. Die Skala zeigt
+  -30/0/+30; die Einheit ist nicht nachgewiesen und wird nicht als PSI bezeichnet.
+  Lastmodell, Druckzuordnung, Unterdruck, Nadel-Flattern und dynamische Gains
+  sind eigene NFVU2-Abstimmungen. Sound und Anzeige verwenden denselben Zustand;
+  die Fahrzeugphysik bleibt davon unabhängig.
+
 # Menü und Parkautomatik in 0.13.0
 
 - Lokale NFSU2-Dateien: `FRONTEND/FrontB.lzc`,
