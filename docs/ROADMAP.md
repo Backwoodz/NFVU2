@@ -23,7 +23,7 @@
   das Sichtfeld zurück. Effekt aus/Stärke null bleibt ohne Bildänderung.
 - Automatische Logik-/Adaptertests ersetzen diese Unity-/Controller-Prüfung nicht.
 
-## Windows-Installer vor öffentlichem Release
+## Windows-Installer und öffentlicher Release
 
 - Neuer EXE-Wizard: Neuinstallation, Update, Deinstallation und optionales
   Entfernen des selbst installierten BepInEx. Seit Setup-Revision 2 wird Musik
@@ -32,10 +32,11 @@
   auf sauberer und bereits modifizierter Valheim-Installation manuell prüfen:
   Dateiauswahl, Berechtigungen, Skalierung, Spielstart und Fahrzeugspawn.
 - Paketinhalt zusätzlich in einem isolierten Verzeichnis installiert,
-  aktualisiert und mit BepInEx deinstalliert. GUI gestartet; Bildschirmaufnahme
-  des Computer-Use-Werkzeugs scheiterte mit einem Timeout. Layout noch offen.
+  aktualisiert und mit BepInEx deinstalliert. Das Layout von Setup-Revision 4
+  wurde zusätzlich per WinForms-Rendering geprüft; weitere DPI-Prüfungen offen.
 - Windows-EXE und SHA-256 werden lokal in `artifacts/installer/` erzeugt.
-  Noch kein öffentlicher Release und kein Upload durch den Build.
+  Erster öffentlicher Release: `v0.22.1`, Setup-Revision 4. Der Build selbst
+  veröffentlicht nichts; EXE und Prüfsumme werden als Release-Assets hochgeladen.
 - Zwei klar beschriftete Blender-Vorschauen des 350Z stehen in der README.
   Durch echte Ingame-Screenshots ergänzen/ersetzen, sobald passende Aufnahmen
   vorliegen; ein kurzer Gameplay-Clip kann später als GIF eingebunden werden.

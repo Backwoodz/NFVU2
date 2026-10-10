@@ -17,9 +17,9 @@ or take off and fly. Viking transportation got a little out of hand.
 
 Windows 10/11, 64-bit. **Single-player only**; cars are temporary and are not saved with the world.
 
-The first downloadable installer release has not been published yet.
+**[Download the Windows installer (148 MB)](https://github.com/Backwoodz/NFVU2/releases/download/v0.22.1/NFVU2-Setup-0.22.1-r4.exe)**
 
-1. Get **NFVU2-Setup-*.exe** from [Releases](https://github.com/Backwoodz/NFVU2/releases).
+1. Download the installer above, or get **NFVU2-Setup-*.exe** from [Releases](https://github.com/Backwoodz/NFVU2/releases).
    Use the installer asset, not GitHub's “Source code” download.
 2. Close Valheim, run the installer and select **valheim.exe**.
    In Steam: Valheim → Manage → Browse local files.

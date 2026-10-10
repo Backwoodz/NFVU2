@@ -1,6 +1,11 @@
 # Changelog
 
-## Unreleased — Windows setup and public-facing documentation
+## 0.22.1 — First public installer release
+
+Windows setup revision 4 includes the complete radio playlist in Ogg Vorbis
+format. The installer is approximately 148 MB.
+
+### Windows setup and documentation
 
 - Setup revision 4 explains that BepInEx loads mods, is required by NFVU2,
   is installed automatically when needed and should be kept for other mods.
@@ -28,7 +33,7 @@
 - Package filenames now use the mod version instead of a fixed old version.
 - No changes to vehicle handling, game controls or the plugin identity.
 
-## 0.22.1 — Controller rumble, door warnings and nitro visuals
+### Controller rumble, door warnings and nitro visuals
 
 - Clear native camera shake while the vehicle/menu camera owns the view, so
   a shake cannot keep controller vibration running without its normal decay.
