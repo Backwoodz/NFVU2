@@ -62,6 +62,7 @@ public partial class Plugin {
             MenuSound(2);
             menuOpen=false;EndMenuCamera();
             if(menuPlayer!=null)menuPlayer.enabled=menuPlayerEnabled;
+            ReleaseCameraRumble(menuCamera);
             if(menuCamera!=null)menuCamera.enabled=menuCameraEnabled;
             menuPlayer=null;menuCamera=null;
             Cursor.lockState=menuOldLock;Cursor.visible=menuOldVisible;Config.Save();

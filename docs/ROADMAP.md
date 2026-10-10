@@ -1,5 +1,35 @@
 # Nächste Aufgaben
 
+## Controller und Nitro in 0.22.1
+
+- Installation und Spielstart mit dem vorherigen Wizard wurden vom Nutzer bestätigt.
+- Flugmodus mit Controller starten, landen, aussteigen und Fahrzeug entfernen:
+  keine dauerhafte Vibration. Auch Menü, Weltwechsel und erneuten Einstieg prüfen;
+  normale Valheim-Vibration nach dem Aussteigen muss weiter funktionieren.
+- Fahrertür vor Einstieg/Ausstieg blockieren: zentrale Spielmeldung in DE/EN.
+- Nitro am Boden/im Flug prüfen: sichtbarer Randfilter und sanfter Sichtfeldwechsel,
+  Fahrzeug bleibt scharf. Loslassen, Pause, Menü, Alt-Tab und Ausstieg stellen
+  das Sichtfeld zurück. Effekt aus/Stärke null bleibt ohne Bildänderung.
+- Automatische Logik-/Adaptertests ersetzen diese Unity-/Controller-Prüfung nicht.
+
+## Windows-Installer vor öffentlichem Release
+
+- Neuer EXE-Wizard: Neuinstallation, Update, Deinstallation und optionales
+  Entfernen des selbst installierten BepInEx. Seit Setup-Revision 2 wird Musik
+  immer mitinstalliert; Logo im Wizard und in der README, LICENSE mit Close/Escape.
+- Automatische Tests verwenden temporäre Spielverzeichnisse. Den echten Wizard
+  auf sauberer und bereits modifizierter Valheim-Installation manuell prüfen:
+  Dateiauswahl, Berechtigungen, Skalierung, Spielstart und Fahrzeugspawn.
+- Paketinhalt zusätzlich in einem isolierten Verzeichnis installiert,
+  aktualisiert und mit BepInEx deinstalliert. GUI gestartet; Bildschirmaufnahme
+  des Computer-Use-Werkzeugs scheiterte mit einem Timeout. Layout noch offen.
+- Windows-EXE und SHA-256 werden lokal in `artifacts/installer/` erzeugt.
+  Noch kein öffentlicher Release und kein Upload durch den Build.
+- Echte Ingame-Screenshots für die kurze englische README ergänzen, sobald
+  passende Aufnahmen vorliegen; vorhandene Blender-Bilder sind Vorschauen.
+- Entwickleranleitung: [CONTRIBUTING](../CONTRIBUTING.md),
+  Versionsgeschichte: [CHANGELOG](../CHANGELOG.md).
+
 ## Turbo und kleine Bäume in 0.22.0
 
 - Bei ca. 1–3 km/h kleine Buchen/Tannen/Büsche vorwärts/rückwärts umfahren;

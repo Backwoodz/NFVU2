@@ -9,6 +9,10 @@ class ImpactTests {
         var c=new Collider();c.parents[target.GetType()]=target;return c;
     }
     static void Main() {
+        var unloaded=new VehicleImpact();
+        unloaded.Step(null,false);
+        unloaded.Step(new Character(),true);
+        Check(true,"exit and world teardown tolerate a missing rigidbody and hull");
         foreach(string name in new[]{"Beech_small1","Beech_small2","FirTree_small","FirTree_small_dead","Bush01","Bush01_heath","Bush01_deepnorth","Bush02_en"})
             Check(VehicleImpactRules.SmallVegetation(name+"(Clone)"),"eligible vegetation: "+name);
         foreach(string name in new[]{null,"Beech1","FirTree","Beech_Sapling","Beech_Stub","rock1","wood_wall","Bush01_unknown"})

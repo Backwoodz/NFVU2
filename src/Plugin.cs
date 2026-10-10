@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Rachel350Z {
 // Disposable local prototype. No ZNetView: never use in multiplayer or persist into saves.
-[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.22.0")]
+[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.22.1")]
 [DefaultExecutionOrder(10000)]
 public partial class Plugin : BaseUnityPlugin {
     VehicleOrbitCamera orbitCamera;
@@ -114,7 +114,7 @@ public partial class Plugin : BaseUnityPlugin {
         if(local is Player native&&(native.IsDead()||native.IsAttached()||native.IsTeleporting())){status="Zum Einsteigen zuerst die aktuelle Aktion beenden.";return;}
         if(body.linearVelocity.magnitude>.5f){status="Zum Einsteigen muss das Fahrzeug stehen.";return;}
         Vector3 outside=Vector3.zero;
-        if(current.interior!=null&&!FindCabinExit(local,out outside)){status="Die Fahrertür ist blockiert. Bitte etwas Platz schaffen.";return;}
+        if(current.interior!=null&&!FindCabinExit(local,out outside)){ShowVehicleWarning("Die Fahrertür ist blockiert. Bitte etwas Platz schaffen.");return;}
         CloseVehicleMenu();
         player=local;playerBody=player.GetComponent<Rigidbody>();if(playerBody==null){player=null;return;}
         lastExitPosition=player.transform.position;playerEnabled=player.enabled;playerKinematic=playerBody.isKinematic;
@@ -175,9 +175,9 @@ public partial class Plugin : BaseUnityPlugin {
         if(driving&&cabinDriver!=null)try {
             if(showroom==null){Exit();return;}
             cabinDriver.Tick(Time.deltaTime,audioBlocked||menuOpen||!Application.isFocused,showroom.State);
-            if(cabinDriver.Failed){Exit();status="Weg zur Fahrertür blockiert.";return;}
+            if(cabinDriver.Failed){Exit();ShowVehicleWarning("Weg zur Fahrertür blockiert.");return;}
             if(cabinDriver.Motion.Phase==CabinPhase.Complete){
-                if(!FindCabinExit(player,out var clearExit)){cabinDriver.Motion.CancelExit();status="Ausstieg inzwischen blockiert.";}
+                if(!FindCabinExit(player,out var clearExit)){cabinDriver.Motion.CancelExit();ShowVehicleWarning("Ausstieg inzwischen blockiert.");}
                 else {cabinDriver.SetExitPosition(clearExit);Exit();return;}
             }
         } catch(Exception e){Logger.LogError("Cabin animation stopped: "+e);Exit();return;}
@@ -246,10 +246,11 @@ public partial class Plugin : BaseUnityPlugin {
         if(cabinDriver==null){Exit();return;}
         if(!cabinDriver.Motion.CanDrive)return;
         if(body.linearVelocity.magnitude>.5f){status="Zum Aussteigen erst anhalten.";return;}
-        if(!FindCabinExit(player,out var destination)){status="Die Fahrertür ist blockiert. Bitte anders parken.";return;}
+        if(!FindCabinExit(player,out var destination)){ShowVehicleWarning("Die Fahrertür ist blockiert. Bitte anders parken.");return;}
         cabinDriver.BeginExit(destination);BlockDrivingInput();
     }
     void Exit() {
+        ReleaseCameraRumble(gameCamera);
         exitAfterLanding=false;controlsGate.Block();
         ClearNitroVisuals();
         bool animated=cabinDriver!=null&&cabinDriver.Motion.Phase==CabinPhase.Complete;
@@ -307,6 +308,10 @@ public partial class Plugin : BaseUnityPlugin {
         if(fleet.Contains(current))fleet.Remove(current);
         handling=null;chassisMaterial=null;vehicleMaterials=null;vehicleTextures=null;car=null;body=null;wheels=null;visuals=null;brakeVisuals=null;originalWheels=false;
     }
-    void OnDestroy(){controlsHarmony?.UnpatchSelf();if(ControlsOwner==this)ControlsOwner=null;ClearNitroVisuals();CleanupAll();DisposeVehicleHints();fleetMusic?.Dispose();DisposeMenu();}
+    void ShowVehicleWarning(string message) {
+        status=message;
+        if(MessageHud.instance!=null)MessageHud.instance.ShowMessage(MessageHud.MessageType.Center,Tr(message),log:false);
+    }
+    void OnDestroy(){ReleaseCameraRumble(gameCamera);ReleaseCameraRumble(menuCamera);controlsHarmony?.UnpatchSelf();if(ControlsOwner==this)ControlsOwner=null;ClearNitroVisuals();CleanupAll();DisposeVehicleHints();fleetMusic?.Dispose();DisposeMenu();}
 }
 }

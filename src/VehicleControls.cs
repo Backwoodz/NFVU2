@@ -27,6 +27,14 @@ public partial class Plugin {
         controlsHarmony.PatchAll(typeof(NativeHotbarClick));
         controlsHarmony.PatchAll(typeof(NativeHotbarUse));
         controlsHarmony.PatchAll(typeof(NativeMenuLookCapture));
+        controlsHarmony.PatchAll(typeof(NativeVehicleCameraShake));
+    }
+    internal bool CaptureCameraShake(GameCamera camera)=>camera!=null&&!camera.enabled&&(camera==gameCamera||camera==menuCamera);
+    void ReleaseCameraRumble(MonoBehaviour camera) {
+        if(camera is GameCamera native&&CaptureCameraShake(native)) {
+            native.GetAttenuatedShakeIntensity(); // Also clear the stored shake before restoring native control.
+            Gamepad.current?.ResetHaptics();
+        }
     }
     bool Playstation=>controllerStyle.Value=="PlayStation"||controllerStyle.Value=="Auto"&&pad!=null&&(pad.layout.IndexOf("Dual",StringComparison.OrdinalIgnoreCase)>=0||(pad.description.manufacturer??"").IndexOf("Sony",StringComparison.OrdinalIgnoreCase)>=0);
     string ButtonName(string xbox,string ps)=>Playstation?ps:xbox;

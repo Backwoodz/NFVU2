@@ -14,6 +14,7 @@ public sealed class NitroScreenEffect : MonoBehaviour {
     Rect carRect;
     Action<string> log;
     bool failed;
+    readonly NitroCameraView cameraView=new NitroCameraView();
     public void Initialize(Action<string> logger) {
         enabled=false;log=logger;
         try {
@@ -27,6 +28,7 @@ public sealed class NitroScreenEffect : MonoBehaviour {
             material.SetInt("_Stencil",0);material.SetInt("_StencilOp",0);
             material.SetInt("_StencilReadMask",255);material.SetInt("_StencilWriteMask",0);
             material.SetInt("_ColorMask",15);
+            material.SetInt("unity_GUIZTestMode",(int)CompareFunction.Always);
             material.DisableKeyword("UNITY_UI_ALPHACLIP");material.DisableKeyword("UNITY_UI_CLIP_RECT");
             int count=(Columns+1)*(Rows+1);
             var vertices=new Vector3[count];var uv=new Vector2[count];colors=new Color[count];
@@ -46,6 +48,8 @@ public sealed class NitroScreenEffect : MonoBehaviour {
     }
     public void SetEffect(float value,Rect protectedCar) {
         amount=value;carRect=protectedCar;
+        var native=GameCamera.instance;
+        cameraView.Apply(GetComponent<Camera>(),native!=null?native.m_skyCamera:null,failed?0:amount);
         enabled=!failed&&material!=null&&amount>.001f;
     }
     void OnRenderImage(RenderTexture source,RenderTexture destination) {
@@ -54,6 +58,7 @@ public sealed class NitroScreenEffect : MonoBehaviour {
         if(failed||material==null||amount<=.001f)return;
         RenderTexture sample=null;
         var previous=RenderTexture.active;bool previousSRGB=GL.sRGBWrite;
+        int previousDepth=Shader.GetGlobalInt("unity_GUIZTestMode");
         bool pushed=false;
         try {
             // RGB-only target guarantees alpha=1 regardless of the game's source
@@ -65,16 +70,19 @@ public sealed class NitroScreenEffect : MonoBehaviour {
             Graphics.SetRenderTarget(destination);
             GL.sRGBWrite=QualitySettings.activeColorSpace==ColorSpace.Linear&&(destination==null||destination.sRGB);
             material.mainTexture=sample;
+            // UI/Default normally inherits this global from Canvas rendering.
+            // This full-screen image pass must never be rejected by scene depth.
+            Shader.SetGlobalInt("unity_GUIZTestMode",(int)CompareFunction.Always);
             GL.PushMatrix();pushed=true;GL.LoadOrtho();
             bool flip=SystemInfo.graphicsUVStartsAtTop&&sample.texelSize.y<0;
             for(int y=0;y<=Rows;y++)for(int x=0;x<=Columns;x++) {
                 int i=y*(Columns+1)+x;
-                colors[i]=new Color(1,1,1,.14f*amount*NitroVisualState.EdgeMask((float)x/Columns,(float)y/Rows,
+                colors[i]=new Color(1,1,1,.25f*amount*NitroVisualState.EdgeMask((float)x/Columns,(float)y/Rows,
                     carRect.xMin,carRect.yMin,carRect.xMax,carRect.yMax));
             }
             mesh.colors=colors;
             for(int layer=1;layer<=Layers;layer++) {
-                float scale=1-.075f*amount*layer/Layers;
+                float scale=1-.14f*amount*layer/Layers;
                 // The installed UI shader transforms UV with _MainTex_ST and
                 // premultiplies RGB by coverage before blending One/InvSrcAlpha.
                 // Keep geometry fixed across the six draws; only change uniforms.
@@ -86,12 +94,14 @@ public sealed class NitroScreenEffect : MonoBehaviour {
         }catch(Exception error){Fail(error);Graphics.Blit(source,destination);}
         finally {
             if(pushed)GL.PopMatrix();
+            Shader.SetGlobalInt("unity_GUIZTestMode",previousDepth);
             GL.sRGBWrite=previousSRGB;RenderTexture.active=previous;
             if(material!=null)material.mainTexture=null;
             if(sample!=null)RenderTexture.ReleaseTemporary(sample);
         }
     }
     void Fail(Exception error){failed=true;enabled=false;log?.Invoke("Nitro screen effect disabled: "+error.Message);}
-    void OnDestroy(){if(material!=null)Destroy(material);if(mesh!=null)Destroy(mesh);}
+    void OnDisable(){cameraView.Reset();}
+    void OnDestroy(){cameraView.Reset();if(material!=null)Destroy(material);if(mesh!=null)Destroy(mesh);}
 }
 }

@@ -2,8 +2,9 @@ from pathlib import Path
 import zipfile
 from project import BASE,OUTPUT
 from mod_files import payload_files
+from build_installer import version
 
-target=OUTPUT/'NFVU2-v0.13.1.zip'
+target=OUTPUT/f'NFVU2-v{version()}.zip'
 with zipfile.ZipFile(target,'w',zipfile.ZIP_DEFLATED) as archive:
     for name in payload_files(OUTPUT/'mod'):
         archive.write(OUTPUT/'mod'/name,'BepInEx/plugins/Rachel350Z/'+name.as_posix())

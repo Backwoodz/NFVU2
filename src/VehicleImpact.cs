@@ -17,6 +17,9 @@ public sealed class VehicleImpact : MonoBehaviour {
     }
     public void Step(MonoBehaviour seatedPlayer,bool active,float driveInput=0) {
         driver=active&&!failed?seatedPlayer as Character:null;
+        velocity=contactDrive=Vector3.zero;
+        // World teardown may destroy the rigidbody before the plugin exits.
+        if(driver==null||body==null||hull==null){driver=null;return;}
         velocity=body.linearVelocity;
         velocity.y=0; // Falling onto a target is not a run-over.
         // Powered contact can clear a sapling that already stopped the hull.
