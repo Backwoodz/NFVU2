@@ -14,6 +14,7 @@ public partial class Plugin {
     }
     void ForEachVehicle(Action action)=>fleet.Visit(action);
     void CleanupAll() {
+        ClearHorde();
         ClearNitroVisuals();
         if(spawnCacheUsed){spawnCache=new SpawnAssetCache();spawnCacheUsed=false;}
         CancelSpawn(null);

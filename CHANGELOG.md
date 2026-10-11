@@ -1,5 +1,174 @@
 # Changelog
 
+## 0.27.2 — Boss damage spikes and horde discovery hint
+
+- Reduce encounter Moder's incoming damage by 45%, cap final hits at 180
+  (225 enraged), and limit her multi-hit breath/projectile bursts to one
+  accepted vehicle hit per second. Other enemy and collision damage is unchanged.
+- Add an outlined gold/white German/English start hint below the minimap in a
+  ready, grounded 350Z: “Face the horde / Numpad 9 · Begin the battle”. Position
+  follows the native map and biome label; hide during gameplay UI and active runs.
+- Verify boss burst protection, post-modifier caps, regular enemy damage and
+  localization in automated checks. In-game boss balance and hint layout remain
+  manual checks.
+
+## 0.27.1 — Horde feedback and damage tuning
+
+- Remove lightning's blue enemy tint flashes, retaining chain arcs and colored
+  tracers. Ice keeps its freeze tint and thaw restoration.
+- Exclude Valkyrie's Watch from the final wave's offers; retain three distinct
+  choices with at least two changes from the previous wave. Temporary auto
+  pickups remain available.
+- Increase incoming enemy attack damage in horde mode by 20%. Pact and boss
+  enrage multipliers still apply; collision damage is unchanged.
+
+## 0.27.0 — Elemental ammunition and dragon finale
+
+- Open pact selection immediately after a completed wave. Offer three of six
+  pacts, ensuring at least two offers change between consecutive waves.
+- Add Skadi's Winter: briefly freeze ordinary enemies with white-blue tint and
+  icy tracers; reload 20% slower. Bosses are slowed rather than immobilized.
+  An immunity window prevents permanent freezing; thaw/cleanup restores visuals
+  and movement. Add Storm Chain: visible lightning arcs to up to three other
+  nearby horde enemies, with falling damage, obstruction checks and a shared
+  cooldown; direct bullet damage is reduced by 20%.
+- Add Valkyrie's Watch: automatic turret for the whole wave, in exchange for
+  25% more incoming enemy damage. Replace redundant ammo/auto pickups during
+  corresponding pacts. All new UI supports German and English.
+- Replace the troll finale with native Moder, two drakes and four Fulings.
+  Retain native 7,500 base boss HP and attacks; add a half-health enrage and
+  faster transitions back to flight. Extend auto targeting to 60 m in horde mode.
+- Suppress the encounter dragon's progression flags, cinematic and loot;
+  clean up its tracked projectiles and suppress persistent ice obstacles.
+  Use a separate best-score entry for the changed rules.
+- Automated checks cover offer diversity, immediate transitions, freeze/thaw,
+  boss slow, material restoration, chain filtering/range/cover/cooldown, bounded
+  arc visuals, expanded auto range and existing combat behavior. Native visuals,
+  boss flight/navigation, attack balance and controller input need in-game testing.
+
+## 0.26.0 — Mixed waves and pacts of the gods
+
+- Replace the long forest-only encounter with five mixed waves of 15/20/18/14/13
+  enemies: forest creatures, skeletons, Draugr, wolves, Fulings and berserkers,
+  ending with a marked troll and boss health bar. Encounter members are allied.
+- Choose Odin's Haste (40% shorter reload / 20% faster enemies), Thor's Wrath
+  (wave-long explosive ammunition / 35% more enemy HP), Iron Chariot (double
+  run-over damage / 25% less turret damage), or no pact before each wave.
+  Choices support mouse, number keys and controller; temporary effects reset
+  between waves and on exit, defeat, reset and world changes.
+- Clear 85% of actual spawns plus every elite to advance; remaining small enemies
+  despawn without score. Retain the eight-second break, then open pact selection.
+- Waves 2–4 offer a marked elite hunt: 25 seconds for 500 points and 250 HP repair.
+  Use a separate personal-best entry for the new wave rules.
+- Add German/English selection, pact, objective and boss UI. Preserve existing
+  shield, corpse cleanup, no-loot policy, minimap radar and weather transitions.
+- Build and targeted automated checks cover scheduling, deadlines, pact expiry,
+  reload time, impact damage, bullet/blast damage and prior horde integrations.
+  Native AI, terrain navigation, UI input and difficulty still need an in-game test.
+
+## 0.25.5 — Horde minimap radar
+
+- Show living horde enemies as small red dots with a dark outline on the native
+  minimap. Positions follow movement, map scrolling and zoom; off-screen dots
+  are hidden within the minimap border.
+- Reuse at most 100 UI dots. Remove dead/missing enemies from the display and
+  dispose the radar on run end, reset or world exit. Respect the hidden HUD.
+- Use a local UI overlay without saved/shared pins, icon-filter changes or
+  exploration changes. Keep the large map and unrelated creatures untouched.
+- Native build and projection/horde/weather checks passed; minimap appearance
+  and HUD scaling still need an in-game check.
+
+## 0.25.4 — Horde storm and night transition
+
+- Starting a horde run transitions to midnight and native ThunderStorm weather
+  over eight seconds. Victory, defeat, reset and other encounter exits transition
+  back to noon and Clear weather, including after removing the car.
+- Keep clear daytime for the current world session. Restore previous local
+  environment/time overrides when leaving the world or unloading the plugin;
+  never advance the saved world clock or carry overrides into another world.
+- Weather lifecycle, restart/abort, world-switch and existing horde checks passed;
+  sky/rain/lightning presentation still needs an in-game check.
+
+## 0.25.3 — Shield over glass and turret audio priority
+
+- Give the shield its own material, drawn after transparent cabin windows;
+  retain world depth testing and leave pickup materials unchanged.
+- Prioritize occupied-car turret shots over ordinary crowd sound effects,
+  with quieter tails and servos below the shot attacks. Radio retains first
+  priority; parked turrets return to ordinary sound priority.
+- Verify bounded gunfire playback and priority transitions with adapter checks.
+  Window compositing and crowd-combat audibility need an in-game check.
+
+## 0.25.2 — Shield dome and radio during combat
+
+- Project a connected hexagonal grid over a larger shield dome. A visible,
+  gently shimmering baseline remains at any positive charge; hits brighten it.
+- Rename the pickup to “Explosivmunition” / “Explosive ammunition” and remove
+  “test” from horde reset/already-active messages.
+- Give occupied-car radio the same audio priority as native Valheim music.
+  Bound turret gunfire to four shot sources and two quieter tail sources,
+  replacing stacked three-second one-shots that could crowd out the radio.
+- Build, bounded-audio, radio, turret, localization and horde checks passed.
+  Actual music continuity and dome appearance still require an in-game check.
+
+## 0.25.1 — Horde cleanup and visual polish
+
+- Keep horde entry restricted to a grounded 350Z with turret assets; H2 remains excluded.
+- Track horde ragdolls separately: no saved loot, nonpersistent, three-second
+  lifetime, maximum twelve and immediate cleanup on run end/reset. Ordinary
+  world corpses and loot are unaffected.
+- Replace gray horde HUD/pickup/result boxes with larger outlined text,
+  slim colored health/shield bars, wave milestones and a combo countdown.
+- Replace the shield rings with a subtle animated hexagonal shell that flares
+  on shield hits and recharge. Health-only hits do not revive the shield effect.
+- Build and adapter/logic checks passed; HUD layout rendered in DE/EN at
+  720p/1080p. Native ragdoll cleanup and shield appearance still need an in-game check.
+
+## 0.25.0 — Vehicle survival and powerups
+
+- Make the five-wave horde a 350Z vehicle mode with 1,000 HP, 300 shield and
+  off-road driving. Native enemy hits and hard obstacle collisions drain shield
+  before HP. Route seated-driver hits to the vehicle while the mode is active.
+- Add colored beacon/rune pickups: one 30-round explosive magazine, 15 seconds
+  of automatic turret fire, 150 shield or 250 HP. Limit pickups to four; place
+  them on clear dry terrain near the route and expire them after 45 active seconds.
+- Add a shield visual, health/shield HUD, combo scoring up to x5, victory medals,
+  survival/time bonuses and a local best score. Incomplete formations cannot set
+  records. Losing ends the run and keeps the vehicle available for another try.
+- Scope driving/turret overrides to the encounter, restore normal settings on
+  cleanup and suppress other parked turrets during the run. No saved preference
+  changes for temporary buffs. Exiting also cancels the encounter.
+- Clear each spawned enemy's drop list as well as disabling direct drops, so
+  native ragdolls cannot generate loot. Mark spawned enemies as test spawns.
+- New logic and native callback adapter checks; in-game balance, collision
+  behavior, HUD and beacon rendering still require playtesting.
+
+## 0.24.0 — The forest strikes back
+
+- Replace the 30-Greyling test with five waves: 60 Greylings; 90 Greylings;
+  50 Greydwarfs/8 brutes/2 shamans; 40 Greydwarfs/10 brutes/1 troll;
+  30 Greydwarfs/3 trolls. All enemies remain at no-star level.
+- Eight-second breaks after clearing each wave, a wave/enemy/countdown HUD,
+  five DE/EN attack announcements and a final victory message.
+- Groups approach from the front and diagonally, following the driver's current
+  position. Trolls spawn farther away with clearance based on their collider.
+- Cap living test enemies at 100; bound placement work per frame and per slot.
+  Abort completely blocked waves; keep reset, pause and world-change cleanup.
+- Build and automated logic/adapter checks do not establish Unity gameplay or
+  performance. The initial 30-Greyling test ran well on the user's PC.
+
+## 0.23.0 — Local horde recording test
+
+- Numpad 9 spawns up to 30 no-star Greylings in a forward arc, 30–45 m away,
+  on clear, dry terrain. Works on foot and while driving; uses native hunting AI.
+- Announce the attack in the selected DE/EN interface language. Spawn gradually,
+  cap placement attempts and allow only one living test horde at a time.
+- Numpad 0 removes this test horde and cancels pending spawns. Death, teleport
+  and world changes clear it too. Test enemies are not saved and drop no loot.
+- Menu, chat, pause and focus loss block the hotkeys and pause pending spawns.
+  Vehicle handling, collision damage and turret damage are unchanged.
+- Local build; Unity AI, placement, combat and PC performance await playtesting.
+
 ## 0.22.3 — Vehicle crosshair fix
 
 - Hide Valheim's crosshair while seated in either vehicle, including when no

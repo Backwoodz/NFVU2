@@ -51,6 +51,12 @@ class BlastTests {
         var ownerless=new TreeBase();Physics.overlaps=new[]{At(.2f,ownerless)};
         TurretDamage.Blast(Impact(At(0)),null);TurretDamage.Blast(new RaycastHit(),driver);
         Check(ownerless.hits==0,"missing owner or impact cannot damage anything");
+        var pactEnemy=new Character();var pactTree=new TreeBase();
+        TurretDamage.Bullet(Impact(At(0,pactEnemy)),new Vector3(),driver,.75f);
+        Check(pactEnemy.last.m_damage.m_pierce==10.5f,"Iron pact reduces bullet damage by 25 percent");
+        Physics.overlaps=new[]{At(0,pactEnemy),At(0,pactTree)};
+        TurretDamage.Blast(Impact(At(0)),driver,.75f);
+        Check(Math.Abs(pactEnemy.last.m_damage.m_blunt+pactEnemy.last.m_damage.m_fire-15)<.001f&&pactTree.last.m_damage.m_chop==300,"Iron pact reduces enemy splash while preserving environmental damage");
         Console.WriteLine(checks+" blast adapter checks passed. Native physics, RPCs and drops require an in-game test.");
     }
 }

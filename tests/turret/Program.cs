@@ -6,6 +6,12 @@ class TurretTests {
     static int checks;
     static void Check(bool ok,string name){if(!ok)throw new Exception(name);checks++;Console.WriteLine("PASS "+name);}
     static void Main(string[] args) {
+        var pactGun=new TurretState{ReloadMultiplier=.6f};
+        for(int i=0;i<1000&&pactGun.Ammo>0;i++)pactGun.Step(.1f,true,true,true);
+        Check(pactGun.Ammo==0&&Math.Abs(pactGun.ReloadLeft-1.5f)<.001f,"Odin still empties 30 rounds before a 1.5 second reload");
+        pactGun.ReloadMultiplier=1;pactGun.Refill();
+        for(int i=0;i<1000&&pactGun.Ammo>0;i++)pactGun.Step(.1f,true,true,true);
+        Check(pactGun.ReloadLeft==2.5f,"pact cleanup restores normal reload duration");
         Check(TurretAutoRules.InSector(30,90,55)&&TurretAutoRules.InSector(1,-90,-65),"auto acquisition includes 180-degree sector and pitch boundary");
         Check(!TurretAutoRules.InSector(30.01f,0,0)&&!TurretAutoRules.InSector(10,90.01f,0)&&!TurretAutoRules.InSector(10,-91,0)&&!TurretAutoRules.InSector(10,0,-66),"outside range, rear sector and unreachable elevation are excluded");
         Check(!TurretAutoRules.InSector(float.NaN,0,0)&&!TurretAutoRules.InSector(1,float.NaN,0)&&!TurretAutoRules.InSector(1,0,float.NaN),"nonfinite target geometry fails closed");
@@ -36,6 +42,9 @@ class TurretTests {
         s.Step(.1f,false,false);Check(!s.Step(.1f,true,true),"exit and reentry also require release");
         s.Step(.1f,true,false);Check(!s.Step(float.NaN,true,true)&&!s.Step(float.PositiveInfinity,true,true),"invalid delta cannot fire");
         Check(s.Step(10,true,true)&&s.Ammo==28,"large delta emits at most one shot without backlog");
+        s.Refill();Check(s.Ammo==30&&s.ReloadLeft==0&&!s.Step(.1f,true,true),"powerup magazine refills and requires release before manual fire");
+        s.Step(.1f,true,false);Check(s.Step(.1f,true,true),"manual fire resumes after magazine pickup release");
+        s.Refill();Check(s.Step(.1f,true,true,true),"auto pickup can use a freshly loaded magazine");
         string asset=Path.Combine(args[0],"turret.json");
         if(!File.Exists(asset)){Console.WriteLine(checks+" turret state checks passed; optional local Rust assets absent.");return;}
         var model=ModelFile.Load(asset);model.turretRig.Validate();

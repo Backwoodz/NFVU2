@@ -14,14 +14,14 @@ public static class TurretTargeting {
         }
         return found;
     }
-    public static bool VisibleEnemy(Character candidate,Character owner,Transform root,Vector3 origin,Transform vehicle) {
+    public static bool VisibleEnemy(Character candidate,Character owner,Transform root,Vector3 origin,Transform vehicle,float range=TurretAutoRules.Range) {
         if(!Enemy(candidate,owner))return false;
         Vector3 delta=candidate.GetCenterPoint()-origin;
         var aim=root.InverseTransformDirection(delta);
         float bearing=Mathf.Atan2(aim.x,aim.z)*Mathf.Rad2Deg;
         float elevation=-Mathf.Atan2(aim.y,new Vector2(aim.x,aim.z).magnitude)*Mathf.Rad2Deg;
-        if(!TurretAutoRules.InSector(delta.magnitude,bearing,elevation))return false;
-        return Ray(origin,delta.normalized,TurretAutoRules.Range,vehicle,null,out var hit)&&hit.collider.GetComponentInParent<Character>()==candidate;
+        if(!TurretAutoRules.InSector(delta.magnitude,bearing,elevation,range))return false;
+        return Ray(origin,delta.normalized,range,vehicle,null,out var hit)&&hit.collider.GetComponentInParent<Character>()==candidate;
     }
     public static bool CanFire(Character target,Character owner,bool aligned,bool hit,Collider firstCollider) =>
         Enemy(target,owner)&&aligned&&hit&&firstCollider!=null&&firstCollider.GetComponentInParent<Character>()==target;

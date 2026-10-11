@@ -47,13 +47,13 @@ public sealed class TurretExplosion : IDisposable {
             ages[i]=Mathf.Max(0,ages[i]-Time.deltaTime);lights[i].intensity=ages[i]*18;
         }
     }
-    public void Impact(RaycastHit impact,Character driver,float volume) {
+    public void Impact(RaycastHit impact,Character driver,float volume,float damageMultiplier=1) {
         int index=next++%emitters.Length;var obj=emitters[index];
         Vector3 point=impact.point+impact.normal*.05f;
         obj.transform.SetPositionAndRotation(point,Quaternion.LookRotation(impact.normal));
         particles[index].Stop(true,ParticleSystemStopBehavior.StopEmittingAndClear);particles[index].Play();particles[index].Emit(35);
         sounds[index].Stop();sounds[index].volume=volume;sounds[index].Play();ages[index]=.16f;
-        TurretDamage.Blast(impact,driver);
+        TurretDamage.Blast(impact,driver,damageMultiplier);
         if(!terrainFailed)try {TurretTerrain.Excavate(impact);}
         catch(Exception e){terrainFailed=true;log?.Invoke("350Z crater deformation disabled: "+e.Message);}
     }

@@ -9,6 +9,7 @@ namespace Rachel350Z {
 // Original local Rust meshes/samples. Mount, firing, recoil and effects are NFVU2.
 public sealed class VehicleTurret : IDisposable {
     const float Range=150;
+    public float AutomaticRange {get;set;}=TurretAutoRules.Range;
     public readonly TurretState State=new TurretState();
     readonly List<Mesh> meshes=new List<Mesh>();
     readonly List<AudioClip> clips=new List<AudioClip>();
@@ -19,7 +20,8 @@ public sealed class VehicleTurret : IDisposable {
     LineRenderer tracer,flash,laserBeam,laserDot,laserCore;Light light;
     Material laserMaterial;
     TurretExplosion explosion;
-    AudioSource fireAudio,servoAudio,actionAudio;
+    AudioSource servoAudio,actionAudio;
+    TurretFireAudio fireAudio;
     AudioClip tail,reload,online;
     float flashLeft,yawAngle,pitchAngle;
     int shotIndex;bool enabled,disposed,pendingOnline;
@@ -61,7 +63,7 @@ public sealed class VehicleTurret : IDisposable {
             yield return 0;
         }
         var mixer=Resources.FindObjectsOfTypeAll<AudioMixerGroup>().FirstOrDefault(g=>g.name.Equals("SFX",StringComparison.OrdinalIgnoreCase));
-        fireAudio=Source(muzzle,mixer);actionAudio=Source(pitch,mixer);servoAudio=Source(yaw,mixer);servoAudio.loop=true;
+        fireAudio=new TurretFireAudio(()=>Source(muzzle,mixer));actionAudio=Source(pitch,mixer);servoAudio=Source(yaw,mixer);servoAudio.loop=true;
         for(int i=0;i<3;i++){shots[i]=Clip(prepared,folder,"shot"+(i+1)+".wav");yield return 0;}
         tail=Clip(prepared,folder,"tail.wav");yield return 0;reload=Clip(prepared,folder,"reload.wav");yield return 0;online=Clip(prepared,folder,"online.wav");yield return 0;servoAudio.clip=Clip(prepared,folder,"servo.wav");yield return 0;
         glow=VehicleMaterials.CreateGlowMaterial(Texture2D.whiteTexture);
@@ -96,7 +98,7 @@ public sealed class VehicleTurret : IDisposable {
         return TurretTargeting.Ray(origin,direction,Range,vehicle,driver,out closest,ignoreVehicle);
     }
     bool VisibleEnemy(Character candidate,Character owner) {
-        return TurretTargeting.VisibleEnemy(candidate,owner,root,pitch.position,vehicle);
+        return TurretTargeting.VisibleEnemy(candidate,owner,root,pitch.position,vehicle,AutomaticRange);
     }
     Vector3 AutomaticAim(float dt,Character owner) {
         scanTime+=dt;searchLeft-=dt;
@@ -111,11 +113,12 @@ public sealed class VehicleTurret : IDisposable {
         }
         return autoTarget!=null?autoTarget.GetCenterPoint():yaw.position+root.TransformDirection(Quaternion.Euler(0,TurretAutoRules.ScanYaw(scanTime),0)*Vector3.forward)*TurretAutoRules.Range;
     }
-    public void Tick(bool requested,bool active,bool held,Character driver,float volume,bool laserEnabled,bool explosive,float laserStrength,Color laserColor,bool automatic=false) {
+    public void Tick(bool requested,bool active,bool held,Character driver,float volume,bool laserEnabled,bool explosive,float laserStrength,Color laserColor,bool automatic=false,Func<bool> explosiveShot=null,bool occupied=false,float damageMultiplier=1,Action<RaycastHit,Character> elementalHit=null,Color? projectileColor=null) {
         if(disposed)return;
         float dt=Mathf.Clamp(Time.deltaTime,0,.1f);
         volume=float.IsNaN(volume)||float.IsInfinity(volume)?0:Mathf.Clamp01(volume);
         foreach(var s in sources)s.volume=volume;
+        fireAudio.SetVolume(volume);
         servoAudio.volume=volume*.3f;
         if(enabled!=requested) {
             enabled=requested;root.gameObject.SetActive(enabled);State.Step(0,false,false);
@@ -123,6 +126,9 @@ public sealed class VehicleTurret : IDisposable {
         }
         active=active&&enabled&&Camera.main!=null&&driver!=null;
         if(driver!=null&&driver.IsDead())active=false;
+        fireAudio.SetForeground(active&&occupied);
+        actionAudio.priority=active&&occupied?32:128;
+        servoAudio.priority=160;
         Automatic=active&&automatic;
         if(!Automatic){autoTarget=null;searchLeft=0;scanTime=0;}
         explosion?.Tick(active,volume);
@@ -158,12 +164,15 @@ public sealed class VehicleTurret : IDisposable {
         Obstructed=hit&&impact.collider.transform.IsChildOf(vehicle);
         Aligned=Vector3.Angle(pitch.forward,target-muzzle.position)<2&&!Obstructed;
         flashLeft=Mathf.Max(0,flashLeft-dt);
+        var shotTint=projectileColor??new Color(1,.72f,.22f,.9f);
+        tracer.startColor=tracer.endColor=shotTint;
         bool trigger=Automatic?TurretTargeting.CanFire(autoTarget,driver,Aligned,hit,impact.collider):held;
         if(State.Step(dt,true,trigger,Automatic)) {
-            fireAudio.PlayOneShot(shots[shotIndex++%shots.Length]);fireAudio.PlayOneShot(tail,.4f);
+            bool explosiveRound=explosiveShot!=null?explosiveShot():explosive;
+            fireAudio.Fire(shots[shotIndex++%shots.Length],tail);
             flashLeft=.045f;tracer.SetPosition(0,muzzle.position);tracer.SetPosition(1,AimPoint);
-            if(hit&&!Obstructed)TurretDamage.Bullet(impact,pitch.forward,driver);
-            if(hit&&!Obstructed&&explosive)explosion?.Impact(impact,driver,volume);
+            if(hit&&!Obstructed){elementalHit?.Invoke(impact,driver);TurretDamage.Bullet(impact,pitch.forward,driver,damageMultiplier);}
+            if(hit&&!Obstructed&&explosiveRound)explosion?.Impact(impact,driver,volume,damageMultiplier);
         }
         if(State.ReloadStarted)actionAudio.PlayOneShot(reload,.85f);
         tracer.enabled=flash.enabled=flashLeft>0;light.intensity=flashLeft>0?2:0;

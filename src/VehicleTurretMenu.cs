@@ -51,30 +51,36 @@ public partial class Plugin {
     }
     void TickTurret() {
         bool automatic=ControlRules.AutomaticTurret(Flying,driving,hasBeenDriven,turretAutomatic.Value);
-        if(turret!=null)try {turret.Tick(turretEnabled.Value,(driving&&DriverInputReady||automatic)&&!audioBlocked&&!menuOpen&&Application.isFocused,
-            driving&&!Flying&&turretHeld,LocalPlayer() as Character,soundVolume.Value*turretVolume.Value,turretLaser.Value,turretAmmo.Value=="Explosiv",laserStrength.Value,LaserColor,automatic);}
+        if(HordeVehicle)automatic=hordeRun.Automatic;
+        bool requested=HordeVehicle||turretEnabled.Value;
+        if(hordeRun.Active&&!HordeVehicle){requested=false;automatic=false;}
+        if(turret!=null)try {turret.State.ReloadMultiplier=HordeVehicle?HordePacts.Reload(hordeRun.Pact):1;
+            turret.AutomaticRange=HordeVehicle?60:TurretAutoRules.Range;
+            turret.Tick(requested,(driving&&DriverInputReady||automatic)&&!audioBlocked&&!menuOpen&&Application.isFocused&&(!HordeVehicle||!hordeRun.Dead&&!hordeWave.Choosing),
+            driving&&!Flying&&turretHeld,LocalPlayer() as Character,soundVolume.Value*turretVolume.Value,turretLaser.Value,!HordeVehicle&&turretAmmo.Value=="Explosiv",laserStrength.Value,LaserColor,automatic,HordeVehicle?(Func<bool>)hordeRun.ConsumeExplosiveShot:null,driving,HordeVehicle?HordePacts.Turret(hordeRun.Pact):1,HordeVehicle?(Action<RaycastHit,Character>)OnHordeTurretHit:null,HordeVehicle?HordeAmmoTint:(Color?)null);}
         catch(Exception e){turret.Dispose();turret=null;Logger.LogWarning("350Z turret disabled: "+e);}
     }
     void DrawTurretMenu() {
         if(IsHummer){UiLabel(new Rect(25,150,510,80),"Der Dach-Turret ist aktuell nur beim 350Z eingerichtet.",labelStyle);return;}
         if(laserSettingsOpen){DrawLaserSettings();return;}
-        GUI.enabled=turret!=null;
-        turretEnabled.Value=UiToggle(new Rect(25,145,510,32),turretEnabled.Value," Rust AutoTurret mit AK auf dem Dach");
+        GUI.enabled=turret!=null&&!HordeVehicle;
+        bool enabled=UiToggle(new Rect(25,145,510,32),HordeVehicle||turretEnabled.Value," Rust AutoTurret mit AK auf dem Dach");
+        if(!HordeVehicle)turretEnabled.Value=enabled;
         UiLabel(new Rect(25,185,510,50),(Flying?"Im Flug: automatisch zielen und schießen":padActive?"RS: zielen · "+ButtonName("LB","L1")+": schießen":"Mausblick: zielen · Rechte Maustaste: schießen")+"\n30 Schuss · automatisches Nachladen",labelStyle);
         GUI.enabled=turret!=null&&turret.LaserAvailable;
         turretLaser.Value=UiToggle(new Rect(25,242,280,28),turretLaser.Value," Rust-Lasermodul");
         if(MenuButton(new Rect(320,240,215,30),"Laser einstellen")){laserSettingsOpen=true;uiFocus=0;}
-        GUI.enabled=turret!=null&&turret.ExplosiveAvailable;
-        int ammo=turretAmmo.Value=="Explosiv"?1:0;
+        GUI.enabled=turret!=null&&turret.ExplosiveAvailable&&!HordeVehicle;
+        int ammo=HordeVehicle?(hordeRun.Explosive?1:0):turretAmmo.Value=="Explosiv"?1:0;
         int next=UiToolbar(new Rect(25,285,510,32),ammo,new[]{"Normale Munition","Explosivmunition"});
-        if(next!=ammo)turretAmmo.Value=next==1?"Explosiv":"Normal";
-        GUI.enabled=turret!=null;
+        if(next!=ammo&&!HordeVehicle)turretAmmo.Value=next==1?"Explosiv":"Normal";
+        GUI.enabled=turret!=null&&!HordeVehicle;
         turretAutomatic.Value=UiToggle(new Rect(25,330,510,28),turretAutomatic.Value," Nach dem Aussteigen automatisch bewachen");
         UiLabel(new Rect(25,363,510,24),"180° vorne · 30 m · "+(Flying?"Flug-Automatik":driving?"Manuelle Steuerung":hasBeenDriven&&turretAutomatic.Value?"Im Menü pausiert":"Bereit nach der Fahrt"),mutedStyle);
         UiLabel(new Rect(25,394,510,25),"Lautstärke  "+Mathf.RoundToInt(turretVolume.Value*100)+" %",labelStyle);
         turretVolume.Value=UiSlider(new Rect(25,429,510,22),turretVolume.Value,0,1);
         GUI.enabled=true;
-        UiLabel(new Rect(25,466,510,50),turret==null?"Rust-Assets fehlen. Lokal mit tools/export_rust_turret.py importieren.":turretAmmo.Value=="Explosiv"?"Explosiv: Flächenschaden; zerstört große Bäume und abbaubare Felsen. Bodentreffer hinterlassen Krater.":"Automatik trifft nur sichtbare Gegner. Spieler, zahme Tiere, Auto und Deckung blockieren die Schusslinie.",mutedStyle);
+        UiLabel(new Rect(25,466,510,50),HordeVehicle?"Hordenmodus: Explosivmunition und Automatik durch Powerups sammeln.":turret==null?"Rust-Assets fehlen. Lokal mit tools/export_rust_turret.py importieren.":turretAmmo.Value=="Explosiv"?"Explosiv: Flächenschaden; zerstört große Bäume und abbaubare Felsen. Bodentreffer hinterlassen Krater.":"Automatik trifft nur sichtbare Gegner. Spieler, zahme Tiere, Auto und Deckung blockieren die Schusslinie.",mutedStyle);
     }
     Color LaserColor=>new Color(LaserChannel(laserRed.Value),LaserChannel(laserGreen.Value),LaserChannel(laserBlue.Value),1);
     static float LaserChannel(float value)=>float.IsNaN(value)||float.IsInfinity(value)?0:Mathf.Clamp01(value);
@@ -100,7 +106,7 @@ public partial class Plugin {
         UiLabel(new Rect(25,490,510,26),"Stärke und Farbe gelten für Strahl und Treffpunkt.",mutedStyle);
     }
     void DrawTurretAim() {
-        if(!driving||Flying||menuOpen||audioBlocked||turret==null||!turret.Enabled||Camera.main==null)return;
+        if(!driving||Flying||menuOpen||audioBlocked||hordeWave.Choosing||turret==null||!turret.Enabled||Camera.main==null)return;
         var old=GUI.color;
         try {
             {
@@ -113,7 +119,11 @@ public partial class Plugin {
                 foreach(var r in bars)GUI.DrawTexture(r,Texture2D.whiteTexture);
             }
             GUI.color=Color.white;
-            UiBox(new Rect(15,Screen.height-controlHintHeight-52,340,28),turret.State.ReloadLeft>0?"AK · Nachladen…":(padActive?ButtonName("LB","L1"):"RMB")+": AK "+turretAmmo.Value+" · "+turret.State.Ammo+" / 30"+(turret.Obstructed?" · Blockiert":""));
+            string ammoName=HordeVehicle?HordeAmmoName:turretAmmo.Value;
+            string ammoText=turret.State.ReloadLeft>0?"AK · Nachladen…":(HordeVehicle&&hordeRun.Automatic?"AUTO":padActive?ButtonName("LB","L1"):"RMB")+": AK "+ammoName+" · "+turret.State.Ammo+" / 30"+(turret.Obstructed?" · Blockiert":"");
+            if(HordeVehicle) {
+                if(!Hud.IsUserHidden())HordeLabel(new Rect(20,Screen.height-controlHintHeight-60,580,38),Tr(ammoText),24,HordeWhite,TextAnchor.MiddleLeft);
+            }else UiBox(new Rect(15,Screen.height-controlHintHeight-52,340,28),ammoText);
         }finally{GUI.color=old;}
     }
 }

@@ -77,6 +77,9 @@ public sealed class VehicleRadio : IDisposable {
                         float leftDoorOpen,float rightDoorOpen,float hatchOpen) {
         if(disposed||source==null)return;
         bool active=enabled&&(driving||parkedRunning)&&!blocked&&!state.Paused;
+        // Match Valheim's native music priority in the occupied car. Combat
+        // voices may be virtualized under load; the cabin's music must not be.
+        source.priority=driving?0:128;
         float dt=Mathf.Min(Time.unscaledDeltaTime,.1f);
         outsideBlend=Mathf.MoveTowards(outsideBlend,driving?0:1,dt*3);
         source.spatialBlend=outsideBlend;

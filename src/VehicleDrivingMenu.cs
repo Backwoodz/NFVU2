@@ -19,8 +19,8 @@ public partial class Plugin {
         hudColor=Config.Bind("HUD","Color","Cyan",new ConfigDescription("Gauge accent colour.",new AcceptableValueList<string>(ColorNames)));
         if(driftMode.Value)terrainMode.Value=false;
     }
-    void ApplyDriveMode(){if(Flying)return;if(driftMode.Value&&!IsHummer)handling?.SetDriftMode();else handling?.SetTerrainMode(terrainMode.Value);if(IsHummer&&body!=null)HummerTuning.Configure(body,wheels);}
-    string DriveModeName=>Flying?(current.flight.State.Landing?"Flugmodus / Landung":current.flight.State.Phase==FlightPhase.Folding?"Flugmodus / Start":"Flugmodus / Schweben"):driftMode.Value&&!IsHummer?"Drift / Heckantrieb":terrainMode.Value?"Gelände / Allradhilfe":"Straße / Heckantrieb";
+    void ApplyDriveMode(){if(Flying)return;if(EffectiveDrift&&!IsHummer)handling?.SetDriftMode();else handling?.SetTerrainMode(EffectiveTerrain);if(IsHummer&&body!=null)HummerTuning.Configure(body,wheels);}
+    string DriveModeName=>Flying?(current.flight.State.Landing?"Flugmodus / Landung":current.flight.State.Phase==FlightPhase.Folding?"Flugmodus / Start":"Flugmodus / Schweben"):EffectiveDrift&&!IsHummer?"Drift / Heckantrieb":EffectiveTerrain?"Gelände / Allradhilfe":"Straße / Heckantrieb";
     void DrawDrivingDisplayMenu() {
         hudEnabled.Value=UiToggle(new Rect(25,142,250,28),hudEnabled.Value," Tacho anzeigen");
         hudMph.Value=UiToggle(new Rect(310,142,210,28),hudMph.Value," MPH statt KM/H");

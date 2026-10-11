@@ -83,6 +83,30 @@ static class Program {
         Check(InterfaceText.Translate("Quadrat: Nitro · Kreis: aussteigen",true)=="Square: Nitro · Circle: exit","PS5 hint uses matching button names");
         Check(InterfaceText.Translate("Grün",true)=="Green"&&InterfaceText.Translate("Straße",true)=="Road","Unicode translation keys remain intact");
         Check(InterfaceText.Translate("Nissan 350Z",true)=="Nissan 350Z","vehicle identifiers are not rewritten");
+        Check(InterfaceText.Translate("Der Wald erwacht – eine Horde greift an!",true)=="The forest awakens – a horde attacks!","English horde announcement");
+        Check(InterfaceText.Translate("Stelle dich der Horde",true)=="Face the horde"&&InterfaceText.Translate("Numpad 9 · Kampf beginnen",true)=="Numpad 9 · Begin the battle","English discovery hint retains the start key");
+        foreach(var pact in new[]{HordePact.None,HordePact.Odin,HordePact.Thor,HordePact.Iron,HordePact.Frost,HordePact.Storm,HordePact.Valkyrie})
+            foreach(var text in new[]{HordePacts.Name(pact),HordePacts.Benefit(pact),HordePacts.Cost(pact)}) {
+                Check(InterfaceText.Translate(text,true)!=text,"pact text has an English translation: "+text);
+                Check(InterfaceText.Translate(text,false)==text,"German pact text stays intact: "+text);
+            }
+        Check(InterfaceText.Translate("Jagdauftrag erfüllt: +500 Punkte und +250 HP!",true)=="Hunt complete: +500 points and +250 HP!","English hunt reward keeps exact values");
+        Check(InterfaceText.Translate("Der Waldtyrann fordert dich heraus!",true)=="The Forest Tyrant challenges you!","English boss announcement");
+        Check(InterfaceText.Translate("Der Wald erwacht – eine Horde greift an!",false)=="Der Wald erwacht – eine Horde greift an!","German horde announcement");
+        var waveMessages=new[]{"Etwas regt sich im Unterholz …","Der Wald erwacht!","Der Wald schickt seine Krieger!","Schwere Schritte erschüttern den Boden …","Der Zorn des Waldes ist entfesselt!","Der Wald verstummt. Alle fünf Wellen besiegt!","Nächste Welle in","Gegner übrig","Welle"};
+        var englishMessages=new[]{"Something stirs in the undergrowth …","The forest awakens!","The forest sends its warriors!","Heavy footsteps shake the ground …","The wrath of the forest is unleashed!","The forest falls silent. All five waves defeated!","Next wave in","Enemies remaining","Wave"};
+        for(int i=0;i<waveMessages.Length;i++) {
+            Check(InterfaceText.Translate(waveMessages[i],true)==englishMessages[i],"wave announcement/HUD English "+i);
+            Check(InterfaceText.Translate(waveMessages[i],false)==waveMessages[i],"wave announcement/HUD German "+i);
+        }
+        Check(InterfaceText.Translate("Kein freier Boden für die Horde. Suche eine offene Fläche.",true)=="No clear ground for the horde. Find an open area.","English blocked horde placement");
+        Check(InterfaceText.Translate("Hordenmodus: nur Gelände verfügbar.",true)=="Horde mode: off-road driving only.","English horde mode lock");
+        Check(InterfaceText.Translate("Explosivmunition: 30 Schuss!",true)=="Explosive ammunition: 30 rounds!","English explosive pickup");
+        Check(InterfaceText.Translate("Die Horde wurde entfernt.",true)=="The horde has been removed.","reset message no longer says test horde");
+        Check(InterfaceText.Translate("Autoturret: 15 Sekunden!",true)=="Auto turret: 15 seconds!","English timed auto pickup");
+        Check(InterfaceText.Translate("Schild aufgeladen: +150",true)=="Shield restored: +150","English shield pickup");
+        Check(InterfaceText.Translate("Reparatur: +250 HP",true)=="Repair: +250 HP","English repair pickup");
+        Check(InterfaceText.Translate("HORDE BESIEGT!",true)=="HORDE DEFEATED!"&&InterfaceText.Translate("NEUER REKORD!",true)=="NEW RECORD!","English result and record");
         Console.WriteLine(checks+" controls checks passed. Controller hardware, IMGUI focus, native capture and flight landing require a game test.");
     }
 }

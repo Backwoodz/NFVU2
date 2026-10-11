@@ -1,5 +1,233 @@
 # Nächste Aufgaben
 
+## Boss-Schadensspitzen und Einstiegshinweis in 0.27.2
+
+- Nur Moder: Schaden um 45 % gesenkt, maximal 180 Schaden je akzeptiertem
+  Treffer (225 in Zornphase) nach allen Multiplikatoren. Höchstens ein Treffer
+  pro Sekunde aus ihren Atem-/Geschosssalven. Andere Gegner bleiben wie bestätigt.
+- Im bereiten 350Z unter der Minimap: „Stelle dich der Horde“ und
+  „Numpad 9 · Kampf beginnen“, inklusive englischer Übersetzung. Folgt Map und
+  Biomtext; verschwindet während Modus/Menüs/großer Karte sowie beim Aussteigen.
+- Automatisch: Salven, Caps, normale Gegner, Trefferintervalle und Übersetzung
+  geprüft. Im Spiel Bossbalance und Hinweisposition bei verschiedenen HUD-Skalen prüfen.
+
+## Horden-Feinschliff in 0.27.1
+
+- Blaue Farbpulse bei Blitztreffern entfernt; Blitzbögen und Eisfärbung bleiben.
+- Walkürenpakt in Welle 5 aus dem Angebot entfernt. Drei verschiedene Angebote
+  und mindestens zwei neue gegenüber der vorherigen Welle bleiben erhalten.
+- Gegnerischer Angriffsschaden im Hordenmodus für den nächsten Test +20 %;
+  Pakt-/Zornphasen-Aufschläge kommen multiplikativ hinzu. Unfallschaden unverändert.
+- Spieltest: neue Überlebensbalance und Blitzoptik beurteilen.
+
+## Elementarmunition und Drachenfinale in 0.27.0
+
+- Keine Wartezeit zwischen Wellenende und Paktauswahl. Drei aus sechs Angeboten,
+  mindestens zwei davon unterscheiden sich von der letzten Welle.
+- Eis friert normale Hordengegner 1,2 s ein (danach 2,4 s Immunität), färbt sie
+  weißblau und verlangsamt Bosse um 35 %. Nachladezeit dafür +20 %.
+- Kettenblitz springt bis zu dreimal, maximal 8 m je Sprung, mit sinkendem Schaden
+  und 0,4 s Auslöseabstand; Deckung und fremde/zahme Gegner werden berücksichtigt.
+  Direkte Kugeltreffer verursachen dafür 20 % weniger Schaden.
+- Walkürenpakt: Automatik für die Welle, dafür +25 % gegnerischer Schaden.
+- Finale: Moder + 2 Drakes + 4 Fulinge. Native 7.500 Basis-HP, Flug/Bodenwechsel,
+  Zornphase ab halben HP. Horden-Automatik auf 60 m erweitert. Die lokalen
+  Dragon/Hatchling-Prefabs und nativen Boss-/Flugfelder wurden geprüft.
+- Keine Freischaltung des normalen Moder-Fortschritts, keine Bossbeute;
+  Geschosse werden begrenzt/aufgeräumt, dauerhafte Eishindernisse unterdrückt.
+- Automatisierte Zustands- und Adaptertests ersetzen keinen Spieltest:
+  Frostoptik/Animationen, Blitzsichtbarkeit, Flug-/Landeverhalten auf normalem
+  Gelände, Zornphase, Geschossbereinigung, Paktauswahl und Balance prüfen.
+
+## Gemischte Wellen und Götterpakte in 0.26.0
+
+- Neue Wellen: 15 / 20 / 18 / 14 / 13 Gegner, insgesamt 80 geplante Spawns.
+  Waldgegner, Skelette, Draugr, Wölfe, Fulinge und Berserker; zum Abschluss
+  ein markierter Troll als Waldtyrann mit Lebensbalken. Keine neuen Boss-Assets.
+- Vor jeder Welle Odin / Thor / Eiserner Wagen oder ohne Pakt wählen.
+  Vorteil und Nachteil gelten genau eine Welle. Keine dauerhaften Upgrades.
+- Abschluss ab aufgerundeten 85 % tatsächlicher Kills und allen besiegten
+  Elitegegnern; übrige kleine Gegner werden ohne Punkte entfernt.
+- Optionaler 25-Sekunden-Jagdauftrag in Wellen 2–4: +500 Punkte / +250 HP.
+  Neuer Bestwert für die geänderten Regeln; alter Bestwert bleibt erhalten.
+- Automatisiert: Spawnlimit, Paktauswahl, Wellenquoten, Pflichtgegner,
+  Bonusfrist, Buff-Ablauf, Nachladen, Überfahren und Explosionsschaden geprüft.
+- Im Spiel noch testen: gemischte KI auf normalem Gelände, native Resistenzen,
+  Schamanen-Heilung, Balance der Berserker, DE/EN-Paktauswahl mit Maus/Controller,
+  Bossmarkierung und HP sowie Odin/Thor nach Entladen und Wiederladen einer Zone.
+  Erst danach Zahlen nachjustieren und weitere Pakte/Gegnertypen ergänzen.
+
+## Gegner-Radar in 0.25.5
+
+- Lebende Hordengegner als rote 9-Pixel-Punkte mit dunkler Kontur auf der kleinen
+  Minimap. Lokales UI-Overlay, keine gespeicherten/geteilten Pins, keine Änderung
+  von Kartenfiltern oder Erkundung. Große Karte bleibt unverändert.
+- Positionen in LateUpdate aus lebenden eigenen Charakteren, bei entladenen
+  Instanzen aus deren vorhandenem ZDO. Tote/fehlende Gegner ausblenden;
+  maximal 100 wiederverwendete UI-Punkte. Tod, Reset, Sieg/Niederlage und
+  Weltwechsel entsorgen Overlay, Sprite und Textur. HUD-Ausblenden beachten.
+- Projektion entspricht der lokal geprüften Minimap-Implementierung:
+  Welt X/Z, Pixel-/Texturgröße und aktuelle UV-Ansicht. Randabstand verhindert
+  überstehende Punkte. 14 Prüfungen für Richtungen, Bewegung/Zoom, verschiedene
+  Kartengrößen, Ränder und ungültige Werte; bestehende Horde/Wettertests bestanden.
+- Im Spiel Anzeige bei 720p/1080p, 90 Gegnern, Minimap-Zoom, Kartenöffnung/-schließen,
+  Gegnersterben und Wellenwechsel prüfen. Native UI-Maskierung/Lesbarkeit ist
+  nicht Teil der automatischen Projektionstests.
+
+## Nacht und Gewitter in 0.25.4
+
+- Start blendet über acht Sekunden zur Mitternacht und zum nativen ThunderStorm-
+  Wetter. Zeitwechsel mit weicher Beschleunigung, Himmel/Nebel/Regen/Gewitter
+  über EnvMans bestehenden Wetterübergang. Keine Änderung der ZNet-Weltzeit.
+- Sieg, Niederlage, Numpad 0, Ausstieg und Fahrzeugentfernung wechseln zu Mittag
+  und Clear. Der Übergang läuft auch nach Freigabe des Fahrzeugs weiter. Klarer
+  Tag bleibt für diese Weltsitzung; Welt verlassen/Mehrspieler/Plugin entladen
+  stellt vorherige lokale Zeit-/Wetter-Overrides und Übergangsdauer wieder her.
+- 17 Adapterprüfungen: Start, Abend/Mitternacht/Sonnenaufgang/Mittag, Halten,
+  früher Abbruch, wiederholtes Cleanup, schneller Neustart, ungültiges Delta,
+  vorherige Overrides, neue Welt, fehlende Wetterpresets und Dispose. Weitere
+  Horden-/Leichenprüfungen bestanden. Im Spiel native Wettereffekte und
+  Hörbarkeit des Turrets bei Gewitter prüfen; automatischer Test rendert nicht.
+
+## Schild über Scheiben und Turret-Priorität in 0.25.3
+
+- Nutzerbilder zeigen fehlende Waben über Seiten-/Heckscheiben. Codebefund:
+  Glas und Schild teilten Renderqueue 3000. Schild erhält eigenes Material
+  mit Queue 3100, ohne ZWrite und mit beibehaltenem Tiefentest. Pickup-Glow
+  bleibt unverändert. Im Spiel rund um das Auto bei klaren/dunklen Scheiben
+  prüfen; Wände und Karosserie müssen verdeckte Schildteile weiter verdecken.
+- Nutzer hört Turret bei vielen gleichzeitigen Gegnerangriffen nicht mehr.
+  Schüsse bisher Standardpriorität 128. Im besetzten Fahrzeug jetzt 16,
+  Aktionen 32, Nachhall 80, Servo 160; Radio weiterhin 0. Nach Ausstieg
+  normale Priorität für geparkte Geschütze. Automatik und manueller Betrieb
+  verwenden dieselbe Regel; keine globalen SFX-Pegeländerungen.
+- Audio-Adapter prüft Prioritätswechsel ohne Wiedergabeneustart zusätzlich
+  zum bestehenden Dauerschuss-/Quellenlimit. Tatsächliches Verdrängen oder
+  akustisches Überdecken durch Gegnergeräusche bleibt im Spiel zu prüfen.
+
+## Schildkuppel und Kampfaudio in 0.25.2
+
+- Nutzer bestätigt verbesserte Schildoptik. Jetzt zusammenhängendes Hexagon-
+  Raster auf einer größeren Halbkugel statt einzelner Wabenplatten. Sichtbare
+  Grundhelligkeit bei jedem positiven Ladestand, langsames Schimmern und
+  hellerer Treffer-/Aufladeimpuls. Bei 1/150/300 Schild, Tag/Nacht und allen
+  Kamerawinkeln prüfen; Turret und Motorhaube sollen frei erkennbar bleiben.
+- Pickup heißt Explosivmunition / Explosive ammunition; Horde-Reset und
+  Bereits-aktiv-Meldung ohne „Test“. Übersetzungsprüfungen bestanden.
+- Nutzer meldet Radioaussetzer beim Schießen. Codebefund: 3 s Nachhall pro
+  Schuss als unbeschränkte OneShots, Radio-Priorität 128 statt nativem Musikwert 0.
+  Vermutete Ursache: Verdrängung durch zu viele Audiostimmen; kein Laufzeitbeweis.
+  Radio im besetzten Fahrzeug jetzt Priorität 0, außen wieder 128. Schüsse
+  begrenzt auf vier Quellen, Nachhall auf zwei mit 40 % Pegel. Die bestehenden
+  0,34-s-Schussanfänge bleiben bei 450 Schuss/min vollständig hörbar.
+- Adaptertest mit 1.000 Schüssen prüft Quellenlimit, vollständige Transienten,
+  Pegeländerung und Ausklingen. Radio-/Turret-/Horden-/Sprachtests bestanden.
+  Radio im Stand/Fahren, manuelles und automatisches Dauerfeuer, Explosivmunition,
+  Pause sowie Fahrzeugwechsel akustisch im Spiel prüfen. Keine globalen Mixer-
+  oder Audio-Geräteeinstellungen geändert.
+
+## Hordenmodus-Feinschliff in 0.25.1
+
+- Nutzer bestätigt das Spielprinzip. Start weiterhin ausschließlich im
+  gelandeten 350Z mit Turret; H2 und Start zu Fuß im Spiel gegenprüfen.
+- Eigene Ragdolls separat über den nativen Setup-Callback erfassen: keine
+  gespeicherte Beute, nicht persistent, nach drei aktiven Sekunden entfernen,
+  bei Massenkills maximal zwölf. Abbruch/Sieg/Niederlage bereinigen sie sofort.
+  Tests prüfen geladene/entladene Leichen, Limit, Reset, verspäteten Callback
+  und Weltwechsel; normale Weltleichen bleiben unberührt. Loot-Sperre und
+  Marker beim Wiederladen eines eigenen Gegners erneut setzen.
+- Größere umrandete HUD-Schrift ohne graue Standardboxen, schmale HP-/Schild-
+  Balken, fünf Wellenmarkierungen, Combo-Zeitleiste, farbige Boni und schwebende
+  Pickup-Texte. Layout aus tatsächlichen C#-Zeichenbefehlen in DE/EN bei
+  720p/1080p gerendert, mit Ersatzschrift ohne Spielszene; native Schrift,
+  Lesbarkeit bei Sonne/Nacht und Überschneidungen mit Spiel-HUD noch prüfen.
+- Drei Schildringe ersetzt durch eine transparente Wabenhülle in einem Mesh,
+  schwaches wanderndes Schimmern und kurzer Impuls bei Schildtreffer/Aufladung.
+  Keine zusätzlichen Lichtquellen oder Collider. Bei leerem Schild aus;
+  reine HP-Treffer erzeugen keinen neuen Schildblitz. Material, Silhouette
+  und Sicht vom Fahrersitz brauchen den Spieltest.
+
+## Fahrzeug-Hordenmodus in 0.25.0
+
+- Nutzer bestätigt den gesamten Fünf-Wellen-Ablauf. Ausbau zum Arcade-Modus:
+  Start im gelandeten 350Z mit geladenem Turret, 1.000 HP/300 Schild, nur Gelände.
+  Native Gegnerwaffen treffen IDestructible am Auto; Fahrertreffer werden im
+  Modus umgeleitet. Schild absorbiert zuerst. Baum-/Bergbau-Zusatzschaden einer
+  Waffe wird nicht als zusätzlicher Autoschaden gezählt. Gegnertreffer im Spiel
+  gezielt mit Grauling, Steinwurf, Brutling und Troll bestätigen; reine Gift-AOEs,
+  die nativ keine Objekte treffen, treffen die Karosserie ebenfalls nicht.
+- Harte seitliche/frontale Hinderniskontakte ab 8 m/s kosten HP/Schild; maximal
+  200 pro Einschlag, kurze Sperre gegen Kontaktwiederholungen. Gegner, kleine
+  Vegetation, normale Bodenkontakte und bloßes Entlangschrammen ausgenommen.
+- Orange: 30 Explosivschüsse mit frischem Magazin; Violett: 15 s Autoturret;
+  Blau: +150 Schild; Grün: +250 HP. Vier lokale Runen mit Lichtkegel und Label,
+  Ablauf nach 45 aktiven Sekunden bzw. großer Entfernung, Neuplatzierung auf
+  freiem trockenem Boden. Durchfahren auch bei hohem Tempo prüfen; volle
+  HP/Schild dürfen den entsprechenden Pickup nicht verbrauchen.
+- HUD: HP/Schildbalken, Welle/Restgegner, Punkte/Combo, Munition und Auto-Timer;
+  Schildringe am Auto mit Trefferblitz. 720p/1080p, Tag/Nacht und DE/EN im Spiel
+  prüfen. Menü/Pause/Fokusverlust halten Timer und eigenen Schaden an.
+- Fünf schnelle Abschüsse erhöhen den Multiplikator bis x5; nach fünf Sekunden
+  ohne Kill zurücksetzen. Sieg mit Zeit-/Überlebensbonus, Gold/Silber/Bronze,
+  Ergebnisanzeige und lokalem BestScore. Gold: mindestens 750 HP und höchstens
+  300 Sekunden; Silber: mindestens 400 HP, sonst Bronze. Ausgelassene oder
+  ungeladen verschwundene Gegner verhindern Rekordwertung; keine Punkte durch
+  Entfernen/Abbrechen. Letzten Tod vor Abschlusswertung berücksichtigen.
+- Niederlage beendet den Durchlauf und lässt das Auto für einen neuen Versuch
+  stehen. Numpad 0, Ausstieg, Tod/Teleport, Fahrzeugentfernung und Weltwechsel
+  räumen Gegner, Pickups, Schadenadapter und temporäre Boni auf. Fahrmodus und
+  Turret-Einstellungen werden nicht überschrieben. Fremde geparkte Turrets
+  bleiben während des Durchlaufs inaktiv. Wiederherstellung im Spiel prüfen.
+- Vorhandene funktionierende Testwelt ist der erste Arena-Kandidat. Kein neuer
+  Seed validiert oder angelegt; eine große ebene trockene Fläche ist entscheidend.
+  Lichtpunkte werden dynamisch geprüft. Bestehende Explosivkrater bleiben aktiv.
+- Neue Logik-/Adaptertests prüfen HP/Schild, Boni, Punkte, native Trefferweitergabe,
+  Crash-Ausnahmen und Freigabe nach Modusende. Unity-Treffer, sichtbare Runen,
+  Balance und tatsächliche Frametimes müssen noch im Spiel bestätigt werden.
+
+## Wald-Wellen in 0.24.0
+
+- Nutzer bestätigt: 30 Graulinge laufen problemlos. Jetzt fünf Wellen testen:
+  60 Graulinge; 90 Graulinge; 50 Grauzwerge/8 Brutlinge/2 Schamanen;
+  40 Grauzwerge/10 Brutlinge/1 Troll; 30 Grauzwerge/3 Trolle.
+- Numpad 9 startet, Numpad 0 entfernt alle Testgegner und den ausstehenden
+  Ablauf. Nach der letzten besiegten Kreatur acht Sekunden Pause; nach Welle 5
+  Abschlussmeldung. DE/EN-Ankündigungen sowie Wellen-, Restgegner- und Pausenanzeige.
+  Der Restzähler enthält noch ausstehende Spawns; HUD-Ausblenden beachten.
+- Gruppen von vorn und schräg seitlich, 30–45 m entfernt; Trolle 45–60 m
+  voraus mit an der Prefab-Kapsel bemessener Platzprüfung. Gruppen richten sich
+  während der Fahrt neu aus. Native KI, Wege, Heilung, Angriff und Platzbedarf
+  aller neuen Gegner sowie Lesbarkeit bei 720p/1080p im Spiel prüfen.
+- Ein Durchlauf gleichzeitig, maximal 100 lebende Testgegner, höchstens ein
+  Spawn bzw. drei Platzprüfungen pro Frame. Kein Platz: einzelne Slots auslassen;
+  bei komplett fehlgeschlagener Welle abbrechen. Fehlende Prefabs im Log melden.
+- Menü/Chat/Inventar, Fokusverlust und Pause halten den Ablauf samt Countdown an.
+  Abbruch während Spawn/Kampf/Pause, Tod, Teleport, Weltwechsel, Sieg und Neustart
+  prüfen. Keine Beute oder gespeicherten Gegner; tote Gegner vor Folgewelle entfernen.
+- Logiktests prüfen exakte Gegnerzahlen, Reihenfolge, letzte Überlebende,
+  Zeitsteuerung, Obergrenze, Platzfehler, Abbruch und Neustart. DE/EN geprüft;
+  tatsächliche Frametimes und Wirkung des Troll-Finales benötigen den Spieltest.
+
+## Testhorde für Aufnahmen in 0.23.0
+
+- Numpad 9: bis zu 30 Graulinge ohne Sterne, in einem Bogen 30–45 m vor
+  Spieler bzw. Fahrzeug. Numpad 0 entfernt ausschließlich diese Testhorde.
+  Num Lock einschalten. Keine Beute; Gegner werden nicht gespeichert.
+- DE: „Der Wald erwacht – eine Horde greift an!“; EN: „The forest awakens –
+  a horde attacks!“ Die Sprache folgt F9 → Einstellungen → Sprache.
+- Einzelspieler auf offener Wiese: zu Fuß, im 350Z/H2 und mit Turret testen;
+  Anlaufen, Überfahren, Beschuss und Frametimes beobachten. Der Nutzer bestätigt
+  inzwischen ausreichende Leistung für 30 Graulinge; Ausbau folgt in 0.24.0.
+- Tasten wiederholen/halten, laufende Welle zurücksetzen und nach Besiegen neu
+  starten. Menü/Chat/Inventar, Pause, Alt-Tab, Tod, Teleport und Weltwechsel
+  prüfen; kein verspäteter Spawn. Geistermodus verhindert natives Anvisieren.
+- Wasser, Hänge, Wald, Felsen und Gebäude: belegte Stellen auslassen, bei zu
+  wenig Platz kleinere/keine Horde melden. Startpunkt bleibt während der Welle
+  fest; neue Gegner halten mindestens 18 m Abstand zum Spieler. Weiter als
+  65 m vom Start entfernt endet der noch ausstehende Spawn.
+- Automatische Tests prüfen Begrenzung, Zeitsteuerung, Abbruch und Übersetzung;
+  native KI, Terrain/Kollisionen und tatsächliche Rechnerlast bleiben Spieltests.
+
 ## Fadenkreuz im Fahrzeug in 0.22.3
 
 - Das native Valheim-Fadenkreuz wird beim Sitzen im 350Z und H2 unabhängig

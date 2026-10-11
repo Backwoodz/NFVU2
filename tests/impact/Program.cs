@@ -122,6 +122,11 @@ class ImpactTests {
         Check(collision.collider.GetComponentInParent<Destructible>().hits==0,"powered contact keeps large trees protected");
         collision.collider=saplingCollider;saplingCollider.parents[typeof(Piece)]=new Piece();stay.Invoke(car,new object[]{collision});
         Check(sapling.hits==5,"powered physical contact cannot damage a building component");
+        Time.time=20;car.EnemyDamageMultiplier=2;body.linearVelocity=new Vector3(0,0,8);
+        Physics.hits=new[]{new RaycastHit{collider=Target(enemy),normal=new Vector3(0,0,-1),distance=.1f}};
+        car.Step(driver,true);Check(enemy.lastHit.m_damage.m_blunt==256,"Iron pact doubles native run-over damage");
+        Time.time=21;car.EnemyDamageMultiplier=1;car.Step(driver,true);
+        Check(enemy.lastHit.m_damage.m_blunt==128,"ending pact restores normal run-over damage");
         Console.WriteLine(checks+" impact checks passed (test doubles, not Unity physics).");
     }
 }

@@ -93,6 +93,7 @@ public partial class Plugin {
         DrawSpawnProgress();
         DrawDashboard();
         DrawTurretAim();
+        DrawHordeHud();
         if(driving&&!Flying&&!hudEnabled.Value&&ActiveNitro!=null&&nitroEnabled.Value)
             UiBox(new Rect(15,Screen.height-120,310,32),(Flying?"LMB + W: Flug-Nitro":"LMB: Nitro / Purge")+" | Tank "+Mathf.RoundToInt(ActiveNitro.Charge*100)+" %");
         if(!menuOpen||audioBlocked)return;
@@ -130,9 +131,11 @@ public partial class Plugin {
     void DrawCarMenu() {
         UiLabel(new Rect(25,145,510,30),"Fahrmodus",labelStyle);
         int flightIndex=IsHummer?2:3;
-        int selected=Flying&&!current.flight.State.Landing?flightIndex:!IsHummer&&driftMode.Value?2:terrainMode.Value?0:1;
+        int selected=HordeVehicle?0:Flying&&!current.flight.State.Landing?flightIndex:!IsHummer&&driftMode.Value?2:terrainMode.Value?0:1;
+        GUI.enabled=!HordeVehicle;
         int mode=UiToolbar(new Rect(25,180,510,30),selected,IsHummer?new[]{"Gelände","Straße","Fliegen"}:new[]{"Gelände","Straße","Drift","Fliegen"});
         if(mode!=selected)SelectControlMode(mode==flightIndex?3:mode);
+        GUI.enabled=true;
         string description=Flying?(current.flight.State.Landing?"Landet automatisch und klappt die Räder aus.\nW/S und A/D: Landeplatz korrigieren · Fliegen: abbrechen":"W/S: vor/zurück · A/D: drehen · Shift: hoch · Leertaste: runter\nOhne Eingabe schweben. Bodenmodus wählen zum Landen."):
             (!driving?"Für den Flugmodus zuerst einsteigen.\n":"")+(mode==2&&!IsHummer?"Drift: Heckantrieb · Leertaste: Handbremse":mode==0?"Geländemodus mit Allradhilfe.":"Straßenmodus mit Heckantrieb.");
         if(padActive)description=Flying?(current.flight.State.Landing?"Landet automatisch und klappt die Räder aus.":ButtonName("RT/LT","R2/L2")+": vor/zurück · LS: drehen · "+ButtonName("RB/LB","R1/L1")+": hoch/runter")+"\nBodenmodus wählen zum Landen.":ButtonName("RT/LT","R2/L2")+": Gas/Bremse · LS: lenken · "+ButtonName("A","Kreuz")+": Handbremse";

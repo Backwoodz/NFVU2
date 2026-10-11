@@ -9,9 +9,11 @@ public sealed class TurretState {
     public float ReloadLeft {get;private set;}
     public float Recoil {get;private set;}
     public bool ReloadStarted {get;private set;}
+    public float ReloadMultiplier {get;set;}=1;
     bool released;
     bool wasAutomatic;
     float cooldown;
+    public void Refill(){Ammo=Capacity;ReloadLeft=Recoil=cooldown=0;ReloadStarted=false;released=false;wasAutomatic=false;}
     public bool Step(float dt,bool allowed,bool held,bool automatic=false) {
         ReloadStarted=false;
         dt=float.IsNaN(dt)||float.IsInfinity(dt)?0:Math.Max(0,Math.Min(dt,.1f));
@@ -27,14 +29,14 @@ public sealed class TurretState {
         }
         if(!released||!held||cooldown>0||dt==0)return false;
         Ammo--;cooldown=ShotInterval;Recoil=1;
-        if(Ammo==0){ReloadLeft=ReloadDuration;ReloadStarted=true;}
+        if(Ammo==0){ReloadLeft=ReloadDuration*(float.IsNaN(ReloadMultiplier)||float.IsInfinity(ReloadMultiplier)?1:Math.Max(.1f,Math.Min(2,ReloadMultiplier)));ReloadStarted=true;}
         return true;
     }
 }
 public static class TurretAutoRules {
     public const float Range=30,HalfArc=90;
-    public static bool InSector(float distance,float yaw,float pitch) =>
-        distance>=0&&distance<=Range&&Math.Abs(yaw)<=HalfArc&&pitch>=-65&&pitch<=55;
+    public static bool InSector(float distance,float yaw,float pitch,float range=Range) =>
+        range>0&&!float.IsInfinity(range)&&distance>=0&&distance<=range&&Math.Abs(yaw)<=HalfArc&&pitch>=-65&&pitch<=55;
     public static float ScanYaw(float seconds) => (float)Math.Sin(seconds*.3f)*HalfArc;
 }
 public sealed class TurretRig {

@@ -30,6 +30,8 @@ class TargetingTests {
         enemy.hostile=false;Check(!TurretTargeting.VisibleEnemy(enemy,owner,root,new Vector3(),vehicle),"neutral creatures excluded");enemy.hostile=true;
         enemy.transform.position=new Vector3(0,0,-5);Check(!TurretTargeting.VisibleEnemy(enemy,owner,root,new Vector3(),vehicle),"rear targets cannot be acquired");
         enemy.transform.position=new Vector3(0,0,31);Check(!TurretTargeting.VisibleEnemy(enemy,owner,root,new Vector3(),vehicle),"targets outside thirty metres excluded");
+        enemy.transform.position=new Vector3(0,12,45);Check(TurretTargeting.VisibleEnemy(enemy,owner,root,new Vector3(),vehicle,60),"horde auto reaches flying bosses at extended range");
+        enemy.transform.position=new Vector3(0,0,61);Check(!TurretTargeting.VisibleEnemy(enemy,owner,root,new Vector3(),vehicle,60),"extended horde auto still has a finite range");
         enemy.transform.position=new Vector3(0,0,15);
         Check(!TurretTargeting.CanFire(enemy,owner,false,true,enemyCollider)&&!TurretTargeting.CanFire(enemy,owner,true,false,enemyCollider),"no fire before alignment or without actual bore hit");
         Check(TurretTargeting.CanFire(enemy,owner,true,true,enemyCollider),"aligned bore on verified hostile permits fire");

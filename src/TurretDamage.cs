@@ -5,15 +5,15 @@ namespace Rachel350Z {
 // Valheim owns resistance, destruction, falling logs, rock sections and drops.
 // Never dispatch arbitrary IDestructible hits: buildings and dungeon props are excluded.
 public static class TurretDamage {
-    public static void Bullet(RaycastHit impact,Vector3 direction,Character driver) {
+    public static void Bullet(RaycastHit impact,Vector3 direction,Character driver,float multiplier=1) {
         if(driver==null||impact.collider==null||Protected(impact.collider))return;
         var target=impact.collider.GetComponentInParent<Character>();
         if(!Enemy(target,driver))return;
         var hit=Hit(impact.collider,impact.point,direction,driver);
         hit.m_pushForce=3;hit.m_blockable=true;hit.m_dodgeable=true;
-        hit.m_damage.m_pierce=TurretCombatRules.BulletDamage;target.Damage(hit);
+        hit.m_damage.m_pierce=TurretCombatRules.BulletDamage*multiplier;target.Damage(hit);
     }
-    public static void Blast(RaycastHit impact,Character driver) {
+    public static void Blast(RaycastHit impact,Character driver,float multiplier=1) {
         if(driver==null||impact.collider==null)return;
         Vector3 origin=impact.point+impact.normal*.05f;
         // One hit per creature/tree; mineable rocks instead have independently damaged sections.
@@ -33,7 +33,7 @@ public static class TurretDamage {
             var character=entry.Key as Character;
             if(character!=null) {
                 if(!Enemy(character,driver))continue;
-                float damage=TurretBlastRules.Damage(distance);
+                float damage=TurretBlastRules.Damage(distance)*multiplier;
                 hit.m_pushForce=7;hit.m_blockable=true;hit.m_dodgeable=true;
                 hit.m_damage.m_blunt=damage*.8f;hit.m_damage.m_fire=damage*.2f;
                 character.Damage(hit);

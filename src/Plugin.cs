@@ -7,8 +7,8 @@ using BepInEx.Configuration;
 using UnityEngine;
 
 namespace Rachel350Z {
-// Disposable local prototype. No ZNetView: never use in multiplayer or persist into saves.
-[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.22.3")]
+// Local vehicles have no ZNetView; test enemies use nonpersistent native views.
+[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.27.2")]
 [DefaultExecutionOrder(10000)]
 public partial class Plugin : BaseUnityPlugin {
     VehicleOrbitCamera orbitCamera;
@@ -69,6 +69,8 @@ public partial class Plugin : BaseUnityPlugin {
         if(!ready)return;
         SampleControls();
         var local=LocalPlayer();
+        TickHordeWeather(local);
+        CheckHordeContext(local);
         if(local==null){CleanupAll();return;}
         if((fleetOwner!=null && local!=fleetOwner) || (driving && local!=player) || (fleet.Count>0 && Multiplayer())){CleanupAll();return;}
         if(SpawnBusy&&Application.isFocused&&!UIVisible()&&!menuOpen&&(Input.GetKeyDown(KeyCode.F8)||PadDown("back"))){CancelSpawn("Laden abgebrochen.");return;}
@@ -81,6 +83,8 @@ public partial class Plugin : BaseUnityPlugin {
             if(menuOpen && !CanUseVehicleMenu(local))CloseVehicleMenu();
             if((menuKey.Value.IsDown()||PadDown("menu")) && CanUseVehicleMenu(local)){SetVehicleMenu(!menuOpen);BlockDrivingInput();return;}
             if(menuOpen){TickControllerMenu();BlockDrivingInput(false);if(menuOpen)TickMenuCamera();return;}
+            TickHorde(local);
+            if(hordeWave.Active&&hordeWave.Choosing){BlockDrivingInput();TickHordePactInput();return;}
             if(Input.GetKeyDown(KeyCode.F6)) { if(Multiplayer()){status="Nur in einer lokalen Einzelspieler-Testwelt verwenden.";return;} Spawn(local); }
             if(Input.GetKeyDown(KeyCode.F8)){if(SpawnBusy)CancelSpawn("Laden abgebrochen.");else if(CanAccessCurrent(local))Cleanup();}
             TickControlActions(local);
@@ -139,27 +143,28 @@ public partial class Plugin : BaseUnityPlugin {
     void StepVehicle() {
         if(body==null||wheels==null)return;
         if(!Flying)current.rideHeight?.Apply(lowering.Value);
-        vehicleImpact?.Step(player,driving&&!Flying&&!audioBlocked&&!menuOpen&&Application.isFocused,
+        if(vehicleImpact!=null)vehicleImpact.EnemyDamageMultiplier=HordeVehicle?HordePacts.Impact(hordeRun.Pact):1;
+        vehicleImpact?.Step(player,driving&&!Flying&&!audioBlocked&&!menuOpen&&Application.isFocused&&(!HordeVehicle||!hordeWave.Choosing),
             DriverInputReady&&brake<=0&&!handbrakeHeld&&!burnoutHeld?throttle:0);
         if(Flying) {
             current.flight.Step(driving&&DriverInputReady&&!audioBlocked&&!menuOpen&&Application.isFocused,throttle,steer,current.flightVertical,nitroHeld&&nitroEnabled.Value);
             TraceFlightBoost();
             if(!Flying){if(driving)BlockDrivingInput();ApplyDriveMode();}
         } else {
-            bool handbrake=driftMode.Value&&driving&&handbrakeHeld&&!audioBlocked&&!menuOpen&&Application.isFocused;
+            bool handbrake=EffectiveDrift&&driving&&handbrakeHeld&&!audioBlocked&&!menuOpen&&Application.isFocused;
             handling?.Step(driving&&DriverInputReady,throttle,steer,handbrake?0:brake,burnoutHeld&&!audioBlocked&&!menuOpen&&Application.isFocused,handbrake);
             // Scale controller pedal braking after the unchanged wheel handler.
             if(padActive&&driving&&DriverInputReady&&!audioBlocked&&!menuOpen&&!handbrake&&brake>0)
                 foreach(var wheel in wheels)wheel.brakeTorque*=brake;
-            if(padActive&&driving&&DriverInputReady&&!audioBlocked&&!menuOpen&&handbrakeHeld&&!driftMode.Value) {
+            if(padActive&&driving&&DriverInputReady&&!audioBlocked&&!menuOpen&&handbrakeHeld&&!EffectiveDrift) {
                 for(int i=0;i<4;i++){wheels[i].motorTorque=0;wheels[i].brakeTorque=i<2?0:4200;}
             }
             if(IsHummer)HummerTuning.AfterStep(wheels);
-            vehicleNitro?.Step(driving,audioBlocked||menuOpen||!DriverInputReady||burnoutHeld||!Application.isFocused||!nitroEnabled.Value,nitroHeld,throttle,brake>0,terrainMode.Value);
+            vehicleNitro?.Step(driving,audioBlocked||menuOpen||!DriverInputReady||burnoutHeld||!Application.isFocused||!nitroEnabled.Value,nitroHeld,throttle,brake>0,EffectiveTerrain);
         }
         if(driving&&player!=null&&cabinDriver==null)player.transform.position=car.transform.TransformPoint(new Vector3(0,.8f,.3f));
     }
-    void LateUpdate() {ForEachVehicle(TickVehicle);LateMenuCamera();TickNitroVisuals();UpdateGameCrosshair();UpdateVehicleHints();fleetMusic?.Tick(driving&&!audioBlocked&&vehicleRadio!=null&&vehicleRadio.CabinAudible);}
+    void LateUpdate() {ForEachVehicle(TickVehicle);LateMenuCamera();TickNitroVisuals();UpdateGameCrosshair();UpdateVehicleHints();TickHordeRadar();fleetMusic?.Tick(driving&&!audioBlocked&&vehicleRadio!=null&&vehicleRadio.CabinAudible);}
     void TickVehicle() {
         if(car==null)return;
         TickExhaustCustomization();
@@ -188,7 +193,7 @@ public partial class Plugin : BaseUnityPlugin {
             UpdateWheelVisual(i);
         }
         TickFlight();
-        if(driving)orbitCamera.LateFrame(body.linearVelocity,dynamicCamera.Value,cameraFollow.Value,audioBlocked||menuOpen,!Flying&&turret!=null&&turretEnabled.Value);
+        if(driving)orbitCamera.LateFrame(body.linearVelocity,dynamicCamera.Value,cameraFollow.Value,audioBlocked||menuOpen,!Flying&&turret!=null&&(HordeVehicle||turretEnabled.Value));
         TickTurret();
         if(vehicleLighting!=null)try {
             vehicleLighting.SetHeadlights(headlightPreset.Value,headlightStrength.Value);
@@ -208,12 +213,12 @@ public partial class Plugin : BaseUnityPlugin {
         if(showroom!=null)try {showroom.TickSubwoofers(vehicleRadio?.SubwooferOffset??0);}
         catch(Exception e){showroom.Dispose();showroom=null;Logger.LogWarning("350Z subwoofer visuals disabled: "+e);}
         if(vehicleAudio!=null)try {
-            vehicleAudio.Tick(driving,throttle,brake>0||burnoutHeld&&!burnout,honking,audioBlocked,terrainMode.Value,soundVolume.Value,burnout,ParkedRunning,Flying,!menuOpen&&DriverInputReady);
+            vehicleAudio.Tick(driving,throttle,brake>0||burnoutHeld&&!burnout,honking,audioBlocked,EffectiveTerrain,soundVolume.Value,burnout,ParkedRunning,Flying,!menuOpen&&DriverInputReady);
         } catch(Exception e) {
             vehicleAudio.Dispose();vehicleAudio=null;Logger.LogWarning("350Z sound disabled after audio error: "+e);
         }
         bool effectsBlocked=!driving||!DriverInputReady||audioBlocked||menuOpen||!Application.isFocused;
-        if(burnoutEffects!=null)try {burnoutEffects.Tick(burnout,Flying||effectsBlocked,driftMode.Value&&body!=null&&body.linearVelocity.magnitude>3);}
+        if(burnoutEffects!=null)try {burnoutEffects.Tick(burnout,Flying||effectsBlocked,EffectiveDrift&&body!=null&&body.linearVelocity.magnitude>3);}
         catch(Exception e){burnoutEffects.Dispose();burnoutEffects=null;Logger.LogWarning("350Z tyre smoke disabled: "+e);}
         bool backfire=backfireState.Step(Time.deltaTime,!Flying&&!effectsBlocked,
             vehicleAudio!=null?vehicleAudio.Rpm:950,throttle,
@@ -247,9 +252,11 @@ public partial class Plugin : BaseUnityPlugin {
         if(!cabinDriver.Motion.CanDrive)return;
         if(body.linearVelocity.magnitude>.5f){status="Zum Aussteigen erst anhalten.";return;}
         if(!FindCabinExit(player,out var destination)){ShowVehicleWarning("Die Fahrertür ist blockiert. Bitte anders parken.");return;}
+        if(HordeVehicle)ClearHorde();
         cabinDriver.BeginExit(destination);BlockDrivingInput();
     }
     void Exit() {
+        if(HordeVehicle)ClearHorde();
         ReleaseCameraRumble(gameCamera);
         exitAfterLanding=false;controlsGate.Block();
         ClearNitroVisuals();
@@ -312,6 +319,6 @@ public partial class Plugin : BaseUnityPlugin {
         status=message;
         if(MessageHud.instance!=null)MessageHud.instance.ShowMessage(MessageHud.MessageType.Center,Tr(message),log:false);
     }
-    void OnDestroy(){ReleaseCameraRumble(gameCamera);ReleaseCameraRumble(menuCamera);controlsHarmony?.UnpatchSelf();if(ControlsOwner==this)ControlsOwner=null;ClearNitroVisuals();CleanupAll();DisposeVehicleHints();fleetMusic?.Dispose();DisposeMenu();}
+    void OnDestroy(){ReleaseCameraRumble(gameCamera);ReleaseCameraRumble(menuCamera);controlsHarmony?.UnpatchSelf();if(ControlsOwner==this)ControlsOwner=null;ClearNitroVisuals();CleanupAll();hordeWeather?.Dispose();hordeWeather=null;DisposeVehicleHints();fleetMusic?.Dispose();DisposeMenu();}
 }
 }
