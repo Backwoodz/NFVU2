@@ -11,14 +11,15 @@ or take off and fly. Viking transportation got a little out of hand.
 - Keyboard & mouse and controller support, with Xbox / PlayStation button hints.
 - Nitro, neon, wheel tuning, exhaust options and an in-game customization menu.
 - Vehicle sounds, radio, and a roof turret for the 350Z.
-- Cargo storage in development build 0.28.0, with less room as the 350Z audio enclosure grows.
+- 350Z horde mode with minimap radar, god pacts, elemental ammunition and a dragon finale.
+- Cargo storage, with less room as the 350Z audio enclosure grows; fixed storage for the H2.
 - English and German menus.
 
 ### Install & drive
 
 Windows 10/11, 64-bit. **Single-player only**; cars are temporary and are not saved with the world.
 
-**[Download the Windows installer (148 MB)](https://github.com/Backwoodz/NFVU2/releases/download/v0.22.3/NFVU2-Setup-0.22.3-r5.exe)**
+**[Download the Windows installer (148 MB)](https://github.com/Backwoodz/NFVU2/releases/download/v0.28.0/NFVU2-Setup-0.28.0-r6.exe)**
 
 1. Download the installer above, or get **NFVU2-Setup-*.exe** from [Releases](https://github.com/Backwoodz/NFVU2/releases).
    Use the installer asset, not GitHub's “Source code” download.
@@ -40,7 +41,7 @@ Choose English under **F9 → Einstellungen → Sprache** if needed.
 Settings, saves and other mods are kept. You can also remove BepInEx if this
 wizard installed it and no other mods need it.
 
-### Vehicle storage (development build 0.28.0)
+### Vehicle storage
 
 Park, exit and walk to the rear of the car, then choose **F9 → Vehicle → Open storage**
 (controller: **L3**, then select the button). This opens Valheim's normal chest inventory,
@@ -74,7 +75,7 @@ world's normal save system and remains accessible without the mod; unsaved
 changes have the same crash/rollback limitations as other Valheim chests.
 Native inventory UI, zone travel and save/reload still require an in-game test.
 
-### Vehicle horde mode (local development build 0.27.2)
+### Vehicle horde mode
 
 In single-player, sit in a **350Z with loaded turret assets**, land, then press
 **Numpad 9** (Num Lock on) to start five waves:
@@ -201,8 +202,8 @@ resetting the run also removes its ragdolls; unrelated world corpses/items remai
 Death, teleport and leaving the world
 also clear them; exiting the car cancels the run. Menu/chat/pause suspend the
 wave countdown and powerup timers. **Numpad 0** also closes the result screen.
-Explosive impacts retain the existing terrain damage/craters. This feature is in the local
-development build; the public installer linked above remains version 0.22.3.
+Explosive impacts retain the existing terrain damage/craters. Horde mode and storage
+are included in the 0.28.0 installer linked above.
 
 ### Preview
 
