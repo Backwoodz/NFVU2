@@ -28,6 +28,7 @@ internal sealed class VehicleRuntime {
     public int boostLogCount;
     public VehicleRideHeight rideHeight;
     public VehicleShowroom showroom;
+    public VehicleStorage storage;
     public VehicleInterior interior;
     public VehicleImpact vehicleImpact;
     public bool hasBeenDriven;

@@ -3,7 +3,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <LangVersion>latest</LangVersion>
     <AssemblyName>Rachel350Z</AssemblyName>
-    <Version>0.27.2</Version>
+    <Version>0.28.0</Version>
     <ValheimDir Condition="'$(ValheimDir)' == ''">$(NFVU2_VALHEIM)</ValheimDir>
     <ManagedDir>$(ValheimDir)/valheim_Data/Managed</ManagedDir>
   </PropertyGroup>
@@ -14,6 +14,7 @@
     <Reference Include="Unity.InputSystem"><HintPath>$(ManagedDir)/Unity.InputSystem.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="0Harmony"><HintPath>$(ValheimDir)/BepInEx/core/0Harmony.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="assembly_valheim"><HintPath>$(ManagedDir)/assembly_valheim.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="assembly_utils"><HintPath>$(ManagedDir)/assembly_utils.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="BepInEx"><HintPath>$(ValheimDir)/BepInEx/core/BepInEx.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine"><HintPath>$(ManagedDir)/UnityEngine.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine.CoreModule"><HintPath>$(ManagedDir)/UnityEngine.CoreModule.dll</HintPath><Private>false</Private></Reference>

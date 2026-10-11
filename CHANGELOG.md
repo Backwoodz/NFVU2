@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.28.0 — Vehicle cargo storage
+
+- Add native chest inventory access via Vehicle → Open storage while parked,
+  outside and near the rear. Each vehicle has an independent inventory.
+- 350Z enclosures provide 24 / 18 / 12 / 6 slots; H2 provides 32. Block an
+  undersized enclosure for any loaded 350Z; repack retained item instances.
+- Save cargo through persistent vanilla chest ZDOs. Loaded cargo follows the
+  car; removal/world exit restores a normal chest with its existing contents.
+  Zone unloading never creates a replacement inventory. No custom save format.
+- Show occupancy/capacity and localized German/English access guidance; opening
+  the 350Z storage also opens its hatch. Keep driving/handling unchanged.
+- Add automated storage lifecycle/resize checks. Native UI, world save/reload,
+  chest placement and controller operation need in-game verification.
+
 ## 0.27.2 — Boss damage spikes and horde discovery hint
 
 - Reduce encounter Moder's incoming damage by 45%, cap final hits at 180

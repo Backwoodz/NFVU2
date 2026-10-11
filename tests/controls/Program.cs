@@ -85,6 +85,8 @@ static class Program {
         Check(InterfaceText.Translate("Nissan 350Z",true)=="Nissan 350Z","vehicle identifiers are not rewritten");
         Check(InterfaceText.Translate("Der Wald erwacht – eine Horde greift an!",true)=="The forest awakens – a horde attacks!","English horde announcement");
         Check(InterfaceText.Translate("Stelle dich der Horde",true)=="Face the horde"&&InterfaceText.Translate("Numpad 9 · Kampf beginnen",true)=="Numpad 9 · Begin the battle","English discovery hint retains the start key");
+        Check(InterfaceText.Translate("Stauraum öffnen · 12 / 24",true)=="Open storage · 12 / 24","cargo access label retains occupancy");
+        Check(InterfaceText.Translate("Der Inhalt bleibt als Kiste am Fahrzeugstandort.",true)=="Cargo remains in a chest at the vehicle's location.","cargo recovery notice is translated");
         foreach(var pact in new[]{HordePact.None,HordePact.Odin,HordePact.Thor,HordePact.Iron,HordePact.Frost,HordePact.Storm,HordePact.Valkyrie})
             foreach(var text in new[]{HordePacts.Name(pact),HordePacts.Benefit(pact),HordePacts.Cost(pact)}) {
                 Check(InterfaceText.Translate(text,true)!=text,"pact text has an English translation: "+text);

@@ -147,9 +147,11 @@ public partial class Plugin {
         GUI.enabled=true;
         if(MenuButton(new Rect(285,280,245,38),"Fahrzeug entfernen")){Cleanup();return;}
         keepRunning.Value=UiToggle(new Rect(25,340,510,32),keepRunning.Value," Beim Aussteigen weiterlaufen lassen");
-        UiLabel(new Rect(25,378,510,48),"Motor im Leerlauf, aktiviertes Neon und gedämpfte Musik. Auch neben dem Auto ein-/ausschaltbar.",mutedStyle);
+        UiLabel(new Rect(25,378,510,60),"Motor im Leerlauf, aktiviertes Neon und gedämpfte Musik. Auch neben dem Auto ein-/ausschaltbar.\nBeim Entfernen bleibt Inhalt als Kiste zurück.",mutedStyle);
         if(MenuButton(new Rect(25,445,245,38),"Türen und Motorhaube"))ChangeMenuTab(6);
         if(MenuButton(new Rect(285,445,245,38),"Kofferraum-Ausbau"))ChangeMenuTab(7);
+        DrawStorageButton(new Rect(25,488,245,30));
+        UiLabel(new Rect(285,488,245,30),"Zum Beladen parken und ans Heck gehen.",mutedStyle);
     }
     void DrawNitroMenu() {
         nitroEnabled.Value=UiToggle(new Rect(25,145,510,30),nitroEnabled.Value,IsHummer?" Nitro im Flug aktivieren":" Nitro aktivieren");

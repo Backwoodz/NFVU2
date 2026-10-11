@@ -3,6 +3,15 @@ using System.Linq;
 namespace Rachel350Z {
 public static class InterfaceText {
     static readonly KeyValuePair<string,string>[] English={
+        new KeyValuePair<string,string>("Der Inhalt bleibt als Kiste am Fahrzeugstandort.","Cargo remains in a chest at the vehicle's location."),
+        new KeyValuePair<string,string>("Beim Entfernen bleibt Inhalt als Kiste zurück.","Removing the car leaves its cargo in a chest."),
+        new KeyValuePair<string,string>("Stauraum öffnen","Open storage"),
+        new KeyValuePair<string,string>("Stauraum ist gerade nicht verfügbar.","Storage is currently unavailable."),
+        new KeyValuePair<string,string>("Für diesen Ausbau zuerst Stauraum leeren und schließen.","Remove excess cargo and close storage before selecting this layout."),
+        new KeyValuePair<string,string>("Zum Beladen parken und ans Heck gehen.","Park and walk to the rear to load cargo."),
+        new KeyValuePair<string,string>("Mehr Ausbau, weniger Ladefläche.","More audio equipment, less cargo space."),
+        new KeyValuePair<string,string>("Stauraum","Storage"),
+        new KeyValuePair<string,string>("Plätze","Slots"),
         new KeyValuePair<string,string>("Stelle dich der Horde","Face the horde"),
         new KeyValuePair<string,string>("Numpad 9 · Kampf beginnen","Numpad 9 · Begin the battle"),
         new KeyValuePair<string,string>("Skadis Winter","Skadi's Winter"),

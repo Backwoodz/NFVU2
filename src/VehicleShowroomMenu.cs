@@ -61,7 +61,8 @@ public partial class Plugin {
     }
     void DrawTrunkMenu() {
         if(!ShowroomReady())return;
-        trunkLayout.Value=UiToolbar(new Rect(25,143,505,32),trunkLayout.Value,showroom.Layouts.Select(l=>l.title).ToArray());
+        int layout=UiToolbar(new Rect(25,143,505,32),trunkLayout.Value,showroom.Layouts.Select(l=>l.title).ToArray());
+        if(layout!=trunkLayout.Value)SetTrunkLayout(layout);
         int slots=showroom.Layouts[trunkLayout.Value].sockets.Length;
         if(slots>0) {
             selectedAudioSlot=Mathf.Clamp(selectedAudioSlot,0,slots-1);
@@ -72,13 +73,15 @@ public partial class Plugin {
         trunkNeonEnabled.Value=UiToggle(new Rect(25,363,250,28),trunkNeonEnabled.Value," Kofferraum-Neon");
         trunkNeonPulsing.Value=UiToggle(new Rect(285,363,245,28),trunkNeonPulsing.Value," Pulsierend");
         int color=Math.Max(0,Array.IndexOf(ColorNames,trunkNeonColor.Value));
-        int next=UiGrid(new Rect(25,402,505,60),color,ColorNames,4);
+        int next=UiGrid(new Rect(25,402,505,50),color,ColorNames,4);
         if(next!=color)trunkNeonColor.Value=ColorNames[next];
         MotionButton(new Rect(25,478,245,34),3,"Kofferraum");
         if(MenuButton(new Rect(285,478,245,34),"Standard-System")) {
-            trunkLayout.Value=2;foreach(var slot in audioSlots)slot.Value=1;
+            if(!SetTrunkLayout(2))return;
+            foreach(var slot in audioSlots)slot.Value=1;
             trunkNeonEnabled.Value=true;trunkNeonPulsing.Value=false;trunkNeonColor.Value="Grün";
         }
+        UiLabel(new Rect(25,456,505,21),Tr("Stauraum")+": "+VehicleStorageRules.Capacity(false,trunkLayout.Value)+" "+Tr("Plätze")+" · "+Tr("Mehr Ausbau, weniger Ladefläche."),mutedStyle);
     }
 }
 }

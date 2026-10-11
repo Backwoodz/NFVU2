@@ -11,6 +11,7 @@ or take off and fly. Viking transportation got a little out of hand.
 - Keyboard & mouse and controller support, with Xbox / PlayStation button hints.
 - Nitro, neon, wheel tuning, exhaust options and an in-game customization menu.
 - Vehicle sounds, radio, and a roof turret for the 350Z.
+- Cargo storage in development build 0.28.0, with less room as the 350Z audio enclosure grows.
 - English and German menus.
 
 ### Install & drive
@@ -38,6 +39,40 @@ Choose English under **F9 → Einstellungen → Sprache** if needed.
 **Uninstall:** run the installer again, select the game and click **Uninstall**.
 Settings, saves and other mods are kept. You can also remove BepInEx if this
 wizard installed it and no other mods need it.
+
+### Vehicle storage (development build 0.28.0)
+
+Park, exit and walk to the rear of the car, then choose **F9 → Vehicle → Open storage**
+(controller: **L3**, then select the button). This opens Valheim's normal chest inventory,
+including drag/drop, splitting, stacking and take-all. The menu shows occupied/total slots.
+Each spawned car has its own cargo. Storage is unavailable while driving or flying.
+
+| Vehicle / trunk enclosure | Item slots |
+| --- | ---: |
+| 350Z stock, no audio enclosure | 24 (6 × 4) |
+| 350Z stage 1, two equipment mounts | 18 (6 × 3) |
+| 350Z stage 2, four equipment mounts | 12 (6 × 2) |
+| 350Z stage 3, six equipment mounts | 6 (6 × 1) |
+| Hummer H2 | 32 (8 × 4) |
+
+For comparison, the installed vanilla prefabs have 10 slots in a wooden chest,
+24 in a reinforced chest and 32 in a black metal chest. Each slot accepts the
+item's normal stack size. The enclosure determines capacity, including covered
+audio mounts; changing speaker brands does not change storage. The existing
+default audio setup is stage 2, so it starts with 12 slots.
+
+Before selecting an enclosure with less storage, remove excess item stacks and
+close the inventory. The check includes every spawned 350Z because enclosure
+settings are shared. Items are repacked without discarding or merging stacks.
+
+**Cargo survives the temporary car:** removing a loaded vehicle or leaving the
+world leaves its contents in a normal reinforced chest (350Z) or black metal
+chest (H2) at its last location, on the ground beneath it if airborne. Retrieve
+items from that chest after returning; a newly spawned car starts empty. Empty
+loaded cargo containers are removed when the car is removed. Cargo uses the
+world's normal save system and remains accessible without the mod; unsaved
+changes have the same crash/rollback limitations as other Valheim chests.
+Native inventory UI, zone travel and save/reload still require an in-game test.
 
 ### Vehicle horde mode (local development build 0.27.2)
 

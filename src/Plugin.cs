@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Rachel350Z {
 // Local vehicles have no ZNetView; test enemies use nonpersistent native views.
-[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.27.2")]
+[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.28.0")]
 [DefaultExecutionOrder(10000)]
 public partial class Plugin : BaseUnityPlugin {
     VehicleOrbitCamera orbitCamera;
@@ -167,6 +167,7 @@ public partial class Plugin : BaseUnityPlugin {
     void LateUpdate() {ForEachVehicle(TickVehicle);LateMenuCamera();TickNitroVisuals();UpdateGameCrosshair();UpdateVehicleHints();TickHordeRadar();fleetMusic?.Tick(driving&&!audioBlocked&&vehicleRadio!=null&&vehicleRadio.CabinAudible);}
     void TickVehicle() {
         if(car==null)return;
+        TickVehicleStorage();
         TickExhaustCustomization();
         if(showroom!=null)try {
             ApplyShowroomSettings();
@@ -284,12 +285,15 @@ public partial class Plugin : BaseUnityPlugin {
         player=null;gameCamera=null;status="F6: Fahrzeug erstellen | F7: einsteigen | F9: Garage";
     }
     void Cleanup(){
+        bool cargoLeft=current.storage!=null&&current.storage.Count!=0;
         if(driving)Exit();
         RestoreGameCrosshair();
         CloseVehicleMenu();
         ReleaseVehicle();
+        if(cargoLeft)ShowVehicleWarning("Der Inhalt bleibt als Kiste am Fahrzeugstandort.");
     }
     void ReleaseVehicle(){
+        current.storage?.Release();current.storage=null;
         current.flight?.Dispose();current.flight=null;
         current.flightEffects?.Dispose();current.flightEffects=null;
         current.flightAudio?.Dispose();current.flightAudio=null;

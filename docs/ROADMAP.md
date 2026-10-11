@@ -1,5 +1,25 @@
 # Nächste Aufgaben
 
+## Fahrzeug-Stauraum in 0.28.0
+
+- 350Z Serie / Ausbau 1 / 2 / 3: 24 / 18 / 12 / 6 Plätze; H2 fest 32.
+  Lokale native Prefabs geprüft: Holzkiste 5×2, verstärkte Kiste 6×4,
+  Schwarzmetallkiste 8×4. Kapazität folgt Gehäuse, nicht Subwoofer-Marke.
+- Im Stand aussteigen, ans Heck gehen, F9 → Fahrzeug → Stauraum öffnen.
+  Normales Valheim-Inventar; jede Fahrzeuginstanz hat eigenen Inhalt.
+- Verkleinern prüft alle 350Z und sperrt bei zu vielen Stapeln/offenem Inventar.
+  Umsortieren behält Iteminstanzen mit Metadaten. Externe Konfigurationswechsel
+  dürfen eine belegte Kapazität ebenfalls nicht unterschreiten.
+- Native persistente Kiste speichert im Weltstand. Beim Entfernen/Weltwechsel
+  bleibt gefüllter Stauraum als normale Kiste zurück; neues Auto beginnt leer.
+  Beim Flug liegt der Wiederherstellungsort am Boden darunter. Ausgeladene
+  Kisten bleiben im ZDO, keine zweite Inventarkopie und kein Ersatz beim Unload.
+- Automatisch: Größen, Grenzwerte, verlustfreies Umpacken, Sperre bei Zugriff,
+  Positionsfortschreibung, Freigabe, leere Kiste und Unload/Reload geprüft.
+- Spieltest: DE/EN und Controller, Drag/Drop/Split/Take-all, volle Kiste bei
+  Ausbauwechsel/Standard-System, mehrere Autos, entfernte Zonen, F8, Weltwechsel
+  und Save/Reload. Rückgabekiste auf Hängen/Bauwerken/Wasser sowie Flug prüfen.
+
 ## Boss-Schadensspitzen und Einstiegshinweis in 0.27.2
 
 - Nur Moder: Schaden um 45 % gesenkt, maximal 180 Schaden je akzeptiertem
