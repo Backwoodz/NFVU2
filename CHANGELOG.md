@@ -1,6 +1,23 @@
 # Changelog
 
-## 0.28.0 — Vehicle cargo storage
+## 0.28.0 — Horde mode, minimap radar and vehicle storage
+
+Public release highlights since 0.22.3 (Windows setup revision 6):
+
+- New 350Z horde mode: five mixed enemy waves, a Moder finale, vehicle health,
+  a shimmering hexagonal shield, colored powerups, combos and victory medals.
+- Red enemy dots on the minimap, a localized start hint, and smooth transitions
+  to stormy night at the start and clear daytime at the end.
+- Randomized god pacts with benefits and drawbacks, including freezing ice
+  ammunition and chain lightning. Choices open immediately between waves.
+- Vehicle storage: 24 / 18 / 12 / 6 slots by 350Z trunk enclosure and 32 for H2.
+- Fix radio dropouts and crowded-out turret audio, shield rendering over windows,
+  distracting lightning tint flashes and excessive boss burst damage. Remove
+  wave-long automatic fire from the finale's pact selection.
+- Bound horde spawns and clean up corpses/projectiles without enemy loot buildup.
+  The following development entries document the individual changes in detail.
+
+Vehicle storage details:
 
 - Add native chest inventory access via Vehicle → Open storage while parked,
   outside and near the rear. Each vehicle has an independent inventory.

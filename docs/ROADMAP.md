@@ -1,5 +1,17 @@
 # Nächste Aufgaben
 
+## Release 0.28.0 / Setup r6
+
+- Öffentlicher Funktionsstand seit 0.22.3: Hordenmodus mit Minimap und Pakten,
+  Audio-/Schild-/Bosskorrekturen und Fahrzeug-Stauraum. Setup mit kompletter Musik.
+- Nutzerfeedback bestätigt das Grundspielprinzip des Hordenmodus. Die jüngste
+  Boss-Schadensbegrenzung und Stauraum-Speicherung/Bedienung bleiben gezielte
+  Spieltests; automatisierte Adapterprüfungen ersetzen diese nicht.
+- Setup-Code unverändert; vollständige automatische Prüfungen bestanden,
+  90 Payload-Dateien, aktuelle DLL, 27 Radiotitel und eingebetteter Payload
+  per SHA-256 geprüft. Echter Wizard-/DPI-/Spielstarttest
+  auf sauberer und bestehender Installation bleibt separat zu prüfen.
+
 ## Fahrzeug-Stauraum in 0.28.0
 
 - 350Z Serie / Ausbau 1 / 2 / 3: 24 / 18 / 12 / 6 Plätze; H2 fest 32.
