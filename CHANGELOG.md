@@ -1,5 +1,29 @@
 # Changelog
 
+## Unreleased — Vehicle inner surfaces
+
+- Remove black-backed ring decals that made the closed brake caliper bosses
+  look like exposed pistons. Replace hub/bolt atlas squares with solid metal
+  discs and separate the metal hub finish from red caliper paint.
+- Replace the plain stock hood underside with a STYLE07-shaped graphite inner
+  skin, reinforcement profiles, four matte pads and fasteners. This inner
+  finish is authored for NFVU2; the original carbon exterior and hinge remain.
+- Fit the donor dashboard and pillar fronts behind the original windshield
+  and seal, including faces crossing the upper edge. Check clearance against
+  all three engine variants and inspect closed/open hood previews.
+- Preserve the original door edge returns when loading the detailed cabin.
+  Split the original rear inner shell from the simplified cockpit so the
+  hatch opening stays connected to the body with every audio enclosure.
+- Restore the cabin's full A pillars and roof lining instead of cutting them
+  off at one metre; fit the lining below the actual exterior roof. Verify
+  the fit in external previews; native shading still needs an in-game check.
+- Add reverse faces with separate inward normals to the imported body, wheels,
+  brakes and cabin meshes, including roof, doors, hatch and glass. Existing
+  pivots and wheel sizing apply to both sides. Audio membranes retain their
+  original vertex layout.
+- Check winding, normals, UV/color preservation and 16/32-bit index limits.
+  Visibility, transparent glass and lighting still need an in-game check.
+
 ## 0.28.0 — Horde mode, minimap radar and vehicle storage
 
 Public release highlights since 0.22.3 (Windows setup revision 6):

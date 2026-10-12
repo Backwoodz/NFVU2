@@ -13,6 +13,7 @@ from pathlib import Path
 import numpy as np
 from PIL import Image
 from project import LOCAL
+from cabin_fit import fit_headliner, roof_triangles, fit_windscreen, windscreen_triangles, REAR_LIMIT
 
 NS = {'c': 'http://www.collada.org/2005/11/COLLADASchema'}
 SELECTED = {
@@ -46,7 +47,7 @@ def read_materials(path):
     return {v.get('mapTo', k): v for k, v in json.loads(text).items()}
 
 
-def geometry_parts(geometry, transform, name, material_id):
+def geometry_parts(geometry, transform, name, material_id, roof=None, windscreen=None):
     mesh = geometry.find('c:mesh', NS)
     sources = {}
     for source in mesh.findall('c:source', NS):
@@ -82,12 +83,34 @@ def geometry_parts(geometry, transform, name, material_id):
         normals /= np.maximum(np.linalg.norm(normals, axis=1)[:, None], 1e-8)
         indices = inverse.reshape(-1, 3)
         if np.linalg.det(transform[:3, :3]) < 0: indices = indices[:, ::-1]
+        original_positions = positions
         if name == 'Nis350Z_interior':
-            # This source's cabin shell also contains its roof/pillars and rear luggage bay.
-            # Retain our NFS roof and audio trunk; prevent two mismatched shells intersecting.
+            # Retain full-height pillars and lining. Only the donor luggage bay
+            # and roof behind the fixed NFS header conflict with our moving hatch.
             triangles = positions[indices]
-            indices = indices[(triangles[:, :, 1].max(axis=1) < 1.0) & (triangles[:, :, 2].min(axis=1) > -.9)]
+            indices = indices[(triangles[:, :, 2].min(axis=1) > -.9) &
+                              ((triangles[:, :, 1].max(axis=1) < 1.0) |
+                               (triangles[:, :, 2].min(axis=1) > REAR_LIMIT))]
             if not len(indices): continue
+            if roof is not None:
+                positions = fit_headliner(positions, roof)
+        if windscreen is not None and name in ('Nis350Z_interior', 'Nis350Z_dash'):
+            positions = fit_windscreen(positions, windscreen)
+            if name == 'Nis350Z_interior' and roof is not None:
+                # Moving the upper seal rearward changes the roof point above it.
+                positions = fit_headliner(positions, roof)
+        if not np.array_equal(positions, original_positions):
+            # Rebuild only normals adjacent to fitted faces; keep authored
+            # shading on the untouched floor, trim and dashboard controls.
+            changed = np.any(positions != original_positions, axis=1)
+            affected = np.unique(indices[np.any(changed[indices], axis=1)])
+            rebuilt = np.zeros_like(positions)
+            faces = positions[indices]
+            face_normals = np.cross(faces[:, 1]-faces[:, 0], faces[:, 2]-faces[:, 0])
+            for corner in range(3): np.add.at(rebuilt, indices[:, corner], face_normals)
+            length = np.linalg.norm(rebuilt, axis=1)
+            affected = affected[length[affected] > 1e-8]
+            normals[affected] = rebuilt[affected]/length[affected, None]
         used, compact = np.unique(indices, return_inverse=True)
         positions = positions[used]; normals = normals[used]
         texcoords = attributes.get('TEXCOORD', np.zeros((len(unique), 2)))[used, :2]
@@ -102,12 +125,14 @@ def geometry_parts(geometry, transform, name, material_id):
         yield part
 
 
-def export(source, output):
+def export(source, output, body_path=LOCAL/'model/body.json'):
     output.mkdir(parents=True, exist_ok=True)
     vehicle = source / 'vehicles/Nis350Z'
     root = ET.parse(vehicle / 'Nis350Z.dae').getroot()
     geometries = {g.get('id'): g for g in root.findall('c:library_geometries/c:geometry', NS)}
     definitions = read_materials(vehicle / 'main.materials.json')
+    body = json.loads(body_path.read_text(encoding='utf-8'))
+    roof = roof_triangles(body); windscreen = windscreen_triangles(body)
     materials = []; textures = []; material_ids = {}; texture_ids = {}; missing = []
     def material_id(symbol):
         name = symbol.removesuffix('-material')
@@ -146,7 +171,7 @@ def export(source, output):
         if name not in SELECTED: continue
         found.add(name)
         geometry = geometries[node.find('c:instance_geometry', NS).get('url')[1:]]
-        parts.extend(geometry_parts(geometry, FIT @ matrix, name, material_id))
+        parts.extend(geometry_parts(geometry, FIT @ matrix, name, material_id, roof, windscreen))
         if name == 'Nis350Z_steer':
             steering = {'pivot': vectors([(FIT @ matrix)[:3, 3]])[0],
                         'axis': vectors([(FIT @ matrix)[:3, 2]])[0]}
@@ -158,7 +183,8 @@ def export(source, output):
                   sourceUrl='https://www.modland.net/beamng.drive-mods/cars/nissan-350z-fix-ukbeamng.html',
                   transform=FIT.tolist(), selected=sorted(found), parts=len(parts),
                   triangles=sum(len(p['indices'])//3 for p in parts), steering=steering,
-                  substitutedMaterials=missing)
+                  substitutedMaterials=missing,
+                  shellFit='Full A pillars and roof lining fitted below the NFS roof; dashboard/pillar fronts fitted behind NFS windshield and seal; donor rear bay/roof omitted at animated hatch')
     # Provenance/review data stays next to the source, outside the mod payload.
     (source.parent/'interior-import-report.json').write_text(json.dumps(report, indent=2), encoding='utf-8')
     print(f'Cabin: {len(parts)} meshes, {report["triangles"]} triangles, {len(textures)} textures, {target.stat().st_size/1048576:.1f} MiB')
@@ -169,4 +195,5 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument('--source', type=Path, default=LOCAL/'interior-source/beamng-350z')
     parser.add_argument('--output', type=Path, default=LOCAL/'interior')
-    args = parser.parse_args(); export(args.source, args.output)
+    parser.add_argument('--body', type=Path, default=LOCAL/'model/body.json')
+    args = parser.parse_args(); export(args.source, args.output, args.body)

@@ -85,7 +85,24 @@ class AssetImportTests(unittest.TestCase):
         self.assertEqual(len(rotor['indices'])//3,128)
         self.assertAlmostEqual(max(np.hypot(brake['vertices'][i][0],brake['vertices'][i][2]) for i in rotor['indices']),.18,places=6)
         original_caliper=next(s for s in source['slices'] if s['materialKey']==0xd6640dff)
-        self.assertEqual(next(s for s in brake['slices'] if s['materialKey']==0xd6640dff)['indices'],original_caliper['indices'])
+        painted=next(s for s in brake['slices'] if s['materialKey']==0xd6640dff)
+        metal=next(s for s in brake['slices'] if s['materialKey']==0xf0a43b67 and s['textureKey']==0)
+        triangles=lambda ids:[tuple(ids[i:i+3]) for i in range(0,len(ids),3)]
+        # All original cast faces survive, with only the central hat recoloured.
+        self.assertCountEqual(triangles(original_caliper['indices']),
+            triangles(painted['indices'])+[t for t in triangles(metal['indices']) if max(t)<len(source['vertices'])])
+        self.assertEqual(brake['vertices'][:len(source['vertices'])],source['vertices'])
+        details=next(s for s in brake['slices'] if s['materialKey']==0x1fbd2378)
+        self.assertFalse(set(range(60,68)).intersection(details['indices']))
+        # Both closed boss faces beneath the removed ring decals stay red.
+        self.assertTrue(set(range(265,271)).issubset(painted['indices']))
+        self.assertTrue(set(range(283,289)).issubset(painted['indices']))
+        for tri in triangles(metal['indices']):
+            if max(tri)<len(source['vertices']):continue
+            a,b,c=np.array([brake['vertices'][i] for i in tri])
+            normal=np.cross(b-a,c-a)
+            self.assertGreater(np.linalg.norm(normal),1e-7)
+            self.assertLess(normal[1],0)  # Solid detail faces point out of wheel.
         # The complete scaled assembly fits between the widened wheel's faces.
         ids={i for s in brake['slices'] for i in s['indices']}
         axial=[(-brake['vertices'][i][1]+.04)*(.19/.18) for i in ids]

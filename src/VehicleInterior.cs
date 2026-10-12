@@ -40,13 +40,16 @@ internal sealed class VehicleInterior:IDisposable {
             mesh.vertices=p.vertices.Select(v=>new Vector3(v.x,v.y,v.z)-(isWheel?WheelPivot:Vector3.zero)).ToArray();
             mesh.normals=p.normals.Select(v=>new Vector3(v.x,v.y,v.z)).ToArray();
             mesh.uv=p.uv.Select(v=>new Vector2(v.u,v.v)).ToArray();mesh.triangles=p.indices;
-            mesh.colors=Enumerable.Repeat(Color.white,p.vertices.Length).ToArray();mesh.RecalculateBounds();mesh.RecalculateTangents();
+            mesh.colors=Enumerable.Repeat(Color.white,p.vertices.Length).ToArray();
+            VehicleMesh.AddBackfaces(mesh);mesh.RecalculateBounds();mesh.RecalculateTangents();
             obj.AddComponent<MeshFilter>().sharedMesh=mesh;obj.AddComponent<MeshRenderer>().sharedMaterial=materials[p.material];
             yield return 0;
         }
         foreach(var r in car.GetComponentsInChildren<MeshRenderer>(true)) {
             string n=r.name;
-            if(n.Contains("DOOR_PANEL_")||n=="350Z_BASE_A_slice3_3"||n=="350Z_BASE_A_slice5_5"||n=="350Z_BASE_A_slice6_6") {
+            // Original door panels include the edge returns, not just trim.
+            // The exported rear inner shell is separate from this old cockpit.
+            if(n=="350Z_BASE_A_slice3_3"||n=="350Z_BASE_A_slice5_5"||n=="350Z_BASE_A_slice6_6") {
                 if(r.enabled){hidden.Add(r);r.enabled=false;}
             }
         }
@@ -73,6 +76,8 @@ internal sealed class VehicleInterior:IDisposable {
             if(glass.HasFloat("_SrcBlend"))glass.SetFloat("_SrcBlend",5);
             if(glass.HasFloat("_DstBlend"))glass.SetFloat("_DstBlend",10);
             if(glass.HasFloat("_ZWrite"))glass.SetFloat("_ZWrite",0);
+            // The mesh supplies both sides; avoid blending the same pane twice.
+            if(glass.HasFloat("_Cull"))glass.SetFloat("_Cull",2);
             if(glass.HasFloat("_Glossiness"))glass.SetFloat("_Glossiness",.8f);
             glass.DisableKeyword("_ALPHATEST_ON");glass.DisableKeyword("_ALPHAPREMULTIPLY_ON");
             glass.EnableKeyword("_ALPHABLEND_ON");

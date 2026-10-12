@@ -14,6 +14,8 @@ from project import LOCAL
 from export_geometry import parse
 from nfs_formats import bin_hash, jdlz, TexturePack
 import showroom_assets
+from cabin_fit import split_rear_shell
+from hood_lining import dress_hood
 
 ASSETS=LOCAL/'nfs-assets'
 PAINT=(15,108,49)
@@ -105,6 +107,40 @@ def sport_brake_geometry(part):
     # cannot expose black square corners; keep its original atlas and caliper.
     part={**part,'vertices':part['vertices'][:],'normals':part['normals'][:],'uv':part['uv'][:],
           'slices':[s for s in part['slices'] if s['materialKey']!=0xb1aae6bb]}
+    # The detail atlas contains black-backed billboard rings over two already
+    # closed red bosses. Opaque rendering makes these look like exposed pistons.
+    # Remove only those overlays. Replace hub/bolt billboards with solid metal
+    # discs; retain the pad and retaining clips from the original detail slice.
+    details=next(s for s in part['slices'] if s['materialKey']==0x1fbd2378)
+    expected=[i for start in range(12,100,4) for i in (start,start+1,start+2,start+2,start+3,start)]
+    if details['indices']!=expected:
+        raise ValueError('Re-identify STYLE03 caliper ring and hardware UV islands')
+    rings=set(range(60,68))
+    round_quads={16:32, **{i:6 for i in (*range(20,60,4),68,72,84,88,96)}}
+    replaced=rings | {i for start in round_quads for i in range(start,start+4)}
+    kept=[i for j in range(0,len(details['indices']),3)
+          if not replaced.intersection(details['indices'][j:j+3])
+          for i in details['indices'][j:j+3]]
+    part['slices']=[{**s,'indices':kept} if s is details else s for s in part['slices']]
+    metal=[]
+    for start,count in round_quads.items():
+        corners=np.array(part['vertices'][start:start+4]);center=corners.mean(axis=0)
+        a=(corners[1]-corners[0])*.5;b=(corners[3]-corners[0])*.5
+        normal=np.cross(a,b);normal/=np.linalg.norm(normal)
+        first=len(part['vertices'])
+        for point in [center]+[center+a*math.cos(2*math.pi*i/count)+b*math.sin(2*math.pi*i/count) for i in range(count)]:
+            part['vertices'].append(tuple(point));part['normals'].append(tuple(normal));part['uv'].append((0,0))
+        for i in range(count):metal.extend((first,first+1+i,first+1+(i+1)%count))
+    # The source shares red paint between caliper and the rotor's centre hat.
+    # Give only the centred hat its metal finish; the closed caliper is intact.
+    painted=next(s for s in part['slices'] if s['materialKey']==0xd6640dff)
+    caliper=[]
+    for j in range(0,len(painted['indices']),3):
+        tri=painted['indices'][j:j+3]
+        target=metal if all(math.hypot(part['vertices'][i][0],part['vertices'][i][2])<.1 for i in tri) else caliper
+        target.extend(tri)
+    part['slices']=[{**s,'indices':caliper} if s is painted else s for s in part['slices']]
+    part['slices'].append({'materialKey':0xf0a43b67,'textureKey':0,'indices':metal})
     indices=[];count=64
     for back,axial in ((False,-.008),(True,.006)):
         center=len(part['vertices'])
@@ -335,6 +371,8 @@ def main():
     parts.append({'name':'NFVU2_license_plate_rectangle','group':'body','lightRole':'','vertices':plate_vertices,
                   'normals':[plate_normal]*4,'uv':[{'u':0,'v':0},{'u':0,'v':1},{'u':1,'v':1},{'u':1,'v':0}],
                   'indices':[0,1,2,0,2,3],'material':plate_material})
+    split_rear_shell(parts)
+    dress_hood(parts, materials)
     lights=[]
     def lamp(role,position,direction):lights.append({'role':role,'position':position,'direction':direction})
     # Original headlamp locator translations; projection direction is adapted for Valheim.
@@ -373,11 +411,12 @@ def main():
                     'texture':'original AUDIO_SKIN from CARS/TEXTURES.BIN; engine atlases from 350Z/TEXTURES.BIN',
                     'animation':'8 original 350Z PARTS_ANIMATIONS quaternion tracks, scissor translations and pivot matrices; runtime duration normalized to one second',
                     'componentFit':'original MARKER_AUDIO_COMP_0..5 matrices; large plates for KIT01/02 and medium for KIT03 chosen by geometry fit',
-                    'interior':'simplified original BASE/DOOR_PANEL/DOOR_SILL geometry; full detailed cockpit not present in imported car meshes',
+                    'interior':'original DOOR_PANEL/DOOR_SILL retained as structural door edges; BASE rear shell partition stays visible with optional detailed cabin',
                     'neon':'NFVU2 light strips, point light, tint and visual pulse; not original neon geometry or beat analysis',
                     'defaults':'NFVU2 choice: KIT02 with four SPEAKER1 subwoofers; not asserted to be Rachel preset equipment'},
+        'hoodInterior':'NFVU2-authored graphite inner skin fitted to original STYLE07, raised reinforcement profiles, four matte pads and fasteners; original outer carbon skin and hinge retained',
         'rearLenses':{'upperHousing':'complete original STYLE04 opaque lens inserts including upper reflector surrounds; clear outer covers still omitted','upperStrip':'original STYLE04 amber textured trim; passive','bumper':'original lens triangles split into inner reverse and outer amber, split inferred from stock layout; not recovered NFS atlas mapping'},
-        'sportBrakes':{'source':'BRAKE_STYLE03_A + original BRAKE_STYLE03 rotor atlas','adaptation':'38cm round opaque rotor replaces alpha-masked square; original caliper geometry painted red; visual only'},
+        'sportBrakes':{'source':'BRAKE_STYLE03_A + original BRAKE_STYLE03 rotor atlas','adaptation':'38cm round opaque rotor replaces alpha-masked square; original closed caliper geometry painted red, misleading ring overlays removed, opaque hub and bolt discs replace atlas billboards; visual only'},
         'wheelFinish':{'source':'original RACINGHART_STYLE07 geometry and gold/silver atlas; shared material split at existing radial loops','adaptation':'fully metallic polished chrome lip and lightly cooled original gold star; fresh runtime material with environment reflections, no emission; NFVU2 finish approximation'},
         'exhaustVariants':{'source':'original CARS/EXHAUST STYLE01..STYLE10_LEVEL1_A at both original KITW02 exhaust sockets','default':'STYLE08 from DDAY_PLAYER_CAR','flames':'connected mouth-face centres, 6mm beyond outer lip; native NFS effect timing not recovered'},
         'nitroEffects':{'textures':'original InGameCommon SFX_FIREB and SFX_SMOKE_B_CS; runtime tint/animation adapted','exhaust':'original mouth-face centres for selected style, offset 6mm outward','purge':'mod-authored bumper pair and measured hood surface pair; original nozzle sockets not identified'},

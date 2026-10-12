@@ -102,6 +102,8 @@ public partial class Plugin : BaseUnityPlugin {
             if(p.normals!=null)mesh.normals=p.normals.Select(v=>new Vector3(v.x,v.y,v.z)).ToArray();else mesh.RecalculateNormals();
             mesh.uv=p.uv!=null?p.uv.Select(v=>new Vector2(v.u,v.v)).ToArray():new Vector2[p.vertices.Length];
             mesh.colors=Enumerable.Repeat(Color.white,p.vertices.Length).ToArray();
+            // Audio membranes use the original vertex-to-model mapping.
+            if(p.group!="audio")VehicleMesh.AddBackfaces(mesh);
             mesh.RecalculateTangents();mesh.RecalculateBounds();
             if(p.group=="wheel")wheelSizeVisuals?.Track(mesh);
             if(p.group=="audio")audioMeshes.Add(p,mesh);

@@ -92,6 +92,8 @@ public static class VehicleMaterials {
                     ? new Material(wheelShader) { name = "350Z_" + data.name, renderQueue = 2000 }
                     : Clone(templates[0], "350Z_" + data.name, new Color(c[0], c[1], c[2], c[3]));
                 result[i] = material;
+                // VehicleMesh supplies reverse faces with their own inward normals.
+                if(material.HasFloat("_Cull"))material.SetFloat("_Cull",2);
                 if (paint||wheelMetal||wheelRubber) foreach (var property in new[] { "_Color", "_BaseColor" })
                     if (material.HasColor(property)) material.SetColor(property, new Color(c[0], c[1], c[2], c[3]));
                 foreach (var property in new[] { "_MainTex", "_BaseMap", "_Albedo" })
@@ -176,6 +178,7 @@ public static class VehicleMaterials {
     static Material Clone(Material source, string name, Color color) {
         var material = new Material(source) { name = name, renderQueue = 2000 };
         try {
+            if(material.HasFloat("_Cull"))material.SetFloat("_Cull",2);
             foreach (var property in new[] { "_Color", "_BaseColor", "_SkinColor" })
                 if (material.HasColor(property)) material.SetColor(property, color);
             foreach (var property in new[] { "_MainTex", "_BaseMap", "_Albedo" })

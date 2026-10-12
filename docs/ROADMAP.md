@@ -1,5 +1,41 @@
 # Nächste Aufgaben
 
+## Innenseiten der Fahrzeugflächen (lokale Korrektur)
+
+- Nutzer hat den lokalen Gesamtstand einschließlich der Bremssattelkorrektur
+  im Spiel optisch bestätigt; die folgenden Prüfpunkte dokumentieren den Umfang.
+- Bremssattel: schwarze Ring-Decals lagen vor bereits geschlossenen roten
+  Gehäuseflächen. Decals entfernt; Naben-/Schrauben-Atlasrechtecke durch
+  Metallflächen ersetzt. Nahansichten mit/ohne Felge und Spielbild bestätigt.
+- Drittes Nutzerfeedback: glatte Haubenunterseite und Teile vor der Frontscheibe.
+  Donor-Armaturenbrett und Verkleidung ragten messbar durch die originale Scheibe.
+  Anpassung hinter Scheibe/Dichtung einschließlich angrenzender Dreiecke;
+  Prüfung mit Eckpunkten, Kantenmitten und Flächenmittelpunkten.
+- Haube: eigene konturierte Graphit-Innenhaut, Verstärkungsprofile, vier matte
+  Einsätze und Befestigungen. An STYLE07 statt flacher Serienunterseite angepasst;
+  äußeres Carbon, Lüftungsöffnungen und Haubengelenk erhalten. Keine Behauptung
+  einer originalgetreuen Nissan-/NFS-Innenkonstruktion. Freigang bei allen drei
+  Motoroptiken und externe Ansichten prüfen; Materialwirkung im Spiel bestätigen.
+- Zweites Nutzerfeedback: Rückseiten allein schließen offene Türkanten,
+  Kofferraumrand und abgeschnittene A-Säulen nicht. Innenraum-Lader blendete
+  ganze originale Türverkleidungen und BASE-Innenschale aus; Innenraumimport
+  entfernte sämtliche Dreiecke über 1 m Höhe.
+- Originale Türkanten bleiben sichtbar. Hintere Innenschale aus BASE separat
+  exportiert, bei allen vier Ausbauten sichtbar; altes Cockpit bleibt verborgen.
+  Volle A-Säulen und Dachhimmel importiert, Dachhimmel an NFS-Dachunterseite
+  angepasst. Blender-Vorschau prüft offene Türen, Heckrand und Dach von beiden
+  Seiten; native Beleuchtung und Kameranähe bleiben im Spiel zu bestätigen.
+- Nutzerbilder zeigen Durchblick durch Dach, offene Türen/Heckklappe und
+  Radinnenseiten. Importierte Flächen erhalten Rückseiten mit eigenen nach
+  innen gerichteten Normalen; Scheiben behalten ihre Tönungssteuerung.
+- Rückseiten bleiben im selben Mesh und folgen Tür-/Klappengelenken sowie
+  Felgengröße und Radbewegungen. Audio-Membranen behalten ihre Vertexzuordnung.
+- Automatisch: Dreiecksrichtung, Normalen, UV/Farben, unveränderte Quelldaten
+  und große Indexpuffer prüfen. Im Spiel Dach von unten, Türen/Heckklappe offen
+  und geschlossen, Räder innen, Scheibentönung und Beleuchtung prüfen; auch H2.
+- Rückseiten ergänzen vorhandene Flächen; weitere fehlende modellierte Bauteile
+  müssen bei Bedarf gesondert ergänzt werden.
+
 ## Release 0.28.0 / Setup r6
 
 - Öffentlicher Funktionsstand seit 0.22.3: Hordenmodus mit Minimap und Pakten,
