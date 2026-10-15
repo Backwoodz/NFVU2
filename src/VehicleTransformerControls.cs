@@ -48,13 +48,13 @@ public partial class Plugin {
         padActive?"RS  Kamera":"Maus  Kamera",
         transformerKey.Value+"  Zurueckverwandeln",
         padActive?"B / Kreis  Zurueck & aussteigen":"F7  Zurueck & aussteigen",
-        "F8  Prototyp entfernen"}:new[]{
+        "Einzelspieler-Prototyp"}:new[]{
         padActive?"RT / LT  Gehen vor / zurueck":"W / S  Gehen vor / zurueck",
         padActive?"LS  Drehen":"A / D  Drehen",
         padActive?"RS  Kamera":"Maus  Kamera",
         transformerKey.Value+"  Zurueckverwandeln (im Stand)",
         padActive?"B / Kreis  Zurueck & aussteigen":"F7  Zurueck & aussteigen",
-        "F8  Prototyp entfernen"};
+        "Einzelspieler-Prototyp"};
     void TickTransformer() {
         var t=current.transformer;
         bool blocked=audioBlocked||menuOpen||!Application.isFocused||Time.timeScale<=0;

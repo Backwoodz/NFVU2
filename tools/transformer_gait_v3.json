@@ -1,0 +1,93 @@
+{
+  "version": 3,
+  "stride": 0.76,
+  "lift": 0.23,
+  "armSwing": 27,
+  "elbowBase": 8,
+  "elbowForward": 9,
+  "maxSpeed": 2.8,
+  "reverseSpeed": 1.65,
+  "acceleration": 0.9,
+  "braking": 2.3,
+  "turnDegrees": 32,
+  "halfTrack": 0.76,
+  "supportFraction": 0.62,
+  "narrowing": 0.12,
+  "pelvisDrop": 0.105,
+  "pelvisBob": 0.018,
+  "pelvisSide": 0.042,
+  "forwardLean": 7.5,
+  "neutralHalfTrack": 0.88,
+  "nominalCadenceMin": 0.52,
+  "nominalCadenceMax": 1.6,
+  "minimumSwingSeconds": 0.2,
+  "armDegreesPerSecond": 150,
+  "heelStrikeDegrees": 9,
+  "toeOffDegrees": 12,
+  "maxFootYawDegrees": 45,
+  "maxFootSideMetres": 0.3,
+  "measuredMotionEnvelope": 4,
+  "zeroMotionHysteresisSeconds": 0.12,
+  "reachForecast": {
+    "simulationStepSeconds": 0.02,
+    "forwardMarginMetres": 0.1,
+    "sideLimitMetres": 0.25,
+    "yawLimitDegrees": 38,
+    "swingTimeSafetyFactor": 0.9,
+    "minimumPredictedSwingSeconds": 0.22,
+    "earlyLiftForwardFraction": 0.9,
+    "swingTargetMetresPerSecond": 2,
+    "accelerationLeadFraction": 0.65,
+    "liveReachForwardMarginMetres": 0.045,
+    "liveReachSideMarginMetres": 0.025,
+    "liveReachYawLimitDegrees": 44,
+    "maximumSwingTimeRate": 3,
+    "description": "Before lifting, simulate remaining support reach including acceleration and inverse yaw. Trigger reach exits only when movement continues outward. During swing, compare remaining time against actual measured support reach and advance swing time continuously if the forecast underestimated motion. Retarget the airborne landing smoothly after steering or reversal. Stance inverse motion uses measured displacement; filtered motion drives cadence and pose."
+  },
+  "settling": {
+    "airborneReplanSeconds": 0.32,
+    "neutralPlacementSeconds": 0.34,
+    "liftMetres": 0.13,
+    "description": "Finish and recenter one lifted foot at a time, then return body channels to exact neutral and retract knee armor. No simultaneous shrinking of planted feet."
+  },
+  "releases": {
+    "panel.sill1_L": [
+      0.4,
+      0,
+      0
+    ],
+    "panel.sill1_R": [
+      -0.4,
+      0,
+      0
+    ],
+    "neon.trunk rear": [
+      0,
+      0,
+      0.06
+    ]
+  },
+  "sillWithdrawal": [
+    [
+      0,
+      0
+    ],
+    [
+      0.1,
+      0.04
+    ],
+    [
+      0.7,
+      0.04
+    ],
+    [
+      0.8,
+      0
+    ],
+    [
+      1,
+      0
+    ]
+  ],
+  "scope": "Measured-root grounded foot contacts with inverse yaw, alternating Hermite swings, nominal 62 percent stance with protective reach adaptation, narrower hip-led steps, heel/toe roll, counter-swing arms and articulated torso. Body weight transfer follows actual support, not a separate oscillator. Start and stop place feet independently; pose review consumes actual C# trace channels. Flat ground only, no terrain IK."
+}

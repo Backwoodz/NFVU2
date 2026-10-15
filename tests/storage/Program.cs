@@ -63,6 +63,11 @@ class Program {
         Check(VehiclePersistence.IsVehicle(record)&&!VehiclePersistence.Hummer(record),"350Z world marker");
         Check(VehiclePersistence.Location(record).y==200&&VehiclePersistence.Orientation(record).y==125,"exact car altitude and orientation saved independently of grounded cargo");
         Check(VehiclePersistence.Flying(record)&&VehiclePersistence.WasDriven(record)&&VehiclePersistence.Trunk(record)==2,"flight, driven and trunk state retained");
+        empty.PositionForSave=()=>new Vector3(40,.32f,80);
+        empty.SaveVehicle(false,true);
+        Check(VehiclePersistence.Location(record).y==.32f&&car.transform.position.y==200,"robot save uses car recovery height without moving the live robot root");
+        empty.PositionForSave=null;empty.SaveVehicle(true,true);
+        Check(VehiclePersistence.Location(record).y==200&&VehiclePersistence.Flying(record),"return to car clears temporary save pose override");
         empty.Open("saved car");empty.Release();empty.Release();
         Check(InventoryGui.instance.current==null,"persistent cleanup closes cargo UI before disposing vehicle");
         Check(!record.deleted&&VehiclePersistence.IsVehicle(record),"empty car survives teardown and repeated disposal");

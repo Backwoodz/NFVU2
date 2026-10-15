@@ -32,11 +32,23 @@ werden erst mit passendem bestandenem Geometrie- und Controller-Audit ueber
   getrennte Schrittrichtungen je Fuss. Panelhalter werden zwischen ihren
   bewegten Endpunkten aktualisiert. Die seitlichen Knieplatten fahren zuerst
   aus; nach dem Absetzen der Fuesse schliessen sie wieder. F10/F7 wartet diesen
-  Ablauf vor der Rueckverwandlung ab. V2 beschleunigt mit 0,65 m/s² auf 2,1 m/s
-  vorwaerts, rueckwaerts bis 1,4 m/s; Bremsen mit 1,8 m/s². Die Schritte wachsen
-  mit dem Tempo bis auf 0,96 m Fussweg, statt bisher 0,44 m. Arme schwingen
-  gegenlaeufig zu den Beinen bis 20 Grad, Ellbogen beugen sich um 6 bis 10 Grad.
-  Drehgeschwindigkeit weiterhin 32 Grad/s.
+  Ablauf vor der Rueckverwandlung ab.
+- V3 ersetzt den bisherigen Schrittschwinger durch getrennte Stand- und
+  Schwungphasen. Gesetzte Fuesse werden gegen die gemessene Verschiebung und
+  Drehung des interpolierten Roboter-Rumpfs gefuehrt. Nur angehobene Fuesse
+  bekommen neue Landepunkte. Anhalten und Rueckwaertswechsel setzen die Fuesse
+  einzeln ab; vor der Rueckverwandlung kehren alle Kanaele in die Standpose.
+- Laengere Schritte, nach vorn gefuehrte Knie und ein schmalerer Gehstand.
+  Zweigelenk-IK erhaelt die Laengen der Mechanik; notwendige Beckenabsenkung
+  wird fuer beide Beine gemeinsam geloest. Abrollen beruecksichtigt die echte
+  Fuss-/Zehensohle. Beckenlast, Brust-Gegendrehung, Vorneigung und gegenlaeufige
+  Arme/Ellbogen passen zum Tempo und zum jeweiligen Standbein. Fahrer, Spoiler,
+  Leuchten und Neon bleiben an ihren bewegten Halterungen.
+- Beschleunigung und staerkeres Abbremsen bleiben vom Fahrzeughandling getrennt.
+  Die konkreten V3-Parameter stehen in `src/TransformerGait.cs` und
+  `tools/transformer_gait_v3.json`. Der aktuelle Stand basiert auf 0.30.0 samt
+  Weltladen und dauerhaft gespeicherten Fahrzeugen. Speichern im Robotermodus
+  verwendet eine sichere Auto-Rueckkehrhoehe; Neustart stellt ein Auto wieder her.
 - Kamera folgt der Hoehe. Roboterbewegung verwendet einen eigenen
   Kollisionskoerper; Sweeps und Bodenabfragen stoppen vor Hindernissen und Kanten.
   Einstieg nur stehend und aufrecht
@@ -65,13 +77,19 @@ Die optionale Offline-Laufkontrolle verwendet die V18-Geometrie und spiegelt
 die Laufberechnung zum visuellen Pruefen. Sie ersetzt keinen Unity-Test:
 
 ```text
-blender --background --threads 2 --python tools/check_transformer_locomotion.py
+python tools/build.py
 python tools/test.py --skip-build --suite transformer
+blender --background --threads 2 --python tools/check_transformer_locomotion.py
 blender --background --threads 2 --python tools/check_transformer_gait_trace.py
 python tools/transformer_locomotion_review.py
 python tools/build.py
-blender --background --threads 2 --python tools/render_transformer_locomotion.py -- --animation
+blender --background --threads 2 --python tools/render_transformer_locomotion.py -- --animation --preview-seconds 8
 ```
+
+Die kurze MP4-Vorschau zeigt die ersten acht Sekunden mit Anlaufen, vollen
+Schritten und Abbremsen. Die gespeicherte Blender-Datei enthaelt weiterhin
+den kompletten 34-Sekunden-Controllerablauf; ohne `--preview-seconds` rendert
+das Werkzeug auch die ganze Sequenz als Video.
 
 ## Spaeterer lokaler Spieltest
 
@@ -96,8 +114,10 @@ Hordenmodus nicht verfuegbar.
 Vor Ersetzen einer installierten Mod: Valheim schliessen, Backup erstellen,
 Kopierpruefsummen vergleichen; erst danach alte zeitgestempelte Backups auf
 die zwei neuesten reduzieren. Export und Build installieren nichts. Der lokale
-Lauf-Teststand wurde separat mit Backup und SHA-256-Vergleich installiert;
-die Spielabnahme von Gehen/Drehen steht noch aus.
+V3-Lauf-Teststand wurde separat mit dem bestehenden Installerkern, Backup und
+SHA-256-Vergleich installiert. Die Transformerdateien bleiben eine optionale
+Ergaenzung; die bestehende Konfiguration wurde unveraendert erhalten.
+Die Spielabnahme von Gehen/Drehen steht noch aus.
 
 ## Grenzen der bisherigen Pruefung
 
@@ -108,10 +128,17 @@ des Blender-Modells; aktuelle Rad-/Auspuffvarianten und Avatar-Ausruestung
 brauchen eigene Spieltests. Innere Leitungen sind noch starr gruppiert.
 
 Alte Laufstudien und Fitter bleiben fehlgeschlagene Entwicklungskandidaten.
-V2 verwendet `transformer_gait_v2.json` und einen eigenen Audit mit 3379 Posen;
-der Trace-Check prueft zusaetzlich den tatsaechlichen Managed-Controller.
-V2 ist lokal mit gepruefter Sicherung und SHA-256-Vergleich installiert;
-die bestehende Konfiguration blieb erhalten. Der V2-Spieltest steht aus.
+V3 verwendet `transformer_gait_v3.json`. Die Freigabe braucht einen bestandenen
+Verhaltenstest des echten Managed-Controllers sowie die vollstaendigen Geometrie-
+und Trace-Pruefungen einschliesslich IK-Reichweite und Beinlaengen. Die Vorschau
+spielt die tatsaechlichen Fuss- und Koerperkanaele ab; sie schaetzt V3 nicht aus
+Phase und Tempo nach. Ein Quellen- oder Trace-Wechsel macht die Freigabe ungueltig.
+Die erneute Spielabnahme steht aus; Offline-Pruefungen ersetzen sie nicht.
+Der aktuelle V3-Stand besteht 41 Managed-Checks, die komplette Geometriepruefung
+mit 4.485 Posen sowie 2.041 aufeinanderfolgende Controllerposen ohne neue
+Oberflaechenkontakte, Bodenverletzungen oder IK-Fehler. Die originale Ruhepose
+bleibt erhalten; Kniepanzer klappen auf ihren Haltern aus dem Bewegungsweg,
+und die sieben Neonroehren bleiben ganze, verbundene Bauteile.
 Die Freigabe ist an die SHA-256-Werte dieser Quellen gebunden und wird bei
 fehlender/veraenderter Pruefung nicht automatisch erneut aktiviert.
 Bekannte Ueberlappungen der geschlossenen Standpose sind im Audit ausgewiesen.

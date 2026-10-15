@@ -22,6 +22,9 @@ internal sealed class VehicleStorage {
     public int Count=>container!=null?container.GetInventory().NrOfItems():-1;
     public bool InUse=>container!=null&&container.IsInUse();
     public ZDO Data=>data;
+    // A temporary robot pose has a ground-level root. Persist the recoverable
+    // car height so quitting or saving mid-walk never reloads a buried car.
+    public Func<Vector3> PositionForSave {get;set;}
     public VehicleStorage(GameObject vehicle,ZDO saved) {
         this.vehicle=vehicle;data=saved;hummer=VehiclePersistence.Hummer(saved);Layout=VehiclePersistence.Trunk(saved);
         prefab=ZNetScene.instance.GetPrefab(hummer?"piece_chest_blackmetal":"piece_chest");
@@ -100,7 +103,7 @@ internal sealed class VehicleStorage {
     }
     public void SaveVehicle(bool flying,bool driven) {
         if(released||vehicle==null||world!=ZDOMan.instance||!VehiclePersistence.IsVehicle(data))return;
-        VehiclePersistence.Save(data,vehicle.transform,Layout,flying,driven);
+        VehiclePersistence.Save(data,PositionForSave!=null?PositionForSave():vehicle.transform.position,vehicle.transform.rotation,Layout,flying,driven);
     }
     public void Release(bool removeVehicle=false) {
         if(released)return;

@@ -14,7 +14,7 @@ def main():
     walking=manifest['walkingReady']
     if walking:
         assert reviewed() and manifest.get('gaitReviewSha256')==reviewed(), 'Current complete walking review required'
-        assert manifest['gaitDefinitionSha256']==digest(BASE/'tools/transformer_gait_v2.json')
+        assert manifest['gaitDefinitionSha256']==digest(BASE/'tools/transformer_gait_v3.json')
         assert manifest['gaitReleases']==configure(dict(manifest))['gaitReleases'], 'Gait release table differs from reviewed settings'
     elif 'gaitClearanceSha256' in manifest:
         assert manifest['gaitClearanceSha256']==digest(BASE/'tools/transformer_gait_clearance.json')
@@ -42,7 +42,7 @@ ToggleKey = F10
 Einzelspieler: 350Z besteigen, Einstieg abschliessen, Klappen schliessen,
 auf einer freien ebenen Flaeche anhalten. F10 verwandelt/zurueck.
 Maus bzw. Gamepad RS bewegen die Kamera. Noch keine Roboter-Fortbewegung.
-F7 verlangt Rueckverwandlung und Ausstieg; F8 entfernt das Fahrzeug.
+F7 verlangt Rueckverwandlung und Ausstieg. F8 bricht nur das Fahrzeugladen ab.
 
 Valheim muss fuer einen Dateiaustausch geschlossen sein. Bestehende Mod samt
 Konfiguration vorher sichern; Kopierpruefsummen vergleichen. Diese ZIP fuehrt
@@ -59,7 +59,7 @@ Details: docs/TRANSFORMER-PROTOTYPE.md im Projekt.
             'GEHEN UND DREHEN: W/S vor und zurueck, A/D drehen; am Gamepad\nRT/LT und linker Stick. Vor dem ersten Schritt oeffnet die Kniepanzerung.\nF10/F7 bremst, setzt die Fuesse ab und schliesst die Panzerung vor der Rueckkehr.\nNur freie ebene Flaechen; Stufen, Abhaenge und Wasser sind gesperrt.')
         readme=readme.replace('Noch keine Roboter-Fortbewegung.','Langsamer Gehmodus und schrittweises Drehen.')
         readme=readme.replace('Langsamer Gehmodus und schrittweises Drehen.',
-            'W halten: sanft beschleunigen, laengere Schritte und groesserer Armschwung.\nV2 erreicht nach etwa drei Sekunden 2,1 m/s; rueckwaerts maximal 1,4 m/s.\nBeim Loslassen wird staerker gebremst; Richtungswechsel zuerst bis zum Stillstand.')
+            'W halten: sanft beschleunigen, gesetzte Standfuesse und laengere Schritte.\nV3 verwendet Gewichtsverlagerung, Vorneigung und gegenlaeufige Arme.\nBeim Loslassen werden die Fuesse einzeln abgesetzt; Richtungswechsel bremsen zuerst.\nDer Roboter bleibt ein Prototyp fuer ebene Flaechen, keine allgemeine Terrain-IK.')
     (out/'LIESMICH.txt').write_text(readme,encoding='utf-8')
     files=[Path('Rachel350Z.dll'),Path('transformer/transformer.json'),Path('transformer/transformer.bin')]
     package=out/'NFVU2-Transformer-Prototype.zip'

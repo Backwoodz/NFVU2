@@ -1,5 +1,42 @@
 # Nächste Aufgaben
 
+## Transformer: menschlicherer schwerer Gang V3 (lokale Entwicklung)
+
+- Transformer-Branch auf 0.30.0 zusammengefuehrt. Persistente Fahrzeuge und
+  Weltladen bleiben erhalten; Speichern waehrend der Roboterform sichert eine
+  Auto-Rueckkehrhoehe statt des bodennahen Roboter-Ursprungs. F8 bricht wie in
+  0.30.0 nur Laden ab; Entfernen bleibt eine ausdrueckliche Menueaktion.
+- Schrittschwinger ersetzt: gemessene Rumpfbewegung fuehrt gesetzte Standfuesse,
+  getrennte Schwungphasen setzen neue Landepunkte. Vorhersage und laufende
+  Reichweitenpruefung beruecksichtigen Beschleunigen, Drehen und Umkehren.
+- Vorwaerts 2,8 m/s, rueckwaerts 1,65 m/s; Beschleunigen 0,9 m/s2, Bremsen
+  2,3 m/s2. Cruise-Fussweg im Controller etwa 1,46 m, statt kurzer V2-Schritte.
+  Arme schwingen gegenlaeufig, Ellbogen beugen sich. Beckenlast folgt dem
+  tatsaechlichen Standbein; Oberkoerper neigt sich vor und dreht gegen das Becken.
+- Nach vorn gefuehrte Knie mit fester Beinlaenge, schmalerer Gehstand und
+  Abrollen auf der echten starren Sohle. Beide Beine teilen notwendige
+  Beckenabsenkung; Halsanker und bestehender Fahrer folgen dem Oberkoerper.
+- 41 Managed-Transformerpruefungen bestanden. Voller 34-Sekunden-Ablauf mit
+  50-Hz-Physik und 60-Hz-Pose umfasst Anlaufen, Bremsen, Kurven, beide Pivot-
+  Richtungen, Umkehren und kurzen Neustart. Groesste gemessene Bewegung eines
+  gesetzten Fussankers rund 0,283 mm pro Frame im idealen ebenen Test.
+- Zusaetzliche sechs 34-Sekunden-Sequenzen am gebauten Controller: kurze Taps,
+  beschleunigender Zickzack, Stop/Start-Kurven, kleine Analogwerte, Vor/Rueck-
+  Wechsel und schnelle Pivotwechsel. Alle 12.246 Posen behalten mindestens
+  einen Standfuss und enden exakt neutral; groesste Ankerabweichung 0,470 mm
+  pro Frame. Das misst Knoechelanker, nicht nativen Unity-Sohlenkontakt.
+- Vollstaendige Geometriepruefung bestanden: 4.485 Posen aus Ausfahren,
+  Vor-/Rueckwaertsfahrt und Drehen plus 2.041 Posen des zusammenhaengenden
+  Controllerablaufs. Keine neuen Oberflaechenkontakte, Bodenverletzungen oder
+  IK-Fehler; urspruengliche Ruhepose erhalten. Kniepanzer und ganze Neonroehren
+  fahren auf verbundenen Halterungen aus dem Bewegungsweg.
+- V3 lokal mit dem bestehenden Installerkern und separatem optionalen
+  Transformerpaket installiert; DLL/Assets per SHA-256 geprueft und bestehende
+  Konfiguration erhalten. Backup vor Austausch, alte Datumsbackups erst nach
+  erfolgreicher Pruefung reduziert. Nicht gepusht oder veroeffentlicht.
+  Die reale Unity-Spielabnahme bleibt getrennt; weiterhin nur ebene freie
+  Flaechen, keine Terrain-IK und keine Multiplayer-Freigabe.
+
 ## 350Z-Transformer: lokale Blender-Studie
 
 - Eigenstaendige Roboterform mit segmentierter Karosserie, artikulierten Armen

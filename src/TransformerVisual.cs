@@ -15,6 +15,8 @@ internal sealed class TransformerVisual:IDisposable {
     readonly Dictionary<int,Vector3> releases;
     readonly int[] gaitParent;
     readonly bool[] gaitTranslate;
+    readonly Vector3[][] solePoints=new Vector3[2][];
+    readonly float[] soleHeights=new float[2];
     readonly TransformerGait gait=new TransformerGait();
     readonly List<Mesh> meshes=new List<Mesh>();
     readonly List<Material> owned=new List<Material>();
@@ -37,14 +39,17 @@ internal sealed class TransformerVisual:IDisposable {
         gaitParent=new int[nodes.Length];gaitTranslate=new bool[nodes.Length];
         for(int i=0;i<nodes.Length;i++) {
             var n=asset.Manifest.nodes[i];gaitParent[i]=n.parent;
-            if(n.name.StartsWith("panel.hipguard_")||n.name.StartsWith("panel.sill1_"))gaitParent[i]=ids["thigh."+n.name.Substring(n.name.Length-1)];
-            else if(n.name.StartsWith("panel.")||n.name.StartsWith("neon.")) {
+            if(n.name=="panel.pelvis_rear"||n.name=="neon.trunk rear"||n.name.StartsWith("panel.exhaust_"))gaitParent[i]=ids["thorax"];
+            else if(n.name.StartsWith("panel.belt_")&&n.name.Contains("hipfold1"))gaitParent[i]=ids["thorax"];
+            else if(n.name.StartsWith("panel.floor0_")&&(n.name.Contains("_fold1_")||n.name.Contains("_fold2_")))gaitParent[i]=ids["foot."+(n.name.Contains("_L_")?"L":"R")];
+            else if(n.name.StartsWith("panel.hipguard_")||n.name.StartsWith("panel.sill1_"))gaitParent[i]=ids["thigh."+n.name.Substring(n.name.Length-1)];
+            else if((n.name.StartsWith("panel.")||n.name.StartsWith("neon."))&&!n.name.StartsWith("panel.toe_")) {
                 int ancestor=n.parent;
                 while(ancestor>=0) {
                     string name=asset.Manifest.nodes[ancestor].name;
                     if(name.StartsWith("thigh."))break;
                     if(name.StartsWith("shin.")||name.StartsWith("foot.")) {
-                        gaitParent[i]=ids["foot."+name.Substring(name.Length-1)];gaitTranslate[i]=true;break;
+                        gaitParent[i]=ids["foot."+name.Substring(name.Length-1)];gaitTranslate[i]=n.name.StartsWith("neon.underbody side");break;
                     }
                     ancestor=asset.Manifest.nodes[ancestor].parent;
                 }
@@ -55,6 +60,7 @@ internal sealed class TransformerVisual:IDisposable {
                 nodes[i]=new GameObject(asset.Manifest.nodes[i].name).transform;nodes[i].SetParent(Root.transform,false);
                 neutral[i]=Matrix(asset.Manifest.nodes[i].neutral);carInverse[i]=Frame(asset.Frames[0],i*10).inverse;
             }
+            CacheSoles();
             var mats=new Material[asset.Manifest.materials.Length];
             for(int i=0;i<mats.Length;i++) {
                 var m=asset.Manifest.materials[i];
@@ -155,36 +161,126 @@ internal sealed class TransformerVisual:IDisposable {
             if(compact>.002f)Apply(entry.Item1,m*Matrix4x4.Scale(Vector3.one*compact));
         }
     }
+    // The foot and its lower armor form one rigid boot on the ankle carrier.
+    // Use their complete actual geometry to keep heel/toe roll above ground.
+    void CacheSoles() {
+        for(int side=0;side<2;side++) {
+            int foot=ids["foot."+(side==0?"L":"R")];var points=new HashSet<Vector3>();
+            foreach(var batch in asset.Batches)for(int j=0;j<batch.Weights.Length;j++) {
+                int bone=batch.Bones[batch.Weights[j]],ancestor=bone;
+                while(ancestor>=0&&ancestor!=foot&&!gaitTranslate[ancestor])ancestor=gaitParent[ancestor];
+                if(ancestor!=foot)continue;
+                int k=j*8;points.Add(neutral[foot].inverse.MultiplyPoint3x4(new Vector3(batch.Vertices[k],batch.Vertices[k+1],batch.Vertices[k+2])));
+            }
+            solePoints[side]=points.ToArray();
+            if(solePoints[side].Length==0)throw new InvalidOperationException("Transformer foot has no rigid sole geometry");
+            soleHeights[side]=solePoints[side].Min(p=>neutral[foot].MultiplyPoint3x4(p).y);
+        }
+    }
+    static Matrix4x4 Around(Vector3 pivot,Quaternion rotation)=>Matrix4x4.Translate(pivot)*Matrix4x4.Rotate(rotation)*Matrix4x4.Translate(-pivot);
     void Walk(float dt,float speed,float turn,bool requested) {
         gait.Step(dt,speed,turn,requested);
         var overrides=new Dictionary<int,Matrix4x4>();
-        foreach(string side in new[]{"L","R"}) {
-            int thigh=ids["thigh."+side],shin=ids["shin."+side],foot=ids["foot."+side];
-            gait.Foot(side=="R",out float forward,out float lift,out float swing);
-            var hip=Position(neutral[thigh]);var knee=Position(neutral[shin]);var ankle=Position(neutral[foot]);
-            var targetAnkle=ankle+new Vector3(0,lift,forward);
-            float l1=Vector3.Distance(hip,knee),l2=Vector3.Distance(knee,ankle);
+        var targets=new Vector3[2];var footRotations=new Quaternion[2];
+        int pelvis=ids["pelvis"],thorax=ids["thorax"];
+        var pelvisYaw=Around(Position(neutral[pelvis]),Quaternion.AngleAxis(gait.PelvisYaw,Vector3.up));
+        float pelvisHeight=gait.PelvisHeight;
+        for(int side=0;side<2;side++) {
+            bool right=side==1;int thigh=ids["thigh."+(right?"R":"L")],shin=ids["shin."+(right?"R":"L")],foot=ids["foot."+(right?"R":"L")];
+            gait.Foot(right,out float forward,out float lift,out _);
+            // Positive pitch lifts the toes (+Z); retain the authored local basis.
+            footRotations[side]=Quaternion.AngleAxis(gait.FootYaw(right),Vector3.up)*Quaternion.AngleAxis(-gait.FootPitch(right),Vector3.right)*neutral[foot].rotation;
+            var ankle=Position(neutral[foot])+new Vector3(gait.FootSide(right),0,forward);
+            var rotated=Matrix4x4.TRS(ankle,footRotations[side],Vector3.one);
+            // Roll about the lowest real sole vertex rather than the ankle,
+            // keeping heel strike/toe-off on the floor without a dipping toe.
+            var pivot=solePoints[side][0];float lowest=rotated.MultiplyPoint3x4(pivot).y;
+            foreach(var point in solePoints[side]) {float y=rotated.MultiplyPoint3x4(point).y;if(y<lowest){lowest=y;pivot=point;}}
+            var flatRotation=Quaternion.AngleAxis(gait.FootYaw(right),Vector3.up)*neutral[foot].rotation;
+            var contactOffset=flatRotation*pivot-footRotations[side]*pivot;
+            ankle.x+=contactOffset.x;ankle.z+=contactOffset.z;
+            ankle.y+=soleHeights[side]+lift-lowest;
+            targets[side]=ankle;
+            var hip=pelvisYaw.MultiplyPoint3x4(Position(neutral[thigh]))+new Vector3(gait.PelvisSide,0,0);
+            float reach=Vector3.Distance(Position(neutral[thigh]),Position(neutral[shin]))+Vector3.Distance(Position(neutral[shin]),Position(neutral[foot]))-.001f;
+            float horizontal=(ankle.x-hip.x)*(ankle.x-hip.x)+(ankle.z-hip.z)*(ankle.z-hip.z);
+            // The complete fixed-length mechanism follows a long step. Lower
+            // its pelvis before solving either leg; never stretch a shin.
+            pelvisHeight=Mathf.Min(pelvisHeight,ankle.y+Mathf.Sqrt(Mathf.Max(.001f,reach*reach-horizontal))-hip.y);
+        }
+        var pelvisDelta=Matrix4x4.Translate(new Vector3(gait.PelvisSide,pelvisHeight,0))*pelvisYaw;
+        overrides[pelvis]=pelvisDelta*neutral[pelvis];
+        var torsoRotation=Quaternion.AngleAxis(gait.TorsoYaw,Vector3.up)*Quaternion.AngleAxis(gait.TorsoLean,Vector3.right)*Quaternion.AngleAxis(-gait.TorsoRoll,Vector3.forward);
+        var torsoDelta=pelvisDelta*Around(Position(neutral[thorax]),torsoRotation);
+        overrides[thorax]=torsoDelta*neutral[thorax];
+        for(int side=0;side<2;side++) {
+            bool right=side==1;string suffix=right?"R":"L";
+            int thigh=ids["thigh."+suffix],shin=ids["shin."+suffix],foot=ids["foot."+suffix];
+            gait.Foot(right,out _,out _,out float swing);
+            var restHip=Position(neutral[thigh]);var knee=Position(neutral[shin]);var ankle=Position(neutral[foot]);
+            var hip=pelvisDelta.MultiplyPoint3x4(restHip);var targetAnkle=targets[side];
+            float l1=Vector3.Distance(restHip,knee),l2=Vector3.Distance(knee,ankle);
             var d=targetAnkle-hip;float distance=Mathf.Clamp(d.magnitude,Mathf.Abs(l1-l2)+.001f,l1+l2-.001f);var direction=d.normalized;
             float along=(l1*l1-l2*l2+distance*distance)/(2*distance);
-            var bend=Vector3.ProjectOnPlane(knee-hip,direction).normalized;
+            // A forward anatomical pole prevents the authored splayed neutral
+            // knees from driving the gait sideways like a waddling toddler.
+            var restPole=Vector3.ProjectOnPlane(knee-restHip,(ankle-restHip).normalized);
+            var authoredPole=Vector3.ProjectOnPlane(restPole,direction).normalized;
+            var forwardPole=Vector3.ProjectOnPlane(Vector3.forward,direction).normalized;
+            var bend=Vector3.Slerp(authoredPole,forwardPole,Mathf.SmoothStep(0,1,gait.Amount)).normalized;
             var targetKnee=hip+direction*along+bend*Mathf.Sqrt(Mathf.Max(0,l1*l1-along*along));
-            overrides[thigh]=Matrix4x4.TRS(hip,Quaternion.FromToRotation(knee-hip,targetKnee-hip)*neutral[thigh].rotation,Vector3.one);
+            overrides[thigh]=Matrix4x4.TRS(hip,Quaternion.FromToRotation(knee-restHip,targetKnee-hip)*neutral[thigh].rotation,Vector3.one);
             overrides[shin]=Matrix4x4.TRS(targetKnee,Quaternion.FromToRotation(ankle-knee,targetAnkle-targetKnee)*neutral[shin].rotation,Vector3.one);
-            overrides[foot]=Matrix4x4.TRS(targetAnkle,neutral[foot].rotation,Vector3.one);
-            int arm=ids["upperarm."+side];var origin=Position(neutral[arm]);
-            overrides[arm]=Matrix4x4.TRS(origin,Quaternion.AngleAxis(swing,Vector3.right)*neutral[arm].rotation,Vector3.one);
-            int forearm=ids["forearm."+side];var armDelta=overrides[arm]*neutral[arm].inverse;
+            overrides[foot]=Matrix4x4.TRS(targetAnkle,footRotations[side],Vector3.one);
+            // Long rigid light tubes use an ankle yaw gimbal: they turn with
+            // the boot while remaining upright during heel/toe articulation.
+            int sideNeon=ids["neon.underbody side "+suffix];
+            var yaw=Quaternion.AngleAxis(gait.FootYaw(right),Vector3.up);
+            var lightPose=Matrix4x4.TRS(targetAnkle,yaw*neutral[foot].rotation,Vector3.one)*neutral[foot].inverse*neutral[sideNeon];
+            var lightPosition=Position(lightPose)+yaw*new Vector3(0,-.45f,-.1f)*Mathf.SmoothStep(0,1,gait.Release);
+            lightPose.SetColumn(3,new Vector4(lightPosition.x,lightPosition.y,lightPosition.z,1));overrides[sideNeon]=lightPose;
+
+            int arm=ids["upperarm."+suffix];var origin=torsoDelta.MultiplyPoint3x4(Position(neutral[arm]));
+            overrides[arm]=Matrix4x4.TRS(origin,torsoDelta.rotation*Quaternion.AngleAxis(swing,Vector3.right)*neutral[arm].rotation,Vector3.one);
+            int forearm=ids["forearm."+suffix];var armDelta=overrides[arm]*neutral[arm].inverse;
             var elbow=armDelta*neutral[forearm];
-            overrides[forearm]=Matrix4x4.TRS(Position(elbow),armDelta.rotation*Quaternion.AngleAxis(-gait.Elbow(side=="R"),Vector3.right)*neutral[forearm].rotation,Vector3.one);
+            overrides[forearm]=Matrix4x4.TRS(Position(elbow),armDelta.rotation*Quaternion.AngleAxis(-gait.Elbow(right),Vector3.right)*neutral[forearm].rotation,Vector3.one);
         }
         for(int i=0;i<nodes.Length;i++) {
             int parent=gaitParent[i];
             pose[i]=overrides.TryGetValue(i,out var m)?m:(parent<0?neutral[i]:
                 gaitTranslate[i]?Matrix4x4.Translate(Position(pose[parent])-Position(neutral[parent]))*neutral[i]:delta[parent]*neutral[i]);
-            if(releases.TryGetValue(i,out var release)) {
+            if(releases.TryGetValue(i,out var release)&&!(asset.Manifest.nodes[i].name.StartsWith("panel.floor0_")&&asset.Manifest.nodes[i].name.Contains("_fold2_"))) {
                 float deployment=Mathf.SmoothStep(0,1,gait.Release);
-                var p=Position(pose[i])+release*deployment;
+                if(asset.Manifest.nodes[i].name.StartsWith("panel.sill1_"))deployment=Mathf.Clamp01(deployment/.25f);
+                var p=Position(pose[i])+delta[parent].MultiplyVector(release*deployment);
                 if(asset.Manifest.nodes[i].name.StartsWith("panel.sill1_"))p.z+=.04f*Mathf.Max(0,Mathf.Min(1,deployment/.1f,(.8f-deployment)/.1f));
+                pose[i].SetColumn(3,new Vector4(p.x,p.y,p.z,1));
+            }
+            if(asset.Manifest.nodes[i].name.StartsWith("panel.belt_")&&asset.Manifest.nodes[i].name.Contains("hipfold1")) {
+                float fold=Mathf.Clamp01(Mathf.SmoothStep(0,1,gait.Release)/.7f);
+                float angle=asset.Manifest.nodes[i].name.Contains("_L_")?90:-90;
+                pose[i]=delta[parent]*Around(Position(neutral[i]),Quaternion.AngleAxis(angle*fold,Vector3.forward))*neutral[i];
+            }
+            // Stow the knee plates on their existing telescoping carriers.
+            // Offsets are anatomical-parent vectors, so the complete mounted
+            // assembly keeps its clearances as the thigh pitches and yaws.
+            string name=asset.Manifest.nodes[i].name;
+            float stow=Mathf.SmoothStep(0,1,gait.Release);var offset=Vector3.zero;
+            if(name.StartsWith("panel.floor2_")&&(name.Contains("_fold1_")||name.Contains("_fold2_"))) {
+                float slide=Mathf.Clamp01((stow-.2f)/.5f);
+                offset+=new Vector3(0,-.06f*Mathf.Max(0,Mathf.Min(1,stow/.2f,(1-stow)/.3f)),.32f*slide);
+            }
+            if(name.StartsWith("panel.floor0_")&&(name.Contains("_fold1_")||name.Contains("_fold2_")))
+                offset+=new Vector3(0,-.6f*Mathf.Clamp01((stow-.5f)/.5f),-.45f*Mathf.Clamp01(stow/.5f));
+            if(name.StartsWith("panel.hipguard_")||name.StartsWith("panel.rear_corner_")||name.StartsWith("panel.floor2_")||name.StartsWith("panel.sill1_")) {
+                float move=Mathf.Clamp01((stow-.25f)/.75f);
+                offset+=new Vector3(0,-.15f*Mathf.Clamp01(move/.4f),.25f*Mathf.Clamp01((move-.4f)/.6f));
+            }
+            if(name=="neon.trunk rear")offset+=new Vector3(0,.32f*Mathf.Clamp01((stow-.4f)/.6f),.45f*Mathf.Clamp01(stow/.4f));
+            if(name.StartsWith("panel.belt_")&&name.Contains("hipfold1"))offset.y+=.1f*Mathf.Clamp01(stow/.7f);
+            if(offset!=Vector3.zero) {
+                var p=Position(pose[i])+delta[parent].MultiplyVector(offset);
                 pose[i].SetColumn(3,new Vector4(p.x,p.y,p.z,1));
             }
             delta[i]=pose[i]*neutral[i].inverse;
@@ -195,10 +291,10 @@ internal sealed class TransformerVisual:IDisposable {
             string name=node.Key;int separator=name.IndexOf(" - ",StringComparison.Ordinal);string role=name.Substring(separator+3);
             string targetBone=role.StartsWith("neon.")?role:"panel."+role;
             if(!ids.TryGetValue(targetBone,out int end))continue;
-            int parent=asset.Manifest.nodes[end].parent;
             // Exported neutral sleeve start is an exact mount point.
             string firstName="object:V18 connected sleeve 0 - "+role;
             if(!ids.TryGetValue(firstName,out int start))continue;
+            int parent=asset.Manifest.nodes[start].parent;
             var p=delta[parent].MultiplyPoint3x4(Position(neutral[start]));var q=Position(pose[end]);var direction=q-p;
             bool outer=name.Contains("sleeve 0 - ");
             var rotation=Quaternion.FromToRotation(Vector3.up,direction.normalized);

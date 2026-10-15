@@ -1,5 +1,14 @@
 # Changelog
 
+## Unreleased — Local Transformer locomotion
+
+- Rework the optional Transformer walk with planted support feet, longer strides,
+  forward-facing knees, weight transfer, forward lean and opposing arm/torso motion.
+  Accelerate progressively, brake before reversing and place feet individually
+  before returning to the car. This remains a local flat-ground prototype.
+- Preserve the 0.30.0 world-streaming and vehicle persistence baseline; saves during
+  robot mode use the recoverable car height.
+
 ## 0.30.0 — Persistent vehicles
 
 - Save each 350Z/H2 with its world: model, position, rotation, flight state and

@@ -14,7 +14,10 @@ internal static class VehiclePersistence {
     public static bool WasDriven(ZDO data)=>data.GetBool(Driven);
     public static void Mark(ZDO data,bool hummer){data.Persistent=true;data.Set(Model,hummer?2:1);}
     public static void Save(ZDO data,Transform car,int layout,bool flying,bool driven) {
-        data.Set(Position,car.position);data.Set(Rotation,car.rotation);
+        Save(data,car.position,car.rotation,layout,flying,driven);
+    }
+    public static void Save(ZDO data,Vector3 position,Quaternion rotation,int layout,bool flying,bool driven) {
+        data.Set(Position,position);data.Set(Rotation,rotation);
         data.Set(Layout,layout);data.Set(Flight,flying);data.Set(Driven,driven);
     }
     public static void Forget(ZDO data){data.Set(Model,0);}

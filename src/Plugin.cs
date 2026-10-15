@@ -198,7 +198,7 @@ public partial class Plugin : BaseUnityPlugin {
     void LateUpdate() {ForEachVehicle(TickVehicle);LateMenuCamera();TickNitroVisuals();UpdateGameCrosshair();UpdateVehicleHints();TickHordeRadar();fleetMusic?.Tick(driving&&!audioBlocked&&vehicleRadio!=null&&vehicleRadio.CabinAudible);}
     void TickVehicle() {
         if(car==null)return;
-        if(Transforming){try{TickTransformer();}catch(Exception e){Logger.LogError("Transformer stopped: "+e);Exit();}return;}
+        if(Transforming){try{TickTransformer();TickVehicleStorage();if(driving)VehicleWorldStreaming.Follow(player as Player);}catch(Exception e){Logger.LogError("Transformer stopped: "+e);Exit();}return;}
         TickVehicleStorage();
         TickExhaustCustomization();
         if(showroom!=null)try {
