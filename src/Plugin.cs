@@ -33,6 +33,7 @@ public partial class Plugin : BaseUnityPlugin {
         soundVolume=BindVehicle("Audio","Volume",.8f,new ConfigDescription("Vehicle sound volume. 0 mutes engine, tyres and horn; 1 is full volume.",new AcceptableValueRange<float>(0,1)));
         orbitCamera=new VehicleOrbitCamera(message=>Logger.LogInfo(message));
         InitializeControls();
+        InitializeTransformer();
         InitializeMenu();
         InitializeExhaustMenu();
         InitializeNitroVisuals();
@@ -87,6 +88,8 @@ public partial class Plugin : BaseUnityPlugin {
             if(hordeWave.Active&&hordeWave.Choosing){BlockDrivingInput();TickHordePactInput();return;}
             if(Input.GetKeyDown(KeyCode.F6)) { if(Multiplayer()){status="Nur in einer lokalen Einzelspieler-Testwelt verwenden.";return;} Spawn(local); }
             if(Input.GetKeyDown(KeyCode.F8)){if(SpawnBusy)CancelSpawn("Laden abgebrochen.");else if(CanAccessCurrent(local))Cleanup();}
+            if(Transforming){ReadTransformerControls();return;}
+            if(transformerEnabled.Value&&transformerKey.Value.IsDown()){ToggleTransformer();return;}
             TickControlActions(local);
             if(driving&&!DriverInputReady){BlockDrivingInput();return;}
             if(driving)ReadVehicleControls();
@@ -144,6 +147,7 @@ public partial class Plugin : BaseUnityPlugin {
     void FixedUpdate() {ForEachVehicle(StepVehicle);}
     void StepVehicle() {
         if(body==null||wheels==null)return;
+        if(Transforming){current.transformer.Step(audioBlocked||menuOpen||!Application.isFocused,throttle,steer);return;}
         if(!Flying)current.rideHeight?.Apply(lowering.Value);
         if(vehicleImpact!=null)vehicleImpact.EnemyDamageMultiplier=HordeVehicle?HordePacts.Impact(hordeRun.Pact):1;
         vehicleImpact?.Step(player,driving&&!Flying&&!audioBlocked&&!menuOpen&&Application.isFocused&&(!HordeVehicle||!hordeWave.Choosing),
@@ -169,6 +173,7 @@ public partial class Plugin : BaseUnityPlugin {
     void LateUpdate() {ForEachVehicle(TickVehicle);LateMenuCamera();TickNitroVisuals();UpdateGameCrosshair();UpdateVehicleHints();TickHordeRadar();fleetMusic?.Tick(driving&&!audioBlocked&&vehicleRadio!=null&&vehicleRadio.CabinAudible);}
     void TickVehicle() {
         if(car==null)return;
+        if(Transforming){try{TickTransformer();}catch(Exception e){Logger.LogError("Transformer stopped: "+e);Exit();}return;}
         TickVehicleStorage();
         TickExhaustCustomization();
         if(showroom!=null)try {
@@ -259,6 +264,7 @@ public partial class Plugin : BaseUnityPlugin {
         cabinDriver.BeginExit(destination);BlockDrivingInput();
     }
     void Exit() {
+        current.transformer?.Restore();transformerExitPending=false;if(orbitCamera!=null)orbitCamera.RobotBlend=0;
         if(HordeVehicle)ClearHorde();
         ReleaseCameraRumble(gameCamera);
         exitAfterLanding=false;controlsGate.Block();
@@ -295,6 +301,7 @@ public partial class Plugin : BaseUnityPlugin {
         if(cargoLeft)ShowVehicleWarning("Der Inhalt bleibt als Kiste am Fahrzeugstandort.");
     }
     void ReleaseVehicle(){
+        current.transformer?.Dispose();current.transformer=null;current.transformerAsset=null;
         current.storage?.Release();current.storage=null;
         current.flight?.Dispose();current.flight=null;
         current.flightEffects?.Dispose();current.flightEffects=null;

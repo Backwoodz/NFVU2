@@ -13,6 +13,7 @@ public partial class Plugin {
             if(driving)text=DriveModeName+" | "+pedals+": Gas/Bremse | LS: lenken · RS: Kamera\n"+(Flying?ButtonName("RB/LB","R1/L1")+": hoch/runter · "+exit+": landen & aussteigen":ButtonName("A","Kreuz")+": Handbremse · "+ButtonName("LB","L1")+": Geschütz · "+exit+": aussteigen")+" · "+nitro+": Nitro\nSteuerkreuz ←/→: Songs · ↑/↓: Fahrmodus · L3: Menü";
             else text="L3: Garage / Modmenü"+(CanAccessCurrent(LocalPlayer())?" · "+exit+": einsteigen":"")+"\nFahrzeug erstellen: Garage → Fahrzeug spawnen";
         }else text=driving?DriveModeName+" | "+(Flying?"W/S: vor/zurück · A/D: drehen · Shift/Leertaste: hoch/runter":"WASD: fahren · Leertaste: Handbremse/Bremse · RMB: Geschütz")+"\nF7: "+(Flying?"landen & aussteigen":"aussteigen")+" · 1–4: Fahrmodus · ←/→: Songs · LMB/Strg: Nitro · "+menuKey.Value+": Menü":"F6: Fahrzeug erstellen · F7: einsteigen · "+menuKey.Value+": Garage";
+        if(Transforming)text="Transformer | "+string.Join(" | ",TransformerHints());
         text=Tr(text);
         float width=Mathf.Min(Screen.width-30,1050);
         if(driving&&hudEnabled.Value)width=Mathf.Min(width,Mathf.Max(300,Screen.width-350));

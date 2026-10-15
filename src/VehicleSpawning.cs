@@ -34,9 +34,9 @@ public partial class Plugin {
         spawnCancellation=new CancellationTokenSource();spawnTimer=Stopwatch.StartNew();
         LoadStage("Dateien im Hintergrund einlesen",0);
         var folder=Path.GetDirectoryName(Info.Location);
-        var cache=spawnCache;var token=spawnCancellation.Token;
+        var cache=spawnCache;var token=spawnCancellation.Token;bool loadTransformer=transformerEnabled.Value;
         spawnCacheUsed=true;
-        spawnRead=Task.Run(()=>SpawnAssets.Load(folder,hummer,cache,token),token);
+        spawnRead=Task.Run(()=>SpawnAssets.Load(folder,hummer,cache,token,loadTransformer),token);
         // Observe failures even if the player cancels/leaves before the worker finishes.
         spawnRead.ContinueWith(task=>{var ignored=task.Exception;},CancellationToken.None,TaskContinuationOptions.OnlyOnFaulted,TaskScheduler.Default);
         spawnWork=new StagedWork(BuildVehicle(local));
@@ -95,6 +95,7 @@ public partial class Plugin {
         var assets=spawnRead.GetAwaiter().GetResult();
         foreach(var warning in assets.Warnings)Logger.LogWarning(warning);
         var model=assets.Model;
+        current.transformerAsset=assets.Transformer;
         Logger.LogInfo("Vehicle data ready after "+spawnTimer.Elapsed.TotalSeconds.ToString("0.00")+" s; "+model.parts.Length+" body parts.");
         car=new GameObject(IsHummer?"H2_Local_Prototype":"350Z_Local_Prototype");car.SetActive(false);
         originalWheels=model.schemaVersion==2;

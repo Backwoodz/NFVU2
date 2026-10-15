@@ -30,6 +30,8 @@ internal sealed class VehicleRuntime {
     public VehicleShowroom showroom;
     public VehicleStorage storage;
     public VehicleInterior interior;
+    public VehicleTransformer transformer;
+    public TransformerAsset transformerAsset;
     public VehicleImpact vehicleImpact;
     public bool hasBeenDriven;
     public VehicleAudio vehicleAudio;

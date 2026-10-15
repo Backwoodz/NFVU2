@@ -1,5 +1,248 @@
 # Nächste Aufgaben
 
+## 350Z-Transformer: lokale Blender-Studie
+
+- Eigenstaendige Roboterform mit segmentierter Karosserie, artikulierten Armen
+  und Beinen, schmaler Taille und gefaltetem Rueckenpaket. Studien bis V18 sind
+  Blender-Prototypen; ein erster optionaler Laufzeitimport ist unten beschrieben.
+  Blender-Studien allein aendern die Mod nicht; lokale Laufzeitintegration siehe unten.
+- Verbindliche Gestaltungsregel: jede Scheibe bleibt ein starres, ungeteiltes
+  Bauteil. Front- und Heckscheibe, Seitenscheiben und Spiegel behalten ihre
+  Quell-Dreiecke, UVs und Normalen; auch Fassungen/Halterungen mitfuehren.
+- Spieler soll beim Umbau auf der Schulterbruecke hinter dem Kopf mitfahren
+  und bei der Rueckverwandlung wieder auf dem Fahrersitz sitzen. Den bestehenden
+  Player aus VehicleCabinDriver weiterverwenden: Inventar, Ausruestung, Gesundheit
+  und Netzwerkidentitaet erhalten; Sitzanker/Posenziele animieren.
+- Blender zeigt dafuer eine generische Referenzfigur, nicht den echten Avatar.
+  Gelenkgehaeuse, Huelsen, Rippen und ein mitfahrender Sitztraeger sind modelliert.
+- Studie 6: Knie klappen nach oben; Beinpanzer und Hinterraeder erhalten
+  Bodenfreiheit. 664 sichtbare Meshes in 529 Vor-/Rueckwaerts-Zeitpunkten
+  inklusive halber Frames gegen die Bodenebene geprueft (ground-clearance.json).
+- Studie 7: sieben durchgehende Neonleisten mit Halterungen. Drei folgen den
+  Kofferraumleisten aus VehicleShowroom; vier Unterbodenroehren sind neu
+  modellierte Hardware zu den horizontalen Lichtpositionen aus VehicleNeon.
+  Die seitlichen Leisten fahren beim Umbau auf ihren Haltern nach aussen.
+- Eingezogene Arme/Kopf vorn, Beine hinten; vier teleskopierende Gliedmassen.
+  Panzertraeger nutzen feste ineinanderschiebende Huelsen oder feste Klappglieder.
+  Lange Verbindungen laufen unter dem Fahrerraum, Scheibentraeger seitlich.
+  Die Figur zieht beim Anheben die Beine an und nimmt anschliessend die Sitzpose ein.
+- Bewegungswege sind als gepruefte bzw. nachzubessernde Schiebekurven in
+  tools/transformer_carrier_paths.json und tools/transformer_neon_paths.json
+  reproduzierbar. Pruefungen unterscheiden Boden, Fahrzeug/Neon/Figur,
+  Mechanik/Figur sowie Packstellung. Griffkontakt der vereinfachten Haende
+  ist explizit ausgewiesen; sonstige Kontakte werden nicht verschwiegen.
+- Weiter offen: verbleibende Karosseriekontakte in Zwischenstellungen und
+  Bauraum-/Montagekontakte der inneren Mechanik. Unity-Integration folgt nach
+  der weiteren Kollisions- und Bauraumarbeit.
+- Studie 8 korrigiert das Durchschwenken der Haubenhaelften durch beide
+  Scheinwerfer: erst seitlich vor den Leuchten schliessen, danach nach hinten
+  an die Brust anlegen. Anfangs werden die Hauben angehoben; beim Hochfahren
+  nutzen sie einen vorderen Korridor. Zum Schliessen passieren sie die vordere
+  Neonroehre von oben. Rueckweg in exakt umgekehrter Reihenfolge.
+  Haube/Leuchten-Test: 1057 Viertelframes inklusive Rueckverwandlung,
+  keine neuen Flaechenschnitte bei 0,01 mm Toleranz; vorhandener Kontakt der
+  Quellgeometrie separat erfasst. Vorschauen einzeln mit zwei CPU-Threads.
+- Studie 9 ist eine eigene statische Design-Endpose: sechs verlustfrei geschnittene
+  Haubensegmente, acht Tuerschuppen mit Original-UVs, ausgeformter Brust-/Bauchkern,
+  kraeftigere Gliedmassen, Gelenkgehaeuse, neues Gesicht und einzelne Fusszehen.
+  Vier Raeder, ganze Scheiben/Leuchten, sieben ungeteilte Neonroehren und dieselbe
+  Referenzfigur bleiben erhalten. Neon sitzt in Schutzkanaelen; Sitz hinter dem Kopf.
+  Reproduzierbar mit tools/build_transformer_design.py; eigene Blender-Datei,
+  vier Ansichten und optionaler Kameraumlauf in artifacts/transformer-study-v9.
+  Der Kameraumlauf zeigt KEINE Transformation. Studie-8-Animation gilt fuer diese
+  neue Form nicht; Faltwege, innere Kontakte und Packung im Auto bleiben offen.
+- Studie 10 korrigiert die Endpose nach Designfeedback: originale Frontleuchten
+  frei vor den Schultern, Rueckleuchten nach hinten gerichtet; Lichtemission
+  nach den vorhandenen lightRole-Feldern des Fahrzeugmodells. Vordere Raeder
+  nach aussen/oben geneigt als Schulterpolster, neuer Kopf mit schmalen Optiken
+  und mehrteiliger Metallmaske. Unterbodenflaechen verlustfrei in 30 starre
+  Segmente aufgeteilt und um die Beine gefaltet; hintere Gelenke, Kolben und
+  Fersenanlenkung ergaenzt. Ganze Scheiben, vier Raeder und sieben Neonroehren
+  bleiben erhalten. Erzeugen mit tools/build_transformer_design.py --revision 10
+  im Blender-Python-Aufruf; Ausgabe artifacts/transformer-study-v10.
+  Sechs Ansichten und optionaler Kameraumlauf, weiterhin keine Transformation.
+  Statische Boden-, Fahrer- und Neonpruefungen; weitere innere Karosseriekontakte
+  sind dokumentiert und offen, ebenso Packstellung und die neuen Faltbewegungen.
+- Studie 11 ersetzt Kopf/Hals und Haende anhand der neuen Bildreferenzen:
+  ueberlappende Schaedelplatten, tiefe Augensockel mit kleinen gruenen Optiken,
+  freiliegende Wangen-/Kiefermechanik und verzahnte Metallkiefer. Beide Haende
+  besitzen vier dreigliedrige Finger und einen gegenueberliegenden Daumen,
+  Knochellager, Zugstangen und gekruemmte Greifspitzen mit unterschiedlicher
+  Fingerstellung. Karosserie, Leuchten, Schulterraeder, Neon und Referenzfigur
+  behalten die Studie-10-Geometrie und -Pose. Aufruf --revision 11; Ausgabe
+  artifacts/transformer-study-v11, inklusive Kopfprofil und Handnahaufnahme.
+  Statische Flaechenpruefung der neuen Teile gegen Karosserie, Neon und Figur;
+  innere Selbstkontakte, Gesichts-/Fingeranimation und Packstellung sind offen.
+- Studie 12 korrigiert die vertauschte Haendigkeit aus Studie 11: Daumen und
+  Zeige-/Kleinfingerfolge passen nun zur nach vorn gerichteten Handrueckseite.
+  Finger und Greifspitzen beugen zur Handflaeche nach hinten. Keine negative
+  Objektskalierung; Fingerachsen halten den Panzer auf der Handrueckenseite.
+  Kopf und uebrige Meshes bleiben unveraendert. Aufruf
+  --revision 12; artifacts/transformer-study-v12 mit Nahansichten beider Haende.
+- Studie 13 dreht die Handflaechen zur Beinseite, korrigiert die Daumen-/Fingerfolge
+  fuer nach vorn gerichtete Daumen und fuehrt die Handgelenke unter der
+  Tuerpanzerung heraus. Schmalere Taille, verjuengter Brustkorb und schlankere
+  innere Beinkerne; offener gruener Bauchreaktor mit Halteringen und Streben.
+  Kuehl-/Hydraulikleitungen besitzen Anschluesse, Rippen und Haltebaender.
+  Die zwei breiten hinteren Unterbodenstreifen werden verlustfrei in vier
+  Hueftsegmente gefaltet. Originalauspuffe, sichtbarer Waermetauscher und neue
+  Rohrboegen ersetzen die flache untere Rueckenansicht; Spoiler hoeher gefaltet.
+  Sieben durchgehende Neonroehren bleiben erhalten; hintere Roehre neu positioniert.
+  Aufruf --revision 13; artifacts/transformer-study-v13 mit zwoelf Ansichten,
+  Reaktor-/Heckdetails und Kameraumlauf. Weiterhin eine statische Designstudie.
+  Boden, Fahrer, Kopf/Haende, Haube/Leuchten und Neon ohne Befund in den jeweiligen
+  statischen Flaechenpruefungen. Neue Leitungen/Reaktor gegen Karosserie, Neon und
+  Figur geprueft; enge Endanschluesse am jeweiligen Auspuff separat ausgewiesen.
+  Sonstige Karosserie-/Mechanikkontakte bleiben dokumentiert und offen;
+  Selbstkontakte, Schlauchverformung, Packstellung und Transformation ungeprueft.
+- Studie 14 setzt die Kopfvorlage als eigene 3D-Geometrie um: geschlossener
+  schwarz-gruener Helm, schraege Brauen mit je fuenf roten optischen Linsen,
+  seitliche Lueftungen und eine spitze silberne Maske mit Atemgitter.
+  Aufruf --revision 14; artifacts/transformer-study-v14 mit frontaler Kopfansicht,
+  Profil, Gesamtansichten und Kameraumlauf. Nur Kopf-Meshes ersetzt; uebrige
+  Meshes inklusive Hals, Haende, Karosserie, Neon und Figur gegen Studie 13
+  auf unveraenderte Geometrie, UVs und Welttransformationen verglichen.
+  Kopf-/Handflaechen gegen Fahrzeug, Neon und Figur ohne Schnittbefund;
+  innere Kopfkontakte, Gesichtsanimation und Packstellung weiterhin offen.
+- Studie 15 ersetzt die dreieckig facettierten Kopfflaechen durch 38 geformte
+  Platten mit Quad-Ringen, gerundeten Ecken und schmalen Metallraendern.
+  Vertiefte schwarze Augengehaeuse mit gewoelbten Linsen; Stirnschlitz zwischen
+  separaten Platten, versenkte Wabengitter und kleine Schlaefenleitungen.
+  Lack/Metall erhalten getrennte Rauheit, Mikrostruktur und Bearbeitungsspuren.
+  Aufruf --revision 15; artifacts/transformer-study-v15. Normale Ansichten
+  behalten die bisherige Beleuchtung und Figur fuer den direkten Vergleich.
+  tools/render_transformer_head_portrait.py erzeugt zusaetzliche Cycles-Portraets
+  mit gerichteter Studiobeleuchtung; nur dort wird die Referenzfigur ausgeblendet.
+  Die gespeicherte Blender-Datei wird durch diese Portraets nicht veraendert.
+  1383 Meshes ausserhalb des Kopfes gegen Studie 14 unveraendert; Kopf-/Hand-
+  Flaechenpruefung gegen Fahrzeug, Neon und Figur ohne Befund. Innere Kopfkontakte,
+  Packstellung und Transformation weiterhin offen; noch kein Film-Asset-Finish.
+- Studie 16 entfernt Stuhl, Lehne und Griffbuegel. Dieselbe Referenzfigur sitzt
+  direkt am Nacken auf flachen Hals-Panzerauflagen; Oberschenkel umschliessen den
+  Hals, Unterschenkel haengen nach vorn. Gliedmassenlaengen bleiben konstant.
+  Der ganze Originalspoiler klappt an das obere Rueckenmodul; seine Original-
+  Fuesse sitzen in sichtbaren Gelenklagern mit Anlenkung am Rueckenrahmen.
+  Die hintere Unterboden-Neonroehre samt Schutzkanal steht nun senkrecht am
+  Ruecken oberhalb der Auspuffmechanik. Sieben ganze Neonroehren bleiben erhalten.
+  Aufruf --revision 16; artifacts/transformer-study-v16 mit Nacken-/Profilansicht
+  der Figur und Nahaufnahme der Rueckenbefestigungen. Kopf aus Studie 15 behalten.
+  Gezielte statische Fahrer-, Kopf-, Neon-, Boden- und Befestigungspruefungen
+  bestanden; beabsichtigter Kontakt der Spoilerfuesse mit Gelenklagern separat
+  erfasst. Alle 336 Kopf-Meshes und die Original-Fahrzeuggeometrie erhalten.
+  Weiterhin statische Endpose, noch keine neue Transformationsanimation.
+- Studie 17 beginnt die Umsetzung mit einer Armature und 157 Bones fuer Koerper,
+  Finger, Fahrzeugmodule, Neon und Referenzfahrer. Originale Fahrzeug-Meshes/UVs,
+  ganze Scheiben, vier Raeder, Kopf, Haende und sieben Neonroehren bleiben erhalten.
+  Innere Armmechanik wird schmaler; die acht Tuerplatten bekommen in der
+  Funktions-Grundpose 20cm Abstand nach vorn. Dadurch werden Ueberschneidungen
+  der zuvor nur statischen Armkonstruktion bearbeitet. Acht starre Plattenhalter
+  werden durch verschachtelte Huelsen mit festen Laengen, Gelenklagern und
+  sichtbaren Endanschluessen ersetzt. Spiegel folgen ihren vorderen Tuerplatten.
+  Der Test entriegelt die Ellenbogenplatten, beugt jeweils einen Arm, bewegt
+  dessen Finger und kehrt in die Grundpose zurueck. Schulterhub und Fahrertransfer
+  sind noch nicht Bestandteil dieses Clips; keine Auto-Verwandlung vortaeuschen.
+  tools/build_transformer_rig.py erzeugt artifacts/transformer-study-v17,
+  tools/check_transformer_rig.py prueft Gelenke, Traeger, Boden und Flaechenkontakte,
+  tools/render_transformer_rig.py rendert den Testclip sequenziell, wahlweise mit
+  CPU-Cycles oder --engine eevee. Nie mehrere Blender-Prozesse gleichzeitig.
+  car-module-targets.json rekonstruiert die 59 urspruenglichen Fahrzeuggruppen aus
+  den spaeteren Teilstuecken. Diese Zielmatrizen sind noch keine geprueften Faltwege.
+  Gelenk-/Traeger-/Bodenpruefung und gezielte Flaechenpruefung bestehen an 417
+  Zeitpunkten einschliesslich halber Frames. Keine neuen geprueften Kontakte;
+  bestehende Kontakte werden getrennt beruecksichtigt. Huelsen behalten mindestens
+  30 Prozent Ueberdeckung, Gelenke ihre Laenge; der Zyklus kehrt exakt zurueck.
+  Vollstaendige mechanische Eigenkollisionen und eingeschlossene Volumen sind
+  weiterhin offen. Flaecheninhalt und Grenzen aller 59 Auto-Quellgruppen stimmen.
+- Studie 18 setzt auf ausdruecklichen Nutzerwunsch eine filmische Kompaktierung
+  statt vollstaendig physikalischer Packung um. Zusaetzliche innere Robotermechanik
+  darf sich komprimieren und in geschlossener Autostellung ausgeblendet sein.
+  Originalkarosserie, ganze Scheiben, Leuchten, vier Raeder, sieben Neonroehren
+  und dieselbe Referenzfigur bleiben sichtbar und formstabil. Kopf und Haende
+  entfalten sich aus der kompakten Mechanik; die detaillierte V17-Endpose bleibt.
+  Der neue Ablauf verbindet Auto, Umbau, Nackenpose und Rueckverwandlung.
+  Neue mitgefuehrte Teleskophalter ersetzen statische Plattenstreben; auch ihre
+  innere Kompression ist ein bewusster Animationstrick. Neonhalter ziehen ein,
+  der Fahrer folgt nach dem Oeffnen der Kabine der tatsaechlichen Nackenauflage.
+  tools/build_transformer_cinematic.py erzeugt die Ausgangsanimation,
+  tools/refine_transformer_cinematic.py wendet die reproduzierbaren Ausweichwege
+  aus tools/transformer_cinematic_clearance.json an. Der optionale Fitter
+  tools/fit_transformer_cinematic.py arbeitet auf der mit --no-fit gespeicherten
+  Zwischenfassung; anschliessend erneut verfeinern und unabhaengig pruefen.
+  tools/check_transformer_cinematic.py prueft Quellgeometrie/UVs, feste Aussenmasse,
+  Fahrer, Boden, Gelenk-/Traegeranschluesse, Haube/Leuchten und Neon-Flaechenkontakte.
+  tools/render_transformer_cinematic.py --animation --cinematic rendert die
+  Vorschau mit Kamerabewegung; ohne --cinematic ist die Kamera zur Kontrolle fest.
+  Ausgabe artifacts/transformer-study-v18; Blender weiterhin einzeln mit zwei
+  Threads. 529 Zeitpunkte einschliesslich halber Frames bestehen die genannten
+  Pruefungen; Quellgeometrie/UVs erhalten, Auto-Rueckkehr exakt. Das temporaere
+  Ausblenden innerer Mechanik gilt im Render. Im Blender-Viewport bleibt sie
+  zur Kontrolle sichtbar, da zwei gleichzeitig getriebene Sichtbarkeitsflags
+  in Blender 2.80 inkonsistent ausgewertet wurden. Verdeckungsqualitaet und
+  sonstige Mechanik-/Karosseriekontakte brauchen
+  weitere visuelle Pruefung; die Studie ist noch kein Unity-/Spielprototyp.
+- Naechste Umsetzungsschritte: Sichtbare Uebergaenge der Kompaktierung und weitere
+  Karosserie-/Mechanikkontakte verfeinern; ganze Scheiben, Leuchten und Neon erhalten.
+  Danach Stand-/Lauf-/Drehbewegungen, Mesh-/Materialoptimierung und ein isolierter
+  Unity-Prototyp mit Kamera, Kollisionskoerpern und Moduswechsel.
+  VehicleCabinDriver fuer denselben bestehenden Player erweitern; Inventar und
+  Ausruestung behalten, Nacken-/Fahrerpose und Rueckkehr animieren. Erst nach
+  lokalen Spieltests in die installierte Mod uebernehmen.
+- Pruefen: Karosseriepfade, ungeteilte Scheiben, Fahrerfreiraum in jeder Phase,
+  Verdeckung der kompakten Mechanik im Auto, Bodenkontakt und rueckwaerts identische
+  Fahrzeugpose. Flaechenschnittpruefungen ersetzen keine Volumen-/Physikpruefung.
+- Vor Spieleinsatz: Sitz-/Bein-IK, Kamerafuehrung, Ein-/Ausstieg, Notausstieg,
+  Tod/Despawn und Wiederherstellung der Animator-/Visual-Einstellungen testen.
+
+
+## Transformer: erster lokaler Integrationsstand
+
+- Quellenabgleich: lokales und installiertes `body.json` stimmen per SHA-256
+  ueberein. Aktuelle Raeder/Bremsen samt Tuning und gewaehlte Auspuffteile werden
+  direkt vom gespawnten Auto uebernommen; die V18-Studienauswahl ersetzt sie nicht.
+- `tools/export_transformer_runtime.py` erzeugt ein optionales, an das konkrete
+  Fahrzeug gebundenes binaeres Asset. Originalmaterialien, Leuchtflaechen,
+  Scheibentoenung und getrennte Neon-Einstellungen werden weiterverwendet.
+  Die Referenzfigur wird durch IK-Ziele fuer denselben lebenden Player ersetzt.
+- `TransformerAsset`, `TransformerVisual`, `VehicleTransformer` und die
+  gesonderte Steuerungsanbindung implementieren Verwandlung, Standmodus,
+  Nackenpose, Kamera und Rueckkehr. Originales Fahrzeughandling bleibt erhalten.
+  Gespeicherte Renderer-/Physik-/Fahrerzustaende werden bei Rueckkehr und Abbruch
+  wiederhergestellt. Standardmaessig ausgeschaltet; lokal als Teststand installiert
+  und aktiviert. Nutzer bestaetigt die Optik im Spiel anhand von Front-/Rueckansicht.
+- Reaktor nach Spielbild: Plasma-Emission fuer Valheim auf 15 Prozent reduziert,
+  damit der Kern die umgebende Mechanik nicht ueberstrahlt. Korrektur gebaut;
+  erneuter optischer Spielvergleich steht aus.
+- Gehen/Drehen V1: getrennte Vorbereitung der Kniepanzerung, Zweigelenk-IK,
+  gleitend gefuehrte Wadenpanzerung und gegenlaeufige Fussschritte beim Drehen.
+  W/S gehen langsam vor/zurueck (0,85 m/s), A/D drehen (32 Grad/s).
+  F10/F7 fordert erst Bremsen, Absetzen der Fuesse und Schliessen der Panzerung
+  an; danach beginnt die unveraenderte Rueckverwandlung. Reaktor-Emission reduziert.
+  Der gepruefte lokale Teststand ist mit Backup und SHA-256-Vergleich installiert;
+  grundlegendes Gehen wurde inzwischen vom Nutzer im Spiel bestaetigt.
+- Gang V2 nach Nutzerfeedback: schrittweise Beschleunigung ueber etwa drei
+  Sekunden auf 2,1 m/s; Schrittauslenkung von 0,22 auf 0,48 m vergroessert und
+  weiterhin geschwindigkeitsabhaengig. Rueckwaerts bis 1,4 m/s, staerkeres Bremsen
+  vor Richtungswechsel/Rueckkehr. Arme schwingen bis 20 Grad gegenlaeufig zur
+  Fussposition statt um eine Viertelphase versetzt; Ellbogen beugen sich mit.
+  Eigener Geometrie- und Controller-Audit bestanden; lokal mit Backup und
+  SHA-256-Vergleich installiert. Die Spielabnahme dieser Variante folgt.
+- Die Freigabe im lokalen Asset ist an gepruefte Quell-Hashes gebunden:
+  3379 geometrische Posen fuer Oeffnen, Teilschritte, Vor-/Rueckwaertsgehen,
+  Pivot- und Kurvenbewegungen; zusaetzlich Bewegungswerte des echten Managed-
+  Controllers. Sieben Neonroehren, Leuchten, Scheiben und vier Raeder bleiben starr.
+  Bestehende Ueberlappungen in der geschlossenen Standpose sind separat erfasst:
+  Beim Ausfahren duerfen nur diese Montagekontakte auseinanderlaufen, ohne
+  hoehere gemessene Querschnittstiefe; beim Gehen gilt der Dreiecksvergleich.
+- Weiter offen: Spielabnahme fuer Fussruhe, Hindernis-Sweeps, Kamera, Fahrer,
+  getunte Radvarianten und Performance. Unebenheiten, Stufen, Wasser und Abgruende
+  werden konservativ gesperrt. Innere Leitungen/Mechanik sind nicht vollstaendig
+  auf Selbstkontakt geprueft. Keine allgemeine Kollisionsfreiheitsgarantie.
+- Managed-Import-/Zustands-/Regressionstests ersetzen keinen Valheim-Test.
+  Live-Avatar und Roboterform sind auf den Nutzerbildern sichtbar; Materialwirkung
+  wird nachkorrigiert. Kamera, Notausstieg, vollstaendige Rueckkehr und Performance
+  brauchen weiterhin gezielte Spieltests. Keine Idee aus `scratch_3.txt` wurde als Auftrag
+  uebernommen. Anleitung und genaue Grenzen: `docs/TRANSFORMER-PROTOTYPE.md`.
+
 ## Innenseiten der Fahrzeugflächen (lokale Korrektur)
 
 - Nutzer hat den lokalen Gesamtstand einschließlich der Bremssattelkorrektur

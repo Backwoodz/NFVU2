@@ -24,6 +24,12 @@ internal sealed class VehicleCabinDriver:IDisposable {
     Quaternion standingRotation;
     bool disposed;
     float windowRest;
+    readonly Dictionary<string,Vector3> transformerStart=new Dictionary<string,Vector3>();
+    public void BeginTransformer() {
+        transformerStart.Clear();
+        foreach(string name in new[]{"Hips","LeftHand","RightHand","LeftFoot","RightFoot","LeftLeg","RightLeg","LeftForeArm","RightForeArm"})
+            if(bones.TryGetValue(name,out var bone))transformerStart[name]=car.InverseTransformPoint(bone.position);
+    }
     public bool Failed {get;private set;}
     public Vector3 ExitPosition=>exitWorld;
     public void SetExitPosition(Vector3 point){exitWorld=point;}
@@ -120,6 +126,36 @@ internal sealed class VehicleCabinDriver:IDisposable {
         var current=finger.position-hand.position;
         if(current.sqrMagnitude<.00001f)return;
         hand.rotation=Quaternion.Slerp(hand.rotation,Quaternion.FromToRotation(current,direction)*hand.rotation,blend);
+    }
+    public void TickTransformer(TransformerVisual robot,float progress) {
+        if(disposed)return;
+        Bool("attach_chair",true);Bool("inWater",false);Bool("onGround",true);
+        Float("forward_speed",0);Float("sideway_speed",0);Float("turn_speed",0);
+        visual.localPosition=visualPosition;visual.localRotation=visualRotation;
+        visual.localScale=visualScale*CabinAppearance.DriverScale;
+        player.SetPositionAndRotation(car.TransformPoint(VehicleInterior.Seat-new Vector3(0,.7f,0)),car.rotation);
+        var pelvis=robot.Node("target:NEW - REFERENCE pelvis").position;
+        // Match the actual installed cabin seat at frame zero, then hand off to
+        // the approved nape trajectory after the shell starts opening.
+        float transfer=Mathf.SmoothStep(0,1,Mathf.InverseLerp(0,.16f,progress));
+        if(transformerStart.TryGetValue("Hips",out var initialHips))pelvis=Vector3.Lerp(car.TransformPoint(initialHips),pelvis,transfer);
+        visual.position+=pelvis-hips.position;
+        foreach(var pair in new[]{Tuple.Create("Left","R"),Tuple.Create("Right","L")}) {
+            string side=pair.Item1,reference=pair.Item2;
+            var foot=robot.Node("target:NEW - REFERENCE boot "+reference).position;
+            var hand=robot.Node("target:NEW - REFERENCE hand "+reference).position;
+            var knee=car.InverseTransformPoint(robot.Node("rider.calf."+reference).position);
+            var elbow=car.InverseTransformPoint(robot.Node("rider.forearm."+reference).position);
+            float limbs=Mathf.SmoothStep(0,1,Mathf.InverseLerp(0,.12f,progress));
+            if(transformerStart.TryGetValue(side+"Foot",out var initialFoot))foot=Vector3.Lerp(car.TransformPoint(initialFoot),foot,limbs);
+            if(transformerStart.TryGetValue(side+"Hand",out var initialHand))hand=Vector3.Lerp(car.TransformPoint(initialHand),hand,limbs);
+            if(transformerStart.TryGetValue(side+"Leg",out var initialKnee))knee=Vector3.Lerp(initialKnee,knee,limbs);
+            if(transformerStart.TryGetValue(side+"ForeArm",out var initialElbow))elbow=Vector3.Lerp(initialElbow,elbow,limbs);
+            Limb(side+"UpLeg",side+"Leg",side+"Foot",foot,knee,1);
+            Limb(side+"Arm",side+"ForeArm",side+"Hand",hand,elbow,1);
+            AimHand(side+"Hand",side+"HandMiddle1",car.forward,1);
+        }
+        windowRest=0;
     }
     // Two-bone IK keeps limb lengths unchanged; pole positions control knee/elbow bend.
     void Limb(string upperName,string lowerName,string endName,Vector3 target,Vector3 pole,float blend) {

@@ -14,6 +14,7 @@ public sealed class VehicleOrbitCamera {
     bool dynamicMode=true;
     bool active,hadInput;
     bool suv;
+    public float RobotBlend {get;set;}
     CursorLockMode oldLock;
     bool oldVisible;
     public VehicleOrbitCamera(Action<string> log) {
@@ -28,7 +29,7 @@ public sealed class VehicleOrbitCamera {
         }
     }
     public void Begin(Transform target,bool hummer=false) {
-        suv=hummer;
+        suv=hummer;RobotBlend=0;
         vehicle=target;camera=Camera.main;
         oldLock=Cursor.lockState;oldVisible=Cursor.visible;active=true;hadInput=false;
         yaw=0;pitch=18;distance=suv?7.5f:6;smoothedDistance=distance;
@@ -83,10 +84,10 @@ public sealed class VehicleOrbitCamera {
             Mathf.Atan2(velocity.x,velocity.z)*Mathf.Rad2Deg,speed,Vector3.Dot(velocity,vehicle.forward),followRate);
         float blend=1-Mathf.Exp(-14*Time.deltaTime);
         var lookAhead=dynamicMode?Vector3.ClampMagnitude(new Vector3(velocity.x,0,velocity.z)*.08f,1.25f):Vector3.zero;
-        smoothedPivot=Vector3.Lerp(smoothedPivot,vehicle.position+Vector3.up*(turretAim?TurretAimSettings.PivotHeight(pitch):suv?1.5f:1.05f)+lookAhead,blend);
+        smoothedPivot=Vector3.Lerp(smoothedPivot,vehicle.position+Vector3.up*Mathf.Lerp(turretAim?TurretAimSettings.PivotHeight(pitch):suv?1.5f:1.05f,3.2f,RobotBlend)+lookAhead,blend);
         var rotation=Quaternion.Euler(pitch,dynamicMode?chase.Yaw:vehicle.eulerAngles.y+yaw,0);
         var direction=rotation*Vector3.back;
-        float clear=turretAim?Mathf.Max(distance,TurretAimSettings.CameraMinDistance):distance;
+        float clear=(turretAim?Mathf.Max(distance,TurretAimSettings.CameraMinDistance):distance)+RobotBlend*3.5f;
         foreach(var hit in Physics.SphereCastAll(smoothedPivot,.22f,direction,clear,Physics.DefaultRaycastLayers,QueryTriggerInteraction.Ignore)) {
             if(hit.collider==null || hit.collider.transform.IsChildOf(vehicle))continue;
             clear=Mathf.Min(clear,Mathf.Max(.45f,hit.distance-.12f));

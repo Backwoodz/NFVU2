@@ -21,15 +21,23 @@ public sealed class SpawnAssetCache {
 }
 public sealed class SpawnAssets {
     public ModelData Model,Interior,Turret,Flames;
+    public TransformerAsset Transformer;
     public HudData Hud;
     public SpawnAudio Audio;
     public readonly List<string> Warnings=new List<string>();
-    public static SpawnAssets Load(string folder,bool hummer,SpawnAssetCache cache,CancellationToken token) {
+    public static SpawnAssets Load(string folder,bool hummer,SpawnAssetCache cache,CancellationToken token,bool transformer=false) {
         var result=new SpawnAssets();
         result.Model=cache.Load(Path.Combine(folder,hummer?"hummer/h2.json":"body.json"),ModelFile.Load,token);
         result.Flames=result.Model;
         if(hummer)result.Optional(()=>result.Flames=cache.Load(Path.Combine(folder,"body.json"),ModelFile.Load,token),"Flight atlas",token);
         else {
+            if(transformer&&File.Exists(Path.Combine(folder,"transformer/transformer.json")))
+                result.Optional(()=>{
+                    var manifest=Path.Combine(folder,"transformer/transformer.json");var payload=new FileInfo(Path.Combine(folder,"transformer/transformer.bin"));
+                    var body=new FileInfo(Path.Combine(folder,"body.json"));
+                    string key=manifest+"|"+body.Length+"|"+body.LastWriteTimeUtc.Ticks+"|"+payload.Length+"|"+payload.LastWriteTimeUtc.Ticks;
+                    result.Transformer=cache.Load(manifest,p=>TransformerAsset.Load(Path.GetDirectoryName(p),body.FullName),token,key);
+                },"Transformer prototype",token);
             result.Optional(()=>result.Interior=cache.Load(Path.Combine(folder,"interior/interior.json"),ModelFile.Load,token),"Cabin",token);
             result.Optional(()=>result.Turret=cache.Load(Path.Combine(folder,"turret/turret.json"),ModelFile.Load,token),"Turret",token);
         }

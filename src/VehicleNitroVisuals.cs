@@ -19,7 +19,7 @@ public partial class Plugin {
         nitroVisualStrength=Config.Bind("NitroVisuals","Strength",.7f,new ConfigDescription("Shared screen/trail strength. Zero disables both.",new AcceptableValueRange<float>(0,1)));
     }
     void TickNitroVisuals() {
-        if(!driving||car==null||body==null){ClearNitroVisuals();return;}
+        if(!driving||car==null||body==null||Transforming){ClearNitroVisuals();return;}
         var camera=Camera.main;
         if(nitroVisualCar!=car.transform||nitroVisualCamera!=camera) {
             ClearNitroVisuals();nitroVisualCar=car.transform;nitroVisualCamera=camera;

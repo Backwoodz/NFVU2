@@ -4,7 +4,7 @@ from build import build
 from build_support import compile_cs,test_refs,runtime_config
 
 def main():
-    suites=['model','mesh','handling','audio','radio','nitro','impact','showroom','driving','turret','targeting','terrain','blast','hummer','menu','cabin','flight','loading','lighting','controls','hotbar','rumble','nitroview','horde','hordehull','hordecorpses','turretfireaudio','hordeweather','horderadar','hordeelements','storage']
+    suites=['model','mesh','handling','audio','radio','nitro','impact','showroom','driving','turret','targeting','terrain','blast','hummer','menu','cabin','flight','loading','lighting','controls','hotbar','rumble','nitroview','horde','hordehull','hordecorpses','turretfireaudio','hordeweather','horderadar','hordeelements','storage','transformer']
     parser=argparse.ArgumentParser();parser.add_argument('--skip-build',action='store_true');parser.add_argument('--handling-only',action='store_true')
     parser.add_argument('--suite',action='append',choices=suites,help='Run only these C# suites; repeat to combine.')
     args=parser.parse_args()
@@ -12,7 +12,11 @@ def main():
     if not args.handling_only and not args.suite:
         subprocess.run([sys.executable,'-m','unittest','discover','-s',str(BASE/'tests'),'-p','test_*.py'],check=True)
     references,tfm,version=test_refs()
-    for suite in (['handling'] if args.handling_only else args.suite or suites):
+    selected=['handling'] if args.handling_only else args.suite or suites
+    if not args.suite and 'transformer' in selected and not (LOCAL/'transformer/transformer.json').is_file():
+        selected=[s for s in selected if s!='transformer']
+        print('Optional transformer asset absent; export V18 to enable its payload checks.')
+    for suite in selected:
         out=OUTPUT/'tests'/suite;out.mkdir(parents=True,exist_ok=True)
         sources=list((BASE/'tests'/suite).glob('*.cs'));refs=list(references);arguments=[]
         if suite=='handling':sources.extend(BASE/'src'/name for name in ('DrivingMath.cs','VehicleHandling.cs','VehicleDriftTuning.cs','HummerTuning.cs','VehicleRideHeight.cs'))
@@ -55,6 +59,9 @@ def main():
         if suite=='cabin':
             jsondll=out/'Newtonsoft.Json.dll';shutil.copy2(valheim_dir()/'valheim_Data/Managed/Newtonsoft.Json.dll',jsondll);refs.append(jsondll)
             arguments=[str(LOCAL/'interior/interior.json')]
+        if suite=='transformer':
+            jsondll=out/'Newtonsoft.Json.dll';shutil.copy2(valheim_dir()/'valheim_Data/Managed/Newtonsoft.Json.dll',jsondll);refs.append(jsondll)
+            arguments=[str(LOCAL/'transformer'),str(LOCAL/'model/body.json')]
         if suite=='hummer':
             jsondll=out/'Newtonsoft.Json.dll';shutil.copy2(valheim_dir()/'valheim_Data/Managed/Newtonsoft.Json.dll',jsondll);refs.append(jsondll)
             arguments=[str(LOCAL/'hummer/h2.json'),str(LOCAL/'audio-hummer')]

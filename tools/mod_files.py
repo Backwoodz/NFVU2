@@ -12,7 +12,8 @@ OPTIONAL=(('radio', 'radio', {'.wav','.ogg','.json'}),
           ('hummer', 'hummer', {'.json'}),
           ('interior', 'interior', {'.json'}),
           ('audio-hummer', 'audio/hummer', {'.wav','.json'}),
-          ('turret', 'turret', {'.json','.wav'}))
+          ('turret', 'turret', {'.json','.wav'}),
+          ('transformer', 'transformer', {'.json','.bin'}))
 
 def asset_files(folder,extensions):
     folder=Path(folder)

@@ -38,7 +38,7 @@ public partial class Plugin {
         neonPulsing=BindVehicle("Neon","Pulsing",false,"Pulse the underbody neon.");
         neonColor=BindVehicle("Neon","Color","Grün",new ConfigDescription("Underbody neon colour.",new AcceptableValueList<string>(ColorNames)));
     }
-    bool CanUseVehicleMenu(MonoBehaviour local)=>local!=null&&!Multiplayer();
+    bool CanUseVehicleMenu(MonoBehaviour local)=>local!=null&&!Multiplayer()&&!Transforming;
     void BlockDrivingInput(bool blockCamera=true){controlsGate.Block();handbrakeHeld=turretHeld=false;throttle=steer=0;current.flightVertical=0;brake=1;honking=false;burnoutHeld=false;nitroHeld=false;nitroInput.Reset();ActiveNitro?.Stop();if(blockCamera)orbitCamera?.InputFrame(false,mouseSensitivity.Value,invertMouseY.Value);}
     void SetVehicleMenu(bool open) {
         if(open==menuOpen)return;
