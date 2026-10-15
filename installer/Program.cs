@@ -7,13 +7,14 @@ using System.Windows.Forms;
 
 namespace NFVU2.Setup {
 static class Program {
-    [STAThread] static void Main() {
+    [STAThread] static void Main(string[] args) {
         Application.EnableVisualStyles();
         Application.SetCompatibleTextRenderingDefault(false);
-        Application.Run(new SetupWindow());
+        try { Application.Run(new SetupWindow(SetupArguments.Parse(args))); }
+        catch(Exception error) { MessageBox.Show(error.Message,"NFVU2 Setup",MessageBoxButtons.OK,MessageBoxIcon.Warning); }
     }
 }
-sealed class SetupWindow : Form {
+sealed partial class SetupWindow : Form {
     readonly TextBox path = new TextBox { Dock = DockStyle.Fill, ReadOnly = true };
     readonly Button browse = new Button { Text = "Browse...", AutoSize = true };
     readonly Button install = new Button { Text = "Install / Update", AutoSize = true, Enabled = false };
@@ -22,12 +23,13 @@ sealed class SetupWindow : Form {
     readonly Label status = new Label { Text = "Select valheim.exe to get started.", AutoSize = true, MaximumSize = new Size(620, 0) };
     readonly ProgressBar progress = new ProgressBar { Dock = DockStyle.Fill, Visible = false, Style = ProgressBarStyle.Marquee };
     bool busy;
-    public SetupWindow() {
-        Text = "NFVU2 Setup"; ClientSize = new Size(720, 650); MinimumSize = new Size(736, 689);
+    public SetupWindow() : this(new SetupArguments()) {}
+    public SetupWindow(SetupArguments options) {
+        Text = "NFVU2 Setup — "+CurrentDisplay; ClientSize = new Size(720, 790); MinimumSize = new Size(736, 740);
         StartPosition = FormStartPosition.CenterScreen; Font = new Font("Segoe UI", 10);
         AutoScaleMode = AutoScaleMode.Dpi;
-        var layout = new TableLayoutPanel { Dock = DockStyle.Fill, AutoScroll = true, Padding = new Padding(24), ColumnCount = 1, RowCount = 8 };
-        for (int i = 0; i < 8; i++) layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
+        var layout = new TableLayoutPanel { Dock = DockStyle.Fill, AutoScroll = true, Padding = new Padding(24), ColumnCount = 1, RowCount = 9 };
+        for (int i = 0; i < 9; i++) layout.RowStyles.Add(new RowStyle(SizeType.AutoSize));
         var logo = new PictureBox { Dock = DockStyle.Top, Height = 220, SizeMode = PictureBoxSizeMode.Zoom,
             BackColor = Color.FromArgb(14, 22, 30), Margin = new Padding(0, 0, 0, 16),
             AccessibleName = "Need for Valheim: Underground 2", TabStop = false };
@@ -36,6 +38,7 @@ sealed class SetupWindow : Form {
         FormClosed += (_, __) => logo.Image.Dispose();
         layout.Controls.Add(logo);
         layout.Controls.Add(new Label { Text = "Choose Valheim. Install. Drive.\nClose the game before making changes.", AutoSize = true, Margin = new Padding(0, 0, 0, 18) });
+        layout.Controls.Add(UpdateSection());
         var selection = new TableLayoutPanel { Dock = DockStyle.Top, ColumnCount = 2, AutoSize = true, Margin = new Padding(0, 0, 0, 12) };
         selection.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100)); selection.ColumnStyles.Add(new ColumnStyle(SizeType.AutoSize));
         selection.Controls.Add(path, 0, 0); selection.Controls.Add(browse, 1, 0); layout.Controls.Add(selection);
@@ -65,23 +68,38 @@ sealed class SetupWindow : Form {
         actions.Controls.Add(install); actions.Controls.Add(uninstall); actions.Controls.Add(notices); layout.Controls.Add(actions);
         layout.Controls.Add(progress); layout.Controls.Add(status); Controls.Add(layout);
         browse.Click += (_, __) => Choose();
-        install.Click += async (_, __) => await Execute(false);
+        install.Click += async (_, __) => { if(NewerAvailable)await DownloadUpdate();else await Execute(false); };
         uninstall.Click += async (_, __) => await Execute(true);
-        FormClosing += (_, e) => { if (busy) e.Cancel = true; };
+        FormClosing += (_, e) => {
+            if(busy){e.Cancel=true;if(downloadCancellation!=null){closeAfterDownload=true;downloadCancellation.Cancel();}}
+        };
+        FormClosed += (_, __) => { lifetime.Cancel();updates.Dispose();lifetime.Dispose(); };
+        Shown += async (_, __) => {
+            if(options.Executable!=null) {
+                try { SelectPath(options.Executable);if(options.Install)await Execute(false); }
+                catch(Exception error) { status.Text=error.Message; }
+            }
+            if(!IsDisposed)await CheckUpdates();
+        };
     }
     void Choose() {
         using (var dialog = new OpenFileDialog { Title = "Select valheim.exe", Filter = "Valheim|valheim.exe", CheckFileExists = true }) {
             if (dialog.ShowDialog(this) != DialogResult.OK) return;
             try {
-                var core = new InstallerCore(dialog.FileName);
-                path.Text = dialog.FileName; install.Enabled = true; uninstall.Enabled = core.HasInstallation;
-                status.Text = core.HasInstallation ? "NFVU2 found. Ready to update or uninstall." : "Ready to install NFVU2.";
+                SelectPath(dialog.FileName);
             } catch (Exception e) { MessageBox.Show(this, e.Message, "Select Valheim", MessageBoxButtons.OK, MessageBoxIcon.Warning); }
         }
     }
+    void SelectPath(string selected) {
+        var core=new InstallerCore(selected);
+        path.Text=selected;install.Enabled=true;uninstall.Enabled=core.HasInstallation;
+        status.Text=core.HasInstallation?"NFVU2 found. Ready to update or uninstall.":"Ready to install NFVU2.";
+    }
     async Task Execute(bool removing) {
+        if(busy)return;
         if (removing && MessageBox.Show(this, "Remove NFVU2 from this Valheim installation?\nYour saves and personal settings will be kept.", "Uninstall NFVU2", MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) return;
         busy = true; browse.Enabled = install.Enabled = uninstall.Enabled = loader.Enabled = false;
+        UpdateButtons();
         progress.Visible = true;
         string selected = path.Text; bool removeLoader = loader.Checked;
         var messages = new Progress<string>(s => status.Text = s);
@@ -101,6 +119,7 @@ sealed class SetupWindow : Form {
         finally {
             busy = false; progress.Visible = false; browse.Enabled = install.Enabled = loader.Enabled = true;
             try { uninstall.Enabled = new InstallerCore(selected).HasInstallation; } catch { uninstall.Enabled = false; }
+            UpdateButtons();
         }
     }
 }

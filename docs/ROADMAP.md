@@ -1,5 +1,31 @@
 # Nächste Aufgaben
 
+## Installer-Updates (lokaler Stand 0.29.0)
+
+- Installer fragt beim Oeffnen asynchron den neuesten oeffentlichen stabilen
+  GitHub-Release ab; gemeinsame Major.Minor.Patch-Version numerisch vergleichen.
+  Neue Dateien ohne r-Zusatz; alte Release-Dateien bleiben lesbar, deren Revision
+  beeinflusst die Update-Reihenfolge nicht. Mod und Installer beide 0.29.0.
+  Ohne Internet bleibt der eingebettete Stand installierbar, manueller Neuversuch.
+- Changelog im eigenen Fenster: neue Release-Notizen bei verfuegbarem Update,
+  sonst eingebettete CHANGELOG.md. Schliessen per Schaltflaeche, Escape und Enter.
+- Update-Schaltflaeche laedt den neuen Installer, prueft Dateigroesse, SHA-256
+  und vorhandene GitHub-Digests. Fortschritt/Abbruch, Zeitlimits und festgelegte
+  GitHub-Downloadziele; keine Anwendung ungepruefter oder unvollstaendiger EXEs.
+- Neuer Installer uebernimmt den gewaehlten valheim.exe-Pfad und setzt die
+  Installation mit seinen eigenen Spiel-/Pfad-/Backup-Pruefungen fort. Ohne
+  ausgewaehltes Spiel oeffnet sich die neue Version zur normalen Auswahl.
+- Bereits veroeffentlichte r6-EXEs erhalten keine Funktion nachtraeglich: einmal
+  den neuen Installer beziehen. Der lokale Build ist noch kein GitHub-Release.
+- Vollstaendiger automatischer Prueflauf und 50 gezielte Update-Pruefungen bestanden;
+  echte GitHub-Abfrage erkennt aktuell 0.28.0-r6. Offline- und simulierte Update-
+  Oberflaeche gerendert. Uebergebener Spielpfad samt automatischer Installation
+  mit der fertigen EXE im isolierten kuenstlichen Spielordner erfolgreich geprueft.
+- Lokaler 0.29.0-Build: 90 Payload-Dateien, 27 Radiotitel, aktuelle DLL, eingebettetes
+  Payload/Changelog und EXE-Pruefsumme geprueft; kein Transformer im Paket.
+  Echter Wechsel zwischen veroeffentlichten Versionen, Windows SmartScreen/UAC,
+  Offline-/Proxyumgebungen und DPI separat testen. Noch nicht veroeffentlicht.
+
 ## Weltladen bei langen Fahrzeugfahrten (lokale Korrektur)
 
 - Fehlerursache im lokal vorhandenen Spielcode nachvollzogen: Player.LateUpdate

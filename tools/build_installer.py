@@ -16,7 +16,6 @@ LOADER_VERSION = '5.4.2351'
 LOADER_URL = f'https://thunderstore.io/package/download/denikson/BepInExPack_Valheim/{LOADER_VERSION}/'
 LOADER_SHA256 = 'bce631497976a93977ceb08e166712e6c31d15244956f89f17df092a9b62e29f'
 MOD_ROOT = 'BepInEx/plugins/Rachel350Z/'
-SETUP_REVISION = 6
 
 
 def sha256(path):
@@ -28,7 +27,13 @@ def sha256(path):
 
 
 def version():
-    return re.search(r'<Version>([^<]+)</Version>', (BASE/'src/NFVU2.csproj').read_text()).group(1)
+    value = re.search(r'<Version>([^<]+)</Version>', (BASE/'src/NFVU2.csproj').read_text()).group(1)
+    if not re.fullmatch(r'(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)', value):
+        raise ValueError('Use a Major.Minor.Patch project version without a setup revision.')
+    plugin = (BASE/'src/Plugin.cs').read_text(encoding='utf-8')
+    if not re.search(r'\[BepInPlugin\("local\.rachel350z\.prototype",\s*"[^"]+",\s*"'+re.escape(value)+r'"\)\]', plugin):
+        raise ValueError('Project and BepInPlugin versions must match.')
+    return value
 
 
 def framework():
@@ -42,7 +47,7 @@ def compile_installer(output, sources, payload=None, windowed=False):
     _, compiler = dotnet_toolchain()
     root = framework()
     refs = ['mscorlib', 'System', 'System.Core', 'System.Web.Extensions',
-            'System.IO.Compression', 'System.Windows.Forms', 'System.Drawing']
+            'System.IO.Compression', 'System.Windows.Forms', 'System.Drawing', 'System.Net.Http']
     output.parent.mkdir(parents=True, exist_ok=True)
     args = ['-nologo', '-nostdlib+', '-deterministic+', '-langversion:latest',
             '-platform:x64', '-target:' + ('winexe' if windowed else 'exe'), f'-out:"{output}"']
@@ -51,6 +56,11 @@ def compile_installer(output, sources, payload=None, windowed=False):
         args.append(f'-win32manifest:"{BASE/"installer/app.manifest"}"')
         args.append(f'-resource:"{BASE/"installer/THIRD_PARTY_NOTICES.txt"}",NFVU2.Notices')
         args.append(f'-resource:"{BASE/"docs/images/nfvu2-logo.png"}",NFVU2.Logo')
+        args.append(f'-resource:"{BASE/"CHANGELOG.md"}",NFVU2.Changelog')
+        info = output.with_suffix('.version.cs')
+        info.write_text('using System.Reflection;\n[assembly: AssemblyVersion("'+version()+'.0")]\n'
+                        '[assembly: AssemblyInformationalVersion("'+version()+'")]\n', encoding='utf-8')
+        args.append(f'"{info}"')
     if payload:
         args.append(f'-resource:"{payload}",NFVU2.Payload')
     args += [f'"{p}"' for p in sources]
@@ -111,9 +121,11 @@ def main():
     parser.parse_args()
     target = OUTPUT/'installer'
     target.mkdir(parents=True, exist_ok=True)
+    executable = target/f'NFVU2-Setup-{version()}.exe'
+    if executable.exists():
+        raise FileExistsError('Installer already exists; use the next project version or a separate build directory: '+str(executable))
     payload = target/'payload.zip'
     make_payload(payload, OUTPUT/'mod', loader_archive())
-    executable = target/f'NFVU2-Setup-{version()}-r{SETUP_REVISION}.exe'
     compile_installer(executable, sorted((BASE/'installer').glob('*.cs')), payload, windowed=True)
     digest = sha256(executable)
     executable.with_suffix('.sha256').write_text(f'{digest}  {executable.name}\n', encoding='utf-8')

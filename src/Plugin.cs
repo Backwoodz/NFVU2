@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Rachel350Z {
 // Local vehicles have no ZNetView; test enemies use nonpersistent native views.
-[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.28.0")]
+[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.29.0")]
 [DefaultExecutionOrder(10000)]
 public partial class Plugin : BaseUnityPlugin {
     VehicleOrbitCamera orbitCamera;

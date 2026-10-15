@@ -26,11 +26,12 @@ Befehle beziehen sich auf das Repository-Stammverzeichnis.
 - Übernimm standardmäßig die aktuelle Mod-Version. Prüfe die Übereinstimmung
   von `src/NFVU2.csproj` und dem `BepInPlugin`-Attribut in `src/Plugin.cs`.
   Bei einer ausdrücklich gewünschten neuen Mod-Version aktualisiere beide.
-- Setze `SETUP_REVISION` in `tools/build_installer.py` so, dass für die gewählte
-  Mod-Version ein neuer Dateiname entsteht. Falls bereits ein Installer dieser
-  Revision existiert, erhöhe auf die nächste freie Revision oberhalb aller
-  vorhandenen Revisionen dieser Version. Überschreibe keinen bisherigen Installer.
-- Dokumentiere enthaltene Änderungen und die lokale Setup-Revision in
+- Mod und Installer verwenden dieselbe Major.Minor.Patch-Version ohne separate
+  Setup-Revision. Der Dateiname lautet `NFVU2-Setup-<version>.exe`.
+  Bei Feature-Releases Minor, bei Fehlerkorrekturen Patch erhoehen. Existiert
+  bereits ein Installer dieser Version, keinen alten Installer ueberschreiben:
+  verwende fuer einen geaenderten Build die naechste Projektversion.
+- Dokumentiere enthaltene Aenderungen und die gemeinsame Version in
   `CHANGELOG.md`; halte ausstehende Spieltests in `docs/ROADMAP.md` fest.
   Ändere öffentliche Downloadlinks erst bei tatsächlich erfolgter Veröffentlichung.
 
@@ -64,11 +65,12 @@ python tools/build_installer.py
 - Nach erfolgreichem Build und vollständiger Verifikation behalte nur den neu
   erzeugten Installer und seine `.sha256`-/`.rsp`-Dateien. Entferne ältere
   Dateien direkt in `artifacts/installer`, deren Name exakt dem Schema
+  `NFVU2-Setup-<version>.(exe|sha256|rsp)` oder dem alten Schema
   `NFVU2-Setup-<version>-r<revision>.(exe|sha256|rsp)` entspricht.
 - Prüfe vor Löschung die absoluten Zielpfade und überspringe Links/Junctions.
   Lösche keine anderen Dateien oder Verzeichnisse. `payload.zip`, Quellassets
   und separat benannte Dateien bleiben erhalten. Installationsbackups unterliegen
   weiterhin der eigenen Aufbewahrungsregel aus `AGENTS.md`.
 - Nenne im Abschluss den klickbaren Pfad zur neuen EXE und zur Prüfsumme,
-  Version/Revision sowie das Prüfergebnis. Unterscheide automatische Prüfungen
+  Version sowie das Prüfergebnis. Unterscheide automatische Prüfungen
   klar von noch ausstehenden Unity-Spieltests.

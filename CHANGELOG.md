@@ -1,6 +1,23 @@
 # Changelog
 
-## Unreleased — Vehicle inner surfaces
+## 0.29.0 — Installer updates, world streaming and vehicle inner surfaces
+
+- Windows setup 0.29.0 checks the latest public GitHub release when
+  opened, without blocking offline installation. Compare Major.Minor.Patch numerically
+  and provide a manual retry and an in-window Changelog button.
+- Use a shared Major.Minor.Patch version for mod and installer; remove the setup
+  revision suffix. The installer is named `NFVU2-Setup-0.29.0.exe`. Legacy public
+  filenames remain readable, but revisions do not influence update ordering.
+- Download updates only from this repository's releases; verify exact size,
+  SHA-256 sidecar and available GitHub digests before starting the new setup.
+  Forward the selected Valheim path so the new installer can continue installation
+  with its own current install engine. Downloads show progress and support cancel.
+- Include the packaged changelog for offline use. Existing r6 and older EXEs need
+  a one-time manual download of 0.29.0 or later to gain update detection.
+- Keep Valheim's world-streaming reference at the live driver while driving or
+  flying. Prepare approaching terrain on the native builder and wait only for
+  immediately missing terrain collision, with delayed messages and preserved
+  momentum across brief loading gaps. Native location generation can still stutter.
 
 - Remove black-backed ring decals that made the closed brake caliper bosses
   look like exposed pistons. Replace hub/bolt atlas squares with solid metal
