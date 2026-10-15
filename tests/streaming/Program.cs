@@ -78,6 +78,11 @@ class StreamingTests {
         Check(HeightmapBuilder.instance.calls<=4,"corner and extreme-speed prefetch have a bounded job budget");
         var parked=new Rigidbody();var other=new VehicleWorldStreaming(parked);
         Check(!parked.isKinematic,"loading holds belong only to their own vehicle");stream.Dispose();other.Dispose();
+        World();body.isKinematic=false;body.position=new Vector3(1000,200,1000);body.linearVelocity=Vector3.zero;
+        Heightmap.missing.Add(ZoneSystem.GetZone(body.position));stream=new VehicleWorldStreaming(body);
+        Check(!stream.Step(false)&&body.isKinematic&&HeightmapBuilder.instance.calls==0,"parked restored car waits for local collider without generating remote terrain");
+        for(int i=0;i<40;i++)stream.Step(false);
+        Heightmap.missing.Clear();Check(stream.Step(false)&&!body.isKinematic&&Zero(body.linearVelocity),"parked restored car safely resumes when its terrain loads");stream.Dispose();
         Console.WriteLine(checks+" streaming checks passed; native Unity streaming still needs a game test.");
     }
     static void CheckReady(VehicleWorldStreaming stream){if(!stream.Step())throw new Exception("scenery caused a false stop");}

@@ -1,0 +1,66 @@
+using System;
+using System.Collections.Generic;
+using Rachel350Z;
+using UnityEngine;
+// Exercise the actual world/restore coordinator with the native ZDO/scene doubles.
+// Asset construction is replaced with a completed load of the same storage record.
+namespace Rachel350Z {
+internal sealed class VehicleRuntime {
+    public VehicleStorage storage;public TestFlight flight=new TestFlight();public bool hasBeenDriven;
+}
+internal sealed class TestFlight {public bool Active;}
+public partial class Plugin {
+    internal static Plugin ControlsOwner=null;
+    readonly List<VehicleRuntime> fleet=new List<VehicleRuntime>();
+    public bool MultiplayerMode,SpawnBusy,driving;public int starts;public ZDO requested;
+    bool Multiplayer()=>MultiplayerMode;
+    void StartVehicleLoad(MonoBehaviour local,bool hummer,ZDO saved){starts++;requested=saved;restoringVehicle=saved;SpawnBusy=true;}
+    void CleanupAll(){CaptureVehicleSave();foreach(var v in fleet)v.storage.Release();fleet.Clear();SpawnBusy=false;}
+    public void Tick()=>TickVehicleRestore(Player.m_localPlayer);
+    public int Count=>WorldVehicleCount;
+    public void Complete() {
+        var car=new GameObject();car.transform.SetPositionAndRotation(VehiclePersistence.Location(requested),VehiclePersistence.Orientation(requested));
+        fleet.Add(new VehicleRuntime{storage=new VehicleStorage(car,requested),hasBeenDriven=VehiclePersistence.WasDriven(requested),flight=new TestFlight{Active=VehiclePersistence.Flying(requested)}});SpawnBusy=false;restoringVehicle=null;
+    }
+    public void Cancel(){deferredVehicles.Add(requested.m_uid);SpawnBusy=false;restoringVehicle=null;}
+}
+}
+class Program {
+    static int checks;
+    static void Check(bool value,string label){if(!value)throw new Exception(label);checks++;}
+    static void World(){ZDOMan.instance=new ZDOMan();ZNetScene.instance=new ZNetScene();Player.m_localPlayer=new Player();}
+    static ZDO Car(bool hummer=false,bool loaded=true) {
+        var storage=new VehicleStorage(new GameObject(),hummer,0);VehiclePersistence.Mark(storage.Data,hummer);storage.SaveVehicle(false,false);
+        storage.Release();if(!loaded)ZNetScene.instance.objects.Remove(storage.Data.m_uid);return storage.Data;
+    }
+    static void Main() {
+        World();var a=Car();var b=Car(true,false);Car(false,false);Car(true,false);
+        new ZDO();var unsupported=new ZDO();unsupported.Set(VehiclePersistence.Model,99);
+        var plugin=new Plugin();plugin.Tick();
+        Check(plugin.Count==4,"all four world records count, including distant cars; ordinary/unknown records excluded");
+        Check(plugin.starts==1&&plugin.requested==a,"loaded car is automatically restored");
+        plugin.Tick();Check(plugin.starts==1,"restore cannot race an active load");
+        plugin.Complete();plugin.Tick();Check(plugin.starts==1,"restored car is never duplicated");
+        var bRoot=ZNetScene.instance.GetPrefab("piece_chest_blackmetal").Clone(b.GetPosition(),b.GetRotation());
+        bRoot.GetComponent<ZNetView>().data=b;ZNetScene.instance.objects[b.m_uid]=bRoot;
+        plugin.PrepareVehicleCargo(bRoot.GetComponent<Container>());
+        Check(!bRoot.GetComponent<Renderer>().enabled&&!bRoot.GetComponent<Collider>().enabled,"saved cargo is hidden before staged restoration");
+        Check(plugin.ProtectVehicleCargo(bRoot.GetComponent<WearNTear>()),"saved marker blocks native destruction");
+        plugin.driving=true;plugin.Tick();Check(plugin.starts==1,"restoration waits while driving");
+        plugin.driving=false;Player.m_localPlayer.teleport=true;plugin.Tick();Check(plugin.starts==1,"restoration waits during teleport");
+        Player.m_localPlayer.teleport=false;Player.m_localPlayer.dead=true;plugin.Tick();Check(plugin.starts==1,"restoration waits for living player");
+        Player.m_localPlayer.dead=false;plugin.Tick();Check(plugin.starts==2&&plugin.requested==b,"distant car restores when its native record loads");
+        plugin.Cancel();plugin.Tick();Check(plugin.starts==2&&plugin.Count==4,"cancelled or failed restoration preserves record without retry loop");
+        plugin.MultiplayerMode=true;Check(!plugin.ProtectVehicleCargo(bRoot.GetComponent<WearNTear>()),"single-player marker hooks do not interfere in multiplayer");
+        plugin.MultiplayerMode=false;VehiclePersistence.Forget(b);plugin.Tick();Check(plugin.Count==3,"explicit deletion frees world capacity");
+        Check(!plugin.ProtectVehicleCargo(bRoot.GetComponent<WearNTear>()),"released cargo regains native damage/removal paths");
+        plugin.SaveVehiclesBeforeShutdown();Check(VehiclePersistence.IsVehicle(a),"shutdown resource cleanup preserves car metadata");
+        World();var other=Car(true);plugin.Tick();
+        Check(plugin.Count==1&&plugin.requested==other&&plugin.starts==3,"world switch resets registry and cancellation state");
+        plugin.Complete();plugin.SaveVehiclesBeforeShutdown();
+        World();ZDOMan.instance.records[a.m_uid]=a;var root=ZNetScene.instance.GetPrefab("piece_chest").Clone(a.GetPosition(),a.GetRotation());
+        root.GetComponent<ZNetView>().data=a;ZNetScene.instance.objects[a.m_uid]=root;plugin.Tick();
+        Check(plugin.Count==1&&plugin.requested==a&&plugin.starts==4,"returning to first world restores its original car");
+        Console.WriteLine(checks+" persistence coordination checks passed; native save/load and Harmony runtime require a game test.");
+    }
+}

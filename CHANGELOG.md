@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.30.0 — Persistent vehicles
+
+- Save each 350Z/H2 with its world: model, position, rotation, flight state and
+  cargo share the existing native chest record. Empty cars persist too.
+- Restore cars automatically when their area loads, retaining the same cargo
+  inventory. Distant cars count toward the four-car limit; parked cars wait
+  for terrain collision without requesting distant terrain generation.
+- Remove cars only through the vehicle menu; F8 only cancels loading. Removing
+  a car still leaves nonempty cargo in a normal chest.
+- Previously released recovery chests contain no vehicle metadata and remain
+  ordinary chests. Single-player only. The user confirmed that leaving and
+  re-entering a world retains the car; additional edge cases remain in ROADMAP.
+
 ## 0.29.0 — Installer updates, world streaming and vehicle inner surfaces
 
 - Windows setup 0.29.0 checks the latest public GitHub release when

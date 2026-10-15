@@ -17,6 +17,10 @@ or take off and fly. Viking transportation got a little out of hand.
 
 Windows 10/11, 64-bit. **Single-player only**; cars are temporary and are not saved with the world.
 
+Local development build: cars now persist with the world, including position,
+orientation and cargo. Remove them through **F9 → Vehicle → Remove vehicle**.
+The published v0.29.0 installer below still uses temporary cars.
+
 **[Download the Windows installer](https://github.com/Backwoodz/NFVU2/releases/download/v0.29.0/NFVU2-Setup-0.29.0.exe)** — v0.29.0, 142 MiB
 
 1. Close Valheim, run the installer and select **valheim.exe**.

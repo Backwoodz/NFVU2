@@ -17,11 +17,11 @@ internal sealed class VehicleWorldStreaming : IDisposable {
         if(driver!=null&&driver==Player.m_localPlayer&&ZNet.instance!=null)
             ZNet.instance.SetReferencePosition(driver.transform.position);
     }
-    public bool Step() {
+    public bool Step(bool prefetch=true) {
         if(body==null)return false;
         var velocity=held?heldVelocity:body.linearVelocity;
         if(held)waitSeconds+=Time.fixedDeltaTime;
-        Prefetch(velocity);
+        if(prefetch)Prefetch(velocity);
         checkedZones.Clear();
         // Only protect the chassis and the next few physics steps. IsAreaReady
         // waits for unrelated ZDOs in neighbouring zones and may flap forever.

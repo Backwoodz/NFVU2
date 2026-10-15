@@ -7,8 +7,8 @@ using BepInEx.Configuration;
 using UnityEngine;
 
 namespace Rachel350Z {
-// Local vehicles have no ZNetView; test enemies use nonpersistent native views.
-[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.29.0")]
+// Rendered vehicles are local; metadata/cargo use persistent vanilla world ZDOs.
+[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.30.0")]
 [DefaultExecutionOrder(10000)]
 public partial class Plugin : BaseUnityPlugin {
     VehicleOrbitCamera orbitCamera;
@@ -38,7 +38,7 @@ public partial class Plugin : BaseUnityPlugin {
         InitializeNitroVisuals();
         InitializeBoostInput();
         fleetMusic=new ValheimMusicDucking(message=>Logger.LogWarning(message));
-        ready=playerType!=null;Logger.LogInfo("350Z prototype loaded. Single-player, temporary vehicle only.");
+        ready=playerType!=null;Logger.LogInfo("350Z prototype loaded. Single-player with persistent world vehicles.");
     }
     MonoBehaviour LocalPlayer() => playerType?.GetField("m_localPlayer",BindingFlags.Public|BindingFlags.NonPublic|BindingFlags.Static)?.GetValue(null) as MonoBehaviour;
     bool Multiplayer() {
@@ -74,6 +74,7 @@ public partial class Plugin : BaseUnityPlugin {
         if(local==null){CleanupAll();return;}
         if((fleetOwner!=null && local!=fleetOwner) || (driving && local!=player) || (fleet.Count>0 && Multiplayer())){CleanupAll();return;}
         if(SpawnBusy&&Application.isFocused&&!UIVisible()&&!menuOpen&&(Input.GetKeyDown(KeyCode.F8)||PadDown("back"))){CancelSpawn("Laden abgebrochen.");return;}
+        TickVehicleRestore(local);
         TickSpawn(local);
         if(driving&&local is Player livePlayer&&livePlayer.IsDead()){Exit();return;}
         if(!driving&&!menuOpen)SelectNearest(local);
@@ -86,7 +87,7 @@ public partial class Plugin : BaseUnityPlugin {
             TickHorde(local);
             if(hordeWave.Active&&hordeWave.Choosing){BlockDrivingInput();TickHordePactInput();return;}
             if(Input.GetKeyDown(KeyCode.F6)) { if(Multiplayer()){status="Nur in einer lokalen Einzelspieler-Testwelt verwenden.";return;} Spawn(local); }
-            if(Input.GetKeyDown(KeyCode.F8)){if(SpawnBusy)CancelSpawn("Laden abgebrochen.");else if(CanAccessCurrent(local))Cleanup();}
+            if(Input.GetKeyDown(KeyCode.F8)&&SpawnBusy)CancelSpawn("Laden abgebrochen.");
             TickControlActions(local);
             if(driving&&!DriverInputReady){BlockDrivingInput();return;}
             if(driving)ReadVehicleControls();
@@ -119,6 +120,7 @@ public partial class Plugin : BaseUnityPlugin {
         if(Flying){status="Bitte warten, bis das Fahrzeug gelandet ist.";return;}
         if(local is Player native&&(native.IsDead()||native.IsAttached()||native.IsTeleporting())){status="Zum Einsteigen zuerst die aktuelle Aktion beenden.";return;}
         if(body.linearVelocity.magnitude>.5f){status="Zum Einsteigen muss das Fahrzeug stehen.";return;}
+        current.parkedStreaming?.Dispose();current.parkedStreaming=null;
         Vector3 outside=Vector3.zero;
         if(current.interior!=null&&!FindCabinExit(local,out outside)){ShowVehicleWarning("Die Fahrertür ist blockiert. Bitte etwas Platz schaffen.");return;}
         CloseVehicleMenu();
@@ -146,6 +148,10 @@ public partial class Plugin : BaseUnityPlugin {
     void FixedUpdate() {ForEachVehicle(StepVehicle);}
     void StepVehicle() {
         if(body==null||wheels==null)return;
+        if(!driving) {
+            if(current.parkedStreaming==null)current.parkedStreaming=new VehicleWorldStreaming(body);
+            if(!current.parkedStreaming.Step(false))return;
+        }
         if(driving) {
             VehicleWorldStreaming.Follow(player as Player);
             if(current.worldStreaming!=null) {
@@ -313,12 +319,13 @@ public partial class Plugin : BaseUnityPlugin {
         if(driving)Exit();
         RestoreGameCrosshair();
         CloseVehicleMenu();
-        ReleaseVehicle();
+        ReleaseVehicle(true);
         if(cargoLeft)ShowVehicleWarning("Der Inhalt bleibt als Kiste am Fahrzeugstandort.");
     }
-    void ReleaseVehicle(){
+    void ReleaseVehicle(bool removeVehicle=false){
         current.worldStreaming?.Dispose();current.worldStreaming=null;
-        current.storage?.Release();current.storage=null;
+        current.parkedStreaming?.Dispose();current.parkedStreaming=null;
+        current.storage?.Release(removeVehicle);current.storage=null;
         current.flight?.Dispose();current.flight=null;
         current.flightEffects?.Dispose();current.flightEffects=null;
         current.flightAudio?.Dispose();current.flightAudio=null;

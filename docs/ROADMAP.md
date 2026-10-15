@@ -1,5 +1,36 @@
 # Nächste Aufgaben
 
+## Dauerhafte Fahrzeuge (0.30.0)
+
+- 350Z/H2 werden mit Position, vollständiger Ausrichtung, Flugzustand und
+  bisheriger Fahrt gespeichert. Fahrzeugdaten und Stauraum liegen im selben
+  nativen Welt-ZDO; auch leere Fahrzeuge bleiben erhalten. Keine externe
+  Inventarkopie oder weltübergreifende Fahrzeugdatei.
+- Wiederherstellung beim Laden der jeweiligen Umgebung; entfernte Fahrzeuge
+  zählen weiterhin zum Limit von vier Autos. Bestehende Autos werden bei
+  entladenem Boden festgehalten, ohne dafür entfernte Terrainjobs anzufordern.
+- Weltwechsel, Plugin-Cleanup und Ladeabbruch löschen keine Fahrzeugmarkierung.
+  Ein Hook vor Game.Shutdown sichert die letzte Pose vor Abbau der nativen Views;
+  PrepareSave erfasst den aktuellen Stand auch vor normalen Weltspeicherungen.
+- Versteckter Stauraum wird bereits beim nativen Laden verborgen und gegen
+  Verschleiß, Schaden und Hammerentfernung geschützt. Nur „Fahrzeug entfernen“
+  im Modmenü löscht das Auto; belegter Stauraum bleibt als normale Kiste zurück.
+  F8 dient nur noch zum Abbrechen eines laufenden Ladevorgangs.
+- Alte Rückgabekisten haben keine Fahrzeugdaten und werden nicht umgewandelt.
+  Einstellungen bleiben wie bisher pro Modell in der Modkonfiguration.
+- Automatische Speicher-/Streamingtests prüfen leere/belegte Autos, Wiederanbinden
+  ohne Inventarkopie, Flugpose, fremden Weltkontext, Entladen und explizites Löschen.
+  Build und vollständiger Prüflauf bestanden; zusätzlich 48 Stauraum-, 17 Welt-
+  koordinations- und 32 Streamingprüfungen bestanden. Lokalen Stand bei geschlossenem
+  Spiel mit Backup und SHA-256-Abgleich installiert; bestehende Assets erhalten.
+  Nutzer bestätigt den Weltwechsel mit erhaltenem Fahrzeug im Spiel.
+  Weitere native Spieltests offen: beide Modelle, vier Fahrzeuge, Welten A/B, Neustart,
+  Entfernen/erneutes Speichern, entfernte Zonen, Flug und Welt-Backup-Wiederherstellung.
+- Release-Build 0.30.0: vollständiger automatischer Prüflauf bestanden, inklusive
+  74 Python-Prüfungen und aller C#-Suiten. Installer mit 90 Payload-Dateien und
+  27 Radiotiteln; aktuelle DLL, alle Payload-Hashes, eingebettetes Payload/Changelog,
+  gemeinsame Versionsmetadaten und EXE-Prüfsumme verifiziert.
+
 ## Installer-Updates (Release 0.29.0)
 
 - Installer fragt beim Oeffnen asynchron den neuesten oeffentlichen stabilen

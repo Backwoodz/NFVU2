@@ -31,6 +31,7 @@ internal sealed class VehicleRuntime {
     public VehicleStorage storage;
     public VehicleInterior interior;
     public VehicleWorldStreaming worldStreaming;
+    public VehicleWorldStreaming parkedStreaming;
     public VehicleImpact vehicleImpact;
     public bool hasBeenDriven;
     public VehicleAudio vehicleAudio;

@@ -123,8 +123,10 @@ F6 verwendet dieselbe Auswahl. Vor dem Spawnen aussteigen.
 Bestehende Autos bleiben stehen; bis zu vier Fahrzeuge gleichzeitig.
 Die Garage lässt sich auch ohne Auto öffnen. Freie Fläche vor dir suchen.
 Zum gewünschten Auto gehen: F7 steigt ins nächste Auto innerhalb von 5 m,
-F9 zeigt dessen Einstellungen. F8 entfernt nur dieses Auto.
-Fahrzeuge werden beim Weltwechsel entfernt und nicht gespeichert.
+F9 zeigt dessen Einstellungen. Entfernen unter F9 → Fahrzeug → Fahrzeug entfernen.
+Ab 0.30.0 bleiben Fahrzeuge samt Stauraum in ihrer Welt gespeichert.
+Beim Wiederbeitritt erscheinen sie, sobald ihre Umgebung geladen ist.
+Auch leere Fahrzeuge zählen weiterhin zum Limit. Alte Rückgabekisten bleiben Kisten.
 
 H2: gelbe Serienkarosserie, große 26-Zoll-Chromspinner und eigener SUV-Sound.
 Die Spinner drehen nach dem Anhalten weiter und kommen allmählich zur Ruhe.
@@ -187,12 +189,12 @@ Gas/Gegenlenken kontrollieren den Drift; Schlupf erzeugt Reifensound und Rauch.
 Zurück zu Gelände oder Straße stellt die bisherige Abstimmung wieder her.
 Fahrgefühl und Kameranachlauf dieser Version bitte im Spiel testen.
 Fahrwerk und Steuerung basieren auf dem bestätigten Prototyp.
-Das Fahrzeug ist temporär und ausschließlich für lokale Einzelspielerwelten.
+Das Fahrzeug ist ausschließlich für lokale Einzelspielerwelten.
 
 BEDIENUNG
 F6: Fahrzeug erzeugen.
 F7: In Fahrzeugnähe einsteigen / aussteigen.
-F8: Fahrzeug entfernen.
+F8: laufenden Ladevorgang abbrechen. Fahrzeug entfernen: im F9-Fahrzeugmenü.
 F9: Fahrzeugmenü öffnen/schließen (Taste in der Konfiguration änderbar).
 W / S: Gas / bremsen und anschließend rückwärts fahren.
 W + S halten: Burnout im Stand. In Bewegung wird zunächst gebremst.
@@ -369,8 +371,8 @@ Audioherkunft: docs/Audioquellen.txt; weitere Aufgaben: docs/ROADMAP.md.
 350Z-INNENRAUM (0.14.0, optionaler lokaler Import)
 F7 bei stehendem Fahrzeug: zur linken Tür gehen, Öffnen, sichtbar einsteigen
 und Tür schließen. Danach ist die Fahrsteuerung frei. F7 im Stand steigt
-wieder aus; neben der Fahrertür muss Platz sein. F8 beendet auch einen
-laufenden Ein-/Ausstieg und stellt den Spieler wieder her. Menüs und Alt-Tab
+wieder aus; neben der Fahrertür muss Platz sein. „Fahrzeug entfernen“ im Modmenü
+beendet auch einen laufenden Ein-/Ausstieg. Menüs und Alt-Tab
 pausieren den Ablauf. Die genaue Pose und Kleidung bitte im Spiel prüfen.
 
 FAHRERHALTUNG UND SCHEIBEN (0.14.1)
@@ -394,4 +396,4 @@ Felgen-Sichtseite oben; Räder neigen sich, Flammen strahlen unterhalb entgegen 
 Zusätzlicher analoger Geschwindigkeitsmesser neben dem großen NFS-Drehzahlmesser.
 Zum Landen in F9 Gelände/Straße/Drift wählen. W/S und A/D korrigieren den Anflug.
 Erst nach Landung und ausgeklappten Rädern wieder aussteigen. Fliegen bricht die Landung ab.
-F8 entfernt das Fahrzeug auch im Flug. Der neue Flugmodus benötigt noch den Spieltest.
+„Fahrzeug entfernen“ im Modmenü funktioniert auch im Flug.

@@ -116,7 +116,7 @@ Run `python tools/extract_music.py` and rebuild the mod to supply it.
 The installer embeds the same user-provided logo as the README from
 `docs/images/nfvu2-logo.png`. Its `LICENSE` window has a Close button and supports
 Escape and Enter.
-Mod and installer share one Major.Minor.Patch version, currently 0.29.0.
+Mod and installer share one Major.Minor.Patch version, currently 0.30.0.
 Use minor versions for features and patch versions for fixes, including installer fixes.
 There is no separate setup revision. Update both `src/NFVU2.csproj` and the
 `BepInPlugin` attribute together; the builder checks that they match. Existing
