@@ -4,25 +4,30 @@ using HarmonyLib;
 using UnityEngine;
 namespace Rachel350Z {
 // A real vanilla chest owns the items and saves them to the world, independently
-// of the temporary car. Never parent it to the disposable vehicle object.
+// of the rendered car. Never parent it to the disposable vehicle object.
 internal sealed class VehicleStorage {
     static readonly System.Reflection.MethodInfo Load=AccessTools.Method(typeof(Container),"Load");
     static readonly System.Reflection.FieldInfo InventoryName=AccessTools.Field(typeof(Inventory),"m_name");
     readonly bool hummer;
     readonly GameObject vehicle,prefab;
     readonly ZDO data;
+    readonly ZDOMan world=ZDOMan.instance;
+    readonly ZNetScene scene=ZNetScene.instance;
     Container container;
     ZNetView view;
-    Renderer[] renderers;
-    Collider[] colliders;
-    bool[] rendering,collision;
-    WearNTear wear;
-    bool roofWear,supportWear;
+    VehicleCargoVisibility visibility;
     bool released;
     public int Layout {get;private set;}
     public int Capacity=>VehicleStorageRules.Capacity(hummer,Layout);
     public int Count=>container!=null?container.GetInventory().NrOfItems():-1;
     public bool InUse=>container!=null&&container.IsInUse();
+    public ZDO Data=>data;
+    public VehicleStorage(GameObject vehicle,ZDO saved) {
+        this.vehicle=vehicle;data=saved;hummer=VehiclePersistence.Hummer(saved);Layout=VehiclePersistence.Trunk(saved);
+        prefab=ZNetScene.instance.GetPrefab(hummer?"piece_chest_blackmetal":"piece_chest");
+        data.SetOwner(ZDOMan.GetSessionID());
+        Resolve();
+    }
     public VehicleStorage(GameObject vehicle,bool hummer,int layout) {
         this.vehicle=vehicle;this.hummer=hummer;Layout=VehicleStorageRules.Layout(layout);
         prefab=ZNetScene.instance.GetPrefab(hummer?"piece_chest_blackmetal":"piece_chest");
@@ -41,18 +46,17 @@ internal sealed class VehicleStorage {
         // Container normally loads on its next CheckForChanges tick. Load first,
         // before changing dimensions, especially after a parked zone reload.
         Load.Invoke(container,null);
-        renderers=root.GetComponentsInChildren<Renderer>(true);rendering=renderers.Select(r=>r.enabled).ToArray();
-        colliders=root.GetComponentsInChildren<Collider>(true);collision=colliders.Select(c=>c.enabled).ToArray();
-        foreach(var renderer in renderers)renderer.enabled=false;
-        foreach(var collider in colliders)collider.enabled=false;
-        wear=root.GetComponent<WearNTear>();
-        if(wear!=null){roofWear=wear.m_noRoofWear;supportWear=wear.m_noSupportWear;wear.m_noRoofWear=wear.m_noSupportWear=false;}
+        visibility=Hide(root);
         // If another native interaction filled a reloaded chest before this
         // frame, preserve that cargo and fall back to the stock trunk capacity.
         if(!Resize(Layout)&&!hummer){Layout=0;Resize(Layout);}
     }
+    public static VehicleCargoVisibility Hide(GameObject root) {
+        var visibility=root.GetComponent<VehicleCargoVisibility>()??root.AddComponent<VehicleCargoVisibility>();
+        visibility.Hide();return visibility;
+    }
     bool Resolve() {
-        if(released||ZNetScene.instance==null||ZDOMan.instance==null)return false;
+        if(released||scene==null||world==null||scene!=ZNetScene.instance||world!=ZDOMan.instance)return false;
         if(container!=null&&view!=null&&view.IsValid())return true;
         container=null;view=null;
         var root=ZNetScene.instance.FindInstance(data.m_uid);
@@ -82,19 +86,32 @@ internal sealed class VehicleStorage {
         container.SetInUse(true);InventoryGui.instance.Show(container);return true;
     }
     public void Tick() {
-        if(vehicle==null||!Resolve())return;
+        if(vehicle==null||released||scene==null||scene!=ZNetScene.instance||world==null||world!=ZDOMan.instance)return;
+        bool loaded=Resolve();
         var position=vehicle.transform.TransformPoint(new Vector3(0,.5f,hummer?-1.8f:-1.3f));
-        container.transform.SetPositionAndRotation(position,Quaternion.Euler(0,vehicle.transform.eulerAngles.y,0));
+        var rotation=Quaternion.Euler(0,vehicle.transform.eulerAngles.y,0);
+        if(loaded)container.transform.SetPositionAndRotation(position,rotation);
         // Save a grounded recovery position even when the vehicle is flying.
         var saved=position;
         if(ZoneSystem.instance!=null&&ZoneSystem.instance.GetGroundHeight(position,out var ground))saved.y=ground+.15f;
-        if(view.IsOwner()){data.SetPosition(saved);data.SetRotation(container.transform.rotation);}
+        // The ZDO must follow the car even during native zone unload; otherwise
+        // its cargo/restore trigger would be stranded in the previous sector.
+        if(data.IsOwner()){data.SetPosition(saved);data.SetRotation(rotation);}
     }
-    public void Release() {
+    public void SaveVehicle(bool flying,bool driven) {
+        if(released||vehicle==null||world!=ZDOMan.instance||!VehiclePersistence.IsVehicle(data))return;
+        VehiclePersistence.Save(data,vehicle.transform,Layout,flying,driven);
+    }
+    public void Release(bool removeVehicle=false) {
         if(released)return;
         Tick();
-        if(ZNetScene.instance!=null&&ZDOMan.instance!=null&&container!=null&&view!=null&&view.IsValid()) {
-            if(InUse&&InventoryGui.instance!=null&&Player.m_localPlayer!=null)InventoryGui.instance.Hide();
+        if(scene!=null&&scene==ZNetScene.instance&&world==ZDOMan.instance&&InUse&&InventoryGui.instance!=null&&Player.m_localPlayer!=null)InventoryGui.instance.Hide();
+        // World teardown disposes only local resources. Even an empty car keeps
+        // its world record; only explicit removal converts cargo back to a chest.
+        if(VehiclePersistence.IsVehicle(data)&&!removeVehicle){released=true;return;}
+        if(removeVehicle&&world==ZDOMan.instance)VehiclePersistence.Forget(data);
+        Resolve();
+        if(scene!=null&&scene==ZNetScene.instance&&world==ZDOMan.instance&&container!=null&&view!=null&&view.IsValid()) {
             if(Count==0&&view.IsOwner())view.Destroy();
             else {
                 // Restore the original vanilla chest in place; its existing ZDO
@@ -102,13 +119,33 @@ internal sealed class VehicleStorage {
                 container.m_height=4;container.GetInventory().SetHeight(4);
                 InventoryName.SetValue(container.GetInventory(),prefab.GetComponent<Container>().m_name);
                 container.transform.SetPositionAndRotation(data.GetPosition(),data.GetRotation());
-                for(int i=0;i<renderers.Length;i++)if(renderers[i]!=null)renderers[i].enabled=rendering[i];
-                for(int i=0;i<colliders.Length;i++)if(colliders[i]!=null)colliders[i].enabled=collision[i];
-                if(wear!=null){wear.m_noRoofWear=roofWear;wear.m_noSupportWear=supportWear;}
+                visibility?.Show();
             }
         }
         // An unloaded chest already has a persistent vanilla ZDO; leave it alone.
         released=true;
+    }
+}
+// Capture native states once, including when a saved cargo chest loads before
+// the staged vehicle. Reattaching must not capture its already-hidden states.
+internal sealed class VehicleCargoVisibility : MonoBehaviour {
+    Renderer[] renderers;Collider[] colliders;bool[] rendering,collision;
+    WearNTear wear;bool roofWear,supportWear;
+    public void Hide() {
+        if(renderers!=null)return;
+        renderers=gameObject.GetComponentsInChildren<Renderer>(true);rendering=renderers.Select(r=>r.enabled).ToArray();
+        colliders=gameObject.GetComponentsInChildren<Collider>(true);collision=colliders.Select(c=>c.enabled).ToArray();
+        foreach(var renderer in renderers)renderer.enabled=false;
+        foreach(var collider in colliders)collider.enabled=false;
+        wear=GetComponent<WearNTear>();
+        if(wear!=null){roofWear=wear.m_noRoofWear;supportWear=wear.m_noSupportWear;wear.m_noRoofWear=wear.m_noSupportWear=false;}
+    }
+    public void Show() {
+        if(renderers==null)return;
+        for(int i=0;i<renderers.Length;i++)if(renderers[i]!=null)renderers[i].enabled=rendering[i];
+        for(int i=0;i<colliders.Length;i++)if(colliders[i]!=null)colliders[i].enabled=collision[i];
+        if(wear!=null){wear.m_noRoofWear=roofWear;wear.m_noSupportWear=supportWear;}
+        renderers=null;colliders=null;
     }
 }
 }

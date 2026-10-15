@@ -25,10 +25,14 @@ public partial class Plugin {
         if(SpawnBusy){status="Ein Fahrzeug wird bereits geladen. F8: abbrechen.";return;}
         if(driving){status="Zum Spawnen bitte erst aussteigen.";return;}
         if(local is Player live&&live.IsDead())return;
-        if(fleet.Count>=VehicleFleet<VehicleRuntime>.Capacity){status="Maximal vier Fahrzeuge. Erst ein Fahrzeug entfernen.";return;}
+        if(WorldVehicleCount>=VehicleFleet<VehicleRuntime>.Capacity){status="Maximal vier Fahrzeuge. Erst ein Fahrzeug entfernen.";return;}
         bool hummer=spawnModel.Value=="Hummer H2";
         if(!FindSpawnPoint(local,hummer,out var origin)){status="Kein freier Platz vor dir. Bitte eine freie Stelle suchen.";return;}
+        StartVehicleLoad(local,hummer,null);
+    }
+    void StartVehicleLoad(MonoBehaviour local,bool hummer,ZDO saved) {
         CloseVehicleMenu();
+        restoringVehicle=saved;
         loadingName=hummer?"Hummer H2":"Nissan 350Z";
         loadingVehicle=new VehicleRuntime{Hummer=hummer};spawnOwner=local;spawnCommitted=false;
         spawnCancellation=new CancellationTokenSource();spawnTimer=Stopwatch.StartNew();
@@ -54,7 +58,7 @@ public partial class Plugin {
             if(spawnWork.Tick(3))return;
             Logger.LogInfo("Vehicle spawn completed in "+spawnTimer.Elapsed.TotalSeconds.ToString("0.00")+" s; longest main-thread step "+spawnWork.SlowestStepMilliseconds.ToString("0.0")+" ms.");
             selected=loadingVehicle;
-            spawnWork=null;loadingVehicle=null;spawnOwner=null;spawnRead=null;
+            spawnWork=null;loadingVehicle=null;spawnOwner=null;spawnRead=null;restoringVehicle=null;
             spawnCancellation.Dispose();spawnCancellation=null;
         }catch(Exception error) {
             Logger.LogError(error);
@@ -64,11 +68,12 @@ public partial class Plugin {
     void CancelSpawn(string message) {
         if(!SpawnBusy)return;
         spawnCancellation.Cancel();
+        if(restoringVehicle!=null)deferredVehicles.Add(restoringVehicle.m_uid);
         spawnWork.Dispose();spawnWork=null;
         var selected=current;
         try {if(loadingVehicle!=null&&!spawnCommitted){current=loadingVehicle;ReleaseVehicle();}}
         finally {
-            current=selected;loadingVehicle=null;spawnOwner=null;spawnRead=null;
+            current=selected;loadingVehicle=null;spawnOwner=null;spawnRead=null;restoringVehicle=null;
             spawnCancellation.Dispose();spawnCancellation=null;
         }
         if(message!=null)status=message;
@@ -178,11 +183,26 @@ public partial class Plugin {
         LoadStage("Fahrzeug bereitstellen",.98f);
         yield return StagedWork.NextFrame;
         // Player/world may have moved since F6. Resolve a free location again.
-        if(!FindSpawnPoint(local,IsHummer,out var origin))throw new InvalidOperationException("Kein freier Spawnplatz mehr vorhanden.");
-        car.transform.SetPositionAndRotation(origin,Quaternion.Euler(0,local.transform.eulerAngles.y,0));
+        if(restoringVehicle!=null) {
+            car.transform.SetPositionAndRotation(VehiclePersistence.Location(restoringVehicle),VehiclePersistence.Orientation(restoringVehicle));
+            current.storage=new VehicleStorage(car,restoringVehicle);
+            hasBeenDriven=VehiclePersistence.WasDriven(restoringVehicle);
+        } else {
+            if(!FindSpawnPoint(local,IsHummer,out var origin))throw new InvalidOperationException("Kein freier Spawnplatz mehr vorhanden.");
+            car.transform.SetPositionAndRotation(origin,Quaternion.Euler(0,local.transform.eulerAngles.y,0));
+            current.storage=new VehicleStorage(car,IsHummer,trunkLayout.Value);
+            VehiclePersistence.Mark(current.storage.Data,IsHummer);
+            current.storage.SaveVehicle(false,false);
+            savedVehicleIds.Add(current.storage.Data.m_uid);
+        }
         car.SetActive(true);
+        if(restoringVehicle!=null&&VehiclePersistence.Flying(restoringVehicle))current.flight?.Fly();
+        // Freeze until the saved terrain collider is available, even if this
+        // staged load finishes after its zone has unloaded again.
+        current.parkedStreaming=new VehicleWorldStreaming(body);
+        current.parkedStreaming.Step(false);
         fleet.Add(current);fleetOwner=local;spawnCommitted=true;
-        status=VehicleName+" bereit. F7: einsteigen | "+menuKey.Value+": Fahrzeugmenü | F8: entfernen";
+        status=VehicleName+" bereit. F7: einsteigen | "+menuKey.Value+": Fahrzeugmenü";
         if(MessageHud.instance!=null)
             MessageHud.instance.ShowMessage(MessageHud.MessageType.Center,Tr("Gespawnt:")+" "+VehicleName,log:false);
     }

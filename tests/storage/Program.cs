@@ -52,6 +52,57 @@ class Program {
         quitRoot.GetComponent<Container>().inventory.items.Add(new Item{stack=7});quitRoot.GetComponent<Container>().inventory.m_onChanged();
         quit.Open("quit");Player.m_localPlayer=null;ZNetScene.instance=null;quit.Release();
         Check(!quitData.deleted&&quitData.items.Count==1,"world teardown retains saved cargo without native UI calls");
+        PersistentCars(car);
         Console.WriteLine(checks+" storage checks passed (native API doubles; game save/UI tests still required).");
+    }
+    static void PersistentCars(GameObject car) {
+        ZNetScene.instance=new ZNetScene();Player.m_localPlayer=new Player();
+        car.transform.SetPositionAndRotation(new Vector3(40,200,80),Quaternion.Euler(0,125,0));
+        var empty=new VehicleStorage(car,false,2);var record=empty.Data;
+        VehiclePersistence.Mark(record,false);empty.SaveVehicle(true,true);
+        Check(VehiclePersistence.IsVehicle(record)&&!VehiclePersistence.Hummer(record),"350Z world marker");
+        Check(VehiclePersistence.Location(record).y==200&&VehiclePersistence.Orientation(record).y==125,"exact car altitude and orientation saved independently of grounded cargo");
+        Check(VehiclePersistence.Flying(record)&&VehiclePersistence.WasDriven(record)&&VehiclePersistence.Trunk(record)==2,"flight, driven and trunk state retained");
+        empty.Open("saved car");empty.Release();empty.Release();
+        Check(InventoryGui.instance.current==null,"persistent cleanup closes cargo UI before disposing vehicle");
+        Check(!record.deleted&&VehiclePersistence.IsVehicle(record),"empty car survives teardown and repeated disposal");
+        var restoredCar=new GameObject();restoredCar.transform.SetPositionAndRotation(VehiclePersistence.Location(record),VehiclePersistence.Orientation(record));
+        var restored=new VehicleStorage(restoredCar,record);
+        Check(restored.Capacity==12&&restored.Data==record&&record.owner==ZDOMan.GetSessionID(),"restore reuses record and claims local ownership");
+        Check(ZNetScene.instance.created==1&&ZNetScene.instance.objects.Count==1,"restore never duplicates native chest");
+        restored.Release(true);
+        Check(record.deleted&&!VehiclePersistence.IsVehicle(record),"explicit deletion removes empty car record");
+
+        var full=new VehicleStorage(car,true,0);var cargo=full.Data;
+        VehiclePersistence.Mark(cargo,true);full.SaveVehicle(false,false);
+        var root=ZNetScene.instance.objects.Values.Single();var container=root.GetComponent<Container>();
+        container.inventory.items.Add(new Item{stack=22,custom="saved cargo"});container.inventory.m_onChanged();
+        full.Release();
+        Check(!cargo.deleted&&cargo.items.Count==1&&VehiclePersistence.Hummer(cargo),"H2 and cargo survive world teardown");
+        UnityEngine.Object.Destroy(root);ZNetScene.instance.objects.Clear();
+        var loaded=ZNetScene.instance.GetPrefab("piece_chest_blackmetal").Clone(cargo.GetPosition(),cargo.GetRotation());
+        ZNetScene.instance.objects.Clear();loaded.GetComponent<ZNetView>().data=cargo;ZNetScene.instance.objects[cargo.m_uid]=loaded;
+        loaded.GetComponent<Container>().inventory.m_onChanged=()=>cargo.items=loaded.GetComponent<Container>().inventory.items.ToList();
+        VehicleStorage.Hide(loaded); // Container.Awake hook hides before staged restoration.
+        var attached=new VehicleStorage(restoredCar,cargo);
+        Check(attached.Capacity==32&&attached.Count==1&&loaded.GetComponent<Container>().inventory.items[0].custom=="saved cargo","reloaded H2 restores original cargo metadata");
+        Check(!loaded.GetComponent<Renderer>().enabled&&!loaded.GetComponent<Collider>().enabled,"reloaded marker remains hidden");
+        attached.Release(true);attached.Release(true);
+        Check(!cargo.deleted&&!VehiclePersistence.IsVehicle(cargo)&&cargo.items.Count==1,"explicit full car removal converts same inventory to ordinary chest");
+        Check(loaded.GetComponent<Renderer>().enabled&&loaded.GetComponent<Collider>().enabled&&loaded.GetComponent<WearNTear>().m_noSupportWear,"pre-hidden restored marker returns to native visibility and wear");
+
+        var parked=new VehicleStorage(car,false,1);VehiclePersistence.Mark(parked.Data,false);parked.SaveVehicle(false,true);
+        var parkedData=parked.Data;var parkedRoot=ZNetScene.instance.FindInstance(parkedData.m_uid);
+        UnityEngine.Object.Destroy(parkedRoot);ZNetScene.instance.objects.Remove(parkedData.m_uid);
+        car.transform.position=new Vector3(90,140,100);parked.Tick();parked.SaveVehicle(true,true);parked.Release();
+        Check(VehiclePersistence.IsVehicle(parkedData)&&VehiclePersistence.Location(parkedData).x==90&&!parkedData.deleted,"unloaded parked vehicle preserves updated car pose and empty record");
+        Check(parkedData.GetPosition().x==90&&parkedData.GetPosition().z==98.7f,"unloaded native record follows vehicle to new sector");
+        var otherWorld=new VehicleStorage(car,false,0);VehiclePersistence.Mark(otherWorld.Data,false);otherWorld.SaveVehicle(false,false);
+        var original=VehiclePersistence.Location(otherWorld.Data);
+        ZDOMan.instance=new ZDOMan();ZNetScene.instance=new ZNetScene();car.transform.position=new Vector3(999,999,999);
+        otherWorld.Tick();otherWorld.SaveVehicle(true,true);otherWorld.Release();
+        Check(VehiclePersistence.Location(otherWorld.Data).x==original.x&&!VehiclePersistence.Flying(otherWorld.Data),"old world storage cannot write using new world context");
+        var vanilla=new ZDO();Check(!VehiclePersistence.IsVehicle(vanilla),"ordinary chests never become cars");
+        vanilla.Set(VehiclePersistence.Model,99);Check(!VehiclePersistence.IsVehicle(vanilla),"unknown schema or model never restored as a car");
     }
 }

@@ -15,9 +15,11 @@ or take off and fly. Viking transportation got a little out of hand.
 
 ### Install & drive
 
-Windows 10/11, 64-bit. **Single-player only**; cars are temporary and are not saved with the world.
+Windows 10/11, 64-bit. **Single-player only**; cars and cargo are saved with the world.
 
-**[Download the Windows installer](https://github.com/Backwoodz/NFVU2/releases/download/v0.28.0/NFVU2-Setup-0.28.0-r6.exe)**
+Remove cars through **F9 → Vehicle → Remove vehicle**.
+
+**[Download the Windows installer](https://github.com/Backwoodz/NFVU2/releases/download/v0.30.0/NFVU2-Setup-0.30.0.exe)** — v0.30.0, 142 MiB
 
 1. Close Valheim, run the installer and select **valheim.exe**.
 2. Click **Install / Update**. Music is included; BepInEx is installed if needed.
@@ -28,6 +30,8 @@ Drive with **WASD** or the **left stick + triggers**. On-screen hints show the r
 Customization and language settings are in **F9 / L3**.
 
 To update or uninstall, run the installer again and select the same game.
+The installer checks GitHub for updates and includes a Changelog button.
+Users of older installers need to download v0.29.0 once to gain update detection.
 
 ### Gameplay
 

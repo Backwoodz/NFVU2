@@ -18,9 +18,10 @@ public partial class Plugin {
         ClearNitroVisuals();
         if(spawnCacheUsed){spawnCache=new SpawnAssetCache();spawnCacheUsed=false;}
         CancelSpawn(null);
+        foreach(var vehicle in fleet)vehicle.storage?.SaveVehicle(vehicle.flight?.Active==true,vehicle.hasBeenDriven);
         if(driving||player!=null)Exit();
         CloseVehicleMenu();
-        foreach(var vehicle in fleet.ToArray()){current=vehicle;Cleanup();}
+        foreach(var vehicle in fleet.ToArray()){current=vehicle;ReleaseVehicle();}
         current=new VehicleRuntime();fleetOwner=null;orbitCamera?.End();fleetMusic?.Tick(false);
     }
     bool FindSpawnPoint(MonoBehaviour local,bool hummer,out Vector3 result) {
@@ -46,11 +47,11 @@ public partial class Plugin {
         int next=UiToolbar(new Rect(25,185,510,40),selected,new[]{"Nissan 350Z","Hummer H2"});
         if(next!=selected)spawnModel.Value=next==1?"Hummer H2":"Nissan 350Z";
         UiLabel(new Rect(25,240,510,65),next==1?"Gelber H2 · 26-Zoll-Spinner · eigener SUV-Sound\nOhne Motorraum- und Kofferraumausbau.":"350Z mit deinen bisherigen Funktionen und Einstellungen.",mutedStyle);
-        GUI.enabled=!SpawnBusy&&!driving&&fleet.Count<4;
+        GUI.enabled=!SpawnBusy&&!driving&&WorldVehicleCount<4;
         if(MenuButton(new Rect(25,310,510,40),padActive?"Fahrzeug spawnen ("+ButtonName("A","Kreuz")+")":"Ausgewähltes Fahrzeug spawnen (F6)")){Spawn(LocalPlayer());return;}
         GUI.enabled=true;
-        UiLabel(new Rect(25,366,510,60),"Gespawnt: "+fleet.Count+" / 4\n"+string.Join(" · ",fleet.Select(v=>v.Hummer?"H2":"350Z")),labelStyle);
-        UiLabel(new Rect(25,436,510,72),"Bestehende Autos bleiben stehen. Zum Einsteigen oder Einstellen zum gewünschten Auto gehen: F7 / F9. F8 entfernt nur dieses Auto. Fahrzeuge bleiben bis zum Weltwechsel.",mutedStyle);
+        UiLabel(new Rect(25,366,510,60),"Gespawnt: "+WorldVehicleCount+" / 4\n"+string.Join(" · ",SavedVehicles.Select(v=>VehiclePersistence.Hummer(v)?"H2":"350Z")),labelStyle);
+        UiLabel(new Rect(25,436,510,72),"Autos werden mit der Welt gespeichert. Zum Einsteigen oder Einstellen zum gewünschten Auto gehen: F7 / F9. Entfernen nur im Fahrzeugmenü.",mutedStyle);
     }
 }
 }

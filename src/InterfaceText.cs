@@ -3,6 +3,7 @@ using System.Linq;
 namespace Rachel350Z {
 public static class InterfaceText {
     static readonly KeyValuePair<string,string>[] English={
+        new KeyValuePair<string,string>("Welt wird geladen. Fahrzeug wartet kurz.","Loading world. Vehicle is waiting briefly."),
         new KeyValuePair<string,string>("Der Inhalt bleibt als Kiste am Fahrzeugstandort.","Cargo remains in a chest at the vehicle's location."),
         new KeyValuePair<string,string>("Beim Entfernen bleibt Inhalt als Kiste zurück.","Removing the car leaves its cargo in a chest."),
         new KeyValuePair<string,string>("Stauraum öffnen","Open storage"),
@@ -145,7 +146,7 @@ public static class InterfaceText {
         new KeyValuePair<string,string>(" Zoll"," inches"),
         new KeyValuePair<string,string>(" \u00f6ffnen"," open"),
         new KeyValuePair<string,string>("Tacho","Gauges"),
-        new KeyValuePair<string,string>("Bestehende Autos bleiben stehen. Zum Einsteigen oder Einstellen zum gew\u00fcnschten Auto gehen: F7 / F9. F8 entfernt nur dieses Auto. Fahrzeuge bleiben bis zum Weltwechsel.","Existing cars remain. Approach a car to enter or configure it. Vehicles remain until leaving the world."),
+        new KeyValuePair<string,string>("Autos werden mit der Welt gespeichert. Zum Einsteigen oder Einstellen zum gewünschten Auto gehen: F7 / F9. Entfernen nur im Fahrzeugmenü.","Cars are saved with the world. Approach a car to enter or configure it: F7 / F9. Remove cars in the vehicle menu."),
         new KeyValuePair<string,string>("Farbe und Pulsmodus bleiben gespeichert. Mit \u201eBeim Aussteigen weiterlaufen lassen\u201c bleibt aktiviertes Neon auch drau\u00dfen an.","Colour and pulse mode are saved. Keep running after exit also keeps enabled neon on outside."),
         new KeyValuePair<string,string>("Im Flug W + LMB/Strg: mehr Schub. Am Boden bleibt der H2 ohne Nitro. Sechs Sekunden Tank; Nachladen bei Bewegung.","Flight nitro adds thrust. H2 has no ground nitro. Six-second tank; refills while moving."),
         new KeyValuePair<string,string>("Automatik trifft nur sichtbare Gegner. Spieler, zahme Tiere, Auto und Deckung blockieren die Schusslinie.","Automatic fire targets visible enemies. Players, tame animals, the car and cover block shots."),

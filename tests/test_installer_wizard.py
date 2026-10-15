@@ -63,6 +63,12 @@ class WizardTests(unittest.TestCase):
         compile_installer(executable, [BASE/'installer/InstallerCore.cs', BASE/'tests/installer/Program.cs'])
         subprocess.run([str(executable)], check=True)
 
+    def test_windows_update_client(self):
+        executable = OUTPUT/'tests/installer/UpdateTests.exe'
+        compile_installer(executable, [BASE/'installer/InstallerCore.cs', BASE/'installer/ReleaseUpdates.cs',
+                                     BASE/'tests/installer/UpdateTests.cs'])
+        subprocess.run([str(executable)], check=True)
+
 
 if __name__ == '__main__':
     unittest.main()

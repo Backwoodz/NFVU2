@@ -7,8 +7,8 @@ using BepInEx.Configuration;
 using UnityEngine;
 
 namespace Rachel350Z {
-// Local vehicles have no ZNetView; test enemies use nonpersistent native views.
-[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.28.0")]
+// Rendered vehicles are local; metadata/cargo use persistent vanilla world ZDOs.
+[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.30.0")]
 [DefaultExecutionOrder(10000)]
 public partial class Plugin : BaseUnityPlugin {
     VehicleOrbitCamera orbitCamera;
@@ -39,7 +39,7 @@ public partial class Plugin : BaseUnityPlugin {
         InitializeNitroVisuals();
         InitializeBoostInput();
         fleetMusic=new ValheimMusicDucking(message=>Logger.LogWarning(message));
-        ready=playerType!=null;Logger.LogInfo("350Z prototype loaded. Single-player, temporary vehicle only.");
+        ready=playerType!=null;Logger.LogInfo("350Z prototype loaded. Single-player with persistent world vehicles.");
     }
     MonoBehaviour LocalPlayer() => playerType?.GetField("m_localPlayer",BindingFlags.Public|BindingFlags.NonPublic|BindingFlags.Static)?.GetValue(null) as MonoBehaviour;
     bool Multiplayer() {
@@ -75,6 +75,7 @@ public partial class Plugin : BaseUnityPlugin {
         if(local==null){CleanupAll();return;}
         if((fleetOwner!=null && local!=fleetOwner) || (driving && local!=player) || (fleet.Count>0 && Multiplayer())){CleanupAll();return;}
         if(SpawnBusy&&Application.isFocused&&!UIVisible()&&!menuOpen&&(Input.GetKeyDown(KeyCode.F8)||PadDown("back"))){CancelSpawn("Laden abgebrochen.");return;}
+        TickVehicleRestore(local);
         TickSpawn(local);
         if(driving&&local is Player livePlayer&&livePlayer.IsDead()){Exit();return;}
         if(!driving&&!menuOpen)SelectNearest(local);
@@ -87,7 +88,7 @@ public partial class Plugin : BaseUnityPlugin {
             TickHorde(local);
             if(hordeWave.Active&&hordeWave.Choosing){BlockDrivingInput();TickHordePactInput();return;}
             if(Input.GetKeyDown(KeyCode.F6)) { if(Multiplayer()){status="Nur in einer lokalen Einzelspieler-Testwelt verwenden.";return;} Spawn(local); }
-            if(Input.GetKeyDown(KeyCode.F8)){if(SpawnBusy)CancelSpawn("Laden abgebrochen.");else if(CanAccessCurrent(local))Cleanup();}
+            if(Input.GetKeyDown(KeyCode.F8)&&SpawnBusy)CancelSpawn("Laden abgebrochen.");
             if(Transforming){ReadTransformerControls();return;}
             if(transformerEnabled.Value&&transformerKey.Value.IsDown()){ToggleTransformer();return;}
             TickControlActions(local);
@@ -122,6 +123,7 @@ public partial class Plugin : BaseUnityPlugin {
         if(Flying){status="Bitte warten, bis das Fahrzeug gelandet ist.";return;}
         if(local is Player native&&(native.IsDead()||native.IsAttached()||native.IsTeleporting())){status="Zum Einsteigen zuerst die aktuelle Aktion beenden.";return;}
         if(body.linearVelocity.magnitude>.5f){status="Zum Einsteigen muss das Fahrzeug stehen.";return;}
+        current.parkedStreaming?.Dispose();current.parkedStreaming=null;
         Vector3 outside=Vector3.zero;
         if(current.interior!=null&&!FindCabinExit(local,out outside)){ShowVehicleWarning("Die Fahrertür ist blockiert. Bitte etwas Platz schaffen.");return;}
         CloseVehicleMenu();
@@ -141,12 +143,35 @@ public partial class Plugin : BaseUnityPlugin {
         if(gameCamera!=null){cameraEnabled=gameCamera.enabled;gameCamera.enabled=false;}
         orbitCamera.Begin(car.transform,IsHummer);
         driving=true;hasBeenDriven=true;
+        current.worldStreaming=new VehicleWorldStreaming(body);
+        VehicleWorldStreaming.Follow(player as Player);
         showroom?.State.CloseAll();
         nitroInput.Reset();nitroHeld=false;
     }
     void FixedUpdate() {ForEachVehicle(StepVehicle);}
     void StepVehicle() {
         if(body==null||wheels==null)return;
+        if(!driving) {
+            if(current.parkedStreaming==null)current.parkedStreaming=new VehicleWorldStreaming(body);
+            if(!current.parkedStreaming.Step(false))return;
+        }
+        if(driving) {
+            VehicleWorldStreaming.Follow(player as Player);
+            if(current.worldStreaming!=null) {
+                bool waiting=current.worldStreaming.Waiting;
+                if(!current.worldStreaming.Step()) {
+                    if(!waiting) {
+                        Logger.LogInfo("Vehicle waiting for world streaming at "+body.position);
+                    }
+                    if(current.worldStreaming.TakeNotice())ShowVehicleWarning("Welt wird geladen. Fahrzeug wartet kurz.");
+                    return;
+                }
+                if(waiting) {
+                    Logger.LogInfo("Vehicle world streaming ready; movement resumed.");
+                    if(status=="Welt wird geladen. Fahrzeug wartet kurz.")status=VehicleName;
+                }
+            }
+        }
         if(Transforming){current.transformer.Step(audioBlocked||menuOpen||!Application.isFocused,throttle,steer);return;}
         if(!Flying)current.rideHeight?.Apply(lowering.Value);
         if(vehicleImpact!=null)vehicleImpact.EnemyDamageMultiplier=HordeVehicle?HordePacts.Impact(hordeRun.Pact):1;
@@ -194,6 +219,7 @@ public partial class Plugin : BaseUnityPlugin {
                 else {cabinDriver.SetExitPosition(clearExit);Exit();return;}
             }
         } catch(Exception e){Logger.LogError("Cabin animation stopped: "+e);Exit();return;}
+        if(driving)VehicleWorldStreaming.Follow(player as Player);
         ApplyNeonSettings();
         bool burnout=!Flying&&driving&&burnoutHeld&&handling!=null&&handling.BurnoutActive&&!audioBlocked&&!menuOpen&&Application.isFocused;
         wheelSizeVisuals?.Apply(IsHummer?h2RimInches.Value:rimInches.Value);
@@ -264,6 +290,7 @@ public partial class Plugin : BaseUnityPlugin {
         cabinDriver.BeginExit(destination);BlockDrivingInput();
     }
     void Exit() {
+        current.worldStreaming?.Dispose();current.worldStreaming=null;
         current.transformer?.Restore();transformerExitPending=false;if(orbitCamera!=null)orbitCamera.RobotBlend=0;
         if(HordeVehicle)ClearHorde();
         ReleaseCameraRumble(gameCamera);
@@ -289,6 +316,7 @@ public partial class Plugin : BaseUnityPlugin {
             for(int i=0;playerRenderers!=null&&i<playerRenderers.Length;i++)if(playerRenderers[i]!=null)playerRenderers[i].enabled=renderStates[i];
             for(int i=0;playerColliders!=null&&i<playerColliders.Length;i++)if(playerColliders[i]!=null)playerColliders[i].enabled=colliderStates[i];
             if(playerBody!=null){playerBody.isKinematic=playerKinematic;if(!playerKinematic){playerBody.linearVelocity=Vector3.zero;playerBody.angularVelocity=Vector3.zero;}}player.enabled=playerEnabled;}
+        VehicleWorldStreaming.Follow(player as Player);
         if(gameCamera!=null)gameCamera.enabled=cameraEnabled;
         player=null;gameCamera=null;status="F6: Fahrzeug erstellen | F7: einsteigen | F9: Garage";
     }
@@ -297,12 +325,14 @@ public partial class Plugin : BaseUnityPlugin {
         if(driving)Exit();
         RestoreGameCrosshair();
         CloseVehicleMenu();
-        ReleaseVehicle();
+        ReleaseVehicle(true);
         if(cargoLeft)ShowVehicleWarning("Der Inhalt bleibt als Kiste am Fahrzeugstandort.");
     }
-    void ReleaseVehicle(){
+    void ReleaseVehicle(bool removeVehicle=false){
+        current.worldStreaming?.Dispose();current.worldStreaming=null;
+        current.parkedStreaming?.Dispose();current.parkedStreaming=null;
         current.transformer?.Dispose();current.transformer=null;current.transformerAsset=null;
-        current.storage?.Release();current.storage=null;
+        current.storage?.Release(removeVehicle);current.storage=null;
         current.flight?.Dispose();current.flight=null;
         current.flightEffects?.Dispose();current.flightEffects=null;
         current.flightAudio?.Dispose();current.flightAudio=null;

@@ -33,6 +33,7 @@ public partial class Plugin {
     void TickVehicleStorage() {
         if(current.storage==null)return;
         current.storage.Tick();
+        current.storage.SaveVehicle(Flying,hasBeenDriven);
         if(!IsHummer&&current.storage.Layout!=trunkLayout.Value&&!SetTrunkLayout(trunkLayout.Value))trunkLayout.Value=current.storage.Layout;
     }
 }

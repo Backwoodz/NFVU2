@@ -243,6 +243,118 @@
   brauchen weiterhin gezielte Spieltests. Keine Idee aus `scratch_3.txt` wurde als Auftrag
   uebernommen. Anleitung und genaue Grenzen: `docs/TRANSFORMER-PROTOTYPE.md`.
 
+## Dauerhafte Fahrzeuge (0.30.0)
+
+- 350Z/H2 werden mit Position, vollständiger Ausrichtung, Flugzustand und
+  bisheriger Fahrt gespeichert. Fahrzeugdaten und Stauraum liegen im selben
+  nativen Welt-ZDO; auch leere Fahrzeuge bleiben erhalten. Keine externe
+  Inventarkopie oder weltübergreifende Fahrzeugdatei.
+- Wiederherstellung beim Laden der jeweiligen Umgebung; entfernte Fahrzeuge
+  zählen weiterhin zum Limit von vier Autos. Bestehende Autos werden bei
+  entladenem Boden festgehalten, ohne dafür entfernte Terrainjobs anzufordern.
+- Weltwechsel, Plugin-Cleanup und Ladeabbruch löschen keine Fahrzeugmarkierung.
+  Ein Hook vor Game.Shutdown sichert die letzte Pose vor Abbau der nativen Views;
+  PrepareSave erfasst den aktuellen Stand auch vor normalen Weltspeicherungen.
+- Versteckter Stauraum wird bereits beim nativen Laden verborgen und gegen
+  Verschleiß, Schaden und Hammerentfernung geschützt. Nur „Fahrzeug entfernen“
+  im Modmenü löscht das Auto; belegter Stauraum bleibt als normale Kiste zurück.
+  F8 dient nur noch zum Abbrechen eines laufenden Ladevorgangs.
+- Alte Rückgabekisten haben keine Fahrzeugdaten und werden nicht umgewandelt.
+  Einstellungen bleiben wie bisher pro Modell in der Modkonfiguration.
+- Automatische Speicher-/Streamingtests prüfen leere/belegte Autos, Wiederanbinden
+  ohne Inventarkopie, Flugpose, fremden Weltkontext, Entladen und explizites Löschen.
+  Build und vollständiger Prüflauf bestanden; zusätzlich 48 Stauraum-, 17 Welt-
+  koordinations- und 32 Streamingprüfungen bestanden. Lokalen Stand bei geschlossenem
+  Spiel mit Backup und SHA-256-Abgleich installiert; bestehende Assets erhalten.
+  Nutzer bestätigt den Weltwechsel mit erhaltenem Fahrzeug im Spiel.
+  Weitere native Spieltests offen: beide Modelle, vier Fahrzeuge, Welten A/B, Neustart,
+  Entfernen/erneutes Speichern, entfernte Zonen, Flug und Welt-Backup-Wiederherstellung.
+- Release-Build 0.30.0: vollständiger automatischer Prüflauf bestanden, inklusive
+  74 Python-Prüfungen und aller C#-Suiten. Installer mit 90 Payload-Dateien und
+  27 Radiotiteln; aktuelle DLL, alle Payload-Hashes, eingebettetes Payload/Changelog,
+  gemeinsame Versionsmetadaten und EXE-Prüfsumme verifiziert.
+- Version 0.30.0 auf GitHub veröffentlicht. Annotierter Tag v0.30.0 zeigt auf
+  Release-Commit a8fd0fe. Beide Draft-Assets heruntergeladen und per SHA-256
+  mit lokalen Dateien verglichen; öffentliche Release-Seite, Downloads und
+  latest-API geprüft. Die echte Update-Assembly des veröffentlichten Installers
+  0.29.0 erkennt 0.30.0 und akzeptiert das EXE-/Prüfsummenpaar. Der vollständige
+  Update-Klickablauf auf der echten Installation bleibt der nächste Nutzertest.
+
+## Installer-Updates (Release 0.29.0)
+
+- Installer fragt beim Oeffnen asynchron den neuesten oeffentlichen stabilen
+  GitHub-Release ab; gemeinsame Major.Minor.Patch-Version numerisch vergleichen.
+  Neue Dateien ohne r-Zusatz; alte Release-Dateien bleiben lesbar, deren Revision
+  beeinflusst die Update-Reihenfolge nicht. Mod und Installer beide 0.29.0.
+  Ohne Internet bleibt der eingebettete Stand installierbar, manueller Neuversuch.
+- Changelog im eigenen Fenster: neue Release-Notizen bei verfuegbarem Update,
+  sonst eingebettete CHANGELOG.md. Schliessen per Schaltflaeche, Escape und Enter.
+- Update-Schaltflaeche laedt den neuen Installer, prueft Dateigroesse, SHA-256
+  und vorhandene GitHub-Digests. Fortschritt/Abbruch, Zeitlimits und festgelegte
+  GitHub-Downloadziele; keine Anwendung ungepruefter oder unvollstaendiger EXEs.
+- Neuer Installer uebernimmt den gewaehlten valheim.exe-Pfad und setzt die
+  Installation mit seinen eigenen Spiel-/Pfad-/Backup-Pruefungen fort. Ohne
+  ausgewaehltes Spiel oeffnet sich die neue Version zur normalen Auswahl.
+- Bereits veroeffentlichte r6-EXEs erhalten keine Funktion nachtraeglich: einmal
+  den neuen Installer beziehen. Version 0.29.0 ist auf GitHub veroeffentlicht.
+- Vollstaendiger automatischer Prueflauf und 50 gezielte Update-Pruefungen bestanden;
+  echte GitHub-Abfrage erkennt jetzt 0.29.0 ohne r-Zusatz. Offline- und simulierte Update-
+  Oberflaeche gerendert. Uebergebener Spielpfad samt automatischer Installation
+  mit der fertigen EXE im isolierten kuenstlichen Spielordner erfolgreich geprueft.
+- Release 0.29.0: 90 Payload-Dateien, 27 Radiotitel, aktuelle DLL, eingebettetes
+  Payload/Changelog und EXE-Pruefsumme geprueft; kein Transformer im Paket.
+  Echter Wechsel zwischen veroeffentlichten Versionen, Windows SmartScreen/UAC,
+  Offline-/Proxyumgebungen und DPI separat testen.
+- Annotierter Tag v0.29.0 zeigt auf den Release-Commit b972c23. EXE und SHA-256
+  erst als Draft hochgeladen, beide erneut heruntergeladen und per SHA-256 mit
+  lokalen Dateien verglichen. Oeffentliche Release-Seite, beide Downloads und
+  latest-API nach Veroeffentlichung geprueft. README-Link danach aktualisiert.
+
+## Weltladen bei langen Fahrzeugfahrten (lokale Korrektur)
+
+- Fehlerursache im lokal vorhandenen Spielcode nachvollzogen: Player.LateUpdate
+  setzt ZNet.SetReferencePosition. Beim Einsteigen deaktiviert die Mod Player;
+  bislang blieb der Lade-Mittelpunkt dadurch am Einstiegsort stehen.
+- Die Mod fuehrt den nativen Lade-Mittelpunkt jetzt mit dem lokalen Fahrer mit:
+  beim Einsteigen, vor der Fahrzeugphysik, nach der Kabinenpose und beim Ausstieg.
+  Gilt fuer 350Z/H2, Fahrt/Flug und auch bei offenen Menues oder Eingabesperren.
+- Nutzer bestaetigt groessere Reichweite, meldet aber viele Stopps und dauernden
+  Ladehinweis. Spiellog zeigt haeufige Hold/Resume-Paare an fast gleicher Position.
+  Die erste Sperre war zu streng: IsAreaReady wartet auf benachbarte ZDO-Objekte,
+  IsZoneLoaded zusaetzlich auf Dekorationen. Beide sind kein reiner Bodentest.
+- Zweite Korrektur: pro gefahrenem Fahrzeug nur aktive Terrain-MeshCollider mit
+  vorhandenem Kollisionsmesh unter der Karosserie und 0,08 s voraus pruefen
+  (maximal 8 m). Der native Lade-Mittelpunkt folgt weiter dem tatsaechlichen Fahrer.
+  Fertige Boden-Collider geben die Fahrt frei, waehrend Weltobjekte weiter laden.
+- Gelandedaten bis zwei Sekunden voraus (maximal 112 m) ueber die nicht blockierende
+  HeightmapBuilder.IsTerrainReady-Abfrage vorbestellen: hoechstens vier verschiedene
+  Jobs pro Viertelsekunde, mit Breite/Skalierung des echten Zonen-Prefabs. Native
+  Builder-Threads berechnen die Daten; ZoneSystem erzeugt die Weltobjekte weiter.
+  Kein eigener Task fuer Unity-Objekte, kein RequestTerrainSync und kein Busy-Wait.
+- Nur unmittelbar fehlender Boden haelt das Fahrzeug. Unterbrechungen bis 0,25 s
+  erhalten den Schwung; laengere starten aus dem Stand. Bildschirmhinweis erst
+  nach 0,75 s und einmal je Wartephase. Ausstieg/Despawn geben die Sperre frei
+  und erhalten den vorherigen Kinematic-Zustand.
+- Automatische Adaptertests fuer entfernte Ladepositionen, Flughoehe, Vor-/Rueck-
+  und Seitwaertsbewegung, diagonale Zonengrenzen, verzoegerte Dekoration ohne
+  Fehlstopps, fehlende/inaktive Collider, nicht blockierende und begrenzte
+  Vorbestellungen, kurze/lange Wartephasen, Wiederanlauf und Aufraeumen.
+  Fahrphysik selbst bleibt unveraendert.
+- Build und gezielte Streaming-/Handling-/Flug-/Kabinen-/Steuerungs-/Ladetests
+  bestanden. Lokaler Teststand mit geprueftem Backup und SHA-256-Abgleich installiert;
+  bestehende Konfiguration erhalten, experimentelles Transformer-Payload entfernt.
+- Spielrueckmeldung zur zweiten Korrektur: weiter verbessert; verbleibende Ruckler
+  beim Flug in unentdeckte Gebiete. Letztes Spiellog vom 15.10.2026 enthaelt keine
+  Schutz-Holds/Resumes, aber 522 native Standort-Erzeugungen, davon 94 ueber 30 ms
+  und 27 ueber 60 ms; groesster geloggter Einzelvorgang rund 446 ms (WoodVillage1).
+  Das belegt native Generierungsspitzen, ist jedoch keine vollstaendige Frame-
+  oder CPU/GPU-Profilierung. Ein zusaetzlicher Einfluss des Prefetch ist nicht
+  separat gemessen; keine weitere Laufzeitaenderung allein aus dieser Vermutung.
+- Spieltest offen: mehrere Kilometer in neue und bereits erkundete Gebiete fahren
+  und mit Nitro fliegen, danach landen/aussteigen; 350Z und H2, Wasser/Berge,
+  langsames Nachladen, Menues/Pause. Adaptertests ersetzen kein Unity-Streaming.
+- Transformer bleibt ausschliesslich im lokalen Branch wip/350z-transformer.
+
 ## Innenseiten der Fahrzeugflächen (lokale Korrektur)
 
 - Nutzer hat den lokalen Gesamtstand einschließlich der Bremssattelkorrektur

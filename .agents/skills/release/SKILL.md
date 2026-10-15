@@ -39,7 +39,7 @@ Veröffentlichungsauftrag. `/installer` baut ausschließlich lokal.
   Release-Notizen mit konkreten Änderungen, Installationshinweis, Plattform und
   Prüfergebnissen. Behaupte nur durchgeführte Spieltests. Schreibe die Notizen unter
   `artifacts/` und verwende bei `gh` `--notes-file` für echte Zeilenumbrüche.
-- Committe den geprüften Stand einschließlich Version und Setup-Revision mit
+- Committe den geprüften Stand einschließlich gemeinsamer Mod-/Installer-Version mit
   expliziten Dateipfaden. Ignorierte Assets/Binaries bleiben lokal. Der Tag muss
   exakt auf den Commit zeigen, dessen Build-Eingaben den Installer erzeugt haben.
   Nach weiteren Build-relevanten Änderungen erneut bauen und prüfen.

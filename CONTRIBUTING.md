@@ -105,7 +105,7 @@ After building and testing the mod:
 python tools/build_installer.py
 ```
 
-The result is `artifacts/installer/NFVU2-Setup-<version>-r<revision>.exe` and its SHA-256
+The result is `artifacts/installer/NFVU2-Setup-<version>.exe` and its SHA-256
 sidecar. The first build downloads the pinned
 [BepInExPack Valheim](https://thunderstore.io/c/valheim/p/denikson/BepInExPack_Valheim/)
 archive into `.local/installer/` and checks its SHA-256 before use. Subsequent
@@ -115,7 +115,22 @@ installed; a player installer build fails if music is missing from the payload.
 Run `python tools/extract_music.py` and rebuild the mod to supply it.
 The installer embeds the same user-provided logo as the README from
 `docs/images/nfvu2-logo.png`. Its `LICENSE` window has a Close button and supports
-Escape and Enter. Setup revisions can change without changing the game plugin version.
+Escape and Enter.
+Mod and installer share one Major.Minor.Patch version, currently 0.30.0.
+Use minor versions for features and patch versions for fixes, including installer fixes.
+There is no separate setup revision. Update both `src/NFVU2.csproj` and the
+`BepInPlugin` attribute together; the builder checks that they match. Existing
+installer files are never overwritten; use the next project version for a changed build.
+The installer asynchronously checks GitHub's latest stable public release and
+provides a Changelog window (release notes for an available update, packaged notes offline).
+It compares Major.Minor.Patch numerically, verifies downloaded EXEs with the release's
+SHA-256 sidecar and available GitHub digests, then starts the new setup with the selected
+Valheim path. The new setup performs the installation with its own normal guards.
+Publish a matching `NFVU2-Setup-<version>.exe` and `.sha256` pair under the
+matching `v<version>` release tag. Legacy revision filenames remain readable for
+compatibility, but revisions never affect update ordering. Existing public r6 EXEs
+require a one-time manual download of 0.29.0 or later to gain update detection.
+A local build does not change public downloads.
 
 The builder uses an explicit payload allowlist. It never packages arbitrary
 files from the installed game, private plugins, local config, source archives
@@ -126,8 +141,8 @@ The EXE is unsigned. Creating it does not publish a GitHub Release or change
 repository visibility. Release uploads should contain the player EXE and its
 checksum, with version-specific notes and results of the manual checks below.
 Create a version tag only for an actual release, pointing to the commit used
-to build its downloadable installer. Development snapshots and local setup
-revisions do not receive tags; the former prototype tag `v0.1.5` was retired.
+to build its downloadable installer. Development snapshots and local builds
+do not receive tags; the former prototype tag `v0.1.5` was retired.
 Generated packages contain the locally imported assets; their provenance is
 documented in [REFERENCES](docs/REFERENCES.md) and the asset pipeline notes.
 
