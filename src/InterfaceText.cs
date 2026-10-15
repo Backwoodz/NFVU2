@@ -3,6 +3,7 @@ using System.Linq;
 namespace Rachel350Z {
 public static class InterfaceText {
     static readonly KeyValuePair<string,string>[] English={
+        new KeyValuePair<string,string>("Welt wird geladen. Fahrzeug wartet kurz.","Loading world. Vehicle is waiting briefly."),
         new KeyValuePair<string,string>("Der Inhalt bleibt als Kiste am Fahrzeugstandort.","Cargo remains in a chest at the vehicle's location."),
         new KeyValuePair<string,string>("Beim Entfernen bleibt Inhalt als Kiste zurück.","Removing the car leaves its cargo in a chest."),
         new KeyValuePair<string,string>("Stauraum öffnen","Open storage"),

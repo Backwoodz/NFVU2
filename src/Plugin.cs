@@ -138,12 +138,31 @@ public partial class Plugin : BaseUnityPlugin {
         if(gameCamera!=null){cameraEnabled=gameCamera.enabled;gameCamera.enabled=false;}
         orbitCamera.Begin(car.transform,IsHummer);
         driving=true;hasBeenDriven=true;
+        current.worldStreaming=new VehicleWorldStreaming(body);
+        VehicleWorldStreaming.Follow(player as Player);
         showroom?.State.CloseAll();
         nitroInput.Reset();nitroHeld=false;
     }
     void FixedUpdate() {ForEachVehicle(StepVehicle);}
     void StepVehicle() {
         if(body==null||wheels==null)return;
+        if(driving) {
+            VehicleWorldStreaming.Follow(player as Player);
+            if(current.worldStreaming!=null) {
+                bool waiting=current.worldStreaming.Waiting;
+                if(!current.worldStreaming.Step()) {
+                    if(!waiting) {
+                        Logger.LogInfo("Vehicle waiting for world streaming at "+body.position);
+                    }
+                    if(current.worldStreaming.TakeNotice())ShowVehicleWarning("Welt wird geladen. Fahrzeug wartet kurz.");
+                    return;
+                }
+                if(waiting) {
+                    Logger.LogInfo("Vehicle world streaming ready; movement resumed.");
+                    if(status=="Welt wird geladen. Fahrzeug wartet kurz.")status=VehicleName;
+                }
+            }
+        }
         if(!Flying)current.rideHeight?.Apply(lowering.Value);
         if(vehicleImpact!=null)vehicleImpact.EnemyDamageMultiplier=HordeVehicle?HordePacts.Impact(hordeRun.Pact):1;
         vehicleImpact?.Step(player,driving&&!Flying&&!audioBlocked&&!menuOpen&&Application.isFocused&&(!HordeVehicle||!hordeWave.Choosing),
@@ -189,6 +208,7 @@ public partial class Plugin : BaseUnityPlugin {
                 else {cabinDriver.SetExitPosition(clearExit);Exit();return;}
             }
         } catch(Exception e){Logger.LogError("Cabin animation stopped: "+e);Exit();return;}
+        if(driving)VehicleWorldStreaming.Follow(player as Player);
         ApplyNeonSettings();
         bool burnout=!Flying&&driving&&burnoutHeld&&handling!=null&&handling.BurnoutActive&&!audioBlocked&&!menuOpen&&Application.isFocused;
         wheelSizeVisuals?.Apply(IsHummer?h2RimInches.Value:rimInches.Value);
@@ -259,6 +279,7 @@ public partial class Plugin : BaseUnityPlugin {
         cabinDriver.BeginExit(destination);BlockDrivingInput();
     }
     void Exit() {
+        current.worldStreaming?.Dispose();current.worldStreaming=null;
         if(HordeVehicle)ClearHorde();
         ReleaseCameraRumble(gameCamera);
         exitAfterLanding=false;controlsGate.Block();
@@ -283,6 +304,7 @@ public partial class Plugin : BaseUnityPlugin {
             for(int i=0;playerRenderers!=null&&i<playerRenderers.Length;i++)if(playerRenderers[i]!=null)playerRenderers[i].enabled=renderStates[i];
             for(int i=0;playerColliders!=null&&i<playerColliders.Length;i++)if(playerColliders[i]!=null)playerColliders[i].enabled=colliderStates[i];
             if(playerBody!=null){playerBody.isKinematic=playerKinematic;if(!playerKinematic){playerBody.linearVelocity=Vector3.zero;playerBody.angularVelocity=Vector3.zero;}}player.enabled=playerEnabled;}
+        VehicleWorldStreaming.Follow(player as Player);
         if(gameCamera!=null)gameCamera.enabled=cameraEnabled;
         player=null;gameCamera=null;status="F6: Fahrzeug erstellen | F7: einsteigen | F9: Garage";
     }
@@ -295,6 +317,7 @@ public partial class Plugin : BaseUnityPlugin {
         if(cargoLeft)ShowVehicleWarning("Der Inhalt bleibt als Kiste am Fahrzeugstandort.");
     }
     void ReleaseVehicle(){
+        current.worldStreaming?.Dispose();current.worldStreaming=null;
         current.storage?.Release();current.storage=null;
         current.flight?.Dispose();current.flight=null;
         current.flightEffects?.Dispose();current.flightEffects=null;
