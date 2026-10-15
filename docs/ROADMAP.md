@@ -30,6 +30,12 @@
   74 Python-Prüfungen und aller C#-Suiten. Installer mit 90 Payload-Dateien und
   27 Radiotiteln; aktuelle DLL, alle Payload-Hashes, eingebettetes Payload/Changelog,
   gemeinsame Versionsmetadaten und EXE-Prüfsumme verifiziert.
+- Version 0.30.0 auf GitHub veröffentlicht. Annotierter Tag v0.30.0 zeigt auf
+  Release-Commit a8fd0fe. Beide Draft-Assets heruntergeladen und per SHA-256
+  mit lokalen Dateien verglichen; öffentliche Release-Seite, Downloads und
+  latest-API geprüft. Die echte Update-Assembly des veröffentlichten Installers
+  0.29.0 erkennt 0.30.0 und akzeptiert das EXE-/Prüfsummenpaar. Der vollständige
+  Update-Klickablauf auf der echten Installation bleibt der nächste Nutzertest.
 
 ## Installer-Updates (Release 0.29.0)
 
