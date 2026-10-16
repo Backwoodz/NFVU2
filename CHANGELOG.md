@@ -2,10 +2,62 @@
 
 ## Unreleased — Local Transformer locomotion
 
+- Enlarge the central reactor flame, emit beyond the containment lip and use
+  camera-facing sprites for frontal visibility; increase rotation to 120 degrees/s.
+- Exclude loose item drops and native destruction fragments from robot obstacle,
+  ground and contact-cover checks. These independent colliders could still stop
+  the machine or create a temporary false floor after a tree was destroyed.
+  Record remaining solid blockers at a throttled rate for local playtest diagnosis.
+- Correct tyre spin to the wheel mesh's own axle rather than the differently
+  oriented panel holder. Increase reactor rotation from 38 to 65 degrees/s;
+  use the existing flame atlas for a visible upward central plasma flame.
+- Let robot movement pass through native tree/log colliders while felling
+  completes, retaining speed instead of stopping for the destruction delay.
+- Reduce sprint stride by about 9 percent, retaining speed and high bounding
+  steps. Roll the four existing wheels in opposite directions on left/right
+  turns while keeping brake calipers stationary.
+- Replace the reactor dome with a recessed metallic cavity, a dim inner core,
+  clockwise rotating original containment hardware and a small plasma flame.
+- Add robot-only native contact damage for small hostile enemies, all native
+  tree species, fallen logs and saplings. Preserve players, tames, bosses,
+  oversized creatures and buildings; cover blocks hits. Falling logs and
+  creatures no longer supply robot ground height.
+- Fix false blocked-door reports by excluding the car's own colliders from
+  the exit-space check and trying nearby outward positions.
+- Stop treating standing trees as walkable ground; limit the surface probe to
+  just above the terrain/root instead of casting down from above tree crowns.
+- Align sprint palms toward the torso using the authored palm plane, replacing
+  fixed 55-degree forearm pronation. Increase robot turning to 90 degrees/s
+  when walking and 65 degrees/s when sprinting, with earlier pivot footsteps.
+- Remove slope/roughness and armor-envelope movement vetoes from the local
+  robot playtest; follow loaded terrain height with a central obstacle core
+  and allow escape from existing overlaps. F7 dismounts immediately; returning
+  to the car no longer requires flat ground or a full transformation sweep.
+- Prepare robot meshes across vehicle-loading frames, removing their first-F10
+  allocation burst and the synchronous full-path preflight in both directions.
+- Retune sprint for longer, higher bounds with longer flight and restrained
+  shoulder angles. Hide the neon tube and mounts below the reactor.
+- Quick local playtest tuning: rearward arm travel with an opening elbow,
+  8.5 m/s sprint, longer steps and greater support-synchronized body heave.
+  Only build and focused controller checks rerun; full geometry review pending.
+- Add a forward sprint while holding Shift (X/Square on a controller), targeting
+  7 m/s with progressive acceleration, longer recovery steps, shorter ground
+  contacts, brief flight phases and stronger bent-arm counter-swing.
+- Check the actual rigid part envelopes when transforming and moving. Fit mild
+  transformation slopes up to 8 degrees and adjust boots to local support planes; distinguish genuine
+  obstacles from empty bounding-box corners touching a supporting convex floor.
+- Include the complete authored hands and fingers in clearance checks and
+  route their motion outside the hip and leg armor.
+- Refine the existing sprint: keep its foot timing and stride, bring arms closer
+  with a smaller, slower swing, and add support-synchronized compression and
+  push-off with about 15 cm of body rise and fall. Walking permits 20-degree
+  slopes and bounded uneven ground; low boot/shin parts may sink slightly into
+  terrain without weakening wall, missing-ground or water checks. Packed-car
+  transformation and return retain their stricter ground requirements.
 - Rework the optional Transformer walk with planted support feet, longer strides,
   forward-facing knees, weight transfer, forward lean and opposing arm/torso motion.
   Accelerate progressively, brake before reversing and place feet individually
-  before returning to the car. This remains a local flat-ground prototype.
+  before returning to the car. This remains a local single-player prototype.
 - Preserve the 0.30.0 world-streaming and vehicle persistence baseline; saves during
   robot mode use the recoverable car height.
 

@@ -181,6 +181,11 @@ public partial class Plugin {
             foreach(var step in StagedWork.Optional(current.interior.LoadSteps(car,local,assets.Interior,message=>Logger.LogInfo(message)),error=>{current.interior.Dispose();current.interior=null;Logger.LogWarning("Cabin unavailable; original visuals retained: "+error);}))yield return step;
         }
         LoadStage("Fahrzeug bereitstellen",.98f);
+        if(!IsHummer&&current.transformerAsset!=null) {
+            LoadStage("Transformer vorbereiten",.96f);
+            current.transformer=new VehicleTransformer(current,current.transformerAsset,true);
+            foreach(var step in current.transformer.LoadSteps())yield return step;
+        }
         yield return StagedWork.NextFrame;
         // Player/world may have moved since F6. Resolve a free location again.
         if(restoringVehicle!=null) {

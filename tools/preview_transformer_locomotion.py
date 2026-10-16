@@ -42,8 +42,21 @@ for side in ('L','R'):
     hull=bmesh.ops.convex_hull(mesh,input=list(mesh.verts),use_existing_faces=False)
     foot_support[side]=[v.co.copy() for v in hull['geom'] if isinstance(v,bmesh.types.BMVert)]
     mesh.free()
+def terrain_hinge(name):return (name.startswith('panel.floor1_') and '_fold0_' in name) or (name.startswith('panel.floor0_') and '_fold1_' in name)
+terrain_rows={};terrain_hinges={}
+for obj in [o for col in ('01 Original 350Z surfaces','02 Authored mechanism - BLOCKOUT') for o in bpy.data.collections[col].objects if o.type=='MESH']:
+    ancestor=obj
+    while ancestor and ancestor.parent_type!='BONE':ancestor=ancestor.parent
+    if ancestor and terrain_hinge(ancestor.parent_bone):
+        name=ancestor.parent_bone;row=name[:-2]
+        terrain_rows.setdefault(row,[]).extend((name,(obj.matrix_world@v.co).z) for v in obj.data.vertices)
+for row,points in terrain_rows.items():
+    lower=min(z for _,z in points);names=sorted(set(name for name,_ in points))
+    pivot=Vector((0,neutral[names[0]].translation.y,lower))
+    for name in names:terrain_hinges[name]=pivot
 clearance_file=ROOT/(sys.argv[sys.argv.index('--clearance')+1] if '--clearance' in sys.argv else 'tools/transformer_gait_clearance.json')
 clearance=json.loads(clearance_file.read_text()) if clearance_file.exists() and '--no-clearance' not in sys.argv else {}
+source_action=rig.animation_data.action if rig.animation_data else None
 rig.animation_data_clear()
 levels={}
 rest_inverse={b.name:b.matrix_local.inverted() for b in rig.data.bones}
@@ -53,19 +66,53 @@ for b in rig.data.bones:
     levels.setdefault(depth,[]).append(b.name)
 def trs(p,q):return Matrix.Translation(p)@q.to_matrix().to_4x4()
 def parameter(name,default):return float(sys.argv[sys.argv.index(name)+1]) if name in sys.argv else default
+sys.path.insert(0,str(ROOT/'tools'))
+from transformer_locomotion_review import GAIT_VERSION,DOMAIN_FILE,TRACE_FILE
 runtime_definition=json.loads((ROOT/'tools/transformer_gait_v3.json').read_text())
-trace_path=ROOT/(sys.argv[sys.argv.index('--pose-trace')+1] if '--pose-trace' in sys.argv else 'artifacts/tests/transformer/runtime-gait-domain.json')
+trace_path=ROOT/(sys.argv[sys.argv.index('--pose-trace')+1] if '--pose-trace' in sys.argv else DOMAIN_FILE)
 runtime_poses=json.loads(trace_path.read_text()) if '--runtime' in sys.argv else []
 assert '--runtime' not in sys.argv or runtime_poses,'Runtime gait requires actual managed pose samples'
 
 last_gait_diagnostics={}
+ground_provider=None
+last_gait_families={}
+
+def ground_at(point):
+    if ground_provider is None:return Vector((0,0,1)),0.
+    normal,height=ground_provider(point)
+    normal=Vector(normal)
+    if not all(math.isfinite(v) for v in normal) or normal.length_squared<.001 or normal.z<=.5:normal=Vector((0,0,1))
+    if not math.isfinite(height):height=0.
+    return normal.normalized(),height
 
 def around(p,q):return Matrix.Translation(p)@q.to_matrix().to_4x4()@Matrix.Translation(-p)
 def rotation(axis,degrees):return Quaternion(axis,math.radians(degrees))
+def apply_world(world):
+    # Original deployment bones disable inherited scale. Blender's matrix setter
+    # applies that rule; the fast unit-scale gait basis formula cannot be used
+    # on compacted V18 source poses without distorting their legs and glass.
+    for depth in sorted(levels):
+        for name in levels[depth]:rig.pose.bones[name].matrix=world[name]
+        bpy.context.view_layer.update()
+    error=max(abs(rig.pose.bones[n].matrix[r][c]-world[n][r][c]) for n in world for r in range(4) for c in range(4))
+    assert error<.0002,('Original hierarchy/scale reconstruction mismatch',error)
+
+def source_pose(progress):
+    """Authoritative original transformation, before any terrain correction."""
+    global last_gait_diagnostics,last_gait_families
+    rig.animation_data_create();rig.animation_data.action=source_action
+    frame=1+120*progress;scene.frame_set(int(frame),subframe=frame-int(frame))
+    bpy.context.view_layer.update()
+    world={p.name:p.matrix.copy() for p in rig.pose.bones}
+    rig.animation_data_clear();apply_world(world)
+    last_gait_diagnostics={};last_gait_families={}
+    return world
+
 def gait(phase,amount,reverse=False,left_direction=None,right_direction=None,release=None,posture=None):
     """Mirror the runtime solver; V3 state is supplied by managed trace, never guessed."""
-    global last_gait_diagnostics
+    global last_gait_diagnostics,last_gait_families
     runtime='--runtime' in sys.argv
+    if scene.frame_current!=121 or scene.frame_subframe!=0:scene.frame_set(121)
     if runtime and posture is None:
         # Authoring selection only. Geometry loops below consume every actual
         # controller sample directly; they never reconstruct state from phase.
@@ -76,7 +123,7 @@ def gait(phase,amount,reverse=False,left_direction=None,right_direction=None,rel
     if runtime:
         release=1 if release is None else release
         release=release*release*(3-2*release)
-    overrides={};ankle_offsets={};targets={};foot_rotations={}
+    overrides={};ankle_offsets={};targets={};foot_rotations={};ground_align={};support_heights={};terrain_exposure=0.
     body=posture or dict(pelvisSide=0,pelvisHeight=0,pelvisYaw=0,torsoYaw=0,torsoLean=0,torsoRoll=0)
     pelvis_yaw=around(neutral['pelvis'].translation,rotation((0,0,1),-body['pelvisYaw']))
     pelvis_height=body['pelvisHeight']
@@ -96,21 +143,26 @@ def gait(phase,amount,reverse=False,left_direction=None,right_direction=None,rel
                    swing=math.sin(cycle*math.pi*2)*9*amount*direction,elbow=0,side=0,pitch=0,yaw=0)
         feet[side]=f
         hip,knee,ankle=[neutral[n].translation for n in (thigh,shin,foot)]
-        foot_rotations[side]=rotation((0,0,1),-f['yaw'])@rotation((1,0,0),f['pitch'])@neutral[foot].to_quaternion()
         target=ankle+Vector((f['side'],f['forward'],0))
-        rolled=trs(target,foot_rotations[side])
         rest_min=min((neutral[foot]@v).z for v in foot_support[side])
-        pivot=min(foot_support[side],key=lambda v:(rolled@v).z)
-        lowest=(rolled@pivot).z
-        flat_rotation=rotation((0,0,1),-f['yaw'])@neutral[foot].to_quaternion()
+        normal,height=ground_at(Vector((target.x,target.y,rest_min)));plane_point=Vector((target.x,target.y,height))
+        ground_align[side]=Vector((0,0,1)).rotation_difference(normal)
+        support_heights[side]=height-(normal.x*(ankle.x-target.x)+normal.y*(ankle.y-target.y))/normal.z
+        terrain_exposure=max(terrain_exposure,math.degrees(ground_align[side].angle)/15)
+        flat_rotation=ground_align[side]@rotation((0,0,1),-f['yaw'])@neutral[foot].to_quaternion()
+        foot_rotations[side]=ground_align[side]@rotation((0,0,1),-f['yaw'])@rotation((1,0,0),f['pitch'])@neutral[foot].to_quaternion()
+        rolled=trs(target,foot_rotations[side])
+        pivot=min(foot_support[side],key=lambda v:normal.dot(rolled@v-plane_point))
+        lowest=normal.dot(rolled@pivot-plane_point)
         contact_offset=flat_rotation@pivot-foot_rotations[side]@pivot
-        target.x+=contact_offset.x;target.y+=contact_offset.y
-        target.z+=rest_min+f['lift']-lowest
+        tangent_shift=Vector((contact_offset.x,contact_offset.y,0));target+=tangent_shift
+        target.z+=(rest_min+f['lift']*normal.z-lowest-normal.dot(tangent_shift))/normal.z
         targets[side]=target;ankle_offsets[side]=target-ankle
         shifted_hip=pelvis_yaw@hip+Vector((body['pelvisSide'],0,0))
         reach=(knee-hip).length+(ankle-knee).length-.001
         horizontal=(target.x-shifted_hip.x)**2+(target.y-shifted_hip.y)**2
         pelvis_height=min(pelvis_height,target.z+math.sqrt(max(.001,reach*reach-horizontal))-shifted_hip.z)
+    terrain_exposure=min(1,max(terrain_exposure,abs(support_heights['L']-support_heights['R'])/.2))
     pelvis_delta=Matrix.Translation(Vector((body['pelvisSide'],0,pelvis_height)))@pelvis_yaw
     overrides['pelvis']=pelvis_delta@neutral['pelvis']
     torso_rotation=rotation((0,0,1),-body['torsoYaw'])@rotation((1,0,0),-body['torsoLean'])@rotation((0,1,0),body['torsoRoll'])
@@ -135,14 +187,33 @@ def gait(phase,amount,reverse=False,left_direction=None,right_direction=None,rel
         solved_end=target_knee+(target-target_knee).normalized()*l2
         last_gait_diagnostics[side]=dict(reachError=max(0,d.length-(l1+l2-.001)),upperLengthError=abs((target_knee-hip).length-l1),
             lowerLengthError=abs((target-target_knee).length-l2),ankleError=(target-solved_end).length,pelvisHeight=pelvis_height)
-        arm='upperarm.'+side
-        overrides[arm]=trs(torso_delta@neutral[arm].translation,torso_delta.to_quaternion()@rotation((1,0,0),-f['swing'])@neutral[arm].to_quaternion())
-        forearm='forearm.'+side;arm_delta=overrides[arm]@neutral[arm].inverted()
-        overrides[forearm]=trs((arm_delta@neutral[forearm]).translation,arm_delta.to_quaternion()@rotation((1,0,0),f['elbow'])@neutral[forearm].to_quaternion())
+        arm='upperarm.'+side;forearm='forearm.'+side;hand='hand.'+side
+        clear=max(0,min(1,release/.2)) if runtime else 0;run=(posture or {}).get('runBlend',0);sign=-1 if side=='R' else 1
+        axis=(neutral[forearm].translation-neutral[arm].translation).normalized()
+        abduction=rotation((0,1,0),-sign*(9+3*run)*clear)
+        external=rotation(axis,sign*(12+8*run)*clear)
+        backswing_bias=amount*(8+10*run)
+        overrides[arm]=trs(torso_delta@neutral[arm].translation,torso_delta.to_quaternion()@abduction@rotation((1,0,0),-f['swing']-backswing_bias)@external@neutral[arm].to_quaternion())
+        arm_delta=overrides[arm]@neutral[arm].inverted();flex=f['elbow']+16*clear*(1-run)
+        overrides[forearm]=trs((arm_delta@neutral[forearm]).translation,arm_delta.to_quaternion()@rotation((1,0,0),flex)@neutral[forearm].to_quaternion())
+        forearm_delta=overrides[forearm]@neutral[forearm].inverted();wrist=forearm_delta@neutral[hand]
+        roll_amount=max(0,min(1,run/.6));roll_amount=roll_amount*roll_amount*(3-2*roll_amount)
+        inward=Vector((-sign,0,0));rest_wrist=neutral[hand].translation
+        palm=(neutral['digit00.'+side].translation-rest_wrist).cross(neutral['digit30.'+side].translation-rest_wrist).normalized()
+        if palm.dot(inward)<0:palm=-palm
+        wrist_axis=(wrist.translation-overrides[forearm].translation).normalized()
+        current=forearm_delta.to_3x3()@palm;target=torso_delta.to_3x3()@inward
+        current-=wrist_axis*current.dot(wrist_axis);target-=wrist_axis*target.dot(wrist_axis)
+        pronation=math.degrees(math.atan2(wrist_axis.dot(current.cross(target)),current.dot(target))) if current.length_squared>.0001 and target.length_squared>.0001 else 0
+        roll=rotation(wrist_axis,pronation*roll_amount*clear)
+        overrides[forearm]=trs(overrides[forearm].translation,roll@overrides[forearm].to_quaternion())
+        forearm_delta=overrides[forearm]@neutral[forearm].inverted();wrist=forearm_delta@neutral[hand]
+        overrides[hand]=trs(wrist.translation,forearm_delta.to_quaternion()@neutral[hand].to_quaternion())
     delta={};world={}
     for b in rig.data.bones:
         world[b.name]=overrides.get(b.name,delta[b.parent.name]@neutral[b.name] if b.parent else neutral[b.name])
         if '--articulated-armor' in sys.argv or runtime:
+            if b.name.startswith('panel.door_rear_scale'):world[b.name]=delta['clavicle.'+b.name[-1]]@neutral[b.name]
             if b.name.startswith('panel.belt_') and 'hipfold1' in b.name:world[b.name]=delta['thorax']@neutral[b.name]
             if b.name.startswith('panel.floor0_') and ('_fold1_' in b.name or '_fold2_' in b.name):world[b.name]=delta['foot.'+('L' if '_L_' in b.name else 'R')]@neutral[b.name]
             if b.name in ('panel.pelvis_rear','neon.trunk rear') or b.name.startswith('panel.exhaust_'):world[b.name]=delta['thorax']@neutral[b.name]
@@ -178,6 +249,8 @@ def gait(phase,amount,reverse=False,left_direction=None,right_direction=None,rel
             world[b.name].translation+=carrier.to_3x3()@Vector(runtime_definition['releases'][b.name])*deployment
             if b.name.startswith('panel.sill1_'):
                 world[b.name].translation.y+=.04*max(0,min(1,deployment/.1,(.8-deployment)/.1))
+                slope=min(1,abs(ground_align[b.name[-1]].y)/.1305262)
+                world[b.name].translation+=carrier.to_3x3()@Vector(((.08 if b.name.endswith('L') else -.08)*slope*deployment,0,0))
         if runtime and b.name.startswith('panel.belt_') and 'hipfold1' in b.name:
             fold=min(1,release/.7);angle=90 if '_L_' in b.name else -90
             world[b.name]=delta['thorax']@around(neutral[b.name].translation,rotation((0,1,0),-angle*fold))@neutral[b.name]
@@ -186,10 +259,26 @@ def gait(phase,amount,reverse=False,left_direction=None,right_direction=None,rel
             if b.name.startswith('panel.floor2_') and ('_fold1_' in b.name or '_fold2_' in b.name):
                 slide=max(0,min(1,(release-.2)/.5))
                 offset+=Vector((0,.32*slide,-.06*max(0,min(1,release/.2,(1-release)/.3))))
+            if b.name.startswith('panel.floor0_') and '_fold0_' in b.name:
+                run=max(0,min(1,(release-.55)/.4));run=run*run*(3-2*run)
+                def smooth(lo,hi):
+                    u=max(0,min(1,(run-lo)/(hi-lo)));return u*u*(3-2*u)
+                park=smooth(.06,.3)*release;down=.12*smooth(0,.06)*(1-smooth(.3,.55))*release
+                parent='thigh.'+('L' if '_L_' in b.name else 'R');origin=delta[parent];target=delta['thorax']@Matrix.Translation(Vector((0,-.95,0)))
+                pivot=neutral[parent].translation;p=(origin@pivot).lerp(target@pivot,park)+delta['thorax'].to_3x3()@Vector((0,0,-down))
+                carrier=trs(p,origin.to_quaternion().slerp(target.to_quaternion(),park))@Matrix.Translation(-pivot)
+                world[b.name]=carrier@neutral[b.name]
             if b.name.startswith('panel.floor0_') and ('_fold1_' in b.name or '_fold2_' in b.name):offset+=Vector((0,-.45*min(1,release/.5),-.6*max(0,min(1,(release-.5)/.5))))
             if b.name.startswith(('panel.hipguard_','panel.rear_corner_','panel.floor2_','panel.sill1_')):
                 stow=max(0,min(1,(release-.25)/.75))
                 offset+=Vector((0,.25*max(0,min(1,(stow-.4)/.6)),-.15*min(1,stow/.4)))
+            if b.name in terrain_hinges:
+                side='L' if '_L_' in b.name else 'R'
+                world[b.name]=delta['foot.'+side]@around(terrain_hinges[b.name],rotation((1,0,0),-25*terrain_exposure*release))@neutral[b.name]
+            if b.name.startswith('panel.door_front_scale0'):
+                side=b.name[-1];axis=(neutral['hand.'+side].translation-neutral['forearm.'+side].translation).normalized()
+                unlock=min(1,release/.2);fold=max(0,min(1,(release-.2)/.8))
+                world[b.name]=delta['forearm.'+side]@Matrix.Translation(-axis*.18*unlock)@around(neutral['forearm.'+side].translation,rotation(axis,(1 if side=='L' else -1)*90*fold))@neutral[b.name]
             if b.name=='neon.trunk rear':world[b.name].translation+=delta['thorax'].to_3x3()@Vector((0,.45*min(1,release/.4),.32*max(0,min(1,(release-.4)/.6))))
             if b.name.startswith('panel.belt_') and 'hipfold1' in b.name:world[b.name].translation+=delta['thorax'].to_3x3()@Vector((0,0,.1*min(1,release/.7)))
             if offset.length_squared:
@@ -197,12 +286,34 @@ def gait(phase,amount,reverse=False,left_direction=None,right_direction=None,rel
                 carrier='foot.' if b.name.startswith('panel.floor0_') and ('_fold1_' in b.name or '_fold2_' in b.name) else 'thigh.'
                 world[b.name].translation+=delta[carrier+side].to_3x3()@offset
         delta[b.name]=world[b.name]@neutral[b.name].inverted()
+    # A provenance tag denotes an exact common T in world=T@neutral. Unique
+    # mutable carriers retain their own tag; unchanged descendants inherit it.
+    # This avoids treating a common rigid rotation as a new surface collision.
+    last_gait_families={}
+    if runtime and not any(flag in sys.argv for flag in ('--calf-spread','--trunk-lift','--rail-armor','--ankle-roll')):
+        for b in rig.data.bones:
+            parent=b.parent.name if b.parent else None
+            if b.name in ('panel.pelvis_rear','neon.trunk rear') or b.name.startswith('panel.exhaust_') or b.name.startswith('panel.belt_') and 'hipfold1' in b.name:parent='thorax'
+            elif b.name.startswith('panel.door_rear_scale'):parent='clavicle.'+b.name[-1]
+            elif b.name.startswith('panel.floor0_') and ('_fold1_' in b.name or '_fold2_' in b.name):parent='foot.'+('L' if '_L_' in b.name else 'R')
+            elif b.name.startswith(('panel.hipguard_','panel.sill1_')):parent='thigh.'+b.name[-1]
+            elif b.name.startswith(('panel.','neon.')) and not b.name.startswith('panel.toe_'):
+                ancestor=b.parent
+                while ancestor and not ancestor.name.startswith(('thigh.','shin.','foot.')):ancestor=ancestor.parent
+                if ancestor and ancestor.name.startswith(('shin.','foot.')):parent='foot.'+ancestor.name[-1]
+            family=b.name if b.name in overrides else last_gait_families.get(parent,b.name)
+            mutable=b.name.startswith(('panel.hipguard_','panel.sill1_','panel.floor2_','panel.door_front_scale0','neon.underbody side')) or b.name=='neon.trunk rear'
+            mutable|=b.name.startswith('panel.floor0_')
+            mutable|=b.name.startswith('panel.belt_') and 'hipfold1' in b.name
+            if mutable or b.name in terrain_hinges:family=b.name
+            last_gait_families[b.name]=family
     if runtime:
         for b in rig.data.bones:
             rig.pose.bones[b.name].matrix_basis=rest_inverse[b.name]@(b.parent.matrix_local@world[b.parent.name].inverted()@world[b.name] if b.parent else world[b.name])
         bpy.context.view_layer.update()
         error=max(abs(rig.pose.bones[n].matrix[r][c]-world[n][r][c]) for n in world for r in range(4) for c in range(4))
         assert error<.0001,('Gait pose hierarchy mismatch',error)
+
     else:
         for depth in sorted(levels):
             for name in levels[depth]:rig.pose.bones[name].matrix=world[name]
@@ -277,7 +388,7 @@ for o in visible:
         for d in list(o.animation_data.drivers):
             if d.data_path in ('hide_render','hide_viewport'):o.driver_remove(d.data_path)
     o.matrix_basis=local;o.hide_render=False
-render_path=ROOT/'artifacts/tests/transformer/runtime-gait-preview.json'
+render_path=ROOT/TRACE_FILE
 render_poses=json.loads(render_path.read_text()) if runtime and render_path.exists() and '--pose-trace' not in sys.argv else runtime_poses
 for f in range(1,98):
     scene.frame_set(f)

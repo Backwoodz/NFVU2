@@ -1,5 +1,116 @@
 # Nächste Aufgaben
 
+## Transformer: Sprint, Handkontakte und Boden V4 (lokale Entwicklung)
+
+- Aktuell: Reaktor 120 Grad/s, deutlich groessere Flamme vor dem Einfassungsrand
+  mit zur Kamera gerichteten Sprites. Lose Holzbeute und eigenstaendige Truemmer
+  werden aus Hindernis-, Boden- und Kontaktdeckungsabfragen entfernt; sie hatten
+  trotz Baumfilter weiterhin Stopps/Bodenstufen ausloesen koennen. Verbleibende
+  feste Blocker werden hoechstens alle zwei Sekunden protokolliert. Build und
+  18 Kontaktregeln-Checks bestanden; Flammenansicht/Waldlauf im Spiel offen.
+- Spieltest-Nachkorrektur: Reifen drehen um ihre eigene lokale X-Achse nach
+  Anwendung des Panel-/Fahrzeugversatzes statt um die Achse des Panelhalters.
+  Reaktor 65 statt 38 Grad/s; sichtbare kleine, nach oben gerichtete Flamme
+  aus dem vorhandenen Auspuff-Flammenatlas. Baum-/Stammcollider stoppen den
+  Rumpf auch waehrend ausstehender nativer Faellung nicht mehr. Build und
+  14 Kontaktregeln-Checks; Rad-/Flammenansicht und Durchlaufen im Spiel offen.
+- Neuer lokaler Spieltest: Sprintschrittparameter 1,32 statt 1,45 m (rund 9 %
+  kuerzer), weiterhin 8,5 m/s und hoher Fusshub. Vier vorhandene Raeder rollen
+  bei Drehung seitenabhaengig gegenlaeufig, Bremsen bleiben stehen. Reaktor:
+  konkave Metallmulde, kleiner gruener Kern, vorhandene Lamellen/Ringe im
+  Uhrzeigersinn (von vorne), dezente Plasmaflamme. Roboterkontakt trifft kleine
+  feindliche Kreaturen und alle nativen Baumarten, Baumstämme und Setzlinge
+  ueber Valheims Schaden/Faellung/Beute. Spieler, Zahmtiere, Bosse, grosse
+  Kreaturen, Gebaeude und Ziele hinter festen Hindernissen bleiben geschuetzt.
+  Umfallende Staemme und Kreaturen liefern keine Bodenhoehe. Build sowie
+  30 Controller- und 14 Kontaktregeln-Checks; Darstellung/Physik im Spiel offen.
+- Aktuelle Fehlerkorrekturen: Ausstiegskapsel ignoriert das eigene Auto und
+  probiert weitere Positionen neben der Tuer. Bodenprobe beginnt knapp ueber
+  Terrain/Rumpf statt 64 m darueber; stehende Baeume liefern keine Bodenhoehe.
+  Sprint-Handflaechen werden zur Koerperinnenseite ausgerichtet statt fester
+  55-Grad-Unterarmdrehung. Drehen 90 Grad/s beim Gehen, 65 Grad/s beim Sprint,
+  mit frueherer Fussumsetzung fuer schnelle Kurven. Build und kurze Controller-
+  tests; Baum-/Tuerkollisionen und Handansicht bleiben im Spiel zu pruefen.
+- Aktueller schneller Spielteststand: Sprint 8,5 m/s, Schrittparameter 1,32 m,
+  Fusshub 80 cm, Koerperhubziel 32 cm (Controller gemessen 25,55 cm).
+  Laengere Flugphasen (maximal 0,20 s statt 0,05 s), niedrigere Schrittfrequenz,
+  engere Oberarme (9 bis 12 Grad) und ruhigerer Armschwung (maximal 125 Grad/s).
+  Die alte neunfache Ebenenpassung und die pro-Panzer-Gehausschlusspruefung
+  sperren die Fortbewegung nicht mehr. Geladene Bodenhoehe fuehrt den Rumpf;
+  nur der zentrale Koerper prueft feste Hindernisse. Bestehende Ueberlappung
+  erlaubt Weiterbewegung zum Befreien. F7 steigt sofort aus, unabhaengig von
+  Rueckwandlung und Fussruhe. F10-Rueckwandlung hat keine Hang-/Freiraumsperre.
+  Vorbereitung der Robotermeshes erfolgt beim Fahrzeugladen ueber mehrere
+  Frames; die sehr grosse synchrone Umbauwegpruefung entfaellt. Bauch-Neonroehre
+  und zugehoerige Halter werden in der Darstellung entfernt. Wasser wird durch
+  eine vereinfachte Wathoehe behandelt; fehlende Welt bleibt Streamingpause.
+  Build und kurze Controller-/Ladetests; auf ausdruecklichen Wunsch
+  keine neuen Renderings oder vollstaendigen Geometrie-/Tracepruefungen.
+  Die nachfolgende vollstaendige V4-Freigabe beschreibt den vorherigen Stand;
+  die aktuelle lokale Manifestfreigabe ist ausdruecklich ein manueller Spieltest.
+- Shift + W sprintet vorwaerts; am Gamepad X/Quadrat halten. Zieltempo 7 m/s,
+  Beschleunigung 1,6 m/s2, staerkeres Abbremsen vor Rueckwaertsfahrt. Pose folgt
+  weiterhin gemessener Bewegung: weicher Walk-/Run-Uebergang, groessere Schritte,
+  staerker gebeugte Arme, kuerzere Stuetzzeiten und kurze echte Flugphasen.
+- Gezielte Nachkorrektur: kleinere und ruhigere Sprintarme, naeher am Koerper;
+  rund 15 cm sichtbarer Koerperhub aus echter Stuetzkompression und Abhebung.
+  Fussbahnen und Schritttiming bleiben erhalten. Gehen erlaubt getrennt vom
+  Umbau nun 20-Grad-Haenge und begrenzte Unebenheiten. Kleine bodennahe
+  Fuss-/Schienbeinueberschneidungen werden bewusst zugelassen; Wasser, fehlende
+  Welt, grosse Absatze und feste Fels-/Wandhindernisse bleiben Sperren.
+- Die bisherige V3-Pruefung erfasste Karosserie, Neon und Referenzfigur, aber
+  nicht die vollstaendige Handgeometrie. Das erklaerte trotz damaliger Freigabe
+  die gemeldeten Hand-/Beinpenetrationen. V4 prueft jedes Hand-/Fingerbauteil
+  gegen Bein-/Hueftpanzer mit mindestens 25 mm Volumenabstand und ungefilterten
+  Dreieckskontakten. Schulter-/Ellbogenbahn wird fuer die Robotermorphologie
+  angepasst; keine verkleinerten oder ausgeblendeten Haende.
+- Knieplatten parken vor dem ersten Schritt und bleiben am Rumpftraeger,
+  statt beim Walk-/Run-Wechsel ihre Position zu aendern. Dadurch kann beim
+  Sprintabbremsen eine ausklingende hohe Schwungbahn keinen zurueckfahrenden
+  Kniepanzer treffen. Schliessen erfolgt erst nach vollstaendiger Fussruhe.
+- Statt einer pauschalen 6-m-Box entscheiden enge bauteilbezogene Huellen mit
+  nativen Kollisionsabfragen ueber den Umbauweg. Sichtbarkeit und kompakte
+  Mechanik werden beruecksichtigt. Ein gemeinsamer breiter Suchkasten dient
+  nur zum Finden benachbarter Collider, nicht als Hindernisentscheidung.
+- Neun Bodenproben unterscheiden leichte Haenge, Stufen, Loecher und Wasser.
+  Umbau und Rueckkehr behalten 8 Grad und 6 cm Restunebenheit; beim Gehen
+  gelten 20 Grad, maximal 25 cm Restfehler und 30 cm Restfehlerspanne.
+  Fusslokale Ebenen und feste Beinlaengen fuehren die Sohlen. Die bisherige
+  vollstaendige Terrain-Geometriepruefung umfasst 8-Grad-Haenge und
+  10-cm-Stufen zwischen beiden Fussbahnen. Erweiterte Gehgrenzen haben eigene
+  Policytests und brauchen eine erneute Abnahme auf echtem Spielterrain. Der
+  Originalumbau bleibt parallel zur tragenden Bodenebene; danach
+  oeffnen die Panzertraeger, bevor sich der Roboter aufrichtet. Auf Gelaende
+  bleibt diese Freiraumstellung beim Anhalten offen. Zurueckneigen, Schliessen
+  und inverse Verwandlung folgen der umgekehrten Reihenfolge. Die reine
+  Phasensteuerung hat eigene Tests; Weltladepausen halten auch diese Phasen an.
+- Erweiterter Geh-Smoke mit 42 Posen: 20-Grad-Haenge und 30-cm-Fusshoehen-
+  unterschiede bestehen die begrenzte Bodentoleranz, Handabstand mindestens
+  28,9 mm. Auf 20-Grad-Haengen bleiben vier optische Panzer-/Neonkontakte
+  (4,5 mm Schweller bzw. 47 bis 59 mm Neon/Hinterrad). Diese neue Gehfreiheit
+  ist keine Zusage kontaktfreier Mechanik auf jedem Hang.
+- Lokale Original-StartTemple-Collider ausgewertet, einschliesslich gespawnter
+  Queen-/Fadersteine und Zentralplattform. Bosssteinfreier Mittelkreis knapp
+  14,9 m Durchmesser; die gebackene Umbaugeometrie hat maximal 3,19 m Radius.
+  Das ist eine geometrische Referenz, keine Abnahme jeder Weltposition oder
+  einer laufenden V4-Pose. Die konvexe Plattform besitzt eine ebene Oberseite.
+  Echte Fussvertices liegen darueber, waehrend leere OBB-Ecken bis 41 cm unter
+  ihre Ebene reichen. Nachgewiesene konvexe Bodenauflage wird deshalb getrennt
+  von echten Hindernissen behandelt, ohne Collider nach Namen zu ignorieren.
+- Aktuelle Quellen-/Trace-gebundene V4-Freigabe bestanden: 79 Managed-
+  Transformerchecks, 34 Bodenchecks und 115 Python-Tests. Vollstaendige
+  Geometriepruefung mit 5.930 Posen (129 Vorbereitung, 5.445 Bewegungsvarianten,
+  356 Terrainproben) sowie 3.661 Posen des zusammenhaengenden 61-Sekunden-
+  Controllers bestanden. Keine neuen Koerper-/Handkontakte, Bodenverletzungen
+  oder IK-Fehler im beschriebenen Pruefumfang; kleinster absolut gepruefter
+  Handabstand rund 28,9 mm. Vorhandene Originalkontakte bleiben ausgewiesen.
+  Alte V3-Berichte koennen den Sprint nicht aktivieren. Native Unity-Physik,
+  Startkreis-Praxis und Spielfeeling bleiben als Spielabnahme offen.
+- V4 lokal ueber den bestehenden Installerkern und die separate optionale
+  Transformer-Erweiterung installiert. Getestete DLL unveraendert, beide Assets
+  per SHA-256 geprueft, Konfiguration erhalten und Backups nach Erfolg auf die
+  zwei neuesten Datumsstaende reduziert. Kein Commit, Push oder Release.
+
 ## Transformer: menschlicherer schwerer Gang V3 (lokale Entwicklung)
 
 - Transformer-Branch auf 0.30.0 zusammengefuehrt. Persistente Fahrzeuge und
@@ -27,8 +138,9 @@
   pro Frame. Das misst Knoechelanker, nicht nativen Unity-Sohlenkontakt.
 - Vollstaendige Geometriepruefung bestanden: 4.485 Posen aus Ausfahren,
   Vor-/Rueckwaertsfahrt und Drehen plus 2.041 Posen des zusammenhaengenden
-  Controllerablaufs. Keine neuen Oberflaechenkontakte, Bodenverletzungen oder
-  IK-Fehler; urspruengliche Ruhepose erhalten. Kniepanzer und ganze Neonroehren
+  Controllerablaufs. Im damaligen Karosserie-/Neon-/Figurpruefumfang keine neuen
+  Oberflaechenkontakte, Bodenverletzungen oder IK-Fehler; Haende fehlten noch,
+  siehe V4. Urspruengliche Ruhepose erhalten. Kniepanzer und ganze Neonroehren
   fahren auf verbundenen Halterungen aus dem Bewegungsweg.
 - V3 lokal mit dem bestehenden Installerkern und separatem optionalen
   Transformerpaket installiert; DLL/Assets per SHA-256 geprueft und bestehende

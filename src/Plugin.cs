@@ -172,7 +172,7 @@ public partial class Plugin : BaseUnityPlugin {
                 }
             }
         }
-        if(Transforming){current.transformer.Step(audioBlocked||menuOpen||!Application.isFocused,throttle,steer);return;}
+        if(Transforming){current.transformer.Step(audioBlocked||menuOpen||!Application.isFocused,throttle,steer,transformerSprintHeld);return;}
         if(!Flying)current.rideHeight?.Apply(lowering.Value);
         if(vehicleImpact!=null)vehicleImpact.EnemyDamageMultiplier=HordeVehicle?HordePacts.Impact(hordeRun.Pact):1;
         vehicleImpact?.Step(player,driving&&!Flying&&!audioBlocked&&!menuOpen&&Application.isFocused&&(!HordeVehicle||!hordeWave.Choosing),
@@ -268,13 +268,13 @@ public partial class Plugin : BaseUnityPlugin {
     }
     bool FindCabinExit(MonoBehaviour local,out Vector3 position) {
         // Grounded capsule beside the physical left door; never put the player inside a wall.
-        foreach(float z in new[]{-.12f,-.48f,.22f}) {
-            var origin=car.transform.TransformPoint(new Vector3(-1.3f,2.2f,z));
+        foreach(float distance in new[]{1.3f,1.6f,1.9f})foreach(float z in new[]{-.12f,-.48f,.22f}) {
+            var origin=car.transform.TransformPoint(new Vector3(-distance,2.2f,z));
             foreach(var hit in Physics.RaycastAll(origin,Vector3.down,5,~0,QueryTriggerInteraction.Ignore).OrderBy(h=>h.distance)) {
                 if(hit.collider.transform.IsChildOf(car.transform)||hit.collider.transform.IsChildOf(local.transform)||hit.normal.y<.65f)continue;
                 var foot=hit.point+Vector3.up*.06f;
                 bool occupied=Physics.OverlapCapsule(foot+Vector3.up*.32f,foot+Vector3.up*1.5f,.27f,~0,QueryTriggerInteraction.Ignore)
-                    .Any(c=>!c.transform.IsChildOf(local.transform));
+                    .Any(c=>!c.transform.IsChildOf(local.transform)&&!c.transform.IsChildOf(car.transform));
                 if(occupied)break;position=foot;return true;
             }
         }

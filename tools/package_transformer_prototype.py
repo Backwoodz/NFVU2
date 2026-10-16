@@ -14,7 +14,7 @@ def main():
     walking=manifest['walkingReady']
     if walking:
         assert reviewed() and manifest.get('gaitReviewSha256')==reviewed(), 'Current complete walking review required'
-        assert manifest['gaitDefinitionSha256']==digest(BASE/'tools/transformer_gait_v3.json')
+        assert manifest['gaitDefinitionSha256']==configure(dict(manifest))['gaitDefinitionSha256']
         assert manifest['gaitReleases']==configure(dict(manifest))['gaitReleases'], 'Gait release table differs from reviewed settings'
     elif 'gaitClearanceSha256' in manifest:
         assert manifest['gaitClearanceSha256']==digest(BASE/'tools/transformer_gait_clearance.json')
@@ -56,10 +56,10 @@ Details: docs/TRANSFORMER-PROTOTYPE.md im Projekt.
 '''
     if walking:
         readme=readme.replace('GEHEN UND DREHEN SIND GESPERRT: Die Laufkandidaten zeigen noch\nUeberschneidungen an der Beinpanzerung. Die Bewegung bleibt weitere Arbeit.',
-            'GEHEN UND DREHEN: W/S vor und zurueck, A/D drehen; am Gamepad\nRT/LT und linker Stick. Vor dem ersten Schritt oeffnet die Kniepanzerung.\nF10/F7 bremst, setzt die Fuesse ab und schliesst die Panzerung vor der Rueckkehr.\nNur freie ebene Flaechen; Stufen, Abhaenge und Wasser sind gesperrt.')
+            'GEHEN/RENNEN/DREHEN: W/S vor und zurueck, A/D drehen.\nShift + W sprintet vorwaerts mit bis zu 7 m/s; am Gamepad RT/LT, linker Stick\nund X/Quadrat halten zum Sprinten. Vor dem ersten Schritt oeffnet die Kniepanzerung.\nF10/F7 bremst, setzt die Fuesse ab und schliesst die Panzerung vor der Rueckkehr.\nFreie Flaechen und leichte Haenge bis 15 Grad; Stufen, Abhaenge und Wasser bleiben gesperrt.')
         readme=readme.replace('Noch keine Roboter-Fortbewegung.','Langsamer Gehmodus und schrittweises Drehen.')
         readme=readme.replace('Langsamer Gehmodus und schrittweises Drehen.',
-            'W halten: sanft beschleunigen, gesetzte Standfuesse und laengere Schritte.\nV3 verwendet Gewichtsverlagerung, Vorneigung und gegenlaeufige Arme.\nBeim Loslassen werden die Fuesse einzeln abgesetzt; Richtungswechsel bremsen zuerst.\nDer Roboter bleibt ein Prototyp fuer ebene Flaechen, keine allgemeine Terrain-IK.')
+            'W halten: sanft beschleunigen, gesetzte Standfuesse und laengere Schritte.\nV4 fuegt schnelleren Sprint mit gebeugten Armen und kurzen Flugphasen hinzu.\nBeim Loslassen werden die Fuesse einzeln abgesetzt; Richtungswechsel bremsen zuerst.\nDer Roboter bleibt ein lokaler Prototyp; native Unity-Physik braucht Spieltests.')
     (out/'LIESMICH.txt').write_text(readme,encoding='utf-8')
     files=[Path('Rachel350Z.dll'),Path('transformer/transformer.json'),Path('transformer/transformer.bin')]
     package=out/'NFVU2-Transformer-Prototype.zip'

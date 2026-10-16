@@ -6,9 +6,10 @@ public partial class Plugin {
     ConfigEntry<bool> transformerEnabled;
     ConfigEntry<KeyboardShortcut> transformerKey;
     bool transformerExitPending;
+    bool transformerSprintHeld;
     bool Transforming=>current.transformer!=null&&current.transformer.Active;
     void InitializeTransformer() {
-        transformerEnabled=Config.Bind("TransformerPrototype","Enabled",false,"Enable the local V18 robot test. Requires matching optional transformer assets. Single-player, flat terrain only.");
+        transformerEnabled=Config.Bind("TransformerPrototype","Enabled",false,"Enable the local robot playtest. Terrain-following movement; F7 always dismounts, F10 returns to the car. Single-player.");
         transformerKey=Config.Bind("TransformerPrototype","ToggleKey",new KeyboardShortcut(KeyCode.F10),"Transform or return while stopped. Prototype keyboard toggle; movement supports keyboard/gamepad.");
     }
     void ToggleTransformer() {
@@ -27,37 +28,39 @@ public partial class Plugin {
         BlockDrivingInput();handling?.Step(false,0,0,1);vehicleImpact?.Step(null,false);ClearNitroVisuals();
         if(!current.transformer.Begin(player.transform,out string reason)){ShowVehicleWarning(reason);return;}
         cabinDriver.BeginTransformer();vehicleNeon?.Tick(false,0);
-        transformerExitPending=false;
-        status=current.transformer.WalkingReady?"Transformer: W/S gehen, A/D drehen, F10 zurueckverwandeln.":"Transformer-Standmodus: F10 zurueckverwandeln, F7 zurueck und aussteigen.";
+        transformerExitPending=transformerSprintHeld=false;
+        status=current.transformer.WalkingReady?"Transformer: W/S gehen, Shift + W rennen, A/D drehen, F10 zurueckverwandeln.":"Transformer-Standmodus: F10 zurueckverwandeln, F7 zurueck und aussteigen.";
     }
     void ReadTransformerControls() {
         if(Input.GetKeyDown(KeyCode.F7)||PadDown("back")) {
-            transformerExitPending=true;
-            if(!current.transformer.State.Returning&&!current.transformer.Return()) {
-                transformerExitPending=false;
-                ShowVehicleWarning("Zum Aussteigen erst Platz fuer die Rueckverwandlung schaffen.");
-            }
+            // Dismount is independent of terrain, animation and return gates.
+            // Save a nearby current-world fallback before Exit restores the car.
+            lastExitPosition=current.transformer.ExitPoint();
+            Exit();return;
         }
         if(transformerKey.Value.IsDown())ToggleTransformer();
         ReadVehicleControls();nitroHeld=burnoutHeld=turretHeld=honking=handbrakeHeld=false;current.flightVertical=0;
-        if(padActive&&pad!=null)throttle=ControlRules.Axis(pad.rightTrigger.ReadValue(),.05f)-ControlRules.Axis(pad.leftTrigger.ReadValue(),.05f);
-        if(!current.transformer.State.CanWalk||!current.transformer.WalkingReady||current.transformer.ReturnRequested||transformerExitPending){throttle=steer=0;brake=1;}
+        bool allowed=controlsGate.Allow(ControlsHeld());
+        if(allowed&&padActive&&pad!=null)throttle=ControlRules.Axis(pad.rightTrigger.ReadValue(),.05f)-ControlRules.Axis(pad.leftTrigger.ReadValue(),.05f);
+        transformerSprintHeld=allowed&&throttle>0&&(padActive&&pad!=null?pad.buttonWest.isPressed:Input.GetKey(KeyCode.LeftShift)||Input.GetKey(KeyCode.RightShift));
+        if(!allowed||!current.transformer.State.CanWalk||!current.transformer.WalkingReady||current.transformer.ReturnRequested||transformerExitPending){throttle=steer=0;brake=1;transformerSprintHeld=false;}
     }
     string[] TransformerHints()=>current.transformer!=null&&!current.transformer.WalkingReady?new[]{
         "Standmodus",
         padActive?"RS  Kamera":"Maus  Kamera",
         transformerKey.Value+"  Zurueckverwandeln",
-        padActive?"B / Kreis  Zurueck & aussteigen":"F7  Zurueck & aussteigen",
+        padActive?"B / Kreis  Sofort aussteigen":"F7  Sofort aussteigen",
         "Einzelspieler-Prototyp"}:new[]{
         padActive?"RT / LT  Gehen vor / zurueck":"W / S  Gehen vor / zurueck",
+        padActive?ButtonName("X","Quadrat")+" halten  Rennen":"Shift + W  Rennen",
         padActive?"LS  Drehen":"A / D  Drehen",
         padActive?"RS  Kamera":"Maus  Kamera",
         transformerKey.Value+"  Zurueckverwandeln (im Stand)",
-        padActive?"B / Kreis  Zurueck & aussteigen":"F7  Zurueck & aussteigen",
+        padActive?"B / Kreis  Sofort aussteigen":"F7  Sofort aussteigen",
         "Einzelspieler-Prototyp"};
     void TickTransformer() {
         var t=current.transformer;
-        bool blocked=audioBlocked||menuOpen||!Application.isFocused||Time.timeScale<=0;
+        bool blocked=audioBlocked||menuOpen||!Application.isFocused||Time.timeScale<=0||current.worldStreaming!=null&&current.worldStreaming.Waiting;
         if(transformerExitPending&&t.State.CanWalk&&!blocked&&Mathf.Abs(t.Speed)<.05f)t.Return();
         t.Tick(Time.deltaTime,blocked);
         if(t.TakeBlockedReturn()) {
