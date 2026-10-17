@@ -162,6 +162,10 @@ public partial class Plugin {
         yield return 0;
         vehicleAudio=new VehicleAudio(IsHummer);
         foreach(var step in StagedWork.Optional(vehicleAudio.LoadSteps(car,body,wheels,message=>Logger.LogInfo(message),assets.Audio),error=>{vehicleAudio.Dispose();vehicleAudio=null;Logger.LogWarning("Vehicle audio unavailable: "+error);}))yield return step;
+        if(!IsHummer&&assets.Transformer!=null) {
+            current.transformerAudio=new TransformerFootstepAudio(car,assets.Audio.TransformerSteps,message=>Logger.LogInfo(message));
+            yield return 0;
+        }
         try {vehicleLighting=VehicleLighting.Create(car,model,message=>Logger.LogInfo(message));}
         catch(Exception e){Logger.LogWarning("350Z lighting unavailable: "+e);}
         try {vehicleNeon=VehicleNeon.Create(car,model,message=>Logger.LogInfo(message));}

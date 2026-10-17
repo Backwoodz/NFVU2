@@ -16,6 +16,43 @@ class Program {
             advanced++;
         }finally{disposed++;}
     }
+    static void Pcm(string path,WavData source,float seconds) {
+        int count=(int)(source.SampleRate*seconds);
+        using(var file=File.Create(path))using(var writer=new BinaryWriter(file)) {
+            writer.Write(System.Text.Encoding.ASCII.GetBytes("RIFF"));writer.Write(36+count*2);
+            writer.Write(System.Text.Encoding.ASCII.GetBytes("WAVEfmt "));writer.Write(16);
+            writer.Write((short)1);writer.Write((short)1);writer.Write(source.SampleRate);
+            writer.Write(source.SampleRate*2);writer.Write((short)2);writer.Write((short)16);
+            writer.Write(System.Text.Encoding.ASCII.GetBytes("data"));writer.Write(count*2);
+            for(int i=0;i<count;i++)writer.Write((short)(source.Samples[i%source.Samples.Length]*32767));
+        }
+    }
+    static void TransformerAudio(WavData sample) {
+        string root=Path.Combine(Path.GetTempPath(),"NFVU2-step-loading-"+Guid.NewGuid().ToString("N"));
+        string folder=Path.Combine(root,"audio/transformer");Directory.CreateDirectory(folder);
+        try {
+            Pcm(Path.Combine(folder,"step_valid.wav"),sample,.15f);
+            Pcm(Path.Combine(folder,"step_long.wav"),sample,3.1f);
+            Pcm(Path.Combine(folder,"idle.wav"),sample,.1f);
+            File.WriteAllText(Path.Combine(folder,"step_broken.wav"),"not a wave");
+            var cache=new SpawnAssetCache();
+            var audio=Task.Run(()=>new SpawnAudio(root,false,cache,CancellationToken.None)).GetAwaiter().GetResult();
+            Check(audio.TransformerSteps.Count==1&&audio.TransformerSteps.ContainsKey("step_valid.wav"),"worker keeps valid short robot impact while excluding broken, long and unrelated clips");
+            var clip=audio.TransformerSteps["step_valid.wav"];
+            Check(clip.Channels==1&&clip.Samples.Length>0&&clip.Samples.Length<=clip.SampleRate*3,"worker provides decoded bounded mono robot samples");
+            Reject<InvalidDataException>(()=>audio.FileData(Path.Combine(folder,"step_long.wav")),"long robot clip cannot enter runtime file cache");
+            Reject<InvalidDataException>(()=>audio.FileData(Path.Combine(folder,"step_broken.wav")),"malformed robot clip remains isolated");
+            var warm=new SpawnAudio(root,false,cache,CancellationToken.None);
+            Check(ReferenceEquals(clip,warm.TransformerSteps["step_valid.wav"]),"repeat robot spawn shares worker-decoded samples");
+            Check(new SpawnAudio(root,true,cache,CancellationToken.None).TransformerSteps.Count==0,"H2 does not load robot impacts");
+            string empty=Path.Combine(root,"empty");Directory.CreateDirectory(empty);
+            var missing=new SpawnAudio(empty,false,cache,CancellationToken.None);
+            Check(missing.TransformerSteps.Count==0&&missing.Embedded("road.wav").Samples.Length>0,"missing robot audio preserves ordinary embedded vehicle audio");
+            string bounded=Path.Combine(root,"bounded"),many=Path.Combine(bounded,"audio/transformer");Directory.CreateDirectory(many);
+            for(int i=0;i<20;i++)Pcm(Path.Combine(many,"step_"+i.ToString("D2")+".wav"),sample,.02f);
+            Check(new SpawnAudio(bounded,false,cache,CancellationToken.None).TransformerSteps.Count==16,"optional robot audio set is bounded to sixteen decoded impacts");
+        }finally{Directory.Delete(root,true);}
+    }
     static void Main(string[] args) {
         int caller=Thread.CurrentThread.ManagedThreadId;
         var work=new StagedWork(Steps());
@@ -60,6 +97,7 @@ class Program {
         Check(assets.Warnings.Count==0,"installed optional model assets validate");
         Check(ReferenceEquals(assets.Model,warm.Model)&&ReferenceEquals(assets.Interior,warm.Interior)&&ReferenceEquals(assets.Hud,warm.Hud),"repeat spawn reuses parsed model data");
         Check(ReferenceEquals(assets.Audio.Embedded("road.wav"),warm.Audio.Embedded("road.wav")),"repeat spawn reuses decoded audio");
+        TransformerAudio(assets.Audio.Embedded("road.wav"));
         Check(assets.Audio.FileData(Path.Combine(args[0],"audio","effects","nitro.wav")).Samples.Length>0,"native path separators resolve prefetched audio");
         Check(ReferenceEquals(assets.Audio.FileData(Path.Combine(args[0],"audio/effects/nitro.wav")),assets.Audio.FileData(Path.Combine(args[0],"audio","effects","nitro.wav"))),"mixed path separators share one audio key");
         var h2=SpawnAssets.Load(args[0],true,cache,CancellationToken.None);

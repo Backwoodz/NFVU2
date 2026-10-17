@@ -145,7 +145,9 @@ internal sealed class VehicleTransformer:IDisposable {
         colliders.Clear();foreach(var c in car.GetComponentsInChildren<Collider>(true))if(c!=hull)colliders.Add(Tuple.Create(c,c.enabled));
         renderers.Clear();foreach(var r in car.GetComponentsInChildren<Renderer>(true))if(!r.transform.IsChildOf(Visual.Root.transform)&&owner.exhaustSmoke?.Owns(r.transform)!=true)renderers.Add(Tuple.Create(r,r.enabled));
         lights.Clear();foreach(var l in car.GetComponentsInChildren<Light>(true))lights.Add(Tuple.Create(l,l.enabled));
-        sounds.Clear();foreach(var s in car.GetComponentsInChildren<AudioSource>(true))if(s.isPlaying){sounds.Add(s);s.Pause();}
+        // Engine idle and foot contacts have their own pause/lifecycle handling.
+        // Pausing them here would bypass their playback bookkeeping.
+        sounds.Clear();foreach(var s in car.GetComponentsInChildren<AudioSource>(true))if(s.isPlaying&&owner.vehicleAudio?.Owns(s)!=true&&owner.transformerAudio?.Owns(s)!=true){sounds.Add(s);s.Pause();}
         foreach(var p in car.GetComponentsInChildren<ParticleSystem>(true))p.Stop(true,ParticleSystemStopBehavior.StopEmittingAndClear);
         kinematic=body.isKinematic;gravity=body.useGravity;constraints=body.constraints;
         if(storage!=null)storage.PositionForSave=()=>new Vector3(car.position.x,groundY+carClearance,car.position.z);
@@ -232,6 +234,7 @@ internal sealed class VehicleTransformer:IDisposable {
         Visual.Evaluate(State.Progress,gaitDt,actualSpeed,actualTurn,motionRequested);HideCar();
     }
     public void Restore() {
+        owner.transformerAudio?.Stop();
         Mounting=false;Visual.ClearMountPose();
         if(colliders.Count==0)return;
         Visual.Root.SetActive(false);hull.enabled=false;

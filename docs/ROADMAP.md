@@ -1,5 +1,41 @@
 # Nächste Aufgaben
 
+## Transformer: erste Soundstufe (lokale Entwicklung)
+
+- Sechs kurze Schrittvarianten aus drei vom Nutzer ausgewaehlten MP3s,
+  an die vorhandenen linken/rechten Fusslandungen gekoppelt. Zufallsauswahl
+  verwendet jede Variante einmal pro Durchlauf und vermeidet direkte
+  Wiederholungen; dezente Pegel-/Tonhoehenvariation, beim Sprint mehr Gewicht.
+  Fusskontakte beim Drehen und beim Abbremsen nutzen dieselbe Ereignisquelle.
+- Hoerrueckmeldung: urspruenglichen sechsten Sound (footstep-015-445103)
+  wegen seines herausstechenden hellen Tons entfernt; uebrige Varianten passen.
+  Schrittlautstaerke linear um 5 Prozent erhoeht. Anpassung gebaut, geprueft
+  und bei geschlossenem Valheim installiert. Leerlauf bleibt unveraendert.
+- Vorhandener 350Z-Motorleerlauf bleibt leiser als Grundschicht erhalten,
+  auch waehrend der Fortbewegung ohne Hochdrehen. Umbau blendet ihn aus/ein.
+  Parken folgt der vorhandenen Motor-Weiterlaufen-Einstellung. Menue/Pause,
+  Fokusverlust und Streamingpause stoppen Schritte ohne spaeteres Nachholen.
+- tools/prepare_transformer_audio.py erzeugt lokale Mono-PCM16-Ausschnitte
+  samt Herkunft, Schnittgrenzen und SHA-256; Originale/WAVs bleiben ignoriert.
+  Vergleichsdatei: artifacts/audio-transformer/footsteps-comparison.wav.
+  Nutzer bestaetigt die Laufsounds nach Entfernung der hellen Variante und
+  der Pegelerhoehung im Spiel als passend.
+- Naechste getrennte Stufen: Drehmechanik aus dreh sounds.mp3, danach
+  Auto-zu-Roboter mit transformers-growling-31509 als zusaetzlicher Schicht,
+  Rueckverwandlung mit morph-transforms-47358. Einrastakzente aus footstep-020
+  und giant-robot-in-space-352492; footstep-017 fuer Schritt oder Einrasten
+  vergleichen. Laufsounds bestaetigt; leisen Leerlauf bei Bedarf weiter abstimmen.
+- Build, 40 neue Schritt- und 27 neue Leerlaufpruefungen mit kontrollierten
+  Unity-Doubles sowie Audio-/Lade-/Kamera-/Speicher-/Kletterregressionen
+  bestanden. 116 Python-Tests inklusive Installer/Staging bestanden.
+- Lokal fuer den Spieltest installiert: gepruefte DLL und alle 77 Payload-
+  Dateien inklusive sechs Schritt-WAVs und Audiomanifest per SHA-256 mit
+  dem Build verglichen. Konfiguration erhalten; Basis- und Erweiterungsbackups
+  nach Erfolg auf je zwei Zeitstempelstaende begrenzt. Entfernten Schritt auch
+  im installierten Ordner entfernt; sechs beibehaltene WAVs unveraendert.
+  Native Hoerabnahme der Laufsounds vom Nutzer bestaetigt; dies ersetzt keine
+  vollstaendige Laufzeitpruefung aller Pause-/Lade-/Rueckkehrfaelle.
+
 ## Abgas im Leerlauf (lokale Entwicklung)
 
 - Dezente hellgraue Abgaswoelkchen direkt an den gewaehlten Endrohren,

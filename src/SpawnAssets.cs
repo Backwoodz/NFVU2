@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 namespace Rachel350Z {
 // Managed data only: safe on a worker. Cache lifetime is one local world.
@@ -54,6 +55,7 @@ public sealed class SpawnAudio {
     readonly Dictionary<string,WavData> clips=new Dictionary<string,WavData>();
     readonly Dictionary<string,Exception> errors=new Dictionary<string,Exception>();
     public readonly WavData Reverse;
+    public readonly Dictionary<string,WavData> TransformerSteps=new Dictionary<string,WavData>();
     public SpawnAudio(string folder,bool hummer,SpawnAssetCache cache,CancellationToken token) {
         var assembly=typeof(SpawnAudio).Assembly;
         foreach(var name in assembly.GetManifestResourceNames())if(name.StartsWith("Rachel350Z.Audio.",StringComparison.Ordinal)&&name.EndsWith(".wav",StringComparison.Ordinal))
@@ -64,6 +66,16 @@ public sealed class SpawnAudio {
             foreach(var file in Directory.GetFiles(path,"*.wav"))
                 Read(file,()=>cache.Load(file,p=>WavPcm16.Read(File.OpenRead(p),subfolder=="turret"?30:15),token),token);
         }
+        // Optional short robot impacts are decoded on the same worker. Broken
+        // clips must not turn an otherwise usable vehicle into a failed spawn.
+        var robotFolder=Path.Combine(folder,"audio/transformer");
+        if(!hummer&&Directory.Exists(robotFolder))try {
+            foreach(var file in Directory.GetFiles(robotFolder,"step_*.wav").OrderBy(p=>p,StringComparer.OrdinalIgnoreCase).Take(16)) {
+                token.ThrowIfCancellationRequested();
+                Read(file,()=>cache.Load(file,p=>WavPcm16.Read(File.OpenRead(p),3),token),token);
+                if(clips.TryGetValue(Key(file),out var data))TransformerSteps[Path.GetFileName(file)]=data;
+            }
+        }catch(OperationCanceledException){throw;}catch(Exception error){errors[Key(robotFolder)]=error;}
         token.ThrowIfCancellationRequested();
         Reverse=ReverseGearSound.Create();
     }

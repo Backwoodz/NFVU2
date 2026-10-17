@@ -1,3 +1,43 @@
+Transformer-Schritte – lokale erste Soundstufe
+
+Vom Nutzer ausgewaehlte, lokal heruntergeladene Aufnahmen:
+daviddumaisaudio-robot-heavy-mechanical-footsteps-194039.mp3
+audiopapkin-big-robot-footstep-330678.mp3
+audiopapkin-big-robot-footstep-016-445102.mp3
+
+tools/prepare_transformer_audio.py --source-dir <Ordner> erzeugt sechs
+Mono-PCM16-WAVs in .local/audio-transformer: vier einzelne Auftritte aus der
+ersten Aufnahme und je einen aus den zwei weiteren. Wellenformbasierter
+Erstschnitt, kurzer Vorlauf vor dem Hauptanstieg, Gleichanteilentfernung,
+kurze Ein-/Ausblendung und Pegelangleichung. Keine synthetischen Schichten
+oder Zeitstreckung. Dateinamen, Eingabe-/Ausgabe-SHA-256, exakte Schnittgrenzen,
+Decoderstand und Verarbeitung stehen im lokalen manifest.json.
+Keine Original-Filmaufnahmen behauptet; Quellseiten und Weitergaberechte
+sind noch nicht unabhaengig verifiziert. Kein neuer oeffentlicher Release.
+Nutzer-Hoervergleich: urspruengliche Variante 06 aus
+audiopapkin-big-robot-footstep-015-445103.mp3 wegen herausstechendem hellen Ton
+entfernt; uebrige Varianten passen. Verbleibende Dateinamen bleiben stabil
+(step_01 bis step_05 und step_07). Schrittpegel in der Laufzeit um 5 Prozent
+angehoben. Nutzer bestaetigt die angepassten Laufsounds im Spiel als passend.
+
+Build kopiert nur die optionalen WAVs/Metadaten nach audio/transformer.
+Die Laufzeit decodiert bis zu 16 kurze Schritte im Spawn-Worker; fehlende
+oder defekte optionale Aufnahmen verhindern den Fahrzeugspawn nicht.
+Der leisere Roboter-Leerlauf verwendet dieselben vorhandenen 350Z-Aufnahmen
+wie das Auto, ohne neue Reaktoraufnahme. Einstellungen bleiben erhalten.
+
+Vorgemerkte weitere Nutzerzuordnung, noch nicht eingebaut:
+- dreh sounds.mp3: Mechanik beim Drehen im Stand.
+- freesound_community-transformers-growling-31509.mp3: Auto zu Roboter,
+  zusaetzliche passend geschnittene Schicht; Originaldatei rund 21,07 s.
+- freesound_community-062725_morph-transforms-sound-effect-11wav-47358.mp3:
+  Roboter zurueck zum Auto. Grundanimation jeweils 5 s ohne Zusatzphasen/Pause.
+- audiopapkin-big-robot-footstep-020-500843.mp3 und
+  idoberg-giant-robot-in-space-352492.mp3: Einrastakzente.
+- audiopapkin-big-robot-footstep-017-499567.mp3: Schritt oder Einrasten,
+  Entscheidung nach Hoervergleich. Kein automatisches Einmischen.
+
+
 350Z-Fahrzeug-Sound – Version 0.5.0
 
 Die folgenden Originalaufnahmen wurden aus den lokal bereitgestellten

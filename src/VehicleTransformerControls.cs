@@ -65,6 +65,22 @@ public partial class Plugin {
         if(rider&&cabinDriver.RobotTransitionActive)t.Visual.SetMountPose(cabinDriver.RobotTransitionProgress,cabinDriver.RobotTransitionEntering);
         else t.Visual.ClearMountPose();
         t.Tick(Time.deltaTime,blocked);
+        if(current.transformerAudio!=null)try {
+            // F7 marks mounting before the last swing lands. Keep those genuine
+            // contacts audible; the settled mount pose creates no new footfalls.
+            current.transformerAudio.Tick(Time.deltaTime,t.State.CanWalk,blocked,
+                t.Visual.LeftFootfalls,t.Visual.RightFootfalls,t.Visual.RunBlend,soundVolume.Value,
+                t.Visual.Node("foot.L").position,t.Visual.Node("foot.R").position);
+        }catch(Exception e) {
+            current.transformerAudio.Dispose();current.transformerAudio=null;
+            Logger.LogWarning("Transformer footsteps disabled after audio error: "+e);
+        }
+        if(t.Active&&vehicleAudio!=null)try {
+            vehicleAudio.TickRobotIdle(rider||ParkedRunning,blocked,soundVolume.Value,t.State.Progress);
+        }catch(Exception e) {
+            vehicleAudio.Dispose();vehicleAudio=null;
+            Logger.LogWarning("Transformer idle disabled after audio error: "+e);
+        }
         if(t.TakeBlockedReturn()) {
             transformerExitPending=false;
             ShowVehicleWarning("Hier fehlt Platz zum Zurueckverwandeln. Erst auf eine freie Flaeche gehen.");

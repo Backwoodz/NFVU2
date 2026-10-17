@@ -361,6 +361,7 @@ public partial class Plugin : BaseUnityPlugin {
         current.worldStreaming?.Dispose();current.worldStreaming=null;
         current.parkedStreaming?.Dispose();current.parkedStreaming=null;
         current.transformer?.Dispose();current.transformer=null;current.transformerAsset=null;
+        current.transformerAudio?.Dispose();current.transformerAudio=null;
         current.storage?.Release(removeVehicle);current.storage=null;
         current.flight?.Dispose();current.flight=null;
         current.flightEffects?.Dispose();current.flightEffects=null;

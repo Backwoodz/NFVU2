@@ -15,7 +15,7 @@ static class Tests {
     static void Fails(Action action, string name) { try { action(); } catch (IOException) { checks++; return; } throw new Exception("Expected failure: " + name); }
     static void Put(string root, string name, string data) { string p = Path.Combine(root, name); Directory.CreateDirectory(Path.GetDirectoryName(p)); File.WriteAllText(p, data); }
     static string Read(string root, string name) { return File.ReadAllText(Path.Combine(root, name)); }
-    static MemoryStream Payload(string dll = "new", bool stale = false, bool corrupt = false, bool ogg = false) {
+    static MemoryStream Payload(string dll = "new", bool stale = false, bool corrupt = false, bool ogg = false, bool robot = false) {
         var stream = new MemoryStream();
         var files = new Dictionary<string, string> {
             {InstallerCore.ModRoot+"Rachel350Z.dll", dll}, {InstallerCore.ModRoot+"body.json", "model"},
@@ -23,6 +23,10 @@ static class Tests {
             {"BepInEx/core/BepInEx.dll", "test-loader"}, {"doorstop_config.ini", "config"}
         };
         if (stale) files.Add(InstallerCore.ModRoot+"menu/old.json", "old");
+        if (robot) {
+            files.Add(InstallerCore.ModRoot+"audio/transformer/step_01.wav", "robot impact");
+            files.Add(InstallerCore.ModRoot+"audio/transformer/manifest.json", "{}");
+        }
         using (var archive = new ZipArchive(stream, ZipArchiveMode.Create, true)) {
             var hashes = new Dictionary<string, string>();
             foreach (var file in files) {
@@ -89,6 +93,18 @@ static class Tests {
             using (var zip = Payload()) Core(root).Install(zip);
             Core(root).Uninstall(true);
             Check(!File.Exists(Path.Combine(root, "winhttp.dll")), "owned loader removed");
+
+            Check(InstallerCore.ModName(InstallerCore.ModRoot+"audio/transformer/step_01.wav"), "robot impact path allowed");
+            Check(InstallerCore.ModName(InstallerCore.ModRoot+"audio/transformer/manifest.json"), "robot provenance manifest allowed");
+            Check(!InstallerCore.ModName(InstallerCore.ModRoot+"audio/transformer/../step.wav"), "robot path traversal rejected");
+            Check(!InstallerCore.ModName(InstallerCore.ModRoot+"audio/transformer/nested/step.wav"), "nested robot source folder rejected");
+            Check(!InstallerCore.ModName(InstallerCore.ModRoot+"audio/transformer/source.mp3"), "original robot recording excluded");
+            root = Fixture(parent, "robot-audio");
+            using (var zip = Payload(robot: true)) Core(root).Install(zip);
+            Check(Read(root, InstallerCore.ModRoot+"audio/transformer/step_01.wav") == "robot impact", "robot impacts install through normal engine");
+            Check(Read(root, InstallerCore.ModRoot+"audio/transformer/manifest.json") == "{}", "robot provenance manifest installed");
+            Core(root).Uninstall(true);
+            Check(!File.Exists(Path.Combine(root, InstallerCore.ModRoot+"audio/transformer/step_01.wav")), "owned robot impacts uninstall");
 
             root = Fixture(parent, "corrupt");
             using (var zip = Payload(corrupt: true)) Fails(() => Core(root).Install(zip), "checksum");

@@ -37,6 +37,7 @@ internal sealed class VehicleRuntime {
     public VehicleImpact vehicleImpact;
     public bool hasBeenDriven;
     public VehicleAudio vehicleAudio;
+    public TransformerFootstepAudio transformerAudio;
     public VehicleLighting vehicleLighting;
     public VehicleNeon vehicleNeon;
     public VehicleRadio vehicleRadio;

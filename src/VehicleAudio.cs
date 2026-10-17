@@ -31,6 +31,13 @@ public sealed class VehicleAudio : IDisposable {
     bool paused,playing,disposed;
     int exhaustProfile;
     float exhaustPitch=1f;
+    public bool Owns(AudioSource source)=>sources.Contains(source);
+    public void TickRobotIdle(bool running,bool blocked,float volume,float progress) {
+        // Keep the familiar engine quietly under robot mechanics. The same
+        // sources and sound model return to ordinary driving without a restart.
+        float fade=Mathf.SmoothStep(0,1,Mathf.InverseLerp(.72f,1,progress));
+        Tick(false,0,false,false,blocked,true,volume*.65f*fade,false,running,false,false,true);
+    }
     public void SetExhaustProfile(int profile){exhaustProfile=ExhaustSoundProfile.Clamp(profile);}
     public IEnumerable<int> LoadSteps(GameObject car,Rigidbody carBody,WheelCollider[] carWheels,Action<string> log,SpawnAudio audio) {
         prepared=audio;
@@ -88,8 +95,12 @@ public sealed class VehicleAudio : IDisposable {
         source.dopplerLevel=.25f;source.spread=0;source.outputAudioMixerGroup=mixer;
         return source;
     }
-    public void Tick(bool driving,float throttle,bool braking,bool honking,bool blocked,bool terrain,float volume,bool burnout=false,bool parkedRunning=false,bool flying=false,bool turboInputAllowed=true) {
+    public void Tick(bool driving,float throttle,bool braking,bool honking,bool blocked,bool terrain,float volume,bool burnout=false,bool parkedRunning=false,bool flying=false,bool turboInputAllowed=true,bool robotIdle=false) {
         if(disposed)return;
+        if(robotIdle) {
+            driving=false;throttle=0;braking=honking=burnout=flying=turboInputAllowed=false;
+            roadLevel=skidLevel=hornLevel=0;
+        }
         if(blocked) {
             if(!paused){foreach(var source in sources)source.Pause();paused=true;}
             turboModel.Reset();turboReleaseGain=0;
