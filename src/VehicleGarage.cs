@@ -7,7 +7,12 @@ public partial class Plugin {
     ConfigEntry<string> spawnModel;
     MonoBehaviour fleetOwner;
     void InitializeGarage(){spawnModel=Config.Bind("Garage","SpawnModel","Nissan 350Z",new ConfigDescription("Vehicle created with F6 or the garage button.",new AcceptableValueList<string>("Nissan 350Z","Hummer H2")));}
-    bool CanAccessCurrent(MonoBehaviour local)=>car!=null&&local!=null&&(driving||Vector3.Distance(local.transform.position,car.transform.position)<5);
+    bool CanAccessCurrent(MonoBehaviour local) {
+        if(car==null||local==null)return false;
+        var offset=local.transform.position-car.transform.position;
+        if(Transforming)offset.y=0;
+        return driving||offset.sqrMagnitude<25;
+    }
     void SelectNearest(MonoBehaviour local) {
         var nearest=fleet.Nearest(v=>v.car!=null?(v.car.transform.position-local.transform.position).sqrMagnitude:float.PositiveInfinity);
         if(nearest!=null)current=nearest;

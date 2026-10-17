@@ -30,8 +30,12 @@ internal sealed class VehicleTransformer:IDisposable {
     Transform player;
     public bool Active=>State.Active;
     public bool WalkingReady {get;private set;}
+    public bool Mounting {get;set;}
+    public void SetRider(Transform rider){player=rider;}
     public float Speed=>moveSpeed;
     public bool ReturnRequested=>returnRequested;
+    public bool ReadyForMount=>State.CanWalk&&!returnRequested&&Terrain.CanMove&&!Terrain.ReturnStarted
+        &&Visual.FeetSettled&&Mathf.Abs(moveSpeed)<.05f&&Mathf.Abs(turnSpeed)<.01f;
     public bool TakeBlockedReturn(){bool result=returnBlocked;returnBlocked=false;return result;}
     public VehicleTransformer(VehicleRuntime vehicle,TransformerAsset asset,bool staged=false) {
         owner=vehicle;car=vehicle.car.transform;body=vehicle.body;
@@ -192,7 +196,7 @@ internal sealed class VehicleTransformer:IDisposable {
             returnHeight=body.position.y;returnPrepared=true;
         }
         if(State.CanWalk)Terrain.Step(dt,Visual.ReadyToWalk,Visual.FeetSettled,returnPrepared,blocked,Visual.Settled);
-        Visual.HoldReady=State.CanWalk&&Terrain.HoldReady;
+        Visual.HoldReady=State.CanWalk&&(Terrain.HoldReady||Mounting);
         if(returnPrepared&&State.CanWalk&&Terrain.CanRetract&&Visual.Settled&&!blocked)State.Return();
         State.Step(dt,blocked);
         if(!Active){Restore();return;}
@@ -220,6 +224,7 @@ internal sealed class VehicleTransformer:IDisposable {
         Visual.Evaluate(State.Progress,gaitDt,actualSpeed,actualTurn,motionRequested);HideCar();
     }
     public void Restore() {
+        Mounting=false;Visual.ClearMountPose();
         if(colliders.Count==0)return;
         Visual.Root.SetActive(false);hull.enabled=false;
         foreach(var r in renderers)if(r.Item1!=null)r.Item1.enabled=r.Item2;

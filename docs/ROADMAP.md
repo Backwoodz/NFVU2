@@ -1,5 +1,43 @@
 # Nächste Aufgaben
 
+## Transformer: Hochklettern und Backflip (lokale Entwicklung)
+
+- F7/B/Kreis bremst bis zur Fussruhe. Der echte Spielcharakter steht auf der
+  Schulterplattform auf, holt in der Hocke aus und springt gleichzeitig
+  nach hinten und oben in einen durchgehenden Bogen (2,15 s). Die Flugbahn
+  beruecksichtigt die echte Landehoehe und steigt rund 78 cm ueber den
+  Absprungpunkt, bevor sie zunehmend steiler abfaellt. Im Salto
+  werden Huefte und Knie deutlich angezogen, Ruecken/Kopf eingerollt und die
+  Haende zu den Knien gefuehrt; vor der Landung oeffnet sich die Pose. Die Landung
+  wird abgefedert, die Roboterform bleibt geparkt bestehen.
+- Nahe dem Roboter von jeder Seite F7/B/Kreis: aussen zum hinteren Bein gehen, abwechselnd an
+  vorhandenen Metallflaechen greifen und auftreten, mit festen Hand-/Fusskontakten
+  hochziehen und oben auf die Plattform steigen. Erst danach in die Sitzpose
+  wechseln (rund 8 s). Die Kontaktpunkte werden aus den aktuellen Modelldreiecken gewaehlt;
+  der Roboter bleibt beim Klettern ruhig stehen. Der bestehende Avatar mit
+  Inventar und Ausruestung wird weiterverwendet.
+- Aufnahmerueckmeldung: die starre Drehpose und ruckartigen Kletterzuege
+  ueberarbeitet. Eigene Knochenbasis pro Frame verhindert aufaddierte IK;
+  Hueftweg, Reichweitenkorrektur und Hand-/Fussausrichtung werden geglaettet.
+  Beim Kofferraumdeckel halten zwischengespeicherte Querschnitte der echten
+  Deckel-/Spoilergeometrie den Oberkoerper aussen; Knie werden seitlich gefuehrt.
+  Beim oberen Uebersteigen erst hinter der Kante hochziehen, dann mit den
+  Schritten darueber wechseln. Tiefere Handgriffe werden dabei frueher geloest.
+  Linke/rechte Modellkontakte sind passend zum Avatar zugeordnet, damit Arme
+  und Beine sich beim Greifen und Auftreten nicht ueberkreuzen.
+  Aufrichten und Absprung nutzen eigene Standkontakte auf den hinteren
+  Dachkanten (rund 51 cm hinter der Helm-Hinterkante), nicht die vor dem Kopf
+  liegenden Sitz-Fusspunkte. Beim Hinsetzen zuerst hinten absenken, dann in
+  die Sitzposition schieben; beim Aufstehen entsprechend umgekehrt.
+- Keine Seiten-, Hang-, Wasser- oder Freiraumsperren beim Auf-/Absteigen.
+  Boden-/Kapselabfragen bevorzugen einen guenstigen Landeplatz, liefern aber
+  immer einen Ersatzpunkt. F7 waehrend des Hochkletterns steigt sofort ab.
+  Menue/Pause halten die Animation an. Bewegung und Rueckverwandlung warten
+  waehrend der Choreografie. Spieler, Kamera, Animator und Fallhoehe werden
+  beim Abschluss/Notausstieg wieder freigegeben. Weltladen bleibt unveraendert.
+- Build und 49 gezielte Kletter-/Absprungchecks bestanden. Keine Blender-Render.
+  Avatarpose, native Kollisionen und Kamerafuehrung im Spiel pruefen.
+
 ## Transformer: Kamera bei Fusslandungen (lokale Entwicklung)
 
 - Jede abgeschlossene Fussschwungphase liefert einen Landekontakt an die

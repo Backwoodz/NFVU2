@@ -6,13 +6,15 @@ public partial class Plugin {
     ConfigEntry<bool> transformerEnabled;
     ConfigEntry<KeyboardShortcut> transformerKey;
     bool transformerExitPending;
+    bool transformerEntryPending;
     bool transformerSprintHeld;
     bool Transforming=>current.transformer!=null&&current.transformer.Active;
     void InitializeTransformer() {
-        transformerEnabled=Config.Bind("TransformerPrototype","Enabled",false,"Enable the local robot playtest. Terrain-following movement; F7 always dismounts, F10 returns to the car. Single-player.");
+        transformerEnabled=Config.Bind("TransformerPrototype","Enabled",false,"Enable the local robot playtest. F7 dismounts by backflip; near the parked robot F7 boards from any side. F10 returns to the car. Single-player.");
         transformerKey=Config.Bind("TransformerPrototype","ToggleKey",new KeyboardShortcut(KeyCode.F10),"Transform or return while stopped. Prototype keyboard toggle; movement supports keyboard/gamepad.");
     }
     void ToggleTransformer() {
+        if(transformerEntryPending||transformerExitPending||cabinDriver!=null&&cabinDriver.RobotTransitionActive)return;
         if(Transforming) {
             if(!current.transformer.Return())ShowVehicleWarning("Zum Zurueckverwandeln anhalten und Platz fuer das Auto schaffen.");
             BlockDrivingInput();return;
@@ -33,52 +35,65 @@ public partial class Plugin {
     }
     void ReadTransformerControls() {
         if(Input.GetKeyDown(KeyCode.F7)||PadDown("back")) {
-            // Dismount is independent of terrain, animation and return gates.
-            // Save a nearby current-world fallback before Exit restores the car.
-            lastExitPosition=current.transformer.ExitPoint();
-            Exit();return;
+            RequestRobotExit();return;
         }
         if(transformerKey.Value.IsDown())ToggleTransformer();
         ReadVehicleControls();nitroHeld=burnoutHeld=turretHeld=honking=handbrakeHeld=false;current.flightVertical=0;
         bool allowed=controlsGate.Allow(ControlsHeld());
         if(allowed&&padActive&&pad!=null)throttle=ControlRules.Axis(pad.rightTrigger.ReadValue(),.05f)-ControlRules.Axis(pad.leftTrigger.ReadValue(),.05f);
         transformerSprintHeld=allowed&&throttle>0&&(padActive&&pad!=null?pad.buttonWest.isPressed:Input.GetKey(KeyCode.LeftShift)||Input.GetKey(KeyCode.RightShift));
-        if(!allowed||!current.transformer.State.CanWalk||!current.transformer.WalkingReady||current.transformer.ReturnRequested||transformerExitPending){throttle=steer=0;brake=1;transformerSprintHeld=false;}
+        if(!allowed||!DriverInputReady||!current.transformer.State.CanWalk||!current.transformer.WalkingReady||current.transformer.ReturnRequested||transformerExitPending){throttle=steer=0;brake=1;transformerSprintHeld=false;}
     }
     string[] TransformerHints()=>current.transformer!=null&&!current.transformer.WalkingReady?new[]{
         "Standmodus",
         padActive?"RS  Kamera":"Maus  Kamera",
         transformerKey.Value+"  Zurueckverwandeln",
-        padActive?"B / Kreis  Sofort aussteigen":"F7  Sofort aussteigen",
+        padActive?"B / Kreis  Backflip absteigen":"F7  Backflip absteigen",
         "Einzelspieler-Prototyp"}:new[]{
         padActive?"RT / LT  Gehen vor / zurueck":"W / S  Gehen vor / zurueck",
         padActive?ButtonName("X","Quadrat")+" halten  Rennen":"Shift + W  Rennen",
         padActive?"LS  Drehen":"A / D  Drehen",
         padActive?"RS  Kamera":"Maus  Kamera",
         transformerKey.Value+"  Zurueckverwandeln (im Stand)",
-        padActive?"B / Kreis  Sofort aussteigen":"F7  Sofort aussteigen",
+        padActive?"B / Kreis  Backflip absteigen":"F7  Backflip absteigen",
         "Einzelspieler-Prototyp"};
     void TickTransformer() {
         var t=current.transformer;
         bool blocked=audioBlocked||menuOpen||!Application.isFocused||Time.timeScale<=0||current.worldStreaming!=null&&current.worldStreaming.Waiting;
-        if(transformerExitPending&&t.State.CanWalk&&!blocked&&Mathf.Abs(t.Speed)<.05f)t.Return();
+        bool rider=driving&&cabinDriver!=null;
+        t.Mounting=rider&&!t.ReturnRequested&&(transformerEntryPending||transformerExitPending||cabinDriver.RobotTransitionActive);
+        if(rider&&cabinDriver.RobotTransitionActive)t.Visual.SetMountPose(cabinDriver.RobotTransitionProgress,cabinDriver.RobotTransitionEntering);
+        else t.Visual.ClearMountPose();
         t.Tick(Time.deltaTime,blocked);
         if(t.TakeBlockedReturn()) {
             transformerExitPending=false;
             ShowVehicleWarning("Hier fehlt Platz zum Zurueckverwandeln. Erst auf eine freie Flaeche gehen.");
         }
-        orbitCamera.RobotBlend=t.State.Progress;
-        orbitCamera.RobotFootsteps(Time.deltaTime,driving&&t.State.CanWalk&&!blocked,
-            t.Visual.LeftFootfalls,t.Visual.RightFootfalls,t.Visual.RunBlend);
+        if(rider) {
+            orbitCamera.RobotBlend=t.State.Progress;
+            orbitCamera.RobotFootsteps(Time.deltaTime,t.State.CanWalk&&!blocked&&!t.Mounting,
+                t.Visual.LeftFootfalls,t.Visual.RightFootfalls,t.Visual.RunBlend);
+        }
         if(t.Active) {
             t.Visual.SetNeon(NeonColors[Math.Max(0,Array.IndexOf(ColorNames,neonColor.Value))],neonEnabled.Value,neonPulsing.Value,
                 NeonColors[Math.Max(0,Array.IndexOf(ColorNames,trunkNeonColor.Value))],trunkNeonEnabled.Value,trunkNeonPulsing.Value,Time.time);
-            cabinDriver.TickTransformer(t.Visual,t.State.Progress);
-            orbitCamera.LateFrame(car.transform.forward*t.Speed,dynamicCamera.Value,cameraFollow.Value,blocked);
+            if(rider) {
+                if(TickRobotMount(t,blocked))return;
+                orbitCamera.LateFrame(car.transform.forward*t.Speed,dynamicCamera.Value,cameraFollow.Value,blocked);
+            }
         } else {
-            BlockDrivingInput();
-            cabinDriver.Tick(0,blocked,showroom.State);
-            if(transformerExitPending){transformerExitPending=false;RequestExit();}
+            if(rider) {
+                if(transformerEntryPending) {
+                    // Boarding requested during an already running inverse
+                    // transformation continues through the ordinary car door.
+                    transformerEntryPending=transformerExitPending=false;
+                    cabinDriver.Dispose();
+                    var outside=lastExitPosition;
+                    if(FindCabinExit(player,out var door))outside=door;
+                    cabinDriver=new VehicleCabinDriver(player,car.transform,current.interior,outside);
+                }
+                BlockDrivingInput();cabinDriver.Tick(0,blocked,showroom.State);
+            }
         }
     }
 }

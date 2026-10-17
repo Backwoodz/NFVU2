@@ -197,6 +197,7 @@ internal sealed partial class TransformerVisual:IDisposable {
                 Vector3.Lerp(new Vector3(a[k+7],a[k+8],a[k+9]),new Vector3(b[k+7],b[k+8],b[k+9]),u));
         }
         if(progress>=1&&asset.Manifest.walkingReady)Walk(dt,speed,turn,motionRequested);else gait.Reset();
+        ApplyMountPose(progress);
         UpdateMachineEffects(progress,dt,turn);
         for(int i=0;i<nodes.Length;i++)Apply(nodes[i],pose[i]);
         foreach(var r in renderers)r.Item1.enabled=!r.Item2||progress>=11.5f/120;

@@ -5,7 +5,7 @@ using UnityEngine;
 namespace Rachel350Z {
 // Uses the live character's chair animation and a small procedural limb/entry layer.
 // Does not instantiate a Player clone or change equipment, inventory or network ownership.
-internal sealed class VehicleCabinDriver:IDisposable {
+internal sealed partial class VehicleCabinDriver:IDisposable {
     public readonly CabinTransition Motion=new CabinTransition();
     readonly Transform player,car,visual,hips;
     readonly Animator animator;
