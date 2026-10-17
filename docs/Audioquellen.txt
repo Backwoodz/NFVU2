@@ -140,6 +140,17 @@ Originaldauer und absolute Quellsekunden sind getrennt vom 3-s-Decodierfenster
 im deploy_manifest.json dokumentiert. Nutzer bestaetigt den Bass-Ausschnitt
 und die abgestimmte Mischung im Spiel und beauftragt den Commit.
 
+Spaeter Sub-Drop nur fuer Auto-zu-Roboter:
+brvhrtz-sub-drop-short-232033.mp3, rund 3,32 s. Der natuerliche letzte
+abfallende Abschnitt 1,40–2,95 s wird mit 10 ms Ein-/80 ms Ausblendung als
+1,55-s-Akzent ab 3,75 s bis zum bestehenden Soundtrackende bei 5,30 s
+eingemischt, maximaler 80-ms-RMS-Zielpegel 0,18. Keine Zeitstreckung oder
+Pitch-Aenderung. Der bisherige
+vollstaendige Vorwaertsmix bleibt die Grundlage; nur die neue Soundgruppe
+wird in den verbleibenden Spitzenraum begrenzt, ohne globale Absenkung der
+Einrast-/Growl-Mischung. Quelle, Schnitt, Einsatzzeit und Gain sind im
+deploy_manifest.json dokumentiert. Hoerabstimmung der neuen Schicht offen.
+
 Roboter-zu-Auto – bestaetigte Hauptschicht mit neuen Bauteilakzenten:
 Nutzer hat Kandidat A aus dem Growling-Hoervergleich ausgewaehlt:
 freesound_community-transformers-growling-31509.mp3, Ausschnitt 6,0–10,2 s.

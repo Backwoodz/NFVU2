@@ -33,6 +33,14 @@ PEAK_CEILING = 0.95
 LAYER_PEAK_CEILING = 0.90
 WINDOW_SECONDS = 0.08
 LOCK_KNEE_FRACTION = 0.86
+SUBDROP = 'brvhrtz-sub-drop-short-232033.mp3'
+PRIOR_25_LAYER_SHA256 = '97d60be78204d9a2a50be2d2c6564fe94e20ed361b9f2879d74452157a1e3b40'
+SUBDROP_CUE = dict(
+    name='late_subdrop', source=SUBDROP, crop=(1.4, 2.95), onset=3.75,
+    target_rms=0.18, fade_in=0.01, fade_out=0.08,
+    stage='late natural descending bass tail; source ends quietly without time compression',
+    bus='additional_late_subdrop',
+)
 
 
 def locking_cue(name, source, crop, contact, target_rms, stage, nodes,
@@ -243,7 +251,7 @@ def compose_foundation(decoded):
     return mix, layers, processing
 
 
-def compose(decoded):
+def compose_before_subdrop(decoded):
     """Short inside impulses replace sustained crops; add bass on its own bus."""
     foundation, layers, processing = compose_foundation(decoded)
     textures, metadata = place_layers(decoded, DEPLOY_TEXTURES, len(foundation), prepare_layer)
@@ -263,6 +271,22 @@ def compose(decoded):
     return base + limited_bass, layers + metadata + bass_metadata, processing
 
 
+def compose(decoded):
+    """Keep all 25 previous layers intact and add only the late drop bus."""
+    foundation, layers, processing = compose_before_subdrop(decoded)
+    prior_hash = wav_sha256(foundation)
+    if prior_hash != PRIOR_25_LAYER_SHA256:
+        raise ValueError('Previous 25-layer deploy foundation differs; check sources and decoder')
+    subdrop, metadata = place_layers(decoded, [SUBDROP_CUE], len(foundation), prepare_layer)
+    added, constraint = constrain_lock_bus(subdrop, foundation)
+    constraint['type'] = 'late_subdrop_bus_only_continuous_soft_knee'
+    constraint['preserves_complete_previous_25_layer_mix'] = True
+    processing['prior_25_layer_foundation_sha256'] = prior_hash
+    processing['additional_late_subdrop_bus_constraint'] = constraint
+    processing['additional_late_subdrop_bus_peak'] = float(np.max(np.abs(added)))
+    return foundation + added, layers + metadata, processing
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--source-dir', required=True, type=Path,
@@ -272,7 +296,7 @@ def main():
     parser.add_argument('--preview', type=Path,
                         help='Optional identical standalone mix WAV, outside managed output')
     args = parser.parse_args()
-    sources = {cue['source'] for cue in CUES + DEPLOY_TEXTURES + [DEPLOY_BASS]}
+    sources = {cue['source'] for cue in CUES + DEPLOY_TEXTURES + [DEPLOY_BASS, SUBDROP_CUE]}
     missing = [name for name in sorted(sources) if not (args.source_dir / name).is_file()]
     if missing:
         raise ValueError('Missing source recordings: ' + ', '.join(missing))
@@ -300,7 +324,7 @@ def main():
             **(bass_source_metadata if name == BASS else {}),
         })
     manifest = {
-        'schema_version': 4,
+        'schema_version': 5,
         'generated_date_utc': datetime.now(timezone.utc).date().isoformat(),
         'files': [{
             'file': target.name, 'role': 'transform_deploy', 'sha256': sha256(target),
@@ -324,14 +348,15 @@ def main():
                            'replace every sustained inside texture with an isolated short attack impulse',
                            'add separately constrained support textures without attenuating growl or lock foundation',
                            'decode bass source only at 75-78s and add its cropped effect on a separate final constrained bus',
+                           'preserve the complete previous 25-layer mix and add a separately constrained late subdrop bus from 3.75 to 5.30s',
                            'round to PCM16'],
             'time_stretch': False, 'pitch_change': False,
         },
         'decoder_version': subprocess.check_output(
             [str(ffmpeg), '-version'], text=True).splitlines()[0],
         'provenance': 'Locally downloaded MP3s selected by the user. Filenames and SHA-256 identify sources; licensing and redistribution rights have not been independently verified.',
-        'review_status': 'Growl, twelve locks, laser and moving-tools retained. All inside layers shortened to isolated attacks after user feedback. Bass from 75.78-77.68s added for an in-game listening test.',
-        'waveform_evidence': 'Growl, twelve lock cues, laser and moving-tools retain source crops, gain targets, fades and timing. Every inside crop now centres on an isolated 5ms-envelope energy rise relative to the preceding 40ms, with about 20ms preattack and .20-.22s total length, 6ms fade-in and 65ms fade-out. Timeline gaps remain between all inside cues. Bass has a quiet 75-75.8s lead-in, so the active 75.78-77.68s effect is selected without stretching and mixed on a final separate limited bus. Isolated processed clip hashes are recorded per layer. Numerical evidence does not establish perceived sound quality.',
+        'review_status': 'Complete previous 25-layer deploy mix retained. Additional late subdrop1.40-2.95s at3.75s prepared from descending source tail; in-game listening and balance review pending.',
+        'waveform_evidence': 'All previous 25 cues and their bus processing retained. New subdrop source lasts3.31755s, with active signal until about2.9s. Last descending section1.40-2.95s preserves the natural quiet ending;200ms FFT windows fall from35.5Hz at1.4s to28.5Hz at2.65s.100ms source RMS drops from about.64 to.020 at2.8s and.0003 at2.9s. A10ms onset fade and80ms final fade avoid cut edges without time/pitch change. Added only at3.75s on its own final headroom-constrained bus; previous whole-mix PCM hash is recorded and verified. Numerical evidence does not establish perceived sound quality.',
         'timing_basis': 'tools/build_transformer_cinematic.py and baked 241-frame / 48 Hz TRS analysis. World orientation endpoint uses <=.1 degree remaining delta; world extension endpoint <=.001 scale-component delta; complete relative-parent pose <=.002 maximum matrix delta against all remaining frames. Node indices and component labels are recorded per cue. Whole panel seating clusters near 4.85-5.00 s; earlier cues denote real orientation/extension endpoints while carriers continue moving. No animation changes or invented alternating contacts.',
         'timing_evidence': {
             'baked_payload_sha256': '0868ec0ad0399566869a92552aed6b4f1316599ed6350de4fa4a40d20e38ffd9',
@@ -342,7 +367,7 @@ def main():
             'relative_parent_matrix_max_entry_tolerance': 0.002,
             'criterion': 'All subsequent frames remain within tolerance of the final pose; a joint milestone does not imply a stopped carrier or a physical collision.',
         },
-        'notes': 'Auto -> Robot only. Existing growl/12-lock/laser/moving-tools cue parameters and isolated processed clips retained. The full previous deploy mix is intentionally changed because every inside layer is now a short isolated attack; no claim of unchanged full foundation. New 1.9s bass layer is added last on its own constrained bus, without global attenuation. Original bass duration comes from container metadata; only 75-78s is decoded. Existing step/turn/reactor outputs untouched; .3-second tail and five-second animation unchanged.',
+        'notes': 'Auto -> Robot only. Entire previous25-layer mix, including early1.9s bass, six short inside impulses, twelve locks, growl, laser and moving-tools, is retained exactly as the foundation. A late1.55s subdrop from source1.40-2.95s starts3.75s and finishes5.30s. Only that new bus is headroom-constrained; no global attenuation, pitch change or time stretching. Existing return, step, turn and layered reactor outputs untouched; .3-second tail and five-second animation unchanged.',
     }
     manifest_path.write_text(json.dumps(manifest, indent=2) + '\n', encoding='utf-8')
     if args.preview:

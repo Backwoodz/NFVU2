@@ -1,5 +1,29 @@
 # Nächste Aufgaben
 
+## Transformer: spaeter Sub-Drop bei Auto-zu-Roboter (lokale Entwicklung)
+
+- Nutzeraufnahme brvhrtz-sub-drop-short-232033.mp3 als zusaetzlicher
+  Abschlussakzent nur in der Vorwaertsverwandlung. Natuerlicher letzter
+  abfallender Abschnitt 1,40–2,95 s, Einsatz bei 3,75 s (75 Prozent), Ende
+  bei 5,30 s einschliesslich bestehendem Nachklang. 10 ms Ein-/80 ms
+  Ausblendung; keine Zeitstreckung, Pitch- oder Animationsaenderung.
+- Eigene abschliessende Soundgruppe ueber der bisherigen vollstaendigen
+  Vorwaertsmischung, nur ihre Spitzen werden bei Bedarf begrenzt. Keine
+  globale Pegelabsenkung der Mechanik/Growls oder des fruehen Bassakzents.
+  Die Rueckverwandlung und beide Reaktorschichten bleiben erhalten.
+  Neue Hoerabstimmung des Sub-Drops im Spiel offen.
+- Build, 14 Aufbereitungschecks mit Originalquellen, 61 Vorwaertsaudio- und
+  81 Ladechecks bestanden. Unabhaengig rekonstruierter vorheriger Gesamtmix
+  exakt erhalten; fertige PCM-Datei bis 3,75 s byteidentisch. Drop folgt dem
+  natuerlichen Quell-Frequenzfall und Ausklang, nur seine Gruppe bekommt bei
+  Bedarf Spitzenbegrenzung. 86 andere Payload-Dateien inklusive DLL und
+  aktueller Reaktormischung unveraendert. Reviewevidenz unter
+  artifacts/audio-transformer/late-subdrop-independent-review.json.
+- Bei geschlossenem Valheim lokal installiert; alle 88 Payload-Dateien per
+  SHA-256 verifiziert, spaeter Drop und unveraenderter Abschnitt bis 3,75 s
+  gesondert geprueft. Konfiguration erhalten, beide Backupordner nach Erfolg
+  auf je zwei Zeitstempelstaende begrenzt. Native Hoerabnahme noch offen.
+
 ## Transformer: zweite Kernreaktorschicht (lokale Entwicklung)
 
 - Zusaetzlich zu kernreaktor.mp3 nun die vom Nutzer gewaehlte Aufnahme

@@ -19,6 +19,16 @@ from prepare_transformer_audio import decode, find_ffmpeg
 
 
 class MechanicalPreparationTests(unittest.TestCase):
+    def test_subdrop_is_a_short_late_deploy_layer_only(self):
+        cue = deploy.SUBDROP_CUE
+        self.assertGreaterEqual(cue['onset'], 3.7)
+        self.assertLessEqual(cue['onset'], 4.0)
+        self.assertAlmostEqual(cue['onset'] + cue['crop'][1] - cue['crop'][0], 5.3)
+        self.assertEqual(cue['fade_in'], .01)
+        self.assertEqual(cue['fade_out'], .08)
+        self.assertFalse(any(item['source'] == deploy.SUBDROP for item in
+                             returning.RETURN_LOCKS + mechanical.RETURN_TEXTURES))
+
     def test_all_inside_cues_are_isolated_short_attacks_with_timeline_gaps(self):
         for cues in [deploy.CUES + mechanical.DEPLOY_TEXTURES, mechanical.RETURN_TEXTURES]:
             inside = sorted([cue for cue in cues if cue['source'] == mechanical.INSIDE],
@@ -95,6 +105,39 @@ class LocalRecordingRegressionTests(unittest.TestCase):
         cls.decoded = {name: decode(find_ffmpeg(None), source / name) for name in sources}
         cls.decoded[mechanical.BASS], cls.bass_metadata = mechanical.decode_bass(
             find_ffmpeg(None), source / mechanical.BASS)
+        cls.decoded[deploy.SUBDROP] = decode(find_ffmpeg(None), source / deploy.SUBDROP)
+
+    def test_entire_previous_25_layer_foundation_and_no_early_subdrop_are_exact(self):
+        foundation, old_layers, _ = deploy.compose_before_subdrop(self.decoded)
+        self.assertEqual(mechanical.wav_sha256(foundation), deploy.PRIOR_25_LAYER_SHA256)
+        self.assertEqual(len(old_layers), 25)
+        self.assertEqual(hashlib.sha256(json.dumps(old_layers, sort_keys=True).encode()).hexdigest(),
+                         '4cccfd713aff7fce8b6fc1884b84a85e90aba8e2b3ebfb2d02000b5664c918d2')
+        mix, layers, processing = deploy.compose(self.decoded)
+        self.assertEqual(layers[:-1], old_layers)
+        self.assertEqual(layers[-1]['name'], 'late_subdrop')
+        onset = round(3.75 * deploy.RATE)
+        np.testing.assert_array_equal(mix[:onset], foundation[:onset])
+        self.assertGreater(np.sqrt(np.mean((mix[onset:] - foundation[onset:]) ** 2)), .03)
+        self.assertEqual(processing['prior_25_layer_foundation_sha256'], deploy.PRIOR_25_LAYER_SHA256)
+
+    def test_subdrop_retains_descending_source_and_quiet_tail(self):
+        prepared, metadata = deploy.prepare_layer(self.decoded[deploy.SUBDROP], deploy.SUBDROP_CUE)
+        self.assertEqual(len(prepared), round(1.55 * deploy.RATE))
+        self.assertEqual(metadata['onset_seconds'], 3.75)
+        self.assertEqual(metadata['end_seconds'], 5.3)
+        self.assertAlmostEqual(metadata['max_window_rms_before_mix_attenuation'], .18)
+        first = prepared[:round(.1 * deploy.RATE)]
+        last = prepared[-round(.1 * deploy.RATE):]
+        self.assertLess(np.sqrt(np.mean(last ** 2)), .02 * np.sqrt(np.mean(first ** 2)))
+        frequencies = []
+        for start in [1.4, 2.65]:
+            selection = self.decoded[deploy.SUBDROP][round(start * deploy.RATE):round((start + .2) * deploy.RATE)]
+            fft = abs(np.fft.rfft(selection * np.hanning(len(selection)), n=deploy.RATE * 2))
+            freq = np.fft.rfftfreq(deploy.RATE * 2, 1 / deploy.RATE)
+            mask = (freq >= 15) & (freq <= 250)
+            frequencies.append(float(freq[mask][np.argmax(fft[mask])]))
+        self.assertLess(frequencies[-1], frequencies[0] - 3)
 
     def test_protected_growls_locks_laser_and_tools_are_byte_identical(self):
         # Frozen fingerprints from the prior assets: timing, cuts, gain/fades and
