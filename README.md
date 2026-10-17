@@ -46,6 +46,8 @@ Users of older installers need to download v0.29.0 once to gain update detection
 
 ### Gameplay
 
+![350Z transforming into a robot in Valheim](docs/images/350z-transformer-preview.gif)
+
 ![350Z in Valheim with neon lighting](docs/images/350z-ingame-preview.gif)
 
 ![350Z rear view with an open trunk and light effects](docs/images/350z-ingame-rear-preview.gif)
