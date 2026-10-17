@@ -1,5 +1,36 @@
 # Nächste Aufgaben
 
+## Transformer: temporaere Stampfspuren und Staub (lokale Entwicklung)
+
+- Echte linke/rechte Gait-Fusskontakte erzeugen kurze erdige Staubstoesse
+  und flache Sohlenabdruecke. Gleiche Kontaktzaehler wie beim Sound, aber
+  unabhaengig von Audiolautstaerke und Stimmen; kein zeitgesteuerter Ersatz.
+- Kontaktmitte, Richtung und Groesse aus dem unteren 12-cm-Bereich der
+  vorhandenen starren Bootgeometrie; derzeit etwa 0,61 x 1,09 m je Fuss.
+  Ein 5-x-9-Grid folgt per kurzen Raycasts den echten Terrain-Dreiecken.
+  Erdspuren nur auf Gras/Schlamm/normalem Boden, keine durch Gebaeude,
+  Felsen oder unter Wasser projizierten Abdruecke.
+- Maximal 32 wiederverwendete Abdruecke und 96 Staubpartikel pro Fahrzeug;
+  18 s Standzeit, danach 6 s Ausblenden. Sprint erzeugt etwas mehr Staub.
+  Auch nach der Rueckverwandlung werden vorhandene Spuren weiter gealtert.
+  Menues, Fokusverlust und Streaming halten die Effekte an; keine spaeter
+  nachgeholten Kontakte. Fahrzeugentfernung entsorgt alle Ressourcen.
+- Gras unter den Sohlen wird nur waehrend nativer Grass-Instanz-Draws
+  temporaer abgeflacht und mit dem Abdruck wieder eingeblendet. Native
+  Instanzmatrizen werden nach dem Draw auch bei Fehlern wiederhergestellt.
+  Optionale Grasmaske: fehlt die passende native API, bleiben Staub und
+  Meshabdruecke verfuegbar. Kein Terrain-Paint, keine Hoehenaenderung,
+  keine dauerhafte Aenderung an Gras oder Weltstand.
+- Native Sichtabnahme von Staubkontrast, Grasmaske und Spurenlaenge offen.
+- Build sowie 24 Effektmodell-, 23 Gras-Callback-, 40 Schritt-Audio-,
+  81 Lade-, 32 Streaming- und 31 Speicherkoordinationschecks bestanden;
+  zusaetzlich 34 Boden- und sieben Leerlaufstaubchecks. Gras-Callbacks
+  werden mit Unity/Harmony-Doubles geprueft, nicht mit nativer Grafik oder
+  der Detour-Engine. Echter Asset-Geometriecheck der Sohlen bestanden.
+- Lokal mit Backup installiert und alle 88 Dateien per SHA-256 geprueft.
+  Nur die DLL geaendert; saemtliche Audio-/Modellassets und bestehende
+  Konfiguration unveraendert. Noch kein nativer Spiel-/Sichttest.
+
 ## Transformer: zusaetzlicher Bass bei jedem Schritt (lokale Entwicklung)
 
 - Nutzeraufnahme bass.mp3 liefert einen kurzen Tieftonimpuls fuer jeden

@@ -10,6 +10,7 @@ public partial class Plugin {
     bool transformerSprintHeld;
     bool Transforming=>current.transformer!=null&&current.transformer.Active;
     void InitializeTransformer() {
+        TransformerFootstepGrass.Initialize(controlsHarmony,message=>Logger.LogInfo(message));
         transformerEnabled=Config.Bind("TransformerPrototype","Enabled",false,"Enable the local robot playtest. F7 dismounts by backflip; near the parked robot F7 boards from any side. F10 returns to the car. Single-player.");
         transformerKey=Config.Bind("TransformerPrototype","ToggleKey",new KeyboardShortcut(KeyCode.F10),"Transform or return while stopped. Prototype keyboard toggle; movement supports keyboard/gamepad.");
     }
@@ -71,6 +72,41 @@ public partial class Plugin {
             Logger.LogWarning("Transformer return tail disabled after audio error: "+e);
         }
     }
+    bool FootstepEffectsBlocked=>audioBlocked||menuOpen||!Application.isFocused||Time.timeScale<=0
+        ||Time.deltaTime<=0||float.IsNaN(Time.deltaTime)||float.IsInfinity(Time.deltaTime)
+        ||current.worldStreaming!=null&&current.worldStreaming.Waiting
+        ||current.parkedStreaming!=null&&current.parkedStreaming.Waiting;
+    void TickTransformerFootstepEffects() {
+        var effect=current.transformerFootstepEffects;
+        if(effect==null)return;
+        try {
+            effect.Tick(Time.deltaTime,FootstepEffectsBlocked);
+            if(!Transforming)effect.Observe(false,true,0,0,Vector3.zero,Vector3.zero,
+                Vector3.forward,Vector3.forward,Vector2.one,Vector2.one,0);
+        } catch(Exception e) {
+            effect.Dispose();current.transformerFootstepEffects=null;
+            current.transformerFootstepEffectsFailed=true;
+            Logger.LogWarning("Transformer footprint effects disabled: "+e);
+        }
+    }
+    void ObserveTransformerFootsteps(VehicleTransformer t) {
+        if(current.transformerFootstepEffectsFailed)return;
+        if(!t.State.CanWalk&&current.transformerFootstepEffects==null)return;
+        if(current.transformerFootstepEffects==null)
+            current.transformerFootstepEffects=TransformerFootstepEffects.Create(car,message=>Logger.LogInfo(message));
+        var effect=current.transformerFootstepEffects;
+        if(effect==null){current.transformerFootstepEffectsFailed=true;return;}
+        try {
+            t.Visual.FootContact(false,out var left,out var leftForward,out var leftSize);
+            t.Visual.FootContact(true,out var right,out var rightForward,out var rightSize);
+            effect.Observe(t.State.CanWalk,FootstepEffectsBlocked,t.Visual.LeftFootfalls,t.Visual.RightFootfalls,
+                left,right,leftForward,rightForward,leftSize,rightSize,t.Visual.RunBlend);
+        } catch(Exception e) {
+            effect.Dispose();current.transformerFootstepEffects=null;
+            current.transformerFootstepEffectsFailed=true;
+            Logger.LogWarning("Transformer footprint effects disabled: "+e);
+        }
+    }
     void TickTransformer() {
         var t=current.transformer;
         bool blocked=audioBlocked||menuOpen||!Application.isFocused||Time.timeScale<=0||current.worldStreaming!=null&&current.worldStreaming.Waiting;
@@ -79,6 +115,7 @@ public partial class Plugin {
         if(rider&&cabinDriver.RobotTransitionActive)t.Visual.SetMountPose(cabinDriver.RobotTransitionProgress,cabinDriver.RobotTransitionEntering);
         else t.Visual.ClearMountPose();
         t.Tick(Time.deltaTime,blocked);
+        ObserveTransformerFootsteps(t);
         if(current.transformerAudio!=null)try {
             // F7 marks mounting before the last swing lands. Keep those genuine
             // contacts audible; the settled mount pose creates no new footfalls.
