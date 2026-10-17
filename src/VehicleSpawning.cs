@@ -208,7 +208,7 @@ public partial class Plugin {
         current.parkedStreaming.Step(false);
         fleet.Add(current);fleetOwner=local;spawnCommitted=true;
         status=VehicleName+" bereit. F7: einsteigen | "+menuKey.Value+": Fahrzeugmenü";
-        if(MessageHud.instance!=null)
+        if(local is Player&&MessageHud.instance!=null)
             MessageHud.instance.ShowMessage(MessageHud.MessageType.Center,Tr("Gespawnt:")+" "+VehicleName,log:false);
     }
 }

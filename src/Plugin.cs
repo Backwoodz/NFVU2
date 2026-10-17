@@ -72,7 +72,14 @@ public partial class Plugin : BaseUnityPlugin {
         var local=LocalPlayer();
         TickHordeWeather(local);
         CheckHordeContext(local);
-        if(local==null){CleanupAll();return;}
+        if(local==null) {
+            if(vehicleLoadGame!=null&&vehicleLoadGame==Game.instance&&!Multiplayer()&&!Game.instance.IsShuttingDown()) {
+                if(Application.isFocused&&Input.GetKeyDown(KeyCode.F8))CancelSpawn("Laden abgebrochen.");
+                TickSpawn(vehicleLoadGame);
+            } else CleanupAll();
+            return;
+        }
+        AdoptVehicleWorldEntry(local);
         if((fleetOwner!=null && local!=fleetOwner) || (driving && local!=player) || (fleet.Count>0 && Multiplayer())){CleanupAll();return;}
         if(SpawnBusy&&Application.isFocused&&!UIVisible()&&!menuOpen&&(Input.GetKeyDown(KeyCode.F8)||PadDown("back"))){CancelSpawn("Laden abgebrochen.");return;}
         TickVehicleRestore(local);

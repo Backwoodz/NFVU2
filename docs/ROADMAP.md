@@ -1,5 +1,17 @@
 # Nächste Aufgaben
 
+## Gespeicherte Autos im Weltladebildschirm (lokale Entwicklung)
+
+- Nahe gespeicherte Autos werden nach nativer Terrain-/ZDO-Bereitschaft vor
+  dem Erzeugen des Spielers aufgebaut. Der vorhandene Weltladebildschirm
+  bleibt bis zum Abschluss offen; der Logoutpunkt wird erst danach verbraucht.
+  Aufbau weiterhin gestaffelt auf dem Unity-Hauptthread, Dateien im Worker.
+  Die fertigen Fahrzeuge wechseln anschliessend zum echten Spieler als Besitzer.
+  Entfernte Autos warten weiterhin auf ihre Region. Fehler/F8-Abbruch lassen
+  den Welteintritt weiterlaufen; Multiplayer bleibt unveraendert.
+  Build, 28 Wiederherstellungs- und 31 Ladechecks bestanden. Weltladen,
+  Ladeanzeige und sichtbare Fahrzeugbereitschaft im Spiel pruefen.
+
 ## Purge beim Rollen (lokale Entwicklung)
 
 - Purge funktioniert mit gehaltener Nitrotaste auch beim Rollen ohne Gas,

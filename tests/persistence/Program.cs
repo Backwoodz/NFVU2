@@ -13,14 +13,18 @@ public partial class Plugin {
     internal static Plugin ControlsOwner=null;
     readonly List<VehicleRuntime> fleet=new List<VehicleRuntime>();
     public bool MultiplayerMode,SpawnBusy,driving;public int starts;public ZDO requested;
+    MonoBehaviour fleetOwner,loadOwner;
+    public MonoBehaviour Owner=>fleetOwner;
     bool Multiplayer()=>MultiplayerMode;
-    void StartVehicleLoad(MonoBehaviour local,bool hummer,ZDO saved){starts++;requested=saved;restoringVehicle=saved;SpawnBusy=true;}
+    void StartVehicleLoad(MonoBehaviour local,bool hummer,ZDO saved){starts++;requested=saved;restoringVehicle=saved;SpawnBusy=true;loadOwner=local;}
     void CleanupAll(){CaptureVehicleSave();foreach(var v in fleet)v.storage.Release();fleet.Clear();SpawnBusy=false;}
     public void Tick()=>TickVehicleRestore(Player.m_localPlayer);
     public int Count=>WorldVehicleCount;
+    public bool Entry(bool nativeReady=true){ControlsOwner=this;SavedVehicleWorldEntry.Postfix(ref nativeReady);return nativeReady;}
+    public void Adopt()=>AdoptVehicleWorldEntry(Player.m_localPlayer);
     public void Complete() {
         var car=new GameObject();car.transform.SetPositionAndRotation(VehiclePersistence.Location(requested),VehiclePersistence.Orientation(requested));
-        fleet.Add(new VehicleRuntime{storage=new VehicleStorage(car,requested),hasBeenDriven=VehiclePersistence.WasDriven(requested),flight=new TestFlight{Active=VehiclePersistence.Flying(requested)}});SpawnBusy=false;restoringVehicle=null;
+        fleet.Add(new VehicleRuntime{storage=new VehicleStorage(car,requested),hasBeenDriven=VehiclePersistence.WasDriven(requested),flight=new TestFlight{Active=VehiclePersistence.Flying(requested)}});fleetOwner=loadOwner;SpawnBusy=false;restoringVehicle=null;
     }
     public void Cancel(){deferredVehicles.Add(requested.m_uid);SpawnBusy=false;restoringVehicle=null;}
 }
@@ -61,6 +65,26 @@ class Program {
         World();ZDOMan.instance.records[a.m_uid]=a;var root=ZNetScene.instance.GetPrefab("piece_chest").Clone(a.GetPosition(),a.GetRotation());
         root.GetComponent<ZNetView>().data=a;ZNetScene.instance.objects[a.m_uid]=root;plugin.Tick();
         Check(plugin.Count==1&&plugin.requested==a&&plugin.starts==4,"returning to first world restores its original car");
+        World();Game.instance=new Game();Player.m_localPlayer=null;
+        var first=Car();var second=Car(true);Car(false,false);plugin=new Plugin();
+        Check(!plugin.Entry(false)&&plugin.starts==0,"native terrain readiness is never bypassed or used to scan an unfinished world");
+        plugin.MultiplayerMode=true;
+        Check(plugin.Entry()&&plugin.starts==0,"multiplayer world entry is unchanged");plugin.MultiplayerMode=false;
+        Check(!plugin.Entry()&&plugin.requested==first&&plugin.starts==1,"nearby vehicle starts before the player exists and keeps native world entry waiting");
+        Check(!plugin.Entry()&&plugin.starts==1,"repeated readiness checks cannot duplicate a staged load");
+        plugin.Complete();
+        Check(!plugin.Entry()&&plugin.requested==second&&plugin.starts==2,"world entry waits for every nearby saved car");
+        plugin.Cancel();
+        Check(plugin.Entry()&&plugin.starts==2&&plugin.Count==3,"failed or cancelled cars release world entry; distant cars do not block it");
+        Player.m_localPlayer=new Player();plugin.Adopt();
+        Check(plugin.Owner==Player.m_localPlayer,"completed preload transfers fleet ownership to the newly spawned player");
+        Check(plugin.Entry()&&plugin.starts==2,"live-player area and teleport checks never extend world entry");
+        World();Player.m_localPlayer=null;plugin=new Plugin();
+        Check(plugin.Entry()&&plugin.starts==0,"a world without saved cars enters immediately");
+        Car();plugin=new Plugin();Game.instance.shuttingDown=true;
+        Check(plugin.Entry()&&plugin.starts==0,"shutdown cannot start a world-entry vehicle load");
+        Game.instance.shuttingDown=false;Game.instance.waiting=false;
+        Check(plugin.Entry()&&plugin.starts==0,"unrelated area-readiness calls outside respawn cannot trigger loading");
         Console.WriteLine(checks+" persistence coordination checks passed; native save/load and Harmony runtime require a game test.");
     }
 }

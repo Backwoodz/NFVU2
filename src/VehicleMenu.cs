@@ -88,7 +88,8 @@ public partial class Plugin {
     void DisposeMenu(){DisposeMenuTheme();if(menuBackground!=null)Destroy(menuBackground);menuBackground=null;panelStyle=titleStyle=labelStyle=mutedStyle=songButtonStyle=null;}
     void OnGUI() {
         if(!menuOpen||audioBlocked||!Application.isFocused)StopMenuDrag();
-        if(!ready||LocalPlayer()==null)return;
+        if(!ready)return;
+        if(LocalPlayer()==null){if(vehicleLoadGame!=null)DrawSpawnProgress();return;}
         DrawControlHints();
         DrawSpawnProgress();
         DrawDashboard();

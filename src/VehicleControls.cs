@@ -32,6 +32,7 @@ public partial class Plugin {
         controlsHarmony.PatchAll(typeof(SavedVehicleCargoProtection));
         controlsHarmony.PatchAll(typeof(SavedVehicleShutdown));
         controlsHarmony.PatchAll(typeof(SavedVehicleWorldSave));
+        controlsHarmony.PatchAll(typeof(SavedVehicleWorldEntry));
         InitializeHordeGame();
     }
     internal bool CaptureCameraShake(GameCamera camera)=>camera!=null&&!camera.enabled&&(camera==gameCamera||camera==menuCamera);
