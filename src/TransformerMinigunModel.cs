@@ -51,9 +51,10 @@ public sealed class TransformerMinigunModel {
     static bool Finite(float value)=>!float.IsNaN(value)&&!float.IsInfinity(value);
 }
 public static class TransformerMinigunCombatRules {
-    public const float Range=150;
-    // Twelve ordinary unmodified pierce hits on a 40HP, normal-pierce Greydwarf.
-    // Native resistance, difficulty modifiers and pre-existing stagger still apply.
-    public const float BulletDamage=3.34f;
+    public const float Range=250;
+    // Twelve pierce damage per round: 15 ordinary hits on a 175HP Fuling,
+    // 67 on an 800HP Berserker. Still below the roof turret's per-round damage.
+    // Native resistance, difficulty modifiers and existing stagger still apply.
+    public const float BulletDamage=12;
 }
 }

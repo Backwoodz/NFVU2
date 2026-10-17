@@ -8,6 +8,7 @@ namespace Rachel350Z {
 // bracket, ammo and Valheim hitscan are authored locally by NFVU2.
 public sealed partial class TransformerMinigun:IDisposable {
     public readonly TransformerMinigunModel State=new TransformerMinigunModel();
+    public readonly TransformerMinigunFeedback Feedback=new TransformerMinigunFeedback();
     readonly List<Mesh> meshes=new List<Mesh>();
     Material[] materials;Texture2D[] textures;Material bracketMaterial,glow;
     Transform root,yaw,pitch,barrels,muzzle,vehicle;
@@ -66,6 +67,7 @@ public sealed partial class TransformerMinigun:IDisposable {
         muzzleLight=muzzle.gameObject.AddComponent<Light>();muzzleLight.color=new Color(1,.65f,.20f);muzzleLight.range=2.8f;muzzleLight.intensity=0;muzzleLight.shadows=LightShadows.None;
         CreateLaser();
         foreach(var step in LoadAudio(folder,prepared,log))yield return step;
+        LoadExplosiveEffects(folder,prepared,log);yield return 0;
         log?.Invoke("Transformer: original Rust minigun on authored shoulder mount; 1000 rounds, 600 rpm, 1.5s spin-up.");
     }
     void Cylinder(string name,Transform parent,Vector3 position,float radius,float height,Quaternion rotation) {
@@ -94,7 +96,9 @@ public sealed partial class TransformerMinigun:IDisposable {
         float raw=Time.deltaTime;
         bool allowed=active&&enabled&&driver!=null&&!driver.IsDead()&&Finite(raw)&&raw>0&&(aimWorldPoint.HasValue||Camera.main!=null);
         float dt=Finite(raw)?Mathf.Clamp(raw,0,.1f):0;
+        Feedback.Step(dt,allowed);
         volume=Finite(volume)?Mathf.Clamp01(volume):0;
+        explosion?.Tick(allowed,volume);
         if(!allowed) {
             TickHeat(dt,0);State.Step(dt,false,held);UpdateAudio(false,false,0,false,volume);ClearEffects();Aligned=Obstructed=false;return;
         }
@@ -137,16 +141,16 @@ public sealed partial class TransformerMinigun:IDisposable {
         for(int i=0;i<shots;i++) {
             var tracer=tracers[nextTracer];tracer.SetPosition(0,muzzle.position);tracer.SetPosition(1,AimPoint);tracer.enabled=true;tracerLeft[nextTracer]=.035f;nextTracer=(nextTracer+1)%tracers.Length;
             flashLeft=.035f;
-            if(hit&&!Obstructed)TransformerMinigunDamage.Bullet(impact,pitch.forward,driver);
+            if(hit&&!Obstructed)ImpactRound(impact,pitch.forward,driver,volume);
         }
         flash.enabled=flashLeft>0;muzzleLight.intensity=flashLeft>0?1.5f:0;
         flash.SetPosition(0,muzzle.position);flash.SetPosition(1,muzzle.position+pitch.forward*.25f);
         laserReady=true;laserDriver=driver;
     }
     void ClearEffects(){HideLaser();flashLeft=0;for(int i=0;i<tracers.Length;i++){tracerLeft[i]=0;if(tracers[i]!=null)tracers[i].enabled=false;}if(flash!=null)flash.enabled=false;if(muzzleLight!=null)muzzleLight.intensity=0;}
-    public void Stop(){State.Stop();UpdateAudio(false,false,0,false,0);ClearEffects();}
+    public void Stop(){State.Stop();Feedback.Reset();UpdateAudio(false,false,0,false,0);explosion?.Tick(false,0);ClearEffects();}
     public void Dispose() {
-        if(disposed)return;disposed=true;Stop();DisposeAudio();DisposeLaser();DisposeHeat();
+        if(disposed)return;disposed=true;Stop();DisposeExplosiveEffects();DisposeAudio();DisposeLaser();DisposeHeat();
         if(root!=null){root.gameObject.SetActive(false);UnityEngine.Object.Destroy(root.gameObject);}root=null;
         foreach(var mesh in meshes)if(mesh!=null)UnityEngine.Object.Destroy(mesh);
         if(materials!=null)foreach(var material in materials)if(material!=null)UnityEngine.Object.Destroy(material);

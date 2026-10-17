@@ -16,8 +16,9 @@ public partial class Plugin {
     int vehicleHintRows;
     float vehicleHintHeight;
     bool vehicleHintFailed;
+    const float VehicleHintBottomMargin=48;
     bool NativeVehicleHintsVisible=>vehicleHintPanel!=null&&vehicleHintPanel.gameObject.activeInHierarchy;
-    float VehicleHintBottomInset=>NativeVehicleHintsVisible?vehicleHintHeight+32:90;
+    float VehicleHintBottomInset=>NativeVehicleHintsVisible?vehicleHintHeight+VehicleHintBottomMargin+16:90;
 
     void RestoreVehicleHints() {
         if(originalHintGroups!=null)for(int i=0;i<originalHintGroups.Length;i++)
@@ -96,7 +97,7 @@ public partial class Plugin {
             }
             vehicleHintHeight=(52+vehicleHintRows*29)*scale;
             vehicleHintPanel.sizeDelta=new Vector2(550*units,(52+vehicleHintRows*29)*units);
-            vehicleHintPanel.anchoredPosition=new Vector2(-18,-16)/Mathf.Max(.01f,vehicleHintCanvas.scaleFactor);
+            vehicleHintPanel.anchoredPosition=new Vector2(-18,VehicleHintBottomMargin)/Mathf.Max(.01f,vehicleHintCanvas.scaleFactor);
         }catch(Exception error) {
             vehicleHintFailed=true;DisposeVehicleHints();Logger.LogWarning("Vehicle icon hints unavailable; using text hints: "+error);
         }

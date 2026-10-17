@@ -1,5 +1,101 @@
 # Nächste Aufgaben
 
+## Transformer: Explosivmunition als Standard (lokale Entwicklung)
+
+- Eigene TransformerPrototype.MinigunAmmo-Einstellung, Standard Explosiv.
+  Besetzter Roboter zeigt im Geschuetzmenue seine Minigun mit Normal-/
+  Explosiv-Auswahl; Dachgeschuetz-Munition behaelt ihre eigene Einstellung.
+  HUD nennt Explosiv, sobald die Effekte verfuegbar und aktiviert sind.
+- Wiederverwendung der bestehenden TurretExplosion: Rust-Aufschlagsample
+  aus dem vorhandenen Turret-Payload, zwoelf feste Effekt-/Soundplaetze,
+  Flaechenschaden mit Deckungspruefung, Baum-/Felsreaktionen und kleine
+  persistente Terrain-Krater. Normaler direkter Treffer bleibt 12 Stich;
+  Explosiv fuegt den vorhandenen Radius von 2,25 m und bis zu 20 weiteren
+  Schaden mit Entfernungsskalierung hinzu. Spieler, zahme/neutrale Figuren
+  und Gebaeude bleiben nach der vorhandenen Explosionslogik geschuetzt.
+- Effekte folgen Aktiv-/Pause-/Abstiegszustand, sind beim Stop stumm und
+  werden samt Clip beim Entfernen freigegeben. Ohne optionales Soundfile
+  bleibt der Explosivpfad nutzbar. Vorhandene Assetdateien unveraendert.
+- Trefferanzeige liest Rest-LP nach direktem Treffer UND Explosion. Ein
+  gestorbener Gegner bleibt bei null, auch wenn nativer GetHealth nach
+  ZDO-Entfernung wieder einen Maximalwert zurueckliefern kann.
+- Build sowie 65 Minigun-/Kompositions-, 23 Blast-, 10 Terrain-, 38 Audio-,
+  16 Menue- und 159 Steuerungschecks bestanden. Native Explosionswirkung,
+  Krater und Menuebedienung im Spiel pruefen; Tests verwenden Doubles.
+- Mit Backup lokal installiert, alle 107 Dateien per SHA-256 geprueft;
+  nur DLL geaendert, Originalassets und Konfiguration bytegleich. Beide
+  Installations-Backupordner enthalten je zwei Zeitstempelstaende.
+
+## Transformer: Minigun-Fernkampf und staerkerer Schaden (lokale Entwicklung)
+
+- Minigun-Reichweite von 150 auf 250 m erhoeht. Kamera-Zielstrahl, echter
+  Muendungsstrahl und Laser verwenden denselben Grenzwert. Schaden von
+  3,34 auf 12 Stichschaden pro Schuss erhoeht, weiterhin unter den 14 des
+  Dach-Turrets. 600 RPM, 1000 Schuss, Anlauf, Sounds und Laufglut bleiben.
+- Installierte native Goblin-/GoblinBrute-Prefabs direkt gelesen: Fuling
+  175 LP, Fuling-Berserker 800 LP, beide normal gegen Stichschaden. Native
+  Levelskalierung ergibt 350/525 bzw. 1600/2400 LP bei einem/zwei Sternen.
+  Neuer Basisbedarf 15 bzw. 67 normale Treffer; Blocken, Widerstaende und
+  Welteinstellungen wirken weiterhin ueber den nativen Schadenspfad.
+- Keine feste 20-m-Grenze im Minigun-Code gefunden. Native DamageText-
+  Anzeige endet ab Werk 30 m von der Kamera, die Roboterkamera liegt etwa
+  9,5 m hinter dem Spieler. Dies kann den gemeldeten Eindruck erklaeren,
+  beweist aber noch keine Ursache fuer tatsaechlich ausbleibenden Schaden.
+- Eigener letzter bestaetigter Treffer mit Gegnername, realen Rest-/Max-LP
+  und Entfernung ab Muendung, dazu kurzer weisser Reticleimpuls. Nur nach
+  beobachtetem Lebensverlust im synchronen lokalen Damage-RPC; kein falscher
+  Trefferhinweis fuer blockierte/immune/ausgewichene Schadensanforderungen.
+  Eine Anzeige pro Waffe, 2,5 s Dauer, Bereinigung bei Pause/Abstieg/Stop.
+  Schuesse korrekt als native Fernkampftreffer markiert (m_ranged=true).
+- Build sowie 60 Minigun-/Trace-/Schadens-/Feedbackchecks (inkl. 20 bis
+  250 m und Grenze darueber), 20 Ziel-, 38 Minigunaudio-, 21 Hitze- und
+  27 Kamerafahrtchecks bestanden. Physics-/Schadensantworten in den Tests
+  sind kontrollierte Doubles. Native Fernkampftreffer und Balance im Spiel
+  anhand der neuen Anzeige pruefen; ungeladene Gegner bleiben unerreichbar.
+- Mit Backup lokal installiert, alle 107 Dateien per SHA-256 geprueft;
+  nur DLL geaendert, Originalassets und Konfiguration bytegleich. Beide
+  Installations-Backupordner enthalten je zwei Zeitstempelstaende.
+
+## Transformer: filmische Auto-zu-Roboter-Kamera (lokale Entwicklung)
+
+- Nur ein erfolgreiches besetztes Auto-zu-Roboter-Begin startet die neue
+  Kamerafahrt. Kurven folgen direkt der fuenfsekundigen Animationsphase;
+  gespeicherte/geparkte Roboter und Rueckverwandlung starten keine Fahrt.
+- Einstieg aus aktueller Perspektive ohne Schnitt, sanfter Rueckzug auf
+  9,8 m (vorher 12,8 m), dann Annaeherung auf 9,5 m (vorher 10,2 m).
+  Eine bereits weiter entfernte Startperspektive wird nicht noch erweitert.
+  Langsamer 45-Grad-Hauptbogen
+  von links nach schraeg vorne links; aktueller Startwinkel wird weich in
+  diesen Bogen uebernommen. Blickpunkt steigt auf 2,65 m, Blickwinkel endet
+  leicht von unten bei -2 Grad. Dezenter Zoom von maximal fuenf FOV-Grad.
+  Kurzer begrenzter Winkelimpuls am bestehenden Sub-Drop-Cue bei 3,75 s.
+- Vorhandener Kamera-Spherecast folgt auch der filmischen Position und
+  zieht bei Hindernissen sofort ein. Mausblick, Mausrad, Mittelklick und
+  bewusster rechter Stick uebernehmen den aktuellen Winkel; kleine
+  Stickbewegungen innerhalb der bestehenden Deadzone brechen nicht ab.
+  Nach Abschluss/Abbruch 0,85 s weiche Rueckgabe von Framing und Zoom an
+  die normale Spielkamera. Die aktuelle Blickrichtung bleibt erhalten.
+- Menue/Fokusverlust/Pause frieren die Fahrt ein; bewusster Menuekamerablick
+  uebernimmt. Ausstieg, Kameratausch und Reset stellen beide urspruenglichen
+  FOV-Werte von Szene und Himmel exakt wieder her. Lokale Option
+  TransformerPrototype.CinematicCamera ist standardmaessig aktiv.
+- Build sowie 27 neue Kamera-Modell-/Produktionsadapterchecks, 18 Schritt-
+  Kamera-, 159 Steuerungs-, 11 Nitro-Projektions- und 59 Mountchecks
+  bestanden. Adapter verwenden Unity-Doubles, keine gerenderten Frames.
+  Native Bildwirkung, Hinderniswege und Maus-/Controllergefuehl im Spiel
+  pruefen; Sounds, Verwandlungsdauer und Fahrzeughandling bleiben erhalten.
+- Mit Backup lokal installiert, 107 Dateien per SHA-256 geprueft; nur DLL
+  geaendert. Originalassets und Konfiguration bytegleich, beide
+  Installations-Backupordner auf je zwei Zeitstempelstaende geprueft.
+- Nach Nutzerfeedback engeres Framing wie oben angegeben. Tastenpanel
+  unten rechts von -16 auf +48 Bildschirm-Pixel ueber dem unteren Rand
+  verschoben: positiver Abstand beim Bottom-Right-Anker statt Abschneiden.
+  Tacho-Abstand beruecksichtigt den neuen Panelrand ebenfalls.
+- Engeres Framing/Hinweisposition: Build, 27 Kamerafahrt-, 159 Steuerungs-
+  und 24 Kamera-/HUDchecks bestanden. Erneut lokal mit Backup installiert,
+  107 Dateien geprueft, nur DLL geaendert; Assets/Konfiguration bytegleich
+  und je zwei Zeitstempelbackups bestaetigt. Sichtabnahme im Spiel offen.
+
 ## Fahrzeugsteuerung: Controller-Verwandlung und E-Zugang (lokale Entwicklung)
 
 - RB/R1 verwandelt den besetzten 350Z am Boden und den besetzten Roboter

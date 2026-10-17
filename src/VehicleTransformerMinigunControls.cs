@@ -11,6 +11,7 @@ public partial class Plugin {
             bool active=visible&&robot.State.CanWalk&&!robot.ReturnRequested&&!robot.Mounting
                 &&driving&&DriverInputReady&&!transformerEntryPending&&!transformerExitPending
                 &&!FootstepEffectsBlocked;
+            weapon.ExplosiveRounds=transformerMinigunAmmo.Value=="Explosiv";
             weapon.Tick(visible,active,active&&turretHeld,active?LocalPlayer() as Character:null,
                 soundVolume.Value*turretVolume.Value,active&&Input.GetKeyDown(KeyCode.R));
             weapon.SetLaser(active&&turretLaser.Value,laserStrength.Value,LaserColor);
@@ -32,13 +33,19 @@ public partial class Plugin {
             var bars=new[]{new Rect(x-12,y-1,7,2),new Rect(x+5,y-1,7,2),new Rect(x-1,y-12,2,7),new Rect(x-1,y+5,2,7)};
             GUI.color=new Color(0,0,0,.85f);
             foreach(var bar in bars)GUI.DrawTexture(new Rect(bar.x-1,bar.y-1,bar.width+2,bar.height+2),Texture2D.whiteTexture);
-            GUI.color=weapon.Aligned?new Color(.5f,1,.2f):new Color(1,.45f,.1f);
+            GUI.color=weapon.Feedback.Flash?Color.white:weapon.Aligned?new Color(.5f,1,.2f):new Color(1,.45f,.1f);
             foreach(var bar in bars)GUI.DrawTexture(bar,Texture2D.whiteTexture);
             GUI.color=Color.white;
             string label=weapon.State.ReloadLeft>0?"Minigun · Nachladen…":
-                (padActive?ButtonName("LB","L1"):"LMB")+": Minigun · "+weapon.State.Ammo+" / 1000"
+                (padActive?ButtonName("LB","L1"):"LMB")+": Minigun · "+(weapon.ExplosiveRounds&&weapon.ExplosiveAvailable?"Explosiv · ":"")+weapon.State.Ammo+" / 1000"
                 +(weapon.Obstructed?" · Blockiert":"");
             UiBox(new Rect(15,Screen.height-controlHintHeight-52,430,28),label);
+            if(weapon.Feedback.Visible) {
+                var hit=weapon.Feedback.Hit;
+                string name=hit.Name; // Character.GetHoverName already localizes native names.
+                string health=uiLanguage.Value=="EN"?"HP":"LP";
+                UiBox(new Rect(x-225,y+24,450,28),name+" · "+Mathf.CeilToInt(hit.Health)+" / "+Mathf.CeilToInt(hit.MaximumHealth)+" "+health+" · "+Mathf.RoundToInt(weapon.Feedback.Distance)+" m");
+            }
         } finally {GUI.color=previous;}
     }
 }

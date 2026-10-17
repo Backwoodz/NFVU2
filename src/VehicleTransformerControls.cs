@@ -4,6 +4,8 @@ using UnityEngine;
 namespace Rachel350Z {
 public partial class Plugin {
     ConfigEntry<bool> transformerEnabled;
+    ConfigEntry<bool> transformerCinematic;
+    ConfigEntry<string> transformerMinigunAmmo;
     ConfigEntry<KeyboardShortcut> transformerKey;
     bool transformerExitPending;
     bool transformerEntryPending;
@@ -15,6 +17,8 @@ public partial class Plugin {
         TransformerFootstepGrass.Initialize(controlsHarmony,message=>Logger.LogInfo(message));
         transformerEnabled=Config.Bind("TransformerPrototype","Enabled",false,"Enable the local robot playtest. E or B/Circle boards and dismounts by backflip. F10 or RB/R1 transforms while stopped and boarded. Single-player.");
         transformerKey=Config.Bind("TransformerPrototype","ToggleKey",new KeyboardShortcut(KeyCode.F10),"Transform or return while stopped. Keyboard toggle; RB/R1 also toggles when boarded and on the ground.");
+        transformerCinematic=Config.Bind("TransformerPrototype","CinematicCamera",true,"Cinematic camera during car-to-robot deployment. Mouse look/right stick takes control; return transformation uses the normal camera.");
+        transformerMinigunAmmo=Config.Bind("TransformerPrototype","MinigunAmmo","Explosiv",new ConfigDescription("Robot minigun ammunition. Explosiv adds the existing impact blast and small terrain craters.",new AcceptableValueList<string>("Normal","Explosiv")));
     }
     void ToggleTransformer() {
         if(transformerEntryPending||transformerExitPending||cabinDriver!=null&&cabinDriver.RobotTransitionActive)return;
@@ -32,6 +36,7 @@ public partial class Plugin {
         if(current.transformer==null)current.transformer=new VehicleTransformer(current,current.transformerAsset);
         BlockDrivingInput();handling?.Step(false,0,0,1);vehicleImpact?.Step(null,false);ClearNitroVisuals();
         if(!current.transformer.Begin(player.transform,out string reason)){ShowVehicleWarning(reason);return;}
+        if(transformerCinematic.Value)orbitCamera.BeginTransformationShot();
         cabinDriver.BeginTransformer();vehicleNeon?.Tick(false,0);
         transformerExitPending=transformerSprintHeld=false;
         status=current.transformer.WalkingReady?"Transformer: "+TransformerToggleHint+" zurueckverwandeln (im Stand).":
@@ -183,6 +188,7 @@ public partial class Plugin {
         }
         if(rider) {
             orbitCamera.RobotBlend=t.State.Progress;
+            orbitCamera.TransformationFrame(Time.deltaTime,t.Active,t.State.Returning||t.ReturnRequested||!transformerCinematic.Value,t.State.Progress,blocked);
             orbitCamera.RobotFootsteps(Time.deltaTime,t.State.CanWalk&&!blocked&&!t.Mounting,
                 t.Visual.LeftFootfalls,t.Visual.RightFootfalls,t.Visual.RunBlend);
         }

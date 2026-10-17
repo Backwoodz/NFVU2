@@ -61,6 +61,7 @@ public partial class Plugin {
         catch(Exception e){turret.Dispose();turret=null;Logger.LogWarning("350Z turret disabled: "+e);}
     }
     void DrawTurretMenu() {
+        if(Transforming){DrawTransformerMinigunMenu();return;}
         if(IsHummer){UiLabel(new Rect(25,150,510,80),"Der Dach-Turret ist aktuell nur beim 350Z eingerichtet.",labelStyle);return;}
         if(laserSettingsOpen){DrawLaserSettings();return;}
         GUI.enabled=turret!=null&&!HordeVehicle;
@@ -83,11 +84,29 @@ public partial class Plugin {
         UiLabel(new Rect(25,466,510,50),HordeVehicle?"Hordenmodus: Explosivmunition und Automatik durch Powerups sammeln.":turret==null?"Rust-Assets fehlen. Lokal mit tools/export_rust_turret.py importieren.":turretAmmo.Value=="Explosiv"?"Explosiv: Flächenschaden; zerstört große Bäume und abbaubare Felsen. Bodentreffer hinterlassen Krater.":"Automatik trifft nur sichtbare Gegner. Spieler, zahme Tiere, Auto und Deckung blockieren die Schusslinie.",mutedStyle);
     }
     Color LaserColor=>new Color(LaserChannel(laserRed.Value),LaserChannel(laserGreen.Value),LaserChannel(laserBlue.Value),1);
+    void DrawTransformerMinigunMenu() {
+        if(laserSettingsOpen){DrawLaserSettings();return;}
+        var weapon=current.transformerMinigun;
+        UiLabel(new Rect(25,145,510,32),"Transformer · Rust Minigun",labelStyle);
+        UiLabel(new Rect(25,185,510,58),(padActive?"RS: zielen · "+ButtonName("LB","L1")+": schießen":"Mausblick: zielen · LMB: schießen")+"\n1000 Schuss · automatisches Nachladen",labelStyle);
+        GUI.enabled=weapon!=null;
+        turretLaser.Value=UiToggle(new Rect(25,250,280,28),turretLaser.Value," Laservisier");
+        if(MenuButton(new Rect(320,248,215,30),"Laser einstellen")){laserSettingsOpen=true;uiFocus=0;}
+        GUI.enabled=weapon!=null&&weapon.ExplosiveAvailable;
+        int ammo=transformerMinigunAmmo.Value=="Explosiv"?1:0;
+        int next=UiToolbar(new Rect(25,295,510,32),ammo,new[]{"Normale Munition","Explosivmunition"});
+        if(next!=ammo)transformerMinigunAmmo.Value=next==1?"Explosiv":"Normal";
+        GUI.enabled=weapon!=null;
+        UiLabel(new Rect(25,355,510,25),"Lautstärke  "+Mathf.RoundToInt(turretVolume.Value*100)+" %",labelStyle);
+        turretVolume.Value=UiSlider(new Rect(25,390,510,22),turretVolume.Value,0,1);
+        GUI.enabled=true;
+        UiLabel(new Rect(25,435,510,65),ammo==1?"Explosiv: Flächenschaden; zerstört große Bäume und abbaubare Felsen. Bodentreffer hinterlassen Krater.":"1000 Schuss · 250 m · 12 Stichschaden pro Schuss",mutedStyle);
+    }
     static float LaserChannel(float value)=>float.IsNaN(value)||float.IsInfinity(value)?0:Mathf.Clamp01(value);
     void DrawLaserSettings() {
         UiLabel(new Rect(25,145,300,30),"Laser · Stärke und Farbe",labelStyle);
         if(MenuButton(new Rect(415,145,120,28),"Zurück")){laserSettingsOpen=false;return;}
-        GUI.enabled=turret!=null&&turret.LaserAvailable;
+        GUI.enabled=Transforming?this.current.transformerMinigun!=null:turret!=null&&turret.LaserAvailable;
         turretLaser.Value=UiToggle(new Rect(25,187,510,28),turretLaser.Value," Laser aktivieren");
         UiLabel(new Rect(25,226,510,25),"Stärke  "+Mathf.RoundToInt(laserStrength.Value*100)+" %",labelStyle);
         laserStrength.Value=Mathf.Round(UiSlider(new Rect(25,262,510,20),laserStrength.Value,.25f,4)*20)/20;
