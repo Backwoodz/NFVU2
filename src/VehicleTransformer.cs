@@ -143,7 +143,7 @@ internal sealed class VehicleTransformer:IDisposable {
         var origin=new Vector3(car.position.x,groundY,car.position.z);
         Visual.CaptureCurrentCar();
         colliders.Clear();foreach(var c in car.GetComponentsInChildren<Collider>(true))if(c!=hull)colliders.Add(Tuple.Create(c,c.enabled));
-        renderers.Clear();foreach(var r in car.GetComponentsInChildren<Renderer>(true))if(!r.transform.IsChildOf(Visual.Root.transform))renderers.Add(Tuple.Create(r,r.enabled));
+        renderers.Clear();foreach(var r in car.GetComponentsInChildren<Renderer>(true))if(!r.transform.IsChildOf(Visual.Root.transform)&&owner.exhaustSmoke?.Owns(r.transform)!=true)renderers.Add(Tuple.Create(r,r.enabled));
         lights.Clear();foreach(var l in car.GetComponentsInChildren<Light>(true))lights.Add(Tuple.Create(l,l.enabled));
         sounds.Clear();foreach(var s in car.GetComponentsInChildren<AudioSource>(true))if(s.isPlaying){sounds.Add(s);s.Pause();}
         foreach(var p in car.GetComponentsInChildren<ParticleSystem>(true))p.Stop(true,ParticleSystemStopBehavior.StopEmittingAndClear);

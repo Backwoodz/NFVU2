@@ -4,7 +4,7 @@ from build import build
 from build_support import compile_cs,test_refs,runtime_config
 
 def main():
-    suites=['model','mesh','handling','audio','radio','nitro','impact','transformerimpact','showroom','driving','turret','targeting','terrain','blast','hummer','menu','cabin','flight','loading','lighting','controls','hotbar','rumble','nitroview','horde','hordehull','hordecorpses','turretfireaudio','hordeweather','horderadar','hordeelements','storage','persistence','streaming','placement','transformer','discovery','vehiclemap','transformershake','transformermount']
+    suites=['model','mesh','handling','audio','radio','nitro','impact','transformerimpact','showroom','driving','turret','targeting','terrain','blast','hummer','menu','cabin','flight','loading','lighting','controls','hotbar','rumble','nitroview','horde','hordehull','hordecorpses','turretfireaudio','hordeweather','horderadar','hordeelements','storage','persistence','streaming','placement','transformer','discovery','vehiclemap','transformershake','transformermount','exhaustsmoke']
     parser=argparse.ArgumentParser();parser.add_argument('--skip-build',action='store_true');parser.add_argument('--handling-only',action='store_true')
     parser.add_argument('--suite',action='append',choices=suites,help='Run only these C# suites; repeat to combine.')
     args=parser.parse_args()
@@ -28,6 +28,7 @@ def main():
         elif suite=='transformerimpact':sources.extend(BASE/'src'/name for name in ('VehicleImpactRules.cs','TransformerImpact.cs'))
         elif suite=='nitroview':sources.append(BASE/'src/NitroCameraView.cs')
         elif suite=='storage':sources.extend(BASE/'src'/name for name in ('VehicleStorageRules.cs','VehicleStorage.cs','VehiclePersistence.cs'))
+        elif suite=='exhaustsmoke':sources.append(BASE/'src/ExhaustSmokeRules.cs')
         elif suite=='persistence':
             sources.append(BASE/'tests/storage/Doubles.cs')
             sources.extend(BASE/'src'/name for name in ('VehicleStorageRules.cs','VehicleStorage.cs','VehiclePersistence.cs','VehicleWorldPersistence.cs'))

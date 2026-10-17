@@ -43,6 +43,7 @@ internal sealed class VehicleRuntime {
     public VehicleNitro vehicleNitro;
     public VehicleNitroEffects nitroEffects;
     public VehicleExhaustVisuals exhaustVisuals;
+    public VehicleExhaustSmoke exhaustSmoke;
     public VehicleBurnoutEffects burnoutEffects;
     public VehicleEffectsAudio effectsAudio;
     public bool nitroHeld;

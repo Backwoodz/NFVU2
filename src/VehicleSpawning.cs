@@ -158,6 +158,7 @@ public partial class Plugin {
         try {if(!IsHummer)nitroEffects=VehicleNitroEffects.Create(car,model,message=>Logger.LogInfo(message));}
         catch(Exception e){Logger.LogWarning("350Z nitro effects unavailable: "+e);}
         if(!IsHummer)effectsAudio=VehicleEffectsAudio.Create(car,message=>Logger.LogInfo(message),assets.Audio);
+        current.exhaustSmoke=VehicleExhaustSmoke.Create(car,model,exhaustStyle.Value,message=>Logger.LogInfo(message));
         yield return 0;
         vehicleAudio=new VehicleAudio(IsHummer);
         foreach(var step in StagedWork.Optional(vehicleAudio.LoadSteps(car,body,wheels,message=>Logger.LogInfo(message),assets.Audio),error=>{vehicleAudio.Dispose();vehicleAudio=null;Logger.LogWarning("Vehicle audio unavailable: "+error);}))yield return step;

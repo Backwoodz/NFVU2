@@ -33,6 +33,11 @@ internal sealed partial class TransformerVisual:IDisposable {
     public float RunBlend=>gait.RunBlend;
     public Transform Node(string name)=>nodes[ids[name]];
     public Matrix4x4 Pose(int node)=>pose[node];
+    public void ExhaustOutlet(Vector3 sourcePoint,Vector3 sourceDirection,out Vector3 point,out Vector3 direction) {
+        int bone=ids["panel.exhaust_"+(sourcePoint.x>=0?"L":"R")];
+        var transform=Root.transform.localToWorldMatrix*pose[bone]*carInverse[bone];
+        point=transform.MultiplyPoint3x4(sourcePoint);direction=transform.MultiplyVector(sourceDirection).normalized;
+    }
     public Func<Vector3,Vector4> GroundPlane;
     public Matrix4x4[] CapturePreparationPose(float release,Func<Vector3,Vector4> ground) {
         var originalGait=gait;var originalGround=GroundPlane;bool originalHold=HoldReady;

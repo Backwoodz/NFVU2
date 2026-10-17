@@ -218,9 +218,10 @@ public partial class Plugin : BaseUnityPlugin {
     }
     void TickVehicle() {
         if(car==null)return;
-        if(Transforming){try{TickTransformer();TickVehicleStorage();if(driving)VehicleWorldStreaming.Follow(player as Player);}catch(Exception e){Logger.LogError("Transformer stopped: "+e);if(driving)Exit();else current.transformer.Restore();}return;}
+        if(Transforming){try{TickTransformer();TickVehicleStorage();TickExhaustSmoke();if(driving)VehicleWorldStreaming.Follow(player as Player);}catch(Exception e){Logger.LogError("Transformer stopped: "+e);if(driving)Exit();else current.transformer.Restore();}return;}
         TickVehicleStorage();
         TickExhaustCustomization();
+        TickExhaustSmoke();
         if(showroom!=null)try {
             ApplyShowroomSettings();
             int color=Math.Max(0,Array.IndexOf(ColorNames,trunkNeonColor.Value));
@@ -368,6 +369,7 @@ public partial class Plugin : BaseUnityPlugin {
         dashboard?.Dispose();dashboard=null;
         current.interior?.Dispose();current.interior=null;
         showroom?.Dispose();showroom=null;audioMeshes.Clear();
+        current.exhaustSmoke?.Dispose();current.exhaustSmoke=null;
         burnoutHeld=false;burnoutEffects?.Dispose();burnoutEffects=null;
         nitroHeld=false;nitroInput.Reset();vehicleNitro=null;
         nitroEffects?.Dispose();nitroEffects=null;

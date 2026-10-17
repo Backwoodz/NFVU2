@@ -1,5 +1,16 @@
 # Nächste Aufgaben
 
+## Abgas im Leerlauf (lokale Entwicklung)
+
+- Dezente hellgraue Abgaswoelkchen direkt an den gewaehlten Endrohren,
+  mit eigener prozeduraler Maske und kurzem Ausblenden. NFVU2-Effekt, kein
+  rekonstruierter NFS-Leerlaufeffekt. Pro Endrohr maximal sechs Partikel/s;
+  Gasgeben und Fahrt blenden ihn aus. Motor aus und Pause stoppen die Emission.
+- In Roboterform folgen die Austrittspunkte denselben bewegten Haltern wie
+  die sichtbaren Auspuffteile, auch beim Verwandeln und Wiederherstellen.
+  Konfigurationsschalter Exhaust.IdleSmoke, standardmaessig aktiv.
+- Build und gezielte Emissionschecks; Dichte und Sichtbarkeit im Spiel pruefen.
+
 ## Transformer beim Weltbeitritt (lokale Entwicklung)
 
 - Spieltest-Nachkorrektur: Rad-/Bremsenpositionen, Felgengroesse, Innenraum und
