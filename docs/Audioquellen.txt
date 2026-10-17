@@ -1,3 +1,205 @@
+Transformer-Schritte – lokale erste Soundstufe
+
+Vom Nutzer ausgewaehlte, lokal heruntergeladene Aufnahmen:
+daviddumaisaudio-robot-heavy-mechanical-footsteps-194039.mp3
+audiopapkin-big-robot-footstep-330678.mp3
+audiopapkin-big-robot-footstep-016-445102.mp3
+
+tools/prepare_transformer_audio.py --source-dir <Ordner> erzeugt sechs
+Mono-PCM16-WAVs in .local/audio-transformer: vier einzelne Auftritte aus der
+ersten Aufnahme und je einen aus den zwei weiteren. Wellenformbasierter
+Erstschnitt, kurzer Vorlauf vor dem Hauptanstieg, Gleichanteilentfernung,
+kurze Ein-/Ausblendung und Pegelangleichung. Keine synthetischen Schichten
+oder Zeitstreckung. Dateinamen, Eingabe-/Ausgabe-SHA-256, exakte Schnittgrenzen,
+Decoderstand und Verarbeitung stehen im lokalen manifest.json.
+Keine Original-Filmaufnahmen behauptet; Quellseiten und Weitergaberechte
+sind noch nicht unabhaengig verifiziert. Kein neuer oeffentlicher Release.
+Nutzer-Hoervergleich: urspruengliche Variante 06 aus
+audiopapkin-big-robot-footstep-015-445103.mp3 wegen herausstechendem hellen Ton
+entfernt; uebrige Varianten passen. Verbleibende Dateinamen bleiben stabil
+(step_01 bis step_05 und step_07). Schrittpegel in der Laufzeit um 5 Prozent
+angehoben. Nutzer bestaetigt die angepassten Laufsounds im Spiel als passend.
+
+Zusaetzlicher Bass unter jedem Schritt:
+Nutzerdatei bass.mp3, rund 3,76 s. Der Ausschnitt 0,20–0,48 s liefert einen
+0,28-s-Tieftonimpuls mit 6 ms Ein-/90 ms Ausblendung und maximalem
+80-ms-RMS-Zielpegel 0,20. Der Bassanstieg wird pro Variante mit dem
+mechanischen Auftritt (~15 ms nach Clipstart) ausgerichtet. Alle sechs
+Schritt-WAVs enthalten diese Zusatzschicht, sodass jeder echte Fusskontakt
+den Bass erhaelt; er wird nicht als weitere Zufallsvariante einsortiert.
+tools/prepare_transformer_audio.py --source-dir <Ordner> --bass-file <MP3>
+erzeugt diese Mischungen samt Einzelquellen-/Schnitt-/Pegelmetadaten und
+isolierten mechanischen Hashes. Ohne --bass-file bleiben die urspruenglichen
+mechanischen Exporte reproduzierbar. Keine globale Absenkung der Mechanik,
+kein Time-Stretch oder neue Tonhoehenaenderung bei der Aufbereitung. Die
+bisherige leichte Runtime-Pitchvariation und 5-Prozent-Verstaerkung gelten
+weiter fuer jeden kombinierten Clip. Hoerabstimmung des neuen Basses offen.
+
+Build kopiert nur die optionalen WAVs/Metadaten nach audio/transformer.
+Die Laufzeit decodiert bis zu 16 kurze Schritte im Spawn-Worker; fehlende
+oder defekte optionale Aufnahmen verhindern den Fahrzeugspawn nicht.
+Der Roboter-Leerlauf verwendet dieselben vorhandenen 350Z-Aufnahmen wie das
+Auto. Bis 20 Prozent Entfaltung voller besetzter bzw. geparkter Autopegel,
+danach weiche Absenkung auf 40 Prozent bei vollstaendiger Roboterform.
+Rueckweg stellt den Autopegel wieder her. Pitch, raeumliche Reichweite und
+durchgehende Wiedergabe bleiben erhalten; Einstellungen weiterverwendet.
+
+Drehmechanik – lokale zweite Soundstufe:
+dreh sounds.mp3 (rund 38,11 s), vom Nutzer fuer das Drehen ausgewaehlt.
+tools/prepare_transformer_turn_audio.py --source-file <Datei> erzeugt vier
+kurze turn_*.wav und turn_manifest.json im vorhandenen lokalen Audioordner.
+Ausschnitte: 1,56–2,56 / 7,58–8,48 / 12,43–13,53 / 26,46–27,66 Sekunden.
+Mono-PCM16/44,1 kHz, Gleichanteilentfernung, 12 ms Einblendung, 100 ms
+Ausblendung, maximale 80-ms-RMS 0,08 und Peakgrenze 0,55. Pegel damit unter
+den bestaetigten Schritten. Keine Zeitstreckung oder zusaetzliche Synthese.
+Eigene Herkunfts-/SHA-256-Daten, Schritte und deren Manifest unveraendert.
+Die Laufzeit nutzt die gemessene tatsaechliche Drehung und variiert kurze
+ueberlappende Mechanikimpulse; Nutzer bestaetigt den Drehsound im Spiel als passend.
+
+Auto-zu-Roboter-Verwandlung – lokale dritte Soundstufe:
+tools/prepare_transformer_deploy_audio.py --source-dir <Ordner> mischt die
+folgenden Nutzeraufnahmen zu deploy.wav (Mono-PCM16/44,1 kHz, 5,30 s):
+- freesound_community-transformers-growling-31509.mp3: Ausschnitt 0,75–4,25 s,
+  mit Originaltempo sofort ab 0 s, 40 ms Einblendung, Ende bei 3,50 s.
+- audiopapkin-big-robot-footstep-020-500843.mp3: innere Mechanik und Abschluss.
+- idoberg-giant-robot-in-space-352492.mp3: Auftakt und spaeter Kopfakzent.
+- daviddumaisaudio-robot-heavy-mechanical-footsteps-194039.mp3 sowie
+  audiopapkin-big-robot-footstep-330678.mp3 und -016-445102.mp3:
+  kurze metallische Einzelimpulse fuer weitere Baugruppen.
+- freesound_community-029974_inside-the-robot-70923.mp3: vier einzelne
+  Impulse aus 0,773–0,973 / 10,441–10,641 / 12,477–12,677 / 27,812–28,032 s,
+  auf der Verwandlungstimeline bei 0,22 / 1,10 / 2,10 / 3,52 s.
+- gregorquendel-laser-charge-175727.mp3: Ausschnitt 1,45–4,25 s ab 0,35 s
+  parallel zum Growling als zusaetzliche Testschicht.
+Nutzer bestaetigt Growling, wuenscht aber mehr und deutlich lautere Einrast-
+geraeusche. Zwoelf gruppierte Akzente folgen gemessenen Orientierungs-/Ausfahr-
+enden ab etwa 2,42 s und lokalen Bauteil-Endstellungen bei 4,85–5,00 s.
+Fertige Gelenkdrehung bedeutet dabei nicht bereits stillstehende ganze Baugruppe.
+Wesentliche Akzente liegen vor der Busbegrenzung rund 6–9 dB ueber den alten.
+Rund 0,29 s Nachklang nach Animationsende. Die Animationsdauer bleibt 5 s.
+Gleichanteilentfernung, kurze Layer-Fades und Pegelangleichung, Summierung
+auf der festen Timeline. Nur die Mechanikgruppe bekommt eine weiche
+Pegelbegrenzung bei Spitzen; die Growl-Schicht behaelt Ausschnitt/Pegel mit
+frueherem Einsatz. Neue Bewegungstexturen begrenzen nur ihre eigene Summe,
+ohne die Einrast-/Growl-Grundmischung abzusenken. Keine globale Normalisierung.
+Kein Time-Stretch oder neue Synthese. Exakte
+Schnittgrenzen, Dateihashes, Cue-/Peakzeiten und Gains in deploy_manifest.json.
+Die Laufzeit folgt TransformerState.Progress; kein Umbau-Sound beim Laden
+eines geparkten Roboters. Der bisherige Fortschritts-Fade des Motorleerlaufs
+ist entfernt: Leise Grundschicht in beiden Umbaurichtungen durchgehend.
+Ueberarbeitete Mischung anhand der Wellenform; erneute native Hoerabnahme offen.
+
+Kernreaktor – eigener raeumlicher Loop:
+Nutzerdatei kernreaktor.mp3, rund 72,89 s. tools/prepare_transformer_reactor_audio.py
+--source-file <Datei> erzeugt reactor.wav (8 s, Mono-PCM16/44,1 kHz) und
+reactor_manifest.json. Stabiler Ausschnitt 8–16,8 s mit 800 ms Equal-Power-
+Ueberblendung zwischen Ende/Anfang, Gleichanteilentfernung und Pegelangleichung
+auf maximale 80-ms-RMS 0,055. Keine stille Loop-Grenze, Pitch-/Zeitveraenderung.
+Die Laufzeit spielt am bewegten Reaktormittelpunkt mit eigenem leisem Pegel;
+nach Nutzerrueckmeldung Laufzeitverstaerkung von 0,5 auf 0,75 angehoben.
+Aus-/Einblenden folgt der sichtbaren Entfaltung. Geparkte geladene Roboter
+spielen den Loop ebenfalls; Menue/Pause halten den Abspielcursor an.
+Quellenhash, Ausschnitt, Loop-/Pegelwerte und Ausgabe-SHA-256 im lokalen Manifest.
+Erste Wellenformauswahl; Hoerabnahme im Spiel offen.
+
+Zusaetzliche Kernreaktorschicht:
+freesound_community-evil-robot-or-spaceship-or-something-idk-94720.mp3,
+rund 6,91 s. Ausschnitt 0,8–5,6 s, 800 ms kreisfoermige Equal-Power-
+Ueberblendung ergeben einen natuerlichen 4-s-Loop. Zweimal ohne Luecke ueber
+den bestehenden 8-s-Kernreaktorloop gelegt, ohne Zeitstreckung oder Pitch-
+Aenderung. Maximaler 80-ms-RMS-Zielpegel der Zusatzschicht 0,035 gegenueber
+0,055 der bisherigen Grundschicht. Der bisherige isolierte Grundloop bleibt
+bytegleich, seine Ausgabe-SHA-256 lautet:
+4a097a649d509efac721d9dfe08899df3941cc6a3e9ac44f47b50162508f60fd
+tools/prepare_transformer_reactor_audio.py --source-file <Kernreaktor-MP3>
+--additional-source-file <Evil-Robot-MP3> erstellt die gemeinsame 8-s-Datei
+reactor.wav samt Quellen-, Schnitt-, Loop- und Pegelmetadaten. Die Mischung
+folgt in der Laufzeit gemeinsam der sichtbaren Kernphase, auch im geparkten
+Roboter; Pause/Streaming halten den Cursor an. Neue Mischung signalbasiert
+vorbereitet, native Hoerabnahme offen.
+
+Weitere Bewegungstexturen fuer beide Verwandlungen:
+freesound_community-moving-tools-3-40372.mp3 (rund 6,91 s) und
+freesound_community-029974_inside-the-robot-70923.mp3 (rund 38,11 s).
+tools/prepare_transformer_mechanical_audio.py definiert je fuenf zusaetzliche,
+wellenformbasiert aktive Ausschnitte. Die beiden Verwandlungsskripte mischen
+sie als eigene begrenzte Gruppe ueber ihre jeweilige Grundlage:
+- Auto-zu-Roboter: Moving Tools 0,42–1,07 / 1,55–2,30 / 3,05–3,75 s;
+  Inside the Robot 1,536–1,736 / 7,528–7,728 s. Einsatz bei 0,08 / 1,70 / 3,85 s
+  bzw. 0,78 / 2,80 s auf der Animationstimeline.
+- Roboter-zu-Auto: Moving Tools 4,43–5,05 / 5,55–6,19 s;
+  Inside the Robot 11,794–11,994 / 15,545–15,745 / 26,300–26,520 s. Einsatz bei
+  0,82 / 2,68 s bzw. 0,05 / 1,67 / 3,78 s auf der Rueckwegtimeline.
+Neue Texturen mit kurzen Fades und maximalem 80-ms-RMS-Ziel 0,10–0,12.
+Nach Nutzer-Hoerrueckmeldung sind alle neun Inside-Ausschnitte bewusst auf
+0,20–0,22 s gekuerzt bzw. durch isolierte Energieanstiege ersetzt, mit 6 ms
+Ein-/65 ms Ausblendung und mindestens 0,1 s Pause bis zum naechsten Inside-
+Impuls. Die langen durchgaengigen Inside-Texturen entfallen in beiden
+Richtungen. Die fruehere vollstaendige Vorwaertsmischung ist damit bewusst
+geaendert; einzelne Growl-, Einrast-, Laser- und Moving-Tools-Schnitte mit
+ihren Pegeln und Einsatzzeiten bleiben erhalten.
+Neue Texturen begrenzen nur sich selbst; keine globale Absenkung des Growls
+oder der bestehenden Einrastakzente. In beiden Richtungen 5,3 s Gesamtdauer,
+keine Zeitstreckung/Pitch-Aenderung. Nutzer bestaetigt die kurzen Inside-
+Impulse zusammen mit dem zusaetzlichen Vorwaerts-Bass als passend im Spiel.
+
+Zusaetzlicher Bass nur fuer Auto-zu-Roboter:
+imgmidi-moving-bass-sfx-set-336212.mp3 (rund 2:21,22 min), vom Nutzer
+gewuenschter Abschnitt ab 1:15. Ausschnitt 75,78–77,68 s, 1,90 s mit
+Originaltempo ab 0,08 s auf der Verwandlungstimeline. Der leise Vorlauf ab
+75 s wird ausgelassen. 25 ms Ein-/180 ms Ausblendung, maximaler 80-ms-RMS-
+Zielpegel 0,16. Eigene Spitzenbegrenzung nur auf der neuen Bassgruppe, keine
+globale Absenkung der Einrast-/Growl-Mischung. FFmpeg decodiert gezielt nur
+75–78 s; die gemeinsame 60-s-Grenze fuer sonstige Aufnahmen bleibt bestehen.
+Originaldauer und absolute Quellsekunden sind getrennt vom 3-s-Decodierfenster
+im deploy_manifest.json dokumentiert. Nutzer bestaetigt den Bass-Ausschnitt
+und die abgestimmte Mischung im Spiel und beauftragt den Commit.
+
+Spaeter Sub-Drop nur fuer Auto-zu-Roboter:
+brvhrtz-sub-drop-short-232033.mp3, rund 3,32 s. Der natuerliche letzte
+abfallende Abschnitt 1,40–2,95 s wird mit 10 ms Ein-/80 ms Ausblendung als
+1,55-s-Akzent ab 3,75 s bis zum bestehenden Soundtrackende bei 5,30 s
+eingemischt, maximaler 80-ms-RMS-Zielpegel 0,18. Keine Zeitstreckung oder
+Pitch-Aenderung. Der bisherige
+vollstaendige Vorwaertsmix bleibt die Grundlage; nur die neue Soundgruppe
+wird in den verbleibenden Spitzenraum begrenzt, ohne globale Absenkung der
+Einrast-/Growl-Mischung. Quelle, Schnitt, Einsatzzeit und Gain sind im
+deploy_manifest.json dokumentiert. Hoerabstimmung der neuen Schicht offen.
+
+Roboter-zu-Auto – bestaetigte Hauptschicht mit neuen Bauteilakzenten:
+Nutzer hat Kandidat A aus dem Growling-Hoervergleich ausgewaehlt:
+freesound_community-transformers-growling-31509.mp3, Ausschnitt 6,0–10,2 s.
+tools/prepare_transformer_return_audio.py --source-dir <Ordner> erzeugt
+return.wav und return_manifest.json. Die isolierte Growl-Grundschicht ist
+bytegleich zur bestaetigten A-Vorschau: 4,2 s Mono-PCM16/44,1 kHz,
+Gleichanteilentfernung, 40 ms Einblendung und
+250 ms Ausblendung, maximaler 80-ms-RMS-Zielpegel 0,16/Peakgrenze 0,78.
+Keine Zeit-/Pitch-Aenderung. SHA-256 nur der isolierten A-Growl-Schicht:
+86fd09bd9ab2180585af57cf3902bd985b849c9fe9a23bf035f032341ee7b8e4
+Die Spur folgt dem inversen fuenfsekündigen Animationsfortschritt und beginnt
+erst beim wirklichen Falten. Reaktor und Motor nutzen den bestehenden Uebergang.
+Nutzer bestaetigt A im Spiel. Nun acht gruppierte Einrastakzente aus den
+bestaetigten Heavy-/330678-/016-Schrittaufnahmen, Footstep-020 und Giant Robot:
+Spiegel/Kopf bei 2,125/2,229 s, Fusswinkel 2,958 s, Bodenbleche 3,583 s,
+Fusskompaktierung 4,062 s, Gliedmassen/Hueftgruppen 4,500 s, Seitenscheiben
+4,667 s und Karosserieabschluss 5,000 s. Betonung der staerksten 20 ms jeweils
+an gemessener Auto-Endpose bzw. Teilkomponenten-Endlage; fruehe Winkel-/Scale-
+Endpunkte sind keine vollstaendige Karosserieverriegelung. Gruppenpegel
+zielweise 0,16–0,43 maximale 80-ms-RMS, abschliessend weiche Spitzenbegrenzung
+nur der hinzugefuegten Gruppen. A bleibt ohne Ducking/Pegelaenderung erhalten.
+Die Spur umfasst mit Bewegungstexturen 5,3 s; nur ein echter Umbauabschluss
+darf maximal 0,3 s nachklingen, keine Wiedergabe beim Laden geparkter Autos.
+Abbruch/Dispose stoppen sofort. Quellenhashes, Crops, getrennte Busse und
+Reverse-Timingevidenz in return_manifest.json. Neue Mischung noch im Spiel
+abzustimmen; keine Original-Filmaufnahmen behauptet.
+
+Vorgemerkte weitere Nutzerzuordnung, noch nicht eingebaut:
+- freesound_community-062725_morph-transforms-sound-effect-11wav-47358.mp3:
+  moegliche zusaetzliche Rueckweg-Schicht. Hauptquelle ist inzwischen Growl A.
+- audiopapkin-big-robot-footstep-017-499567.mp3: Schritt oder Einrasten,
+  Entscheidung nach Hoervergleich. Kein automatisches Einmischen.
+
+
 350Z-Fahrzeug-Sound – Version 0.5.0
 
 Die folgenden Originalaufnahmen wurden aus den lokal bereitgestellten

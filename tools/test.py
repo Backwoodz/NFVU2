@@ -4,7 +4,8 @@ from build import build
 from build_support import compile_cs,test_refs,runtime_config
 
 def main():
-    suites=['model','mesh','handling','audio','radio','nitro','impact','showroom','driving','turret','targeting','terrain','blast','hummer','menu','cabin','flight','loading','lighting','controls','hotbar','rumble','nitroview','horde','hordehull','hordecorpses','turretfireaudio','hordeweather','horderadar','hordeelements','storage','persistence','streaming']
+    suites=['model','mesh','handling','audio','radio','nitro','impact','transformerimpact','showroom','driving','turret','targeting','terrain','blast','hummer','menu','cabin','flight','loading','lighting','controls','hotbar','rumble','nitroview','horde','hordehull','hordecorpses','turretfireaudio','hordeweather','horderadar','hordeelements','storage','persistence','streaming','placement','transformer','discovery','vehiclemap','transformershake','transformermount','exhaustsmoke','transformeraudio','robotidleaudio','transformerturnaudio','transformerdeployaudio','transformerreactoraudio','transformerreturnaudio','transformerfootstepeffects','transformerfootstepgrass','transformerwater','transformerminigun','transformerground','transformerminigunheat','transformerminigunaudio']
+    suites.append('transformercamera')
     parser=argparse.ArgumentParser();parser.add_argument('--skip-build',action='store_true');parser.add_argument('--handling-only',action='store_true')
     parser.add_argument('--suite',action='append',choices=suites,help='Run only these C# suites; repeat to combine.')
     args=parser.parse_args()
@@ -12,20 +13,47 @@ def main():
     if not args.handling_only and not args.suite:
         subprocess.run([sys.executable,'-m','unittest','discover','-s',str(BASE/'tests'),'-p','test_*.py'],check=True)
     references,tfm,version=test_refs()
-    for suite in (['handling'] if args.handling_only else args.suite or suites):
+    selected=['handling'] if args.handling_only else args.suite or suites
+    if not args.suite and 'transformer' in selected and not (LOCAL/'transformer/transformer.json').is_file():
+        selected=[s for s in selected if s!='transformer']
+        print('Optional transformer asset absent; export V18 to enable its payload checks.')
+    for suite in selected:
         out=OUTPUT/'tests'/suite;out.mkdir(parents=True,exist_ok=True)
         sources=list((BASE/'tests'/suite).glob('*.cs'));refs=list(references);arguments=[]
         if suite=='handling':sources.extend(BASE/'src'/name for name in ('DrivingMath.cs','VehicleHandling.cs','VehicleDriftTuning.cs','HummerTuning.cs','VehicleRideHeight.cs'))
         elif suite=='mesh':sources.append(BASE/'src/VehicleMesh.cs')
+        elif suite=='placement':sources.append(BASE/'src/TransformerPlacement.cs')
         elif suite=='lighting':sources.extend(BASE/'src'/name for name in ('VehicleLightingState.cs','DrivingMath.cs'))
         elif suite=='flight':sources.extend(BASE/'src'/name for name in ('FlightState.cs','VehicleFlight.cs','NitroState.cs','DrivingMath.cs'))
         elif suite=='impact':sources.extend(BASE/'src'/name for name in ('VehicleImpactRules.cs','VehicleImpact.cs'))
+        elif suite=='transformerimpact':sources.extend(BASE/'src'/name for name in ('VehicleImpactRules.cs','TransformerImpact.cs'))
         elif suite=='nitroview':sources.append(BASE/'src/NitroCameraView.cs')
         elif suite=='storage':sources.extend(BASE/'src'/name for name in ('VehicleStorageRules.cs','VehicleStorage.cs','VehiclePersistence.cs'))
+        elif suite=='exhaustsmoke':sources.append(BASE/'src/ExhaustSmokeRules.cs')
         elif suite=='persistence':
             sources.append(BASE/'tests/storage/Doubles.cs')
             sources.extend(BASE/'src'/name for name in ('VehicleStorageRules.cs','VehicleStorage.cs','VehiclePersistence.cs','VehicleWorldPersistence.cs'))
         elif suite=='streaming':sources.append(BASE/'src/VehicleWorldStreaming.cs')
+        elif suite=='discovery':sources.append(BASE/'src/VehicleDiscovery.cs')
+        elif suite=='vehiclemap':sources.extend(BASE/'src'/name for name in ('VehicleMap.cs','VehicleMapPins.cs'))
+        elif suite=='transformershake':sources.extend(BASE/'src'/name for name in ('TransformerGait.cs','TransformerStepShake.cs'))
+        elif suite=='transformercamera':sources.extend(BASE/'src'/name for name in ('TransformerCinematicCamera.cs','VehicleOrbitCamera.Cinematic.cs','DrivingMath.cs','ChaseCameraState.cs'))
+        elif suite=='transformerground':sources.extend(BASE/'src'/name for name in ('TransformerGroundProbe.cs','TransformerWaterRules.cs'))
+        elif suite=='transformerwater':sources.append(BASE/'src/TransformerWaterRules.cs')
+        elif suite=='transformerminigun':sources.extend(BASE/'src'/name for name in ('TransformerMinigunModel.cs','TransformerMinigunDamage.cs','TransformerMinigunFeedback.cs','TurretTargeting.cs','TurretState.cs'))
+        elif suite=='transformerminigunheat':sources.append(BASE/'src/TransformerMinigunHeatModel.cs')
+        elif suite=='transformerminigunaudio':
+            sources.extend(BASE/'src'/name for name in ('TransformerMinigunAudio.cs','TransformerMinigunSoundLevels.cs','WavPcm16.cs'))
+            arguments=[str(LOCAL/'minigun')]
+        elif suite=='transformerfootstepgrass':sources.append(BASE/'src/TransformerFootstepGrass.cs')
+        elif suite=='transformerfootstepeffects':sources.append(BASE/'src/TransformerFootstepEffectModel.cs')
+        elif suite=='transformeraudio':sources.extend(BASE/'src'/name for name in ('TransformerGait.cs','TransformerFootstepModel.cs','TransformerFootstepAudio.cs','WavPcm16.cs'))
+        elif suite=='transformerturnaudio':sources.extend(BASE/'src'/name for name in ('TransformerTurnSoundModel.cs','TransformerTurnAudio.cs','WavPcm16.cs'))
+        elif suite=='transformerdeployaudio':sources.extend(BASE/'src'/name for name in ('TransformerDeploySoundModel.cs','TransformerDeployAudio.cs','WavPcm16.cs'))
+        elif suite=='transformerreturnaudio':sources.extend(BASE/'src'/name for name in ('TransformerReturnSoundModel.cs','TransformerReturnAudio.cs','WavPcm16.cs'))
+        elif suite=='transformerreactoraudio':sources.extend(BASE/'src'/name for name in ('TransformerReactorAudio.cs','WavPcm16.cs'))
+        elif suite=='robotidleaudio':sources.extend(BASE/'src'/name for name in ('VehicleAudio.cs','EngineSoundModel.cs','TurboSoundModel.cs','ReverseGearSound.cs','ExhaustSoundProfile.cs','DrivingMath.cs','WavPcm16.cs'))
+        elif suite=='transformermount':sources.extend(BASE/'src'/name for name in ('TransformerMountMotion.cs','TransformerFlipShape.cs','TransformerDismountArc.cs','TransformerClimbLeg.cs'))
         elif suite=='horde':sources.extend(BASE/'src'/name for name in ('HordeWave.cs','HordeRun.cs','HordePact.cs','HordeBonus.cs','HordeElementRules.cs'))
         elif suite=='hordeweather':sources.append(BASE/'src/HordeWeather.cs')
         elif suite=='horderadar':sources.append(BASE/'src/HordeMapProjection.cs')
@@ -59,6 +87,9 @@ def main():
         if suite=='cabin':
             jsondll=out/'Newtonsoft.Json.dll';shutil.copy2(valheim_dir()/'valheim_Data/Managed/Newtonsoft.Json.dll',jsondll);refs.append(jsondll)
             arguments=[str(LOCAL/'interior/interior.json')]
+        if suite=='transformer':
+            jsondll=out/'Newtonsoft.Json.dll';shutil.copy2(valheim_dir()/'valheim_Data/Managed/Newtonsoft.Json.dll',jsondll);refs.append(jsondll)
+            arguments=[str(LOCAL/'transformer'),str(LOCAL/'model/body.json')]
         if suite=='hummer':
             jsondll=out/'Newtonsoft.Json.dll';shutil.copy2(valheim_dir()/'valheim_Data/Managed/Newtonsoft.Json.dll',jsondll);refs.append(jsondll)
             arguments=[str(LOCAL/'hummer/h2.json'),str(LOCAL/'audio-hummer')]

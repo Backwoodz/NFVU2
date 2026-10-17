@@ -12,7 +12,7 @@ public partial class Plugin {
     void FocusMenuPane(bool sidebar){uiNavigation.SelectPane(sidebar);uiActivate=false;uiHorizontal=uiVertical=0;uiWaitNeutral=true;MenuSound(0);}
     void MoveMenuFocus(int direction) {
         if(uiNavigation.Sidebar) {
-            if(direction<=2){ChangeMenuTab(ControlRules.MenuNextTab(menuTab,direction==1?-1:1,MenuNames.Length,CanAccessCurrent(LocalPlayer())));MenuSound(0);}
+            if(direction<=2){ChangeMenuTab(ControlRules.MenuNextTab(menuTab,direction==1?-1:1,MenuNames.Length,CanAccessCurrent(LocalPlayer()),Transforming));MenuSound(0);}
             else if(direction==3)FocusMenuPane(false);
         }else if(uiNavigation.Editing) {
             if(direction<=2)uiVertical=direction==1?-1:1;else uiHorizontal=direction==3?1:-1;

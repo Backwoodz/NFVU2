@@ -31,6 +31,15 @@ public sealed class VehicleAudio : IDisposable {
     bool paused,playing,disposed;
     int exhaustProfile;
     float exhaustPitch=1f;
+    public bool Owns(AudioSource source)=>sources.Contains(source);
+    public void TickRobotIdle(bool running,bool blocked,float volume,float progress,bool occupied=true) {
+        // Keep the car mix through the first fifth, then gently lower its idle
+        // beneath the reactor. The same phase restores it while folding back.
+        // Gain changes never restart the existing engine loops.
+        float phase=Mathf.Clamp01((progress-.2f)/.8f);
+        float gain=1-.6f*phase*phase*(3-2*phase);
+        Tick(false,0,false,false,blocked,true,Mathf.Clamp01(volume)*gain,false,running,false,false,true,occupied);
+    }
     public void SetExhaustProfile(int profile){exhaustProfile=ExhaustSoundProfile.Clamp(profile);}
     public IEnumerable<int> LoadSteps(GameObject car,Rigidbody carBody,WheelCollider[] carWheels,Action<string> log,SpawnAudio audio) {
         prepared=audio;
@@ -88,8 +97,13 @@ public sealed class VehicleAudio : IDisposable {
         source.dopplerLevel=.25f;source.spread=0;source.outputAudioMixerGroup=mixer;
         return source;
     }
-    public void Tick(bool driving,float throttle,bool braking,bool honking,bool blocked,bool terrain,float volume,bool burnout=false,bool parkedRunning=false,bool flying=false,bool turboInputAllowed=true) {
+    public void Tick(bool driving,float throttle,bool braking,bool honking,bool blocked,bool terrain,float volume,bool burnout=false,bool parkedRunning=false,bool flying=false,bool turboInputAllowed=true,bool robotIdle=false,bool robotOccupied=true) {
         if(disposed)return;
+        bool audioOccupied=robotIdle?robotOccupied:driving;
+        if(robotIdle) {
+            driving=false;throttle=0;braking=honking=burnout=flying=turboInputAllowed=false;
+            roadLevel=skidLevel=hornLevel=0;
+        }
         if(blocked) {
             if(!paused){foreach(var source in sources)source.Pause();paused=true;}
             turboModel.Reset();turboReleaseGain=0;
@@ -108,8 +122,8 @@ public sealed class VehicleAudio : IDisposable {
         else if(model.Level<=.001f && playing){foreach(var source in sources)source.Stop();playing=false;}
         if(!playing)return;
         volume=Mathf.Clamp01(volume);
-        if(!driving)volume*=.55f;
-        foreach(var source in sources){source.minDistance=driving?6:2;source.maxDistance=driving?65:30;}
+        if(!audioOccupied)volume*=.55f;
+        foreach(var source in sources){source.minDistance=audioOccupied?6:2;source.maxDistance=audioOccupied?65:30;}
         float powerMix=Mathf.Lerp(.85f,.15f+.85f*model.Load,Mathf.Clamp01(speed/2));
         powerMix=ExhaustSoundProfile.PowerMix(exhaustProfile,powerMix);
         exhaustPitch=Mathf.MoveTowards(exhaustPitch,ExhaustSoundProfile.Pitch(exhaustProfile),dt*.6f);

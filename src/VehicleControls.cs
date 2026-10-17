@@ -13,6 +13,7 @@ public partial class Plugin {
     Gamepad pad;
     Gamepad previousPad;Vector2 previousLeft,previousRight,previousDpad;float previousGas,previousReverse;
     bool padActive,handbrakeHeld,turretHeld,exitAfterLanding;
+    readonly VehicleInteractionKey vehicleInteractionKey=new VehicleInteractionKey();
     readonly ReleaseGate controlsGate=new ReleaseGate();
     string songToast;float songToastUntil;VehicleRadio toastRadio;int toastTrack=-1;
     void InitializeControls() {
@@ -23,6 +24,7 @@ public partial class Plugin {
         controllerInvertY=Config.Bind("Camera","ControllerInvertY",false,"Invert controller vertical camera movement.");
         hintScale=Config.Bind("Interface","HintScale",1f,new ConfigDescription("Control hint text scale.",new AcceptableValueRange<float>(.8f,1.5f)));
         ControlsOwner=this;controlsHarmony=new Harmony("local.rachel350z.controls");controlsHarmony.PatchAll(typeof(NativeControlCapture));
+        controlsHarmony.PatchAll(typeof(NativeVehicleInteraction));
         controlsHarmony.PatchAll(typeof(NativeHotbarNavigation));
         controlsHarmony.PatchAll(typeof(NativeHotbarClick));
         controlsHarmony.PatchAll(typeof(NativeHotbarUse));
@@ -32,6 +34,7 @@ public partial class Plugin {
         controlsHarmony.PatchAll(typeof(SavedVehicleCargoProtection));
         controlsHarmony.PatchAll(typeof(SavedVehicleShutdown));
         controlsHarmony.PatchAll(typeof(SavedVehicleWorldSave));
+        controlsHarmony.PatchAll(typeof(SavedVehicleWorldEntry));
         InitializeHordeGame();
     }
     internal bool CaptureCameraShake(GameCamera camera)=>camera!=null&&!camera.enabled&&(camera==gameCamera||camera==menuCamera);
@@ -45,9 +48,10 @@ public partial class Plugin {
     string ButtonName(string xbox,string ps)=>Playstation?ps:xbox;
     bool PadDown(string name) {
         if(pad==null)return false;
-        switch(name){case "menu":return pad.leftStickButton.wasPressedThisFrame;case "back":return pad.buttonEast.wasPressedThisFrame;case "confirm":return pad.buttonSouth.wasPressedThisFrame;case "prev":return pad.dpad.left.wasPressedThisFrame;case "next":return pad.dpad.right.wasPressedThisFrame;case "up":return pad.dpad.up.wasPressedThisFrame;case "down":return pad.dpad.down.wasPressedThisFrame;case "leftCategory":return pad.leftShoulder.wasPressedThisFrame;case "rightCategory":return pad.rightShoulder.wasPressedThisFrame;default:return false;}
+        switch(name){case "menu":return pad.leftStickButton.wasPressedThisFrame;case "back":return pad.buttonEast.wasPressedThisFrame;case "transform":return pad.rightShoulder.wasPressedThisFrame;case "confirm":return pad.buttonSouth.wasPressedThisFrame;case "prev":return pad.dpad.left.wasPressedThisFrame;case "next":return pad.dpad.right.wasPressedThisFrame;case "up":return pad.dpad.up.wasPressedThisFrame;case "down":return pad.dpad.down.wasPressedThisFrame;case "leftCategory":return pad.leftShoulder.wasPressedThisFrame;case "rightCategory":return pad.rightShoulder.wasPressedThisFrame;default:return false;}
     }
     void SampleControls() {
+        vehicleInteractionKey.Release(Input.GetKey(KeyCode.E));
         pad=Gamepad.current;
         if(pad!=null&&!pad.added)pad=null;
         if(pad!=previousPad){controlsGate.Block();padActive=false;previousLeft=previousRight=previousDpad=Vector2.zero;previousGas=previousReverse=0;previousPad=pad;}
@@ -58,8 +62,9 @@ public partial class Plugin {
         if(meaningful)padActive=true;
         if((Keyboard.current?.anyKey.wasPressedThisFrame??false)||Input.mouseScrollDelta.y!=0||Input.GetAxisRaw("Mouse X")!=0||Input.GetAxisRaw("Mouse Y")!=0)padActive=false;
     }
-    bool ControlsHeld()=>pad!=null&&(pad.rightTrigger.ReadValue()>.06f||pad.leftTrigger.ReadValue()>.06f||pad.buttonWest.isPressed||pad.buttonSouth.isPressed||pad.leftShoulder.isPressed||pad.rightShoulder.isPressed)||Input.GetKey(KeyCode.W)||Input.GetKey(KeyCode.S)||Input.GetKey(KeyCode.Space)||Input.GetKey(KeyCode.LeftShift)||Input.GetKey(KeyCode.LeftControl)||Input.GetMouseButton(0)||Input.GetMouseButton(1);
+    bool ControlsHeld()=>pad!=null&&(pad.rightTrigger.ReadValue()>.06f||pad.leftTrigger.ReadValue()>.06f||pad.buttonWest.isPressed||pad.buttonSouth.isPressed||pad.leftShoulder.isPressed||pad.rightShoulder.isPressed)||Input.GetKey(KeyCode.W)||Input.GetKey(KeyCode.S)||Input.GetKey(KeyCode.Space)||Input.GetKey(KeyCode.LeftShift)||Input.GetKey(KeyCode.RightShift)||Input.GetKey(KeyCode.LeftControl)||Input.GetMouseButton(0)||Input.GetMouseButton(1);
     void SelectControlMode(int mode) {
+        if(Transforming)return;
         if(HordeVehicle){if(mode!=0)ShowVehicleWarning("Hordenmodus: nur Gelände verfügbar.");return;}
         if(driving&&!DriverInputReady||IsHummer&&mode==2)return;
         int previousMode=CurrentControlMode;
@@ -80,7 +85,7 @@ public partial class Plugin {
     }
     int CurrentControlMode=>HordeVehicle?0:Flying&&!current.flight.State.Landing?3:!IsHummer&&driftMode.Value?2:terrainMode.Value?0:1;
     void TickControlActions(MonoBehaviour local) {
-        if(Input.GetKeyDown(KeyCode.F7)||PadDown("back")) {
+        if(VehicleAccessDown(local)) {
             if(driving){if(Flying){exitAfterLanding=true;current.flight.Land();status="Landung zum Aussteigen …";}else RequestExit();}
             else if(CanAccessCurrent(local))Enter(local);
             controlsGate.Block();
@@ -94,6 +99,23 @@ public partial class Plugin {
             if(PadDown("next")||Input.GetKeyDown(KeyCode.RightArrow))vehicleRadio.Next();
         }
         if(exitAfterLanding&&!Flying&&body.linearVelocity.magnitude<=.5f){exitAfterLanding=false;RequestExit();}
+    }
+    bool VehicleAccessDown(MonoBehaviour local) {
+        if(Input.GetKeyDown(KeyCode.E)) {
+            var hover=(local as Player)?.GetHoverObject();
+            if(vehicleInteractionKey.Press(true,driving,CanAccessCurrent(local),WorldInteraction(hover),Time.frameCount))return true;
+        }
+        return Input.GetKeyDown(KeyCode.F7)||PadDown("back");
+    }
+    bool WorldInteraction(GameObject target)=>target!=null&&(car==null||!target.transform.IsChildOf(car.transform))
+        &&target.GetComponentInParent<Interactable>()!=null;
+    // Player.Update reads Use independently of PlayerController. After leaving
+    // a vehicle, this same held E press must not activate a nearby world object.
+    internal bool CaptureVehicleInteraction(Player local,GameObject target) {
+        if(!ready||local==null||local!=LocalPlayer()||Multiplayer())return false;
+        if(vehicleInteractionKey.BlocksWorldUse(Input.GetKey(KeyCode.E)))return true;
+        if(Input.GetKeyDown(KeyCode.E)&&WorldInteraction(target))vehicleInteractionKey.ObserveWorldUse(Time.frameCount);
+        return false;
     }
     void ReadVehicleControls() {
         handbrakeHeld=turretHeld=false;
@@ -139,5 +161,9 @@ static class NativeControlCapture {
         __instance.GetComponent<Player>().SetControls(Vector3.zero,false,false,false,false,false,false,false,false,false,false);
         return false;
     }
+}
+[HarmonyPatch(typeof(Player),"Interact")]
+static class NativeVehicleInteraction {
+    static bool Prefix(Player __instance,GameObject go)=>Plugin.ControlsOwner==null||!Plugin.ControlsOwner.CaptureVehicleInteraction(__instance,go);
 }
 }

@@ -105,7 +105,10 @@ public class Player:UnityEngine.MonoBehaviour {
     public static Player m_localPlayer=new Player();public bool dead,teleport;
     public bool IsDead()=>dead;public bool IsTeleporting()=>teleport;
 }
-public class Game {}
+public class Game:UnityEngine.MonoBehaviour {
+    public static Game instance=new Game();public bool waiting=true,shuttingDown;
+    public bool WaitingForRespawn()=>waiting;public bool IsShuttingDown()=>shuttingDown;
+}
 public class ZNetScene {
     public static ZNetScene instance=new ZNetScene();public readonly Dictionary<ZDOID,UnityEngine.GameObject> objects=new Dictionary<ZDOID,UnityEngine.GameObject>();public int created;
     public UnityEngine.GameObject GetPrefab(string name){var obj=new UnityEngine.GameObject();obj.Add(new Container(name=="piece_chest"?6:8,4));return obj;}

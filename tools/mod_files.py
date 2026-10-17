@@ -8,11 +8,14 @@ OPTIONAL=(('radio', 'radio', {'.wav','.ogg','.json'}),
           ('menu', 'menu', {'.wav','.json'}),
           ('audio-turbo', 'audio/turbo', {'.wav','.json'}),
           ('audio-effects', 'audio/effects', {'.wav','.json'}),
+          ('audio-transformer', 'audio/transformer', {'.wav','.json'}),
           ('hud', 'hud', {'.json'}),
           ('hummer', 'hummer', {'.json'}),
           ('interior', 'interior', {'.json'}),
           ('audio-hummer', 'audio/hummer', {'.wav','.json'}),
-          ('turret', 'turret', {'.json','.wav'}))
+          ('turret', 'turret', {'.json','.wav'}),
+          ('minigun', 'minigun', {'.json','.wav'}),
+          ('transformer', 'transformer', {'.json','.bin'}))
 
 def asset_files(folder,extensions):
     folder=Path(folder)

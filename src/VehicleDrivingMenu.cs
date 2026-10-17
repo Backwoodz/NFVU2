@@ -36,7 +36,7 @@ public partial class Plugin {
         UiLabel(new Rect(25,495,510,24),dashboard==null?"Originalgrafiken fehlen – einfache Anzeige aktiv.":padActive?"RS: Kamera · R3: Hupe":"Mittlere Maustaste: Kamera zentrieren",mutedStyle);
     }
     void DrawDashboard() {
-        if(!driving||body==null||!hudEnabled.Value||audioBlocked||Hud.IsUserHidden())return;
+        if(!driving||body==null||!hudEnabled.Value||audioBlocked||Hud.IsUserHidden()||Transforming)return;
         float speed=body.linearVelocity.magnitude,rpm=vehicleAudio?.Rpm??950;
         int gear=vehicleAudio?.Gear??(throttle<0?-1:1);
         float charge=ActiveNitro?.Charge??0;

@@ -12,6 +12,7 @@ public sealed class CabinTransition {
     public float SeatBlend=>Phase==CabinPhase.Enter?Smooth(TimeInPhase/1.4f):Phase==CabinPhase.Exit?1-Smooth(TimeInPhase/1.4f):
         Phase==CabinPhase.CloseEnter||Phase==CabinPhase.Seated||Phase==CabinPhase.OpenExit?1:0;
     public void Arrive(){if(Phase==CabinPhase.Approach){Phase=CabinPhase.OpenEnter;TimeInPhase=0;}}
+    public void SitImmediately(){Phase=CabinPhase.Seated;TimeInPhase=0;}
     public bool BeginExit(){if(!CanDrive)return false;Phase=CabinPhase.OpenExit;TimeInPhase=0;return true;}
     public void CancelExit(){if(Phase==CabinPhase.OpenExit||Phase==CabinPhase.Exit||Phase==CabinPhase.Complete){Phase=CabinPhase.Seated;TimeInPhase=0;}}
     public void Step(float dt,bool blocked,float doorProgress) {

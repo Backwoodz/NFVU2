@@ -5,12 +5,15 @@ namespace Rachel350Z {
 public partial class Plugin {
     ConfigEntry<int> z_exhaustSound;
     ConfigEntry<int> z_exhaustStyle;
+    ConfigEntry<bool> z_idleExhaustSmoke;
+    ConfigEntry<bool> idleExhaustSmoke=>VehicleConfig(z_idleExhaustSmoke);
     ConfigEntry<string> z_exhaustFlameColor;
     ConfigEntry<int> exhaustSound=>VehicleConfig(z_exhaustSound);
     ConfigEntry<int> exhaustStyle=>VehicleConfig(z_exhaustStyle);
     ConfigEntry<string> exhaustFlameColor=>VehicleConfig(z_exhaustFlameColor);
     static readonly string[] ExhaustNames={"Original","Tief","Sport"};
     void InitializeExhaustMenu() {
+        z_idleExhaustSmoke=BindVehicle("Exhaust","IdleSmoke",true,"Subtle NFVU2-authored exhaust vapour while idling or slowly coasting, including the robot's moving exhaust tips.");
         z_exhaustStyle=BindVehicle("Exhaust","Style",8,new ConfigDescription("Original NFS exhaust tip STYLE01..10. Requires the updated local model catalog; STYLE08 is the existing default.",new AcceptableValueRange<int>(1,10)));
         z_exhaustSound=BindVehicle("Exhaust","SoundProfile",0,new ConfigDescription("NFVU2 treatments of the installed original engine recordings: 0 original, 1 deeper, 2 sport. Not recovered NFS tuning banks.",new AcceptableValueRange<int>(0,2)));
         z_exhaustFlameColor=BindVehicle("Exhaust","FlameColor","Original",new ConfigDescription("Exhaust nitro and wheel-thruster colour. Original preserves green exhaust and blue wheel thrusters.",new AcceptableValueList<string>(ExhaustColors)));

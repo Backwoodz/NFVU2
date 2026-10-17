@@ -63,6 +63,14 @@ class Program {
         Check(VehiclePersistence.IsVehicle(record)&&!VehiclePersistence.Hummer(record),"350Z world marker");
         Check(VehiclePersistence.Location(record).y==200&&VehiclePersistence.Orientation(record).y==125,"exact car altitude and orientation saved independently of grounded cargo");
         Check(VehiclePersistence.Flying(record)&&VehiclePersistence.WasDriven(record)&&VehiclePersistence.Trunk(record)==2,"flight, driven and trunk state retained");
+        Check(!VehiclePersistence.Transformed(record),"existing car records default to car form");
+        empty.PositionForSave=()=>new Vector3(40,.32f,80);
+        empty.SaveVehicle(false,true,true);
+        Check(VehiclePersistence.Location(record).y==.32f&&car.transform.position.y==200,"robot save uses car recovery height without moving the live robot root");
+        Check(VehiclePersistence.Transformed(record)&&!VehiclePersistence.Flying(record),"transformer form is saved alongside recovery pose and cargo");
+        empty.PositionForSave=null;empty.SaveVehicle(true,true);
+        Check(VehiclePersistence.Location(record).y==200&&VehiclePersistence.Flying(record),"return to car clears temporary save pose override");
+        Check(!VehiclePersistence.Transformed(record),"returning to car clears saved transformer form");
         empty.Open("saved car");empty.Release();empty.Release();
         Check(InventoryGui.instance.current==null,"persistent cleanup closes cargo UI before disposing vehicle");
         Check(!record.deleted&&VehiclePersistence.IsVehicle(record),"empty car survives teardown and repeated disposal");
@@ -75,6 +83,8 @@ class Program {
 
         var full=new VehicleStorage(car,true,0);var cargo=full.Data;
         VehiclePersistence.Mark(cargo,true);full.SaveVehicle(false,false);
+        full.SaveVehicle(true,false,true);
+        Check(!VehiclePersistence.Transformed(cargo)&&VehiclePersistence.Flying(cargo),"Hummer cannot restore as transformer even with an invalid form request");
         var root=ZNetScene.instance.objects.Values.Single();var container=root.GetComponent<Container>();
         container.inventory.items.Add(new Item{stack=22,custom="saved cargo"});container.inventory.m_onChanged();
         full.Release();

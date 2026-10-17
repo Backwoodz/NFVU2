@@ -7,18 +7,25 @@ public partial class Plugin {
     ConfigEntry<string> spawnModel;
     MonoBehaviour fleetOwner;
     void InitializeGarage(){spawnModel=Config.Bind("Garage","SpawnModel","Nissan 350Z",new ConfigDescription("Vehicle created with F6 or the garage button.",new AcceptableValueList<string>("Nissan 350Z","Hummer H2")));}
-    bool CanAccessCurrent(MonoBehaviour local)=>car!=null&&local!=null&&(driving||Vector3.Distance(local.transform.position,car.transform.position)<5);
+    bool CanAccessCurrent(MonoBehaviour local) {
+        if(car==null||local==null)return false;
+        var offset=local.transform.position-car.transform.position;
+        if(Transforming)offset.y=0;
+        return driving||offset.sqrMagnitude<25;
+    }
     void SelectNearest(MonoBehaviour local) {
         var nearest=fleet.Nearest(v=>v.car!=null?(v.car.transform.position-local.transform.position).sqrMagnitude:float.PositiveInfinity);
         if(nearest!=null)current=nearest;
     }
     void ForEachVehicle(Action action)=>fleet.Visit(action);
     void CleanupAll() {
+        CleanupVehicleMap();
+        vehicleLoadGame=null;
         ClearHorde();
         ClearNitroVisuals();
         if(spawnCacheUsed){spawnCache=new SpawnAssetCache();spawnCacheUsed=false;}
         CancelSpawn(null);
-        foreach(var vehicle in fleet)vehicle.storage?.SaveVehicle(vehicle.flight?.Active==true,vehicle.hasBeenDriven);
+        foreach(var vehicle in fleet)vehicle.storage?.SaveVehicle(vehicle.flight?.Active==true,vehicle.hasBeenDriven,vehicle.transformer?.Active==true);
         if(driving||player!=null)Exit();
         CloseVehicleMenu();
         foreach(var vehicle in fleet.ToArray()){current=vehicle;ReleaseVehicle();}
@@ -51,7 +58,7 @@ public partial class Plugin {
         if(MenuButton(new Rect(25,310,510,40),padActive?"Fahrzeug spawnen ("+ButtonName("A","Kreuz")+")":"Ausgewähltes Fahrzeug spawnen (F6)")){Spawn(LocalPlayer());return;}
         GUI.enabled=true;
         UiLabel(new Rect(25,366,510,60),"Gespawnt: "+WorldVehicleCount+" / 4\n"+string.Join(" · ",SavedVehicles.Select(v=>VehiclePersistence.Hummer(v)?"H2":"350Z")),labelStyle);
-        UiLabel(new Rect(25,436,510,72),"Autos werden mit der Welt gespeichert. Zum Einsteigen oder Einstellen zum gewünschten Auto gehen: F7 / F9. Entfernen nur im Fahrzeugmenü.",mutedStyle);
+            UiLabel(new Rect(25,436,510,72),"Autos werden mit der Welt gespeichert. Zum Einsteigen oder Einstellen zum gewünschten Auto gehen: E / F9. Entfernen nur im Fahrzeugmenü.",mutedStyle);
     }
 }
 }

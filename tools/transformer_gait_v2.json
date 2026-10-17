@@ -1,0 +1,23 @@
+{
+  "version": 2,
+  "stride": 0.48,
+  "lift": 0.16,
+  "armSwing": 20,
+  "elbowBase": 6,
+  "elbowForward": 4,
+  "maxSpeed": 2.1,
+  "reverseSpeed": 1.4,
+  "acceleration": 0.65,
+  "braking": 1.8,
+  "turnDegrees": 32,
+  "halfTrack": 0.88,
+  "releases": {
+    "panel.sill1_L": [0.4, 0, 0],
+    "panel.sill1_R": [-0.4, 0, 0],
+    "panel.floor0_L_fold2_0": [-0.10, 0, 0],
+    "panel.floor0_R_fold2_1": [0.10, 0, 0],
+    "neon.trunk rear": [0, 0, 0.06]
+  },
+  "sillWithdrawal": [[0, 0], [0.1, 0.04], [0.7, 0.04], [0.8, 0], [1, 0]],
+  "scope": "Progressive flat-ground stride, opposite arm swing and elbow flexion. Closed-pose overlaps are measured separately during withdrawal."
+}

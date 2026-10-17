@@ -16,8 +16,9 @@ public partial class Plugin {
     int vehicleHintRows;
     float vehicleHintHeight;
     bool vehicleHintFailed;
+    const float VehicleHintBottomMargin=48;
     bool NativeVehicleHintsVisible=>vehicleHintPanel!=null&&vehicleHintPanel.gameObject.activeInHierarchy;
-    float VehicleHintBottomInset=>NativeVehicleHintsVisible?vehicleHintHeight+32:90;
+    float VehicleHintBottomInset=>NativeVehicleHintsVisible?vehicleHintHeight+VehicleHintBottomMargin+16:90;
 
     void RestoreVehicleHints() {
         if(originalHintGroups!=null)for(int i=0;i<originalHintGroups.Length;i++)
@@ -79,10 +80,12 @@ public partial class Plugin {
             vehicleHintPanel.gameObject.SetActive(true);
             float scale=Mathf.Min(hintScale.Value,Mathf.Min((Screen.width-36)/550f,Screen.height/850f));
             float units=scale/Mathf.Max(.01f,vehicleHintCanvas.scaleFactor);
-            string title=menuOpen?Tr("Modmenü"):Tr(DriveModeName);
-            string key=padActive+"|"+Playstation+"|"+Flying+"|"+menuOpen+"|"+IsHummer+"|"+uiLanguage.Value+"|"+menuKey.Value+"|"+title+"|"+units;
+            string title=Transforming?"Transformer" :menuOpen?Tr("Modmenü"):Tr(DriveModeName);
+            string key=padActive+"|"+Playstation+"|"+Flying+"|"+menuOpen+"|"+IsHummer+"|"+uiLanguage.Value+"|"+menuKey.Value+"|"+title+"|"+units+"|"+transformerEnabled.Value+"|"+transformerKey.Value;
             if(key!=vehicleHintKey) {
-                var rows=VehicleHintContent.Build(padActive,Playstation,Flying,menuOpen,IsHummer,menuKey.Value.ToString(),Tr);
+                var rows=Transforming?TransformerHints():VehicleHintContent.Build(padActive,Playstation,Flying,menuOpen,IsHummer,menuKey.Value.ToString(),Tr);
+                if(!Transforming&&!Flying&&!menuOpen&&transformerEnabled.Value&&!IsHummer&&current.transformerAsset!=null)
+                    rows=rows.Concat(new[]{TransformerToggleHint+"  Verwandeln (im Stand)"}).ToArray();
                 vehicleHintRows=(rows.Length+1)/2;
                 vehicleHintTitle.text=title;
                 vehicleHintLeft.text=string.Join("\n",rows.Take(vehicleHintRows));
@@ -94,7 +97,7 @@ public partial class Plugin {
             }
             vehicleHintHeight=(52+vehicleHintRows*29)*scale;
             vehicleHintPanel.sizeDelta=new Vector2(550*units,(52+vehicleHintRows*29)*units);
-            vehicleHintPanel.anchoredPosition=new Vector2(-18,-16)/Mathf.Max(.01f,vehicleHintCanvas.scaleFactor);
+            vehicleHintPanel.anchoredPosition=new Vector2(-18,VehicleHintBottomMargin)/Mathf.Max(.01f,vehicleHintCanvas.scaleFactor);
         }catch(Exception error) {
             vehicleHintFailed=true;DisposeVehicleHints();Logger.LogWarning("Vehicle icon hints unavailable; using text hints: "+error);
         }

@@ -52,7 +52,7 @@ public sealed class TurretExplosion : IDisposable {
         Vector3 point=impact.point+impact.normal*.05f;
         obj.transform.SetPositionAndRotation(point,Quaternion.LookRotation(impact.normal));
         particles[index].Stop(true,ParticleSystemStopBehavior.StopEmittingAndClear);particles[index].Play();particles[index].Emit(35);
-        sounds[index].Stop();sounds[index].volume=volume;sounds[index].Play();ages[index]=.16f;
+        sounds[index].Stop();sounds[index].volume=volume;if(sounds[index].clip!=null)sounds[index].Play();ages[index]=.16f;
         TurretDamage.Blast(impact,driver,damageMultiplier);
         if(!terrainFailed)try {TurretTerrain.Excavate(impact);}
         catch(Exception e){terrainFailed=true;log?.Invoke("350Z crater deformation disabled: "+e.Message);}

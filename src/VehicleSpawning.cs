@@ -39,8 +39,9 @@ public partial class Plugin {
         LoadStage("Dateien im Hintergrund einlesen",0);
         var folder=Path.GetDirectoryName(Info.Location);
         var cache=spawnCache;var token=spawnCancellation.Token;
+        bool loadTransformer=transformerEnabled.Value||saved!=null&&VehiclePersistence.Transformed(saved);
         spawnCacheUsed=true;
-        spawnRead=Task.Run(()=>SpawnAssets.Load(folder,hummer,cache,token),token);
+        spawnRead=Task.Run(()=>SpawnAssets.Load(folder,hummer,cache,token,loadTransformer),token);
         // Observe failures even if the player cancels/leaves before the worker finishes.
         spawnRead.ContinueWith(task=>{var ignored=task.Exception;},CancellationToken.None,TaskContinuationOptions.OnlyOnFaulted,TaskScheduler.Default);
         spawnWork=new StagedWork(BuildVehicle(local));
@@ -98,8 +99,11 @@ public partial class Plugin {
         yield return StagedWork.NextFrame;
         while(!spawnRead.IsCompleted)yield return StagedWork.NextFrame;
         var assets=spawnRead.GetAwaiter().GetResult();
+        if(restoringVehicle!=null&&VehiclePersistence.Transformed(restoringVehicle)&&assets.Transformer==null)
+            throw new InvalidOperationException("Gespeicherter Transformer kann ohne seine Modelldaten nicht wiederhergestellt werden.");
         foreach(var warning in assets.Warnings)Logger.LogWarning(warning);
         var model=assets.Model;
+        current.transformerAsset=assets.Transformer;
         Logger.LogInfo("Vehicle data ready after "+spawnTimer.Elapsed.TotalSeconds.ToString("0.00")+" s; "+model.parts.Length+" body parts.");
         car=new GameObject(IsHummer?"H2_Local_Prototype":"350Z_Local_Prototype");car.SetActive(false);
         originalWheels=model.schemaVersion==2;
@@ -154,9 +158,22 @@ public partial class Plugin {
         try {if(!IsHummer)nitroEffects=VehicleNitroEffects.Create(car,model,message=>Logger.LogInfo(message));}
         catch(Exception e){Logger.LogWarning("350Z nitro effects unavailable: "+e);}
         if(!IsHummer)effectsAudio=VehicleEffectsAudio.Create(car,message=>Logger.LogInfo(message),assets.Audio);
+        current.exhaustSmoke=VehicleExhaustSmoke.Create(car,model,exhaustStyle.Value,message=>Logger.LogInfo(message));
         yield return 0;
         vehicleAudio=new VehicleAudio(IsHummer);
         foreach(var step in StagedWork.Optional(vehicleAudio.LoadSteps(car,body,wheels,message=>Logger.LogInfo(message),assets.Audio),error=>{vehicleAudio.Dispose();vehicleAudio=null;Logger.LogWarning("Vehicle audio unavailable: "+error);}))yield return step;
+        if(!IsHummer&&assets.Transformer!=null) {
+            current.transformerAudio=new TransformerFootstepAudio(car,assets.Audio.TransformerSteps,message=>Logger.LogInfo(message));
+            yield return 0;
+            current.transformerTurnAudio=new TransformerTurnAudio(car,assets.Audio.TransformerTurns,message=>Logger.LogInfo(message));
+            yield return 0;
+            current.transformerDeployAudio=new TransformerDeployAudio(car,assets.Audio.TransformerDeploy,message=>Logger.LogInfo(message));
+            yield return 0;
+            current.transformerReactorAudio=new TransformerReactorAudio(car,assets.Audio.TransformerReactor,message=>Logger.LogInfo(message));
+            yield return 0;
+            current.transformerReturnAudio=new TransformerReturnAudio(car,assets.Audio.TransformerReturn,message=>Logger.LogInfo(message));
+            yield return 0;
+        }
         try {vehicleLighting=VehicleLighting.Create(car,model,message=>Logger.LogInfo(message));}
         catch(Exception e){Logger.LogWarning("350Z lighting unavailable: "+e);}
         try {vehicleNeon=VehicleNeon.Create(car,model,message=>Logger.LogInfo(message));}
@@ -180,6 +197,20 @@ public partial class Plugin {
             foreach(var step in StagedWork.Optional(current.interior.LoadSteps(car,local,assets.Interior,message=>Logger.LogInfo(message)),error=>{current.interior.Dispose();current.interior=null;Logger.LogWarning("Cabin unavailable; original visuals retained: "+error);}))yield return step;
         }
         LoadStage("Fahrzeug bereitstellen",.98f);
+        if(!IsHummer&&current.transformerAsset!=null) {
+            LoadStage("Transformer vorbereiten",.96f);
+            current.transformer=new VehicleTransformer(current,current.transformerAsset,true);
+            foreach(var step in current.transformer.LoadSteps())yield return step;
+            if(assets.Minigun!=null&&assets.MinigunRig!=null) {
+                current.transformerMinigun=new TransformerMinigun();
+                foreach(var step in StagedWork.Optional(current.transformerMinigun.LoadSteps(car,local,
+                    current.transformer.Visual.LeftShoulderMount,Path.Combine(Path.GetDirectoryName(Info.Location),"minigun"),
+                    assets.Minigun,assets.MinigunRig,message=>Logger.LogInfo(message),assets.Audio),error=>{
+                        current.transformerMinigun.Dispose();current.transformerMinigun=null;
+                        Logger.LogWarning("Transformer minigun unavailable: "+error);
+                    }))yield return step;
+            }
+        }
         yield return StagedWork.NextFrame;
         // Player/world may have moved since F6. Resolve a free location again.
         if(restoringVehicle!=null) {
@@ -195,14 +226,23 @@ public partial class Plugin {
             savedVehicleIds.Add(current.storage.Data.m_uid);
         }
         car.SetActive(true);
-        if(restoringVehicle!=null&&VehiclePersistence.Flying(restoringVehicle))current.flight?.Fly();
+        // Prime every movable source before RestoreParked snapshots its meshes.
+        // Robot mode bypasses the ordinary car LateUpdate, including this setup.
+        wheelSizeVisuals?.Apply(IsHummer?h2RimInches.Value:rimInches.Value);
+        for(int i=0;i<4;i++)if(wheels[i]!=null&&visuals[i]!=null)UpdateWheelVisual(i,true);
+        current.interior?.Tick(0,windowTint.Value,false);
+        if(showroom!=null)showroom.Tick(0,false,doorStyle.Value,false,trunkNeonEnabled.Value,trunkNeonPulsing.Value,
+            NeonColors[Math.Max(0,Array.IndexOf(ColorNames,trunkNeonColor.Value))]);
+        if(restoringVehicle!=null&&VehiclePersistence.Transformed(restoringVehicle)) {
+            if(!current.transformer.RestoreParked(out var reason))throw new InvalidOperationException("Transformer konnte nicht wiederhergestellt werden: "+reason);
+        } else if(restoringVehicle!=null&&VehiclePersistence.Flying(restoringVehicle))current.flight?.Fly();
         // Freeze until the saved terrain collider is available, even if this
         // staged load finishes after its zone has unloaded again.
         current.parkedStreaming=new VehicleWorldStreaming(body);
         current.parkedStreaming.Step(false);
         fleet.Add(current);fleetOwner=local;spawnCommitted=true;
-        status=VehicleName+" bereit. F7: einsteigen | "+menuKey.Value+": Fahrzeugmenü";
-        if(MessageHud.instance!=null)
+        status=VehicleName+" bereit. E: einsteigen | "+menuKey.Value+": Fahrzeugmenü";
+        if(local is Player&&MessageHud.instance!=null)
             MessageHud.instance.ShowMessage(MessageHud.MessageType.Center,Tr("Gespawnt:")+" "+VehicleName,log:false);
     }
 }

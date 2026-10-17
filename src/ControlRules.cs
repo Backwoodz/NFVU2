@@ -2,6 +2,8 @@ using System;
 namespace Rachel350Z {
 // Input policy is separate from wheel/flight physics and can be tested without Unity.
 public static class ControlRules {
+    public static bool VehicleAccess(bool driving,bool nearby,bool worldInteraction)=>driving||nearby&&!worldInteraction;
+    public static bool ControllerTransform(bool pressed,bool driving,bool flying)=>pressed&&driving&&!flying;
     public static float Axis(float value,float deadzone) {
         if(float.IsNaN(value)||float.IsInfinity(value))return 0;
         deadzone=Math.Max(0,Math.Min(.5f,deadzone));
@@ -12,9 +14,9 @@ public static class ControlRules {
     }
     public static bool AutomaticTurret(bool flying,bool driving,bool driven,bool parkedAuto)=>flying||!driving&&driven&&parkedAuto;
     public static int MenuMove(int focus,int direction,int count)=>count<=0?0:((focus+direction)%count+count)%count;
-    public static bool MenuTabVisible(int tab,bool vehicleAvailable)=>vehicleAvailable||tab==10||tab==11;
-    public static int MenuNextTab(int tab,int direction,int count,bool vehicleAvailable) {
-        for(int i=0;i<count;i++){tab=MenuMove(tab,direction,count);if(MenuTabVisible(tab,vehicleAvailable))return tab;}
+    public static bool MenuTabVisible(int tab,bool vehicleAvailable,bool robot=false)=>robot?tab==9||tab==11:vehicleAvailable||tab==10||tab==11;
+    public static int MenuNextTab(int tab,int direction,int count,bool vehicleAvailable,bool robot=false) {
+        for(int i=0;i<count;i++){tab=MenuMove(tab,direction,count);if(MenuTabVisible(tab,vehicleAvailable,robot))return tab;}
         return 10;
     }
     public static int MenuHorizontalNeighbor(int focus,int direction,MenuControlBounds[] items) {
@@ -37,6 +39,20 @@ public struct MenuControlBounds {
     public float X,Y,Height;
     public int Region;
     public MenuControlBounds(float x,float y,float height,int region=0){X=x;Y=y;Height=height;Region=region;}
+}
+// One E press belongs either to a world interaction or to vehicle access.
+// Remember native use before the plugin Update: picking up an item can destroy
+// the hovered object before the later vehicle-input check sees it.
+public sealed class VehicleInteractionKey {
+    bool reserved;
+    int worldUseFrame=-1;
+    public void Release(bool held){if(!held)reserved=false;}
+    public void ObserveWorldUse(int frame){worldUseFrame=frame;}
+    public bool BlocksWorldUse(bool held)=>reserved&&held;
+    public bool Press(bool down,bool driving,bool nearby,bool worldTarget,int frame) {
+        if(!down||reserved||!ControlRules.VehicleAccess(driving,nearby,worldTarget||worldUseFrame==frame))return false;
+        reserved=true;return true;
+    }
 }
 public sealed class MenuFocusState {
     public bool Sidebar {get;private set;}=true;

@@ -1,5 +1,1173 @@
 # Nächste Aufgaben
 
+## Release 0.31.0: Transformer und Minigun
+
+- Vollstaendiger Transformer-Branch fuer den angeforderten oeffentlichen Release.
+  Installer erlaubt gezielt transformer/transformer.json und transformer.bin;
+  keine allgemeine Freigabe fremder Binaerdateien. Modell, Bewegung, Minigun und
+  vorbereitete Audiodateien werden im regulaeren Payload mitgefuehrt.
+- Frische Konfiguration: Transformer aktiviert. Bestehende Enabled-Werte bleiben
+  erhalten. F9/L3 ist beim besetzten stillstehenden Roboter freigegeben; dort nur
+  Minigun/Einstellungen, keine Fahrzeugumbauten oder Garage waehrend Robotermodus.
+- Alten Sprint-Tracefehler behoben: Reichweitengrenze loest den Abhebevorgang aus,
+  statt auf 60 Prozent des anderen Schwungbeins zu warten und den Standfuss am
+  Anschlag gleiten zu lassen. Gangtempo und Schrittmass unveraendert. Bestehender
+  50-Hz-/60-Hz-Trace: maximale Abweichung 0.940 mm bei unveraenderter 4-mm-Grenze,
+  79 Transformer- und 172 Steuerungschecks bestanden; keine Unity-Physiktests.
+- Vorherige lokale Pruefnotizen weiter unten sind historische Zwischenstaende.
+  Offene Spielpruefungen: unebene Ufer, Hindernisse und Terrain, Ausstattung beim
+  Klettern, Kamera-/Controllergefuehl, gleichzeitige Audioeffekte und neue
+  Installationen. Keine neue native Spielabnahme fuer den Release behauptet.
+- Releasepruefung: Build, 143 Python-Tests und alle 55 Managed-Suiten bestanden.
+  Installer 0.31.0 mit 107 Moddateien, 27 Radiotracks und 129 Payload-Eintraegen
+  vollstaendig gegen Manifest und aktuelle DLL gehasht; eingebettete Ressource
+  entspricht payload.zip. Echter Payload im isolierten Installerkern installiert,
+  aktualisiert und deinstalliert: 76 Checks bestanden. Keine Spielinstallation
+  ueberschrieben. Der bekannte alte Sprint-Tracefehler ist damit kein offener Test
+  mehr; die historischen lokalen Zwischenberichte bleiben zur Nachvollziehbarkeit.
+
+## Transformer: Explosivmunition als Standard (lokale Entwicklung)
+
+- Eigene TransformerPrototype.MinigunAmmo-Einstellung, Standard Explosiv.
+  Besetzter Roboter zeigt im Geschuetzmenue seine Minigun mit Normal-/
+  Explosiv-Auswahl; Dachgeschuetz-Munition behaelt ihre eigene Einstellung.
+  HUD nennt Explosiv, sobald die Effekte verfuegbar und aktiviert sind.
+- Wiederverwendung der bestehenden TurretExplosion: Rust-Aufschlagsample
+  aus dem vorhandenen Turret-Payload, zwoelf feste Effekt-/Soundplaetze,
+  Flaechenschaden mit Deckungspruefung, Baum-/Felsreaktionen und kleine
+  persistente Terrain-Krater. Normaler direkter Treffer bleibt 12 Stich;
+  Explosiv fuegt den vorhandenen Radius von 2,25 m und bis zu 20 weiteren
+  Schaden mit Entfernungsskalierung hinzu. Spieler, zahme/neutrale Figuren
+  und Gebaeude bleiben nach der vorhandenen Explosionslogik geschuetzt.
+- Effekte folgen Aktiv-/Pause-/Abstiegszustand, sind beim Stop stumm und
+  werden samt Clip beim Entfernen freigegeben. Ohne optionales Soundfile
+  bleibt der Explosivpfad nutzbar. Vorhandene Assetdateien unveraendert.
+- Trefferanzeige liest Rest-LP nach direktem Treffer UND Explosion. Ein
+  gestorbener Gegner bleibt bei null, auch wenn nativer GetHealth nach
+  ZDO-Entfernung wieder einen Maximalwert zurueckliefern kann.
+- Build sowie 65 Minigun-/Kompositions-, 23 Blast-, 10 Terrain-, 38 Audio-,
+  16 Menue- und 159 Steuerungschecks bestanden. Native Explosionswirkung,
+  Krater und Menuebedienung im Spiel pruefen; Tests verwenden Doubles.
+- Mit Backup lokal installiert, alle 107 Dateien per SHA-256 geprueft;
+  nur DLL geaendert, Originalassets und Konfiguration bytegleich. Beide
+  Installations-Backupordner enthalten je zwei Zeitstempelstaende.
+
+## Transformer: Minigun-Fernkampf und staerkerer Schaden (lokale Entwicklung)
+
+- Minigun-Reichweite von 150 auf 250 m erhoeht. Kamera-Zielstrahl, echter
+  Muendungsstrahl und Laser verwenden denselben Grenzwert. Schaden von
+  3,34 auf 12 Stichschaden pro Schuss erhoeht, weiterhin unter den 14 des
+  Dach-Turrets. 600 RPM, 1000 Schuss, Anlauf, Sounds und Laufglut bleiben.
+- Installierte native Goblin-/GoblinBrute-Prefabs direkt gelesen: Fuling
+  175 LP, Fuling-Berserker 800 LP, beide normal gegen Stichschaden. Native
+  Levelskalierung ergibt 350/525 bzw. 1600/2400 LP bei einem/zwei Sternen.
+  Neuer Basisbedarf 15 bzw. 67 normale Treffer; Blocken, Widerstaende und
+  Welteinstellungen wirken weiterhin ueber den nativen Schadenspfad.
+- Keine feste 20-m-Grenze im Minigun-Code gefunden. Native DamageText-
+  Anzeige endet ab Werk 30 m von der Kamera, die Roboterkamera liegt etwa
+  9,5 m hinter dem Spieler. Dies kann den gemeldeten Eindruck erklaeren,
+  beweist aber noch keine Ursache fuer tatsaechlich ausbleibenden Schaden.
+- Eigener letzter bestaetigter Treffer mit Gegnername, realen Rest-/Max-LP
+  und Entfernung ab Muendung, dazu kurzer weisser Reticleimpuls. Nur nach
+  beobachtetem Lebensverlust im synchronen lokalen Damage-RPC; kein falscher
+  Trefferhinweis fuer blockierte/immune/ausgewichene Schadensanforderungen.
+  Eine Anzeige pro Waffe, 2,5 s Dauer, Bereinigung bei Pause/Abstieg/Stop.
+  Schuesse korrekt als native Fernkampftreffer markiert (m_ranged=true).
+- Build sowie 60 Minigun-/Trace-/Schadens-/Feedbackchecks (inkl. 20 bis
+  250 m und Grenze darueber), 20 Ziel-, 38 Minigunaudio-, 21 Hitze- und
+  27 Kamerafahrtchecks bestanden. Physics-/Schadensantworten in den Tests
+  sind kontrollierte Doubles. Native Fernkampftreffer und Balance im Spiel
+  anhand der neuen Anzeige pruefen; ungeladene Gegner bleiben unerreichbar.
+- Mit Backup lokal installiert, alle 107 Dateien per SHA-256 geprueft;
+  nur DLL geaendert, Originalassets und Konfiguration bytegleich. Beide
+  Installations-Backupordner enthalten je zwei Zeitstempelstaende.
+
+## Transformer: filmische Auto-zu-Roboter-Kamera (lokale Entwicklung)
+
+- Nur ein erfolgreiches besetztes Auto-zu-Roboter-Begin startet die neue
+  Kamerafahrt. Kurven folgen direkt der fuenfsekundigen Animationsphase;
+  gespeicherte/geparkte Roboter und Rueckverwandlung starten keine Fahrt.
+- Einstieg aus aktueller Perspektive ohne Schnitt, sanfter Rueckzug auf
+  9,8 m (vorher 12,8 m), dann Annaeherung auf 9,5 m (vorher 10,2 m).
+  Eine bereits weiter entfernte Startperspektive wird nicht noch erweitert.
+  Langsamer 45-Grad-Hauptbogen
+  von links nach schraeg vorne links; aktueller Startwinkel wird weich in
+  diesen Bogen uebernommen. Blickpunkt steigt auf 2,65 m, Blickwinkel endet
+  leicht von unten bei -2 Grad. Dezenter Zoom von maximal fuenf FOV-Grad.
+  Kurzer begrenzter Winkelimpuls am bestehenden Sub-Drop-Cue bei 3,75 s.
+- Vorhandener Kamera-Spherecast folgt auch der filmischen Position und
+  zieht bei Hindernissen sofort ein. Mausblick, Mausrad, Mittelklick und
+  bewusster rechter Stick uebernehmen den aktuellen Winkel; kleine
+  Stickbewegungen innerhalb der bestehenden Deadzone brechen nicht ab.
+  Nach Abschluss/Abbruch 0,85 s weiche Rueckgabe von Framing und Zoom an
+  die normale Spielkamera. Die aktuelle Blickrichtung bleibt erhalten.
+- Menue/Fokusverlust/Pause frieren die Fahrt ein; bewusster Menuekamerablick
+  uebernimmt. Ausstieg, Kameratausch und Reset stellen beide urspruenglichen
+  FOV-Werte von Szene und Himmel exakt wieder her. Lokale Option
+  TransformerPrototype.CinematicCamera ist standardmaessig aktiv.
+- Build sowie 27 neue Kamera-Modell-/Produktionsadapterchecks, 18 Schritt-
+  Kamera-, 159 Steuerungs-, 11 Nitro-Projektions- und 59 Mountchecks
+  bestanden. Adapter verwenden Unity-Doubles, keine gerenderten Frames.
+  Native Bildwirkung, Hinderniswege und Maus-/Controllergefuehl im Spiel
+  pruefen; Sounds, Verwandlungsdauer und Fahrzeughandling bleiben erhalten.
+- Mit Backup lokal installiert, 107 Dateien per SHA-256 geprueft; nur DLL
+  geaendert. Originalassets und Konfiguration bytegleich, beide
+  Installations-Backupordner auf je zwei Zeitstempelstaende geprueft.
+- Nach Nutzerfeedback engeres Framing wie oben angegeben. Tastenpanel
+  unten rechts von -16 auf +48 Bildschirm-Pixel ueber dem unteren Rand
+  verschoben: positiver Abstand beim Bottom-Right-Anker statt Abschneiden.
+  Tacho-Abstand beruecksichtigt den neuen Panelrand ebenfalls.
+- Engeres Framing/Hinweisposition: Build, 27 Kamerafahrt-, 159 Steuerungs-
+  und 24 Kamera-/HUDchecks bestanden. Erneut lokal mit Backup installiert,
+  107 Dateien geprueft, nur DLL geaendert; Assets/Konfiguration bytegleich
+  und je zwei Zeitstempelbackups bestaetigt. Sichtabnahme im Spiel offen.
+
+## Fahrzeugsteuerung: Controller-Verwandlung und E-Zugang (lokale Entwicklung)
+
+- RB/R1 verwandelt den besetzten 350Z am Boden und den besetzten Roboter
+  zurueck, jeweils mit den vorhandenen Stand-/Platz-/Animationspruefungen.
+  Im Flug bleibt RB/R1 Steigen, zu Fuss bleibt die native Belegung erhalten.
+  LB/L1 feuert weiterhin die Roboterminigun. F10 bleibt konfigurierbar.
+- E steigt ins Fahrzeug/auf den Roboter ein und wieder aus; F7 bleibt
+  alternativer Fahrzeugzugang, B/Kreis auf Controller bleibt erhalten.
+  Anvisierte native Interaktionen wie Tueren, Kisten und aufhebbare Items
+  haben zu Fuss Vorrang. Ein bereits von Player.Update ausgefuehrter Use
+  wird pro Frame beobachtet, damit ein zerstoertes Pickup nicht zugleich
+  den Einstieg ausloest. Ein verbrauchter E-Druck bleibt bis zum Loslassen
+  fuer den Fahrzeugzugang reserviert, auch nach Wiederfreigabe des Spielers.
+- Native und alternative Hinweise, Garage, Statusmeldungen, Uebersetzungen
+  und README nennen E beziehungsweise RB/R1. Kein Verwandlungshinweis fuer
+  RB im Flug; Menues behalten ihre bisherigen Controllerbelegungen.
+- Build sowie 159 Steuerungs-, 27 Kabinen-, 59 Mount-, 31 Minigun- und
+  37 Flugchecks bestanden. Native Controllerhardware, Harmony-Interaktion
+  und Ein-/Ausstieg an Weltobjekten muessen im Spiel bestaetigt werden.
+- Mit Backup lokal installiert und alle 107 Dateien per SHA-256 geprueft;
+  nur DLL geaendert, Originalassets und Konfiguration bytegleich. Beide
+  Installations-Backupordner enthalten je zwei Zeitstempelbackups.
+
+## Transformer: anatomische Knie beim Hochklettern (lokale Entwicklung)
+
+- Die bisherige Kletterpose gab beiden Knien einen stark seitlichen,
+  leicht rueckwaertigen IK-Pol vor. Bei typischen Auftritten kehrte dies
+  die Kniebeugung um. Jetzt stammt der Pol aus dem jeweiligen echten
+  Hueftgelenk und der Hueft-Fuss-Richtung in der Koerperebene; die Knie
+  beugen vorwaerts und beim hohen Auftritt nach oben. Keine seitliche
+  Ausweichbeugung mehr, kein Richtungswechsel beim Anheben des Fusses.
+- Gepflanzte Fussziele, gemessene Beinlaengen, Beckenausgleich und der
+  Uebergang zu den vorhandenen Sitzreferenzen bleiben erhalten.
+- 59 Mount-/Kletter-/Abstiegschecks bestanden, darunter Regressionen fuer
+  beide zuvor verkehrt gebeugten Beine und ein Raster erreichbarer
+  Fusspositionen mit festen Knochenlaengen. Native Hautverformung und
+  Abstand zur Panzerung waehrend der Klettersequenz im Spiel pruefen.
+- Build und 27 Kabinenchecks ebenfalls bestanden. Mit Backup lokal
+  installiert: 107 Dateien per SHA-256 geprueft, nur DLL geaendert;
+  Assets und Konfiguration bytegleich, je zwei Installationsbackups.
+
+## Transformer: Linksklick, Minigun-Anlauf und Laufglut (lokale Entwicklung)
+
+- Roboterminigun feuert mit gehaltener linker Maustaste, Controller weiter
+  LB/L1. Hinweise und HUD angepasst, bestehendes Loslass-Gate bleibt aktiv.
+  Originale Anlaufzeit von 1,5 s bis zum ersten Schuss bleibt erhalten.
+- Motorclips beim Laufzeit-Upload um bis zu 12 dB angehoben und originale
+  feste Rust-Motorschicht ohne Pitchwechsel ergaenzt. Frueher hoerbarer
+  Lautstaerkeaufbau statt fast stummem linearem Einblenden. Einzelpeaks und
+  gemeinsamer Motorbus auf 0,97 begrenzt; zehn feste Audiostimmen.
+  Schuss-/Mechanik-/Bass-/Nachladepegel und Original-WAVs bleiben gleich.
+- Vordere originale Laufoberflaechen bekommen eine eigene, rotierende
+  Glutschicht mit weichem Frontverlauf. Waerme nur durch abgefeuerte Schuesse:
+  sichtbar nach ca. 2 s, volle Glut nach 6 s Dauerfeuer. Danach 2 s halten
+  und ca. 5 s sichtbar abkuehlen; auch inaktive/verborgene Waffen kuehlen ab.
+  Pause haelt die Zeit an. Keine spielmechanische Ueberhitzungssperre.
+- Build sowie 21 Hitze-, 38 Audioadapter-, 31 Minigun-, 145 Steuerungs-,
+  98 Lade- und 47 Dach-Turretchecks bestanden. Audioadapter prueft echte
+  Original-PCM und Cacheunveraendertheit mit Unity-Doubles. Native Glut-
+  darstellung und Lautstaerkeabstimmung muessen im Spiel bestaetigt werden.
+- Lokal mit Backup installiert, alle 107 Dateien per SHA-256 geprueft;
+  nur DLL geaendert, Originalassets und Konfiguration bytegleich. Beide
+  Installations-Backupordner enthalten je zwei Zeitstempelbackups.
+
+## Transformer: Visierkorrektur und echter Wassergrund (lokale Entwicklung)
+
+- Nutzer-Screenshot markiert das gewuenschte Visier unterhalb des bisherigen
+  hohen Punkts. Gemeinsamer HUD-/Zielstrahlpunkt wieder Viewport-Y 0,62;
+  angehobene Robotkamera mit 4,10-m-Pivot bleibt bestehen.
+- Wasserlaufen in originalen installierten Spieldaten erklaert: WaterSurface
+  besitzt neben dem Trigger einen aktiven Non-Trigger-BoxCollider auf Layer
+  Water. IgnoreTrigger allein liess ihn zum hoechsten Boden werden; die
+  daraus berechnete Tiefe war praktisch null. Groundprobe verwendet jetzt
+  Valheims native Boden-Layer und verwirft Fluessigkeitskomponenten explizit.
+  Wasserhoehe und echter Seeboden/Brueckendeck werden separat abgefragt.
+- Bei blockierter Laufbewegung wird die vertikale Bodenannaeherung weiterhin
+  ausgefuehrt. Der kinematische Roboter bleibt dadurch nicht auf einer alten
+  Schwebehoehe haengen. Brusttiefe von ca. 2,758 m bleibt die erlaubte Grenze.
+- Boden- und Hindernismasken getrennt: Figuren bleiben feste Hindernisse,
+  Wasseroberflaechen und Fluessigkeitsvolumen werden in beiden gefiltert.
+  Bei nassem Support oder Bodenspalt begrenzte Diagnose mit echtem Support,
+  Layer, Boden-, Root- und Wasserhoehe (hoechstens eine Meldung pro 10 s).
+- Build, 24 echte Groundprobe-Adapterchecks mit Physics-Doubles (inklusive
+  Wasseroberflaeche vor Seeboden und integrierter Tiefenentscheidung),
+  47 Wasser-, 34 Boden-, 32 Streaming-, 98 Lade- und 31 Minigunchecks
+  bestanden. Unabhaengiger Review ohne Blocker; native Sichtabnahme offen.
+- Mit Backup lokal installiert und alle 107 Dateien per SHA-256 geprueft.
+  Nur DLL geaendert, Modelle/Sounds und Konfiguration unveraendert;
+  beide Backupordner nach erfolgreicher Verifikation auf je zwei Staende.
+
+## Transformer: Zielkamera, Laservisier und Waten (vorheriger lokaler Stand)
+
+- Nutzerabnahme des ersten Minigunstands positiv; Fadenkreuz lag noch auf dem
+  Fahrer. Eigene gemeinsame Transformer-Zielkoordinaten: Viewport (0,5/0,78).
+  HUD projiziert exakt diesen Kamerapunkt; Kameraray verwendet dieselben UVs.
+  Robot-Zielkamera mit 4,10 m Pivot und mindestens 9,5 m freier Distanz,
+  damit Roboter und Fahrer unterhalb des Zielbereichs liegen. Hindernisse
+  duerfen die Kamera weiterhin einziehen. Auto-Framing bleibt unveraendert.
+- Eigenes kleines NFVU2-Lasermodul aussen an der linken Minigunseite.
+  Sichtbarer Strahl mit hellem Kern und oberflaechengebundenem Trefferpunkt;
+  konvergiert zum echten Muendungsziel, eigener Kollisionsweg gegen Waende,
+  Eigenrumpf und Figuren. Strahl nur im aktiven besetzten Robotermodus,
+  Pause/Rueckverwandlung/Stop entfernen ihn. Bestehende Laserfarbe, Staerke
+  und Schalter des Turrets werden genutzt; kein neues importiertes Rustteil.
+- Waten jetzt bis zur Brust statt kompletter Wassersperre: Brustlinie aus
+  Thorax- und Schulterneutralpose minus echter Sohle, derzeit ca. 2,758 m
+  Wassertiefe. Einstieg und Tiefenwechsel bis zur Grenze erlaubt, tiefere
+  Wege/Sprintlandungen blockiert. Echte Grundhoehe bleibt massgeblich;
+  Bruecken und Rueckweg funktionieren weiter. Neue Auto-zu-Roboter-
+  Verwandlungen benoetigen weiterhin einen trockenen Aufstellplatz.
+- Build, 47 Wasser-, 31 Minigun-Modell-/Schadens-, 20 Ziel-, 98 Lade- und
+  18 Kamera-Schrittimpulschecks bestanden; unabhaengiger Code-Review ohne
+  Blocker. Native Sichtpruefung von Kamera/Laser und Waten noch offen.
+- Mit Backup lokal installiert, alle 107 Dateien per SHA-256 geprueft;
+  nur DLL geaendert. Saemtliche Modell-/Sounddateien und Konfiguration
+  bytegleich. Nach erfolgreicher Installation je zwei Zeitstempelbackups
+  in beiden Installations-Backupordnern bestaetigt.
+
+## Transformer: Wassergrenze und Rust-Schulterminigun (erster lokaler Stand)
+
+- Laufen, Sprint, Rueckwaertsgehen und Drehen pruefen den gesamten Weg bis
+  zum naechsten Fussauftritt auf Wasser. Echte Sohlenflaechen und tatsaechliche
+  Colliderhoehen statt Knochelsockel/Meeresspiegel-Wadeclamp; native Wellen
+  und lokale Fluessigkeiten werden beruecksichtigt. Trockene Bruecken bleiben
+  begehbar, Rueckwaertsgehen vom Ufer bleibt moeglich. Neue Verwandlung nur
+  mit trockener Aufstandsflaeche. Bereits nass gespeicherte Roboter duerfen
+  ueber gleich tiefe oder flachere Flaechen ans Ufer; keine tiefere Bewegung.
+- Originales Rust-Minigun-Weltmodell samt Albedo, Laufgelenk und Original-
+  Motor-/Feuer-/Auslauf-/Nachladesamples lokal aus dem vorhandenen Spiel
+  exportiert. Werkzeuge und Herkunfts-/Hashpruefungen reproduzierbar;
+  Originaldateien und generierte Assets bleiben ignoriert. Eigenes NFVU2-
+  Schulterlager mit Drehkranz und Schwenkgelenk folgt der linken Clavicula.
+  Waffe fuer den Roboter 1,4-fach skaliert, getrennte Laufrotation.
+- Zielpunkt und RMB/LB-Steuerung wie beim manuellen Auto-Turret, gleiche
+  erhoehte Reticleposition; echtes Muendungs-Hitscan mit Selbst-/Wandschutz
+  entlang des gesamten Laufs. Kein automatisches Wachen als geparkter Roboter.
+  Vollstaendig ausgefahren und besetzt erforderlich; Pause, Menues, Mounting,
+  Rueckverwandlung und Tod stoppen Feuer und Motor. Munitionsanzeige im HUD.
+- 1000 Schuss pro Magazin, native Rust-Werte 600 RPM/1,5 s Anlauf/3,5 s
+  Nachladen. Automatisches Nachladen sowie R fuer vorzeitiges Nachladen.
+  Vier begrenzte Audioloops und fuenf feste Aktionsstimmen statt Stimmen
+  pro Projektil. Nur 3,34 Stichschaden pro Treffer auf feindliche Kreaturen,
+  keine Explosiv-/Terrain-/Gebaeudetreffer. Das lokale native Greydwarf-
+  Prefab bestaetigt 40 HP und normalen Stichwiderstand: zwoelf gewoehnliche
+  Treffer als Basis; vorhandener Stagger und Weltmodifikatoren gelten weiter.
+- Originalwaffe statisch in Blender visuell geprueft. Native Darstellung,
+  Zielgefuehl, Soundmischung und Wasser-/Brueckenphysik im Spiel noch offen.
+- Montage am vollstaendigen gebackenen Roboter-Endzustand ebenfalls visuell
+  geprueft, Position (-0,83 / 4,10 / -0,04), seitlicher Kopfabstand 36,4 cm.
+  Physisch links nutzt wegen vertauschter Legacy-Rignamen clavicle.R;
+  Gait-Knochenbezeichnungen bleiben unveraendert. Originalgun und Halterung
+  sind oberhalb der Schulterpanzerung sichtbar; kein nativer Animationstest.
+- Build sowie 37 Wasser-, 31 Minigun-Modell-/Schadens-, 98 Lade-, 34 Boden-,
+  20 Ziel-, 47 Dach-Turret-, 40 Schritt-Audio-, 24 Fussspur- und 23 Gras-
+  Callbackchecks bestanden. Installer: fuenf Pythonchecks mit 62 Datei-
+  Engine- und 50 Updatechecks; vier bestehende Rust-Importchecks bestanden.
+  Modell-/Damage-Doubles ersetzen keine native Physik-/Audioabnahme.
+- Lokal mit Backup installiert; alle 107 Dateien per SHA-256 geprueft.
+  Neu: 19 Minigun-Dateien. Von den 88 bisherigen Dateien nur DLL geaendert;
+  alle bisherigen Modelle/Sounds und die Konfiguration bytegleich.
+  Beide Backupordner nach erfolgreicher Pruefung auf je zwei Zeitstaende
+  begrenzt. Noch kein nativer Spiel-/Hoertest.
+
+## Transformer: temporaere Stampfspuren und Staub (lokale Entwicklung)
+
+- Echte linke/rechte Gait-Fusskontakte erzeugen kurze erdige Staubstoesse
+  und flache Sohlenabdruecke. Gleiche Kontaktzaehler wie beim Sound, aber
+  unabhaengig von Audiolautstaerke und Stimmen; kein zeitgesteuerter Ersatz.
+- Kontaktmitte, Richtung und Groesse aus dem unteren 12-cm-Bereich der
+  vorhandenen starren Bootgeometrie; derzeit etwa 0,61 x 1,09 m je Fuss.
+  Ein 5-x-9-Grid folgt per kurzen Raycasts den echten Terrain-Dreiecken.
+  Erdspuren nur auf Gras/Schlamm/normalem Boden, keine durch Gebaeude,
+  Felsen oder unter Wasser projizierten Abdruecke.
+- Maximal 32 wiederverwendete Abdruecke und 96 Staubpartikel pro Fahrzeug;
+  18 s Standzeit, danach 6 s Ausblenden. Sprint erzeugt etwas mehr Staub.
+  Auch nach der Rueckverwandlung werden vorhandene Spuren weiter gealtert.
+  Menues, Fokusverlust und Streaming halten die Effekte an; keine spaeter
+  nachgeholten Kontakte. Fahrzeugentfernung entsorgt alle Ressourcen.
+- Gras unter den Sohlen wird nur waehrend nativer Grass-Instanz-Draws
+  temporaer abgeflacht und mit dem Abdruck wieder eingeblendet. Native
+  Instanzmatrizen werden nach dem Draw auch bei Fehlern wiederhergestellt.
+  Optionale Grasmaske: fehlt die passende native API, bleiben Staub und
+  Meshabdruecke verfuegbar. Kein Terrain-Paint, keine Hoehenaenderung,
+  keine dauerhafte Aenderung an Gras oder Weltstand.
+- Native Sichtabnahme von Staubkontrast, Grasmaske und Spurenlaenge offen.
+- Build sowie 24 Effektmodell-, 23 Gras-Callback-, 40 Schritt-Audio-,
+  81 Lade-, 32 Streaming- und 31 Speicherkoordinationschecks bestanden;
+  zusaetzlich 34 Boden- und sieben Leerlaufstaubchecks. Gras-Callbacks
+  werden mit Unity/Harmony-Doubles geprueft, nicht mit nativer Grafik oder
+  der Detour-Engine. Echter Asset-Geometriecheck der Sohlen bestanden.
+- Lokal mit Backup installiert und alle 88 Dateien per SHA-256 geprueft.
+  Nur die DLL geaendert; saemtliche Audio-/Modellassets und bestehende
+  Konfiguration unveraendert. Noch kein nativer Spiel-/Sichttest.
+
+## Transformer: zusaetzlicher Bass bei jedem Schritt (lokale Entwicklung)
+
+- Nutzeraufnahme bass.mp3 liefert einen kurzen Tieftonimpuls fuer jeden
+  echten Fusskontakt. Ausschnitt 0,20–0,48 s (0,28 s), 6 ms Ein-/90 ms
+  Ausblendung, maximaler 80-ms-RMS-Zielpegel 0,20. Sein Anstieg wird am
+  bestehenden mechanischen Auftritt (~15 ms nach Clipstart) ausgerichtet.
+- Alle sechs bisherigen step_01 bis step_05 und step_07 enthalten die
+  Bassschicht zusaetzlich; keine siebte Zufallsvariante und kein Auslassen
+  einzelner Kontakte. Mechanische Einzelaufnahmen und deren Pegel bleiben
+  erhalten, nur die neue Gruppe nutzt bei Bedarf eine Spitzenbegrenzung.
+  Die Bassschicht ist kurz genug fuer einzelne Sprintkontakte; kein voller
+  langer Ausklang der MP3 unter jedem Schritt.
+- Keine Aenderung an Laufzeit, Gait, Schrittzaehlern, Shuffle oder bisherigem
+  5-Prozent-Schrittgain. Dieselben raeumlichen Stimmen spielen pro Kontakt
+  den kombinierten Clip. Einbau ueber tools/prepare_transformer_audio.py mit
+  optionalem --bass-file; ohne diesen Parameter bleibt der bisherige Export
+  reproduzierbar. Native Hoerabnahme des zusaetzlichen Schrittbasses offen.
+- Build, sechs Aufbereitungschecks mit Originalquellen/CLI-Reproduktion,
+  40 Schritt-Audio-/Modellchecks und 81 Ladechecks bestanden. Unabhaengige
+  Neuberechnung aller sechs Mischungen bestaetigt originale mechanische
+  Grundlagen und Pegel, samplegenaue Attack-Ausrichtung bei 15,011 ms sowie
+  6,47–8,44 dB mehr Tieftonenergie (20–100 Hz in den ersten 0,30 s) in jeder
+  Variante. Kein Clipping; 81 sonstige Payload-Dateien inklusive DLL,
+  Verwandlungen und Reaktor bytegleich. Reviewevidenz unter
+  artifacts/audio-transformer/step-bass-independent-review.json.
+- Bei geschlossenem Valheim lokal installiert, DLL und alle 88 Payload-Dateien
+  per SHA-256 geprueft; Bass und originale Mechanikbasis in jeder der sechs
+  Varianten gesondert bestaetigt. Konfiguration erhalten, beide Backupordner
+  nach erfolgreicher Pruefung auf je zwei Zeitstempelstaende begrenzt.
+  Native Hoerabnahme des zusaetzlichen Schrittbasses noch offen.
+
+## Transformer: spaeter Sub-Drop bei Auto-zu-Roboter (lokale Entwicklung)
+
+- Nutzeraufnahme brvhrtz-sub-drop-short-232033.mp3 als zusaetzlicher
+  Abschlussakzent nur in der Vorwaertsverwandlung. Natuerlicher letzter
+  abfallender Abschnitt 1,40–2,95 s, Einsatz bei 3,75 s (75 Prozent), Ende
+  bei 5,30 s einschliesslich bestehendem Nachklang. 10 ms Ein-/80 ms
+  Ausblendung; keine Zeitstreckung, Pitch- oder Animationsaenderung.
+- Eigene abschliessende Soundgruppe ueber der bisherigen vollstaendigen
+  Vorwaertsmischung, nur ihre Spitzen werden bei Bedarf begrenzt. Keine
+  globale Pegelabsenkung der Mechanik/Growls oder des fruehen Bassakzents.
+  Die Rueckverwandlung und beide Reaktorschichten bleiben erhalten.
+  Neue Hoerabstimmung des Sub-Drops im Spiel offen.
+- Build, 14 Aufbereitungschecks mit Originalquellen, 61 Vorwaertsaudio- und
+  81 Ladechecks bestanden. Unabhaengig rekonstruierter vorheriger Gesamtmix
+  exakt erhalten; fertige PCM-Datei bis 3,75 s byteidentisch. Drop folgt dem
+  natuerlichen Quell-Frequenzfall und Ausklang, nur seine Gruppe bekommt bei
+  Bedarf Spitzenbegrenzung. 86 andere Payload-Dateien inklusive DLL und
+  aktueller Reaktormischung unveraendert. Reviewevidenz unter
+  artifacts/audio-transformer/late-subdrop-independent-review.json.
+- Bei geschlossenem Valheim lokal installiert; alle 88 Payload-Dateien per
+  SHA-256 verifiziert, spaeter Drop und unveraenderter Abschnitt bis 3,75 s
+  gesondert geprueft. Konfiguration erhalten, beide Backupordner nach Erfolg
+  auf je zwei Zeitstempelstaende begrenzt. Native Hoerabnahme noch offen.
+
+## Transformer: zweite Kernreaktorschicht (lokale Entwicklung)
+
+- Zusaetzlich zu kernreaktor.mp3 nun die vom Nutzer gewaehlte Aufnahme
+  freesound_community-evil-robot-or-spaceship-or-something-idk-94720.mp3.
+  Aktiver Ausschnitt 0,8–5,6 s mit 800 ms kreisfoermiger Ueberblendung ergibt
+  einen 4-s-Loop; zweimal ohne Luecke ueber den bisherigen 8-s-Grundloop gelegt.
+  Zusatzschicht mit maximalem 80-ms-RMS-Zielpegel 0,035, bisherige Grundschicht
+  mit 0,055 und ihrem Ausschnitt/Pegel erhalten. Keine Zeit-/Pitch-Aenderung.
+- Gemeinsames reactor.wav nutzt die bestehende bewegte Reaktorposition,
+  Laufzeitverstaerkung 0,75, sichtbare Phase von 55 bis 100 Prozent sowie
+  Pause-/Streaming-/Parkverhalten. Keine neue Laufzeitlogik oder Aenderung
+  an der SLY-Sichtbarkeit. Native Hoerabnahme der Zusatzschicht offen.
+- Build, sieben Aufbereitungschecks inklusive Originalquellen-Regression,
+  34 Reaktor-Laufzeitadapterchecks und 81 Ladechecks bestanden. Unabhaengige
+  Neuberechnung bestaetigt den unveraenderten Grundloop und die additive
+  Mischung aus zwei natuerlichen Zusatzzyklen: kein Ducking/Normalisieren,
+  durchgehende Loop-Naht. 86 sonstige Payload-Dateien inklusive DLL sind
+  bytegleich zum zuvor installierten SLY-Stand. Reviewevidenz unter
+  artifacts/audio-transformer/additional-reactor-independent-review.json.
+- Bei geschlossenem Valheim installiert, DLL und alle 88 Payload-Dateien
+  per SHA-256 geprueft; zwei Reaktorschichten und unveraenderte Grundschicht
+  bestaetigt. Konfiguration erhalten und beide Backupordner nach Erfolg auf
+  je zwei Zeitstempelstaende begrenzt. Native Hoerabnahme noch offen.
+
+## Transformer: SLY erst unter dem hochgeklappten Spoiler (lokale Entwicklung)
+
+- Schriftzug und Montagekanaele haben eine eigene Sichtbarkeit statt der
+  fruehen allgemeinen Mechanik-Einblendung bei 11,5/120 Fortschritt (~0,48 s).
+  Jetzt erst ab Frame 175/240, also 72,92 Prozent bzw. ~3,65 s: Dort liegt
+  die gesamte Unterkante des Originalspoiler-Fluegels erstmals ueber der
+  Oberkante des Schriftzugs, und seine Breite deckt den Schriftzug ab.
+  Ermittelt aus dem vorhandenen gebackenen Clip und den echten Badge-Konturen;
+  keine zusaetzlichen Mechanikhalter in die Spoilergrenze einbezogen.
+- Beim Rueckweg verschwindet SLY an derselben Pose. Geladene Roboter bei
+  Fortschritt 1 behalten den Schriftzug direkt; seine Befestigung und stetige
+  gruene Emission bleiben erhalten. Build und 81 Ladechecks bestanden;
+  native Sichtabnahme des geaenderten Einblendzeitpunkts offen.
+- Bei geschlossenem Valheim lokal installiert; DLL und alle 88 Payload-Dateien
+  per SHA-256 geprueft, 87 Dateien ausser der DLL bytegleich zum Vorzustand.
+  Konfiguration erhalten, beide Backupordner nach Erfolg auf je zwei
+  Zeitstempelstaende begrenzt. Geometriebericht und Seitenansicht unter
+  artifacts/audio-transformer/badge-spoiler-reveal.json bzw. .png.
+
+## Transformer: kurze Inside-Impulse und Vorwaerts-Bass (lokale Entwicklung)
+
+- Nutzer lehnt lange durchgaengige Inside-the-Robot-Texturen ab. Alle neun
+  Ausschnitte in beiden Richtungen, einschliesslich der vier urspruenglichen
+  Vorwaerts-Cues, sind durch isolierte 0,20–0,22-s-Attacks ersetzt bzw.
+  entsprechend gekuerzt. Kurze 6-ms-Ein-/65-ms-Ausblendung und mindestens
+  0,1 s Abstand zwischen Inside-Impulsen; keine durchgehende Inside-Flaeche.
+  Die vorher vollstaendige Vorwaerts-Grundmischung ist dadurch bewusst
+  geaendert. Growls, Einrastakzente, Laser und Moving-Tools behalten ihre
+  einzelnen Schnitte/Pegel/Einsatzzeiten, A bleibt isoliert byteidentisch.
+- Zusaetzliche Auto-zu-Roboter-Testschicht aus imgmidi-moving-bass-sfx-set-336212:
+  gewuenschter Abschnitt ab 1:15, aktiver Effekt aus 75,78–77,68 s (1,90 s)
+  ohne leisen Vorlauf, Einsatz 0,08 s. Eigene begrenzte Bassgruppe ueber der
+  bestehenden Mischung, ohne globale Pegelabsenkung. Keine Bass-Ergaenzung
+  im Rueckweg. Gezielter 75–78-s-Decode statt Lockerung der gemeinsamen
+  60-s-Quellgrenze; Manifest trennt Originaldauer und Decodierfenster.
+- Beide Soundtracks bleiben 5,3 s bei unveraenderter Animation/Laufzeit.
+  Nutzer bestaetigt den abgestimmten Soundstand inklusive Bass und kurzen
+  Inside-Impulsen im Spiel und beauftragt den Commit. Keine Aenderung an
+  Gang-/Fahrphysik oder Motor-/Reaktorkurven durch diese letzte Abstimmung.
+- Build, elf Audio-Aufbereitungschecks (mit lokalen Originalquellen) und
+  81 Ladechecks bestanden. Unabhaengige Neuberechnung bestaetigt beide
+  WAV-Hashes, alle neun kurzen Inside-Cues, Bass-Quellsekunden per separatem
+  Sampletrim sowie die unveraenderten isolierten Nicht-Inside-Sounds.
+  84 sonstige Payload-Dateien inklusive DLL sind bytegleich zum Vorzustand.
+  Reviewevidenz: artifacts/audio-transformer/short-impulse-independent-review.json.
+- Bei geschlossenem Valheim installiert; alle 88 Payload-Dateien per SHA-256
+  verifiziert, einschliesslich Bass und neun kurzen Inside-Impulsen. Konfiguration
+  erhalten und beide Backupordner nach erfolgreicher Pruefung auf je zwei
+  Zeitstempelstaende begrenzt. Native Hoerabnahme der neuen Mischung bestaetigt.
+
+## Transformer: Reaktor und weitere Soundabstimmung (lokale Entwicklung)
+
+- Nutzer bestaetigt die erweiterte Mischung. Weitere Balance: Motorleerlauf
+  bis 20 Prozent Entfaltung mit vollem Autopegel, danach weich bis auf
+  40 Prozent bei fertigem Roboter absenken. Rueckweg entsprechend umgekehrt;
+  gleicher Pitch und gleiche besetzte/geparkte Reichweite, keine Loop-Neustarts.
+  Reaktor-Laufzeitpegel um 50 Prozent angehoben (0,5 auf 0,75); seine sichtbare
+  Einblendphase bleibt bei 55–100 Prozent Entfaltung. Audio-WAVs unveraendert.
+- Growling startet bei 0 s mit 40 ms Einblendung statt erst nach 0,85 s.
+  Bisheriger 3,5-s-Ausschnitt und Pegel erhalten. Zunaechst vier Bewegungstexturen
+  aus inside-the-robot-70923 bei 0,22/1,10/2,10/3,52 s ergaenzt; inzwischen
+  auf Einzelimpulse gekuerzt (siehe oben). Laser-Charge
+  aus gregorquendel-laser-charge-175727 als 2,8-s-Schicht ab 0,35 s zum Testen.
+  Zwoelf bestaetigte Einrastakzente erhalten; neue Schichten begrenzen nur sich
+  selbst, ohne Growl/Einrasten herunterzuziehen. Keine Animationsaenderung.
+- kernreaktor.mp3 liefert einen eigenen 8-s-Loop am echten bewegten
+  Reaktormittelpunkt, mit 800 ms kreisfoermiger Ueberblendung aus 8–16,8 s
+  der Originalaufnahme. tools/prepare_transformer_reactor_audio.py erzeugt
+  reactor.wav und reactor_manifest.json lokal. Zwischen 55 und 100 Prozent
+  Entfaltung einblenden, beim Falten entsprechend ausblenden; geparkte Roboter
+  behalten den Reaktor auch unabhaengig vom Motor-Weiterlaufen-Schalter.
+  Pause/Fokus-/Streamingstopp pausieren den Loop; Entfernen stoppt/raeumt auf.
+- Build, 34 Reaktor-, 156 Leerlauf- und bestehende 66 Ladechecks sowie
+  61 Verwandlungschecks fuer die neue Balance bestanden; weitere bestehende
+  Verwandlungs-/Dreh-/Schritt-/Audiopruefungen bestanden. Zwei Pythonchecks
+  fuer Loop-Aufbereitung und zehn Installations-/Stagingtests gruen.
+  Bei geschlossenem Valheim lokal installiert; DLL und alle 86 Payload-Dateien
+  per SHA-256 geprueft, Konfiguration erhalten, beide Backupordner nach Erfolg
+  auf je zwei Zeitstempelstaende begrenzt. Schritte und Drehsamples unveraendert.
+  Frueherer Growl, Bewegungstexturen/Laser und Reaktor vom Nutzer bestaetigt;
+  neue Pegelbalance lokal installiert, erneute Spielabstimmung offen.
+
+## Transformer: Mechanik fuer beide Verwandlungen (vorherige lokale Stufe)
+
+- Nutzer bestaetigt Rueckweg-Hauptschicht A im Spiel und wuenscht nun
+  Einrastakzente sowie weitere Ausschnitte aus moving-tools-3-40372 und
+  inside-the-robot-70923 in beiden Richtungen. Je fuenf neue kurze
+  Bewegungstexturen verwenden unterschiedliche aktive Quellabschnitte.
+  Auto-zu-Roboter behaelt seine bestaetigte Gesamtmischung als unveraenderte
+  Grundlage; eine zusaetzliche, separat begrenzte Texturgruppe kommt hinzu.
+- Roboter-zu-Auto erhaelt acht gruppierte Akzente: Spiegel lokal bei 2,125 s,
+  Kopfrotation/Kompaktierung bei 2,229 s, Fuss-/Zehenwinkel bei 2,958 s,
+  Bodenblech-Weltpose bei 3,583 s, Fusskompaktierung bei 4,062 s, lokale
+  Gliedmassen-/Hueftbaugruppen bei 4,500 s, Seitenscheiben bei 4,667 s und
+  Karosserieabschluss bei 5,000 s. Fruehe Komponentenendpunkte bedeuten noch
+  keine stillstehende gesamte Baugruppe; nahe Ereignisse sind gebuendelt.
+  Timing gegen echte Auto-Endpose aller verbleibenden Rueckwaertsframes
+  geprueft, nicht durch Spiegeln der Vorwaerts-Akzentzeiten.
+- Beide Spuren bleiben 5,3 s bei unveraenderter 5-s-Animation. Im Rueckweg
+  darf nur der natuerliche Abschluss maximal 0,3 s Nachklang freigeben;
+  Auto-Ticks fuehren ihn auch geparkt weiter. Abbruch/Restore/Dispose und
+  erneute Verwandlung stoppen ihn; Pause/Fokus/Streaming frieren ihn ein.
+  Kein Nachklang beim Laden geparkter Autos, keine verlaengerten Ringe durch
+  wiederholte Abschlussmeldungen. Motor-/Reaktorkurven bleiben erhalten.
+- tools/prepare_transformer_mechanical_audio.py beschreibt die neuen
+  Texturausschnitte, die beiden bisherigen Aufbereitungsskripte mischen sie
+  getrennt hinzu. A bleibt isoliert SHA-256-identisch; die bestaetigte
+  Vorwaertsmischung ebenso. Keine globale Pegelabsenkung oder Zeitstreckung;
+  neue Texturen begrenzen nur sich selbst in den verbleibenden Spitzenraum.
+  Exakte Schnitte, Pegel, Quellen-/Ausgabehashes und Timing in den lokalen
+  deploy_manifest.json/return_manifest.json. Native Hoerabnahme offen.
+- Build sowie 79 Rueckweg-, 81 Lade-, 61 Vorwaerts-, 156 Leerlauf- und 34
+  Reaktorchecks bestanden. Sieben Pythonchecks inklusive Originalquellen-
+  Regression fuer beide bestaetigten Grundlagen und zehn Installationschecks
+  bestanden. Der zusaetzliche komplette Transformertest scheitert an der
+  bestehenden Stuetzkontinuitaet im Walk-to-Sprint-Trace: maximal 0,11711 m
+  bei 38,433334 s links statt <0,004 m. Isolierter Nachbau nur aus
+  TransformerGait.cs/GaitPreview.cs des vorherigen Commits f656fed erzeugt
+  denselben Trace byteidentisch; keine Audioregression. Gait/Testdateien
+  unveraendert. Herkunft und Reproduktion im ignorierten Bericht
+  artifacts/tests/gait-audio-scope-baseline/evidence.json; keine native
+  Bewegungsmessung im Spiel und kein vollstaendiger gruener Transformertest.
+- Bei geschlossenem Valheim lokal installiert, DLL und alle 88 Payload-Dateien
+  per SHA-256 verifiziert. 30 sonstige Audio-Payload-Dateien unveraendert;
+  Konfiguration erhalten und beide Backupordner nach erfolgreicher Pruefung
+  auf je zwei Zeitstempelstaende begrenzt. Neue Hoerabnahme im Spiel offen.
+
+## Transformer: Roboter-zu-Auto, bestaetigte Hauptschicht (lokale Entwicklung)
+
+- Nutzer waehlt Hoerkandidat A: transformers-growling-31509, Originalsekunden
+  6,0–10,2. Die isolierte Growl-Schicht ist SHA-256-bytegleich zur Vorschau;
+  4,2 s Mono-PCM16, 40 ms Ein-/250 ms Ausblendung, unveraendertes Tempo/Pitch.
+- Sound beginnt erst mit TransformerState.Returning, nach Bremsen, Fussruhe
+  und Gelaendeausrichtung. Der bestehende Animationsfortschritt fuehrt die
+  Wiedergabe ueber (1 - Progress) * 5; die Animation bleibt fuenf Sekunden.
+  Erste 4,2 s enthalten die Growl-Hauptschicht; Mechanik ergaenzt jetzt den
+  gesamten Rueckweg samt Abschlussnachklang (siehe oben).
+- Pause/Fokus-/Streamingstopp halten die Spur an; Fortsetzen und Framehitches
+  synchronisieren zur echten Phase. Kein Sound bei blosser Rueckkehranfrage,
+  Vorwaertsverwandlung oder geladenem Roboter. Kein Wiederanlaufen am Clipende.
+- Bestehender Reaktor-/Motoruebergang bleibt: Reaktor ueber die ersten 2,25 s
+  ausblenden, Motor zur Autoform wieder zum vollen Pegel bringen. Schritte bei
+  vorbereitender Fussruhe erhalten. tools/prepare_transformer_return_audio.py
+  --source-dir <Ordner> erzeugt return.wav und return_manifest.json lokal.
+- Erste Spielstufe mit nur A und bestehendem Uebergang vom Nutzer im Spiel
+  bestaetigt. Morph-47358 bleibt eine optionale weitere Quelle.
+- Build, 56 Rueckverwandlungs-, 81 Lade-, 61 Vorwaertsverwandlungs-, 156
+  Leerlauf- und 34 Reaktorchecks bestanden. Bei geschlossenem Valheim lokal
+  installiert; DLL und alle 88 Payload-Dateien per SHA-256 geprueft. Die 32
+  vorherigen Audio-Payload-Dateien sind unveraendert. Konfiguration erhalten,
+  beide Backupordner nach Erfolg auf je zwei Zeitstempelstaende begrenzt.
+  Native Hoerabnahme der damaligen Hauptschicht bestaetigt; erweiterte Mechanik
+  separat abzustimmen.
+
+## Transformer: Auto-zu-Roboter-Sound (lokale Entwicklung)
+
+- Spielrueckmeldung: Growling passt; vorherige Einrastakzente zu leise und
+  zu wenige. Zwoelf deutlich kraeftigere, kurze Bauteilgruppen-Akzente aus
+  passenden Schritt-/Mechanikaufnahmen ersetzen die drei bisherigen Akzente.
+  Gelenkwinkel-/Ausfahrenden liefern fruehe Akzente, vollstaendige lokale
+  Bauteil-Endstellungen verdichten sich bei 4,85–5,00 s. Paare werden gruppiert.
+- Leerlauffehler korrigiert: Der bisherige Fortschritts-Fade schaltete den
+  Motorleerlauf bis 72 Prozent Umbaufortschritt stumm. Die Motor-Grundschicht
+  bleibt jetzt in beiden Verwandlungsrichtungen durchgehend erhalten,
+  ohne Neustart/Hochdrehen. Pause und Motor-Weiterlaufen-Einstellung bleiben aktiv.
+- Vorwaerts-Verwandlungsschicht aus den Nutzeraufnahmen: kurzer
+  mechanischer Auftakt, 3,5 s transformers-growling-31509 und Einrastakzente
+  aus footstep-020-500843, giant-robot-in-space-352492 und kurzen Ausschnitten
+  der bestaetigten Schrittquellen. Keine globale Normalisierung; nur Mechanik-
+  Spitzen weich begrenzt, Growl-Ausschnitt und Pegel erhalten. Kein Strecken der
+  ganzen 21-s-Datei, keine Aenderung der vorhandenen fuenfsekündigen Animation.
+- Akzente anhand der aktuellen gebackenen Posen ab etwa 2,42 s; innere
+  Ausfahrmechanik um 3,54 s, Kopfnahe-Endstellung um 4,48 s und Abschluss um 5 s.
+  Die Karosserie bewegt sich bis zum Ende weiter; die fruehen Akzente sind
+  keine Behauptung bereits vollstaendig verriegelter Fahrzeugteile.
+- Ein lokal vorgemischter Mono-PCM16-Clip (5,30 s inklusive kurzem Ausklang)
+  folgt dem tatsaechlichen TransformerState-Fortschritt. Pause haelt ihn an;
+  bei Fortsetzen/Frame-Aussetzern wird zur Animationsphase synchronisiert.
+  Geladene geparkte Roboter starten keinen Umbau-Sound. Rueckverwandlung und
+  Entfernen stoppen die Vorwaertsspur. Bestehende Schritte/Drehung/Idle erhalten.
+- Reproduzierbar mit tools/prepare_transformer_deploy_audio.py --source-dir
+  <Ordner>; deploy.wav und separates deploy_manifest.json bleiben lokal.
+  Herkunft, Schnitte, Layerpegel, Cuezeiten und SHA-256 dokumentiert;
+  Vorschau artifacts/audio-transformer/deploy-preview.wav. Ueberarbeitete
+  Mischung anhand der Wellenform; erneute native Hoerabnahme noch offen.
+- Build, 61 Verwandlungs-Soundchecks, 35 aktualisierte Leerlaufchecks und
+  56 Ladechecks bestanden; neue Mischung auf zwoelf Akzente, unveraenderte
+  Growl-Parameter und Spitzenpegel unter 0,95 geprueft;
+  bestehende Dreh-/Schritt-/Leerlauf-/Audio-/Speicherpruefungen sowie zehn
+  Installations-/Stagingtests gruen. Lokal bei geschlossenem Valheim installiert;
+  DLL und alle 84 Payload-Dateien per SHA-256 verglichen. Bestaetigte Schritt-
+  und Drehaudiodateien unveraendert, Konfiguration erhalten, beide Backupordner
+  nach Erfolg auf je zwei Zeitstempelstaende begrenzt. Ueberarbeitete Mischung
+  samt durchgehendem Leerlauf lokal installiert; erneute Spielabnahme offen.
+- Roboter-zu-Auto verwendet jetzt den ausgewaehlten Growl A als erste
+  Hauptschicht (siehe oben); morph-transforms-47358 bleibt eine optionale
+  Ergaenzung. Kein automatisches Rueckwaertsabspielen der Vorwaertsspur.
+
+## Transformer: Drehmechanik (lokale Entwicklung)
+
+- Vier kurze Ausschnitte aus der vom Nutzer gewaehlten dreh sounds.mp3,
+  separat von den bestaetigten Schritten und dem Leerlauf. Mechanik folgt
+  der tatsaechlich gemessenen Rumpfdrehung, auch beim Gehen; Tastendruck
+  allein erzeugt keinen Sound. Unter 2 Grad/s stumm, Pegel folgt Drehtempo.
+- Leise kurze Varianten mit Wechsel ohne direkte Wiederholung, begrenzten
+  Stimmen und weichen Uebergaengen. Beim Anhalten rund 150 ms Ausklang;
+  Menue/Pause, Fokusverlust, Streamingpause, Rueckwandlung und Entfernen
+  stoppen sofort. Bestehende Bewegung und bestaetigte Laufsounds bleiben erhalten.
+- tools/prepare_transformer_turn_audio.py erzeugt vier Mono-PCM16-Dateien
+  (0,9 bis 1,2 s) samt separatem turn_manifest.json in .local/audio-transformer.
+  Herkunft, Schnittgrenzen und SHA-256 dokumentiert; Wellenform-Erstschnitt,
+  Nutzer bestaetigt den Drehsound im Spiel als passend.
+  Vergleich artifacts/audio-transformer/turns-comparison.wav.
+- Build, 45 Dreh-Sound- und 46 Ladechecks sowie bestehende Schritt-, Leerlauf-,
+  Kamera- und Audiopruefungen bestanden; zehn Installations-/Stagingtests gruen.
+  Lokal bei geschlossenem Valheim installiert, DLL und alle 82 Payload-Dateien
+  per SHA-256 verglichen. Sechs Schritt-WAVs und ihre Pegel unveraendert;
+  Konfiguration erhalten und beide Backupordner nach Erfolg auf je zwei
+  Zeitstempelstaende begrenzt. Native Hoerabnahme der Drehmechanik vom Nutzer bestaetigt.
+
+## Transformer: erste Soundstufe (lokale Entwicklung)
+
+- Sechs kurze Schrittvarianten aus drei vom Nutzer ausgewaehlten MP3s,
+  an die vorhandenen linken/rechten Fusslandungen gekoppelt. Zufallsauswahl
+  verwendet jede Variante einmal pro Durchlauf und vermeidet direkte
+  Wiederholungen; dezente Pegel-/Tonhoehenvariation, beim Sprint mehr Gewicht.
+  Fusskontakte beim Drehen und beim Abbremsen nutzen dieselbe Ereignisquelle.
+- Hoerrueckmeldung: urspruenglichen sechsten Sound (footstep-015-445103)
+  wegen seines herausstechenden hellen Tons entfernt; uebrige Varianten passen.
+  Schrittlautstaerke linear um 5 Prozent erhoeht. Anpassung gebaut, geprueft
+  und bei geschlossenem Valheim installiert. Leerlauf bleibt unveraendert.
+- Vorhandener 350Z-Motorleerlauf bleibt mit gleichem Autopegel erhalten,
+  auch waehrend der Fortbewegung und des gesamten Umbaus ohne Hochdrehen.
+  Parken folgt der vorhandenen Motor-Weiterlaufen-Einstellung. Menue/Pause,
+  Fokusverlust und Streamingpause stoppen Schritte ohne spaeteres Nachholen.
+- tools/prepare_transformer_audio.py erzeugt lokale Mono-PCM16-Ausschnitte
+  samt Herkunft, Schnittgrenzen und SHA-256; Originale/WAVs bleiben ignoriert.
+  Vergleichsdatei: artifacts/audio-transformer/footsteps-comparison.wav.
+  Nutzer bestaetigt die Laufsounds nach Entfernung der hellen Variante und
+  der Pegelerhoehung im Spiel als passend.
+- Naechste getrennte Stufen nach der Drehmechanik: Auto-zu-Roboter mit
+  transformers-growling-31509 als zusaetzlicher Schicht,
+  Rueckverwandlung mit morph-transforms-47358. Einrastakzente aus footstep-020
+  und giant-robot-in-space-352492; footstep-017 fuer Schritt oder Einrasten
+  vergleichen. Laufsounds bestaetigt; leisen Leerlauf bei Bedarf weiter abstimmen.
+- Build, 40 neue Schritt- und 27 neue Leerlaufpruefungen mit kontrollierten
+  Unity-Doubles sowie Audio-/Lade-/Kamera-/Speicher-/Kletterregressionen
+  bestanden. 116 Python-Tests inklusive Installer/Staging bestanden.
+- Lokal fuer den Spieltest installiert: gepruefte DLL und alle 77 Payload-
+  Dateien inklusive sechs Schritt-WAVs und Audiomanifest per SHA-256 mit
+  dem Build verglichen. Konfiguration erhalten; Basis- und Erweiterungsbackups
+  nach Erfolg auf je zwei Zeitstempelstaende begrenzt. Entfernten Schritt auch
+  im installierten Ordner entfernt; sechs beibehaltene WAVs unveraendert.
+  Native Hoerabnahme der Laufsounds vom Nutzer bestaetigt; dies ersetzt keine
+  vollstaendige Laufzeitpruefung aller Pause-/Lade-/Rueckkehrfaelle.
+
+## Abgas im Leerlauf (lokale Entwicklung)
+
+- Dezente hellgraue Abgaswoelkchen direkt an den gewaehlten Endrohren,
+  mit eigener prozeduraler Maske und kurzem Ausblenden. NFVU2-Effekt, kein
+  rekonstruierter NFS-Leerlaufeffekt. Pro Endrohr maximal sechs Partikel/s;
+  Gasgeben und Fahrt blenden ihn aus. Motor aus und Pause stoppen die Emission.
+- In Roboterform folgen die Austrittspunkte denselben bewegten Haltern wie
+  die sichtbaren Auspuffteile, auch beim Verwandeln und Wiederherstellen.
+  Konfigurationsschalter Exhaust.IdleSmoke, standardmaessig aktiv.
+- Build und gezielte Emissionschecks; Dichte und Sichtbarkeit im Spiel pruefen.
+
+## Transformer beim Weltbeitritt (lokale Entwicklung)
+
+- Spieltest-Nachkorrektur: Rad-/Bremsenpositionen, Felgengroesse, Innenraum und
+  geschlossene Ausbaupose werden vor der Uebernahme in die geladene Roboterform
+  initialisiert. Die Radhalter uebernehmen keine ungesetzten Ursprungspositionen.
+- Ruecken-Neon: senkrechte lange Roehre samt Traeger entfernt. Die sechs an
+  der Huefte schwebenden Leuchten werden durch den Schriftzug SLY unten mittig
+  auf dem Kofferraumdeckel ersetzt. Konturen und Halter folgen der echten
+  Deckelflaeche; die gesamte Baugruppe folgt starr dessen Verwandlung und Gang.
+  SLY auf 65 Prozent verkleinert und leicht hoeher gesetzt, um den Auspuff
+  freizuhalten. Eigene dauerhaft gruene Emission ohne Puls oder Abhaengigkeit
+  von den Kofferraum-Neoneinstellungen.
+- Die aktive Roboterform wird mit Fahrzeugposition und Stauraum im bestehenden
+  Welt-Datensatz gespeichert, vor dem Aufraeumen beim Verlassen der Welt.
+  Beim Laden steht der Transformer direkt wieder geparkt da; die Verwandlung
+  wird nicht erneut abgespielt. Aufsteigen und Rueckverwandeln bleiben moeglich.
+- Wiederherstellung erfolgt im vorhandenen gestaffelten Fahrzeug-Ladeprozess.
+  Alte Datensaetze ohne Formangabe bleiben Autos; H2 und Flugmodus behalten
+  ihre bisherigen Ladewege. Fehlende Transformerdateien lassen den gespeicherten
+  Datensatz unveraendert, statt ihn als Auto zu ueberschreiben.
+- Build und gezielte Speicher-/Wiederherstellungschecks; nativen Weltwechsel
+  mit abgestelltem und besetztem Transformer im Spiel pruefen.
+
+## Transformer: Hochklettern und Backflip (lokale Entwicklung)
+
+- F7/B/Kreis bremst bis zur Fussruhe. Der echte Spielcharakter steht auf der
+  Schulterplattform auf, holt in der Hocke aus und springt gleichzeitig
+  nach hinten und oben in einen durchgehenden Bogen (2,15 s). Die Flugbahn
+  beruecksichtigt die echte Landehoehe und steigt rund 78 cm ueber den
+  Absprungpunkt, bevor sie zunehmend steiler abfaellt. Im Salto
+  werden Huefte und Knie deutlich angezogen, Ruecken/Kopf eingerollt und die
+  Haende zu den Knien gefuehrt; vor der Landung oeffnet sich die Pose. Die Landung
+  wird abgefedert, die Roboterform bleibt geparkt bestehen.
+- Nahe dem Roboter von jeder Seite F7/B/Kreis: aussen zum hinteren Bein gehen, abwechselnd an
+  vorhandenen Metallflaechen greifen und auftreten, mit festen Hand-/Fusskontakten
+  hochziehen und oben auf die Plattform steigen. Erst danach in die Sitzpose
+  wechseln (rund 8 s). Die Kontaktpunkte werden aus den aktuellen Modelldreiecken gewaehlt;
+  der Roboter bleibt beim Klettern ruhig stehen. Der bestehende Avatar mit
+  Inventar und Ausruestung wird weiterverwendet.
+- Aufnahmerueckmeldung: die starre Drehpose und ruckartigen Kletterzuege
+  ueberarbeitet. Eigene Knochenbasis pro Frame verhindert aufaddierte IK;
+  Hueftweg, Reichweitenkorrektur und Hand-/Fussausrichtung werden geglaettet.
+  Beim Kofferraumdeckel halten zwischengespeicherte Querschnitte der echten
+  Deckel-/Spoilergeometrie den Oberkoerper aussen; Knie werden seitlich gefuehrt.
+  Beim oberen Uebersteigen erst hinter der Kante hochziehen, dann mit den
+  Schritten darueber wechseln. Tiefere Handgriffe werden dabei frueher geloest.
+  Linke/rechte Modellkontakte sind passend zum Avatar zugeordnet, damit Arme
+  und Beine sich beim Greifen und Auftreten nicht ueberkreuzen.
+  Aufrichten und Absprung nutzen eigene Standkontakte auf den hinteren
+  Dachkanten (rund 51 cm hinter der Helm-Hinterkante), nicht die vor dem Kopf
+  liegenden Sitz-Fusspunkte. Beim Hinsetzen zuerst hinten absenken, dann in
+  die Sitzposition schieben; beim Aufstehen entsprechend umgekehrt.
+- Keine Seiten-, Hang-, Wasser- oder Freiraumsperren beim Auf-/Absteigen.
+  Boden-/Kapselabfragen bevorzugen einen guenstigen Landeplatz, liefern aber
+  immer einen Ersatzpunkt. F7 waehrend des Hochkletterns steigt sofort ab.
+  Menue/Pause halten die Animation an. Bewegung und Rueckverwandlung warten
+  waehrend der Choreografie. Spieler, Kamera, Animator und Fallhoehe werden
+  beim Abschluss/Notausstieg wieder freigegeben. Weltladen bleibt unveraendert.
+- Build und 49 gezielte Kletter-/Absprungchecks bestanden. Keine Blender-Render.
+  Avatarpose, native Kollisionen und Kamerafuehrung im Spiel pruefen.
+
+## Transformer: Kamera bei Fusslandungen (lokale Entwicklung)
+
+- Jede abgeschlossene Fussschwungphase liefert einen Landekontakt an die
+  Fahrzeugkamera. Ein kleiner Nick-/Rollimpuls klingt innerhalb von 0,24 s aus;
+  linke und rechte Landung rollen gegenlaeufig. Sprint blendet die Staerke
+  bis auf das 1,8-Fache. Keine eigene Schrittuhr und kein dauerndes Wackeln.
+- Kameraabstand und Hindernispruefung bleiben erhalten. Menue, Pause,
+  Fokusverlust, Rueckverwandlung und Ausstieg loeschen den Effekt; blockierte
+  Schritte werden beim Fortsetzen nicht nachgeholt. Gang und Fahrphysik bleiben
+  bis auf reine Landekontaktzaehler unveraendert. Build und 18 gezielte Checks
+  bestanden; Kameragefuehl im Spiel pruefen.
+
+## Orte im Fahrzeug und Fahrzeugmarker (lokale Entwicklung)
+
+- Der deaktivierte Fahrer erhaelt nach der Sitz-/Transformerpose gezielt
+  Valheims native Orts-/Biomaktualisierung. Bekannte Orte, Biome und Meldungen
+  folgen damit der Fahrzeugposition; Spielerbewegung und Eingabe bleiben aus.
+- Mini- und Weltkarte zeigen eigene temporaere Marker fuer 350Z und H2,
+  einschliesslich entfernter gespeicherter Autos. Geladene Fahrzeuge liefern
+  ihre aktuelle Position auch im Flug und als Transformer. Entfernen und
+  Weltwechsel raeumen die Marker auf; persoenliche Pins bleiben erhalten.
+- Symbol aus dem vorhandenen originalen NFSU2-Menue: CRIB_ICON_CAR_SELECT
+  (FRONTEND/FrontB.lzc, 0xa964095b), ohne Auswahlpfeile. Bei fehlender optionaler
+  Menuegrafik dient eine eigene Autosilhouette als Ersatz.
+- Build, 9 Entdeckungs- und 22 Kartenchecks bestanden. Orts-/Biommeldungen
+  beim Fahren und Marker auf beiden Karten im Spiel pruefen.
+
+## Gespeicherte Autos im Weltladebildschirm (lokale Entwicklung)
+
+- Nahe gespeicherte Autos werden nach nativer Terrain-/ZDO-Bereitschaft vor
+  dem Erzeugen des Spielers aufgebaut. Der vorhandene Weltladebildschirm
+  bleibt bis zum Abschluss offen; der Logoutpunkt wird erst danach verbraucht.
+  Aufbau weiterhin gestaffelt auf dem Unity-Hauptthread, Dateien im Worker.
+  Die fertigen Fahrzeuge wechseln anschliessend zum echten Spieler als Besitzer.
+  Entfernte Autos warten weiterhin auf ihre Region. Fehler/F8-Abbruch lassen
+  den Welteintritt weiterlaufen; Multiplayer bleibt unveraendert.
+  Build, 28 Wiederherstellungs- und 31 Ladechecks bestanden. Weltladen,
+  Ladeanzeige und sichtbare Fahrzeugbereitschaft im Spiel pruefen.
+
+## Purge beim Rollen (lokale Entwicklung)
+
+- Purge funktioniert mit gehaltener Nitrotaste auch beim Rollen ohne Gas,
+  unabhaengig von der Geschwindigkeit; Gasgeben schaltet auf die bestehende
+  Boostlogik um. Bodenkontakt und aktive Fahrzeugsteuerung bleiben erforderlich.
+  Gezielte Nitrochecks; Partikel und Sound beim Rollen im Spiel pruefen.
+
+## Transformer: Sprint, Handkontakte und Boden V4 (lokale Entwicklung)
+
+- Ausfahrmechanik beim Anlaufen wiederhergestellt: Die vereinfachte
+  Bodenfuehrung aktivierte selbst im Stand dauerhaft die offene Terrainphase.
+  Ohne diesen unbedingten Wechsel steuert wieder der Gang die Panzertraeger:
+  vor dem ersten Schritt ausfahren, nach Fussruhe wieder einfahren.
+  Build und kurze Gang-/Sprintchecks bestanden; die volle Transformer-Suite
+  scheitert beim separaten Sprint-Trace an der Standfussgrenze (117 statt 4 mm).
+  Gangparameter unveraendert; Aus-/Einfahren vom Nutzer im Spiel bestaetigt.
+- Aktuell: Reaktor 120 Grad/s, deutlich groessere Flamme vor dem Einfassungsrand
+  mit zur Kamera gerichteten Sprites. Lose Holzbeute und eigenstaendige Truemmer
+  werden aus Hindernis-, Boden- und Kontaktdeckungsabfragen entfernt; sie hatten
+  trotz Baumfilter weiterhin Stopps/Bodenstufen ausloesen koennen. Verbleibende
+  feste Blocker werden hoechstens alle zwei Sekunden protokolliert. Build und
+  18 Kontaktregeln-Checks bestanden; Flammenansicht/Waldlauf im Spiel offen.
+- Spieltest-Nachkorrektur: Reifen drehen um ihre eigene lokale X-Achse nach
+  Anwendung des Panel-/Fahrzeugversatzes statt um die Achse des Panelhalters.
+  Reaktor 65 statt 38 Grad/s; sichtbare kleine, nach oben gerichtete Flamme
+  aus dem vorhandenen Auspuff-Flammenatlas. Baum-/Stammcollider stoppen den
+  Rumpf auch waehrend ausstehender nativer Faellung nicht mehr. Build und
+  14 Kontaktregeln-Checks; Rad-/Flammenansicht und Durchlaufen im Spiel offen.
+- Neuer lokaler Spieltest: Sprintschrittparameter 1,32 statt 1,45 m (rund 9 %
+  kuerzer), weiterhin 8,5 m/s und hoher Fusshub. Vier vorhandene Raeder rollen
+  bei Drehung seitenabhaengig gegenlaeufig, Bremsen bleiben stehen. Reaktor:
+  konkave Metallmulde, kleiner gruener Kern, vorhandene Lamellen/Ringe im
+  Uhrzeigersinn (von vorne), dezente Plasmaflamme. Roboterkontakt trifft kleine
+  feindliche Kreaturen und alle nativen Baumarten, Baumstämme und Setzlinge
+  ueber Valheims Schaden/Faellung/Beute. Spieler, Zahmtiere, Bosse, grosse
+  Kreaturen, Gebaeude und Ziele hinter festen Hindernissen bleiben geschuetzt.
+  Umfallende Staemme und Kreaturen liefern keine Bodenhoehe. Build sowie
+  30 Controller- und 14 Kontaktregeln-Checks; Darstellung/Physik im Spiel offen.
+- Aktuelle Fehlerkorrekturen: Ausstiegskapsel ignoriert das eigene Auto und
+  probiert weitere Positionen neben der Tuer. Bodenprobe beginnt knapp ueber
+  Terrain/Rumpf statt 64 m darueber; stehende Baeume liefern keine Bodenhoehe.
+  Sprint-Handflaechen werden zur Koerperinnenseite ausgerichtet statt fester
+  55-Grad-Unterarmdrehung. Drehen 90 Grad/s beim Gehen, 65 Grad/s beim Sprint,
+  mit frueherer Fussumsetzung fuer schnelle Kurven. Build und kurze Controller-
+  tests; Baum-/Tuerkollisionen und Handansicht bleiben im Spiel zu pruefen.
+- Aktueller schneller Spielteststand: Sprint 8,5 m/s, Schrittparameter 1,32 m,
+  Fusshub 80 cm, Koerperhubziel 32 cm (Controller gemessen 25,55 cm).
+  Laengere Flugphasen (maximal 0,20 s statt 0,05 s), niedrigere Schrittfrequenz,
+  engere Oberarme (9 bis 12 Grad) und ruhigerer Armschwung (maximal 125 Grad/s).
+  Die alte neunfache Ebenenpassung und die pro-Panzer-Gehausschlusspruefung
+  sperren die Fortbewegung nicht mehr. Geladene Bodenhoehe fuehrt den Rumpf;
+  nur der zentrale Koerper prueft feste Hindernisse. Bestehende Ueberlappung
+  erlaubt Weiterbewegung zum Befreien. F7 steigt sofort aus, unabhaengig von
+  Rueckwandlung und Fussruhe. F10-Rueckwandlung hat keine Hang-/Freiraumsperre.
+  Vorbereitung der Robotermeshes erfolgt beim Fahrzeugladen ueber mehrere
+  Frames; die sehr grosse synchrone Umbauwegpruefung entfaellt. Bauch-Neonroehre
+  und zugehoerige Halter werden in der Darstellung entfernt. Wasser wird durch
+  eine vereinfachte Wathoehe behandelt; fehlende Welt bleibt Streamingpause.
+  Build und kurze Controller-/Ladetests; auf ausdruecklichen Wunsch
+  keine neuen Renderings oder vollstaendigen Geometrie-/Tracepruefungen.
+  Die nachfolgende vollstaendige V4-Freigabe beschreibt den vorherigen Stand;
+  die aktuelle lokale Manifestfreigabe ist ausdruecklich ein manueller Spieltest.
+- Shift + W sprintet vorwaerts; am Gamepad X/Quadrat halten. Zieltempo 7 m/s,
+  Beschleunigung 1,6 m/s2, staerkeres Abbremsen vor Rueckwaertsfahrt. Pose folgt
+  weiterhin gemessener Bewegung: weicher Walk-/Run-Uebergang, groessere Schritte,
+  staerker gebeugte Arme, kuerzere Stuetzzeiten und kurze echte Flugphasen.
+- Gezielte Nachkorrektur: kleinere und ruhigere Sprintarme, naeher am Koerper;
+  rund 15 cm sichtbarer Koerperhub aus echter Stuetzkompression und Abhebung.
+  Fussbahnen und Schritttiming bleiben erhalten. Gehen erlaubt getrennt vom
+  Umbau nun 20-Grad-Haenge und begrenzte Unebenheiten. Kleine bodennahe
+  Fuss-/Schienbeinueberschneidungen werden bewusst zugelassen; Wasser, fehlende
+  Welt, grosse Absatze und feste Fels-/Wandhindernisse bleiben Sperren.
+- Die bisherige V3-Pruefung erfasste Karosserie, Neon und Referenzfigur, aber
+  nicht die vollstaendige Handgeometrie. Das erklaerte trotz damaliger Freigabe
+  die gemeldeten Hand-/Beinpenetrationen. V4 prueft jedes Hand-/Fingerbauteil
+  gegen Bein-/Hueftpanzer mit mindestens 25 mm Volumenabstand und ungefilterten
+  Dreieckskontakten. Schulter-/Ellbogenbahn wird fuer die Robotermorphologie
+  angepasst; keine verkleinerten oder ausgeblendeten Haende.
+- Knieplatten parken vor dem ersten Schritt und bleiben am Rumpftraeger,
+  statt beim Walk-/Run-Wechsel ihre Position zu aendern. Dadurch kann beim
+  Sprintabbremsen eine ausklingende hohe Schwungbahn keinen zurueckfahrenden
+  Kniepanzer treffen. Schliessen erfolgt erst nach vollstaendiger Fussruhe.
+- Statt einer pauschalen 6-m-Box entscheiden enge bauteilbezogene Huellen mit
+  nativen Kollisionsabfragen ueber den Umbauweg. Sichtbarkeit und kompakte
+  Mechanik werden beruecksichtigt. Ein gemeinsamer breiter Suchkasten dient
+  nur zum Finden benachbarter Collider, nicht als Hindernisentscheidung.
+- Neun Bodenproben unterscheiden leichte Haenge, Stufen, Loecher und Wasser.
+  Umbau und Rueckkehr behalten 8 Grad und 6 cm Restunebenheit; beim Gehen
+  gelten 20 Grad, maximal 25 cm Restfehler und 30 cm Restfehlerspanne.
+  Fusslokale Ebenen und feste Beinlaengen fuehren die Sohlen. Die bisherige
+  vollstaendige Terrain-Geometriepruefung umfasst 8-Grad-Haenge und
+  10-cm-Stufen zwischen beiden Fussbahnen. Erweiterte Gehgrenzen haben eigene
+  Policytests und brauchen eine erneute Abnahme auf echtem Spielterrain. Der
+  Originalumbau bleibt parallel zur tragenden Bodenebene; danach
+  oeffnen die Panzertraeger, bevor sich der Roboter aufrichtet. Auf Gelaende
+  bleibt diese Freiraumstellung beim Anhalten offen. Zurueckneigen, Schliessen
+  und inverse Verwandlung folgen der umgekehrten Reihenfolge. Die reine
+  Phasensteuerung hat eigene Tests; Weltladepausen halten auch diese Phasen an.
+- Erweiterter Geh-Smoke mit 42 Posen: 20-Grad-Haenge und 30-cm-Fusshoehen-
+  unterschiede bestehen die begrenzte Bodentoleranz, Handabstand mindestens
+  28,9 mm. Auf 20-Grad-Haengen bleiben vier optische Panzer-/Neonkontakte
+  (4,5 mm Schweller bzw. 47 bis 59 mm Neon/Hinterrad). Diese neue Gehfreiheit
+  ist keine Zusage kontaktfreier Mechanik auf jedem Hang.
+- Lokale Original-StartTemple-Collider ausgewertet, einschliesslich gespawnter
+  Queen-/Fadersteine und Zentralplattform. Bosssteinfreier Mittelkreis knapp
+  14,9 m Durchmesser; die gebackene Umbaugeometrie hat maximal 3,19 m Radius.
+  Das ist eine geometrische Referenz, keine Abnahme jeder Weltposition oder
+  einer laufenden V4-Pose. Die konvexe Plattform besitzt eine ebene Oberseite.
+  Echte Fussvertices liegen darueber, waehrend leere OBB-Ecken bis 41 cm unter
+  ihre Ebene reichen. Nachgewiesene konvexe Bodenauflage wird deshalb getrennt
+  von echten Hindernissen behandelt, ohne Collider nach Namen zu ignorieren.
+- Aktuelle Quellen-/Trace-gebundene V4-Freigabe bestanden: 79 Managed-
+  Transformerchecks, 34 Bodenchecks und 115 Python-Tests. Vollstaendige
+  Geometriepruefung mit 5.930 Posen (129 Vorbereitung, 5.445 Bewegungsvarianten,
+  356 Terrainproben) sowie 3.661 Posen des zusammenhaengenden 61-Sekunden-
+  Controllers bestanden. Keine neuen Koerper-/Handkontakte, Bodenverletzungen
+  oder IK-Fehler im beschriebenen Pruefumfang; kleinster absolut gepruefter
+  Handabstand rund 28,9 mm. Vorhandene Originalkontakte bleiben ausgewiesen.
+  Alte V3-Berichte koennen den Sprint nicht aktivieren. Native Unity-Physik,
+  Startkreis-Praxis und Spielfeeling bleiben als Spielabnahme offen.
+- V4 lokal ueber den bestehenden Installerkern und die separate optionale
+  Transformer-Erweiterung installiert. Getestete DLL unveraendert, beide Assets
+  per SHA-256 geprueft, Konfiguration erhalten und Backups nach Erfolg auf die
+  zwei neuesten Datumsstaende reduziert. Kein Commit, Push oder Release.
+
+## Transformer: menschlicherer schwerer Gang V3 (lokale Entwicklung)
+
+- Transformer-Branch auf 0.30.0 zusammengefuehrt. Persistente Fahrzeuge und
+  Weltladen bleiben erhalten; Speichern waehrend der Roboterform sichert eine
+  Auto-Rueckkehrhoehe statt des bodennahen Roboter-Ursprungs. F8 bricht wie in
+  0.30.0 nur Laden ab; Entfernen bleibt eine ausdrueckliche Menueaktion.
+- Schrittschwinger ersetzt: gemessene Rumpfbewegung fuehrt gesetzte Standfuesse,
+  getrennte Schwungphasen setzen neue Landepunkte. Vorhersage und laufende
+  Reichweitenpruefung beruecksichtigen Beschleunigen, Drehen und Umkehren.
+- Vorwaerts 2,8 m/s, rueckwaerts 1,65 m/s; Beschleunigen 0,9 m/s2, Bremsen
+  2,3 m/s2. Cruise-Fussweg im Controller etwa 1,46 m, statt kurzer V2-Schritte.
+  Arme schwingen gegenlaeufig, Ellbogen beugen sich. Beckenlast folgt dem
+  tatsaechlichen Standbein; Oberkoerper neigt sich vor und dreht gegen das Becken.
+- Nach vorn gefuehrte Knie mit fester Beinlaenge, schmalerer Gehstand und
+  Abrollen auf der echten starren Sohle. Beide Beine teilen notwendige
+  Beckenabsenkung; Halsanker und bestehender Fahrer folgen dem Oberkoerper.
+- 41 Managed-Transformerpruefungen bestanden. Voller 34-Sekunden-Ablauf mit
+  50-Hz-Physik und 60-Hz-Pose umfasst Anlaufen, Bremsen, Kurven, beide Pivot-
+  Richtungen, Umkehren und kurzen Neustart. Groesste gemessene Bewegung eines
+  gesetzten Fussankers rund 0,283 mm pro Frame im idealen ebenen Test.
+- Zusaetzliche sechs 34-Sekunden-Sequenzen am gebauten Controller: kurze Taps,
+  beschleunigender Zickzack, Stop/Start-Kurven, kleine Analogwerte, Vor/Rueck-
+  Wechsel und schnelle Pivotwechsel. Alle 12.246 Posen behalten mindestens
+  einen Standfuss und enden exakt neutral; groesste Ankerabweichung 0,470 mm
+  pro Frame. Das misst Knoechelanker, nicht nativen Unity-Sohlenkontakt.
+- Vollstaendige Geometriepruefung bestanden: 4.485 Posen aus Ausfahren,
+  Vor-/Rueckwaertsfahrt und Drehen plus 2.041 Posen des zusammenhaengenden
+  Controllerablaufs. Im damaligen Karosserie-/Neon-/Figurpruefumfang keine neuen
+  Oberflaechenkontakte, Bodenverletzungen oder IK-Fehler; Haende fehlten noch,
+  siehe V4. Urspruengliche Ruhepose erhalten. Kniepanzer und ganze Neonroehren
+  fahren auf verbundenen Halterungen aus dem Bewegungsweg.
+- V3 lokal mit dem bestehenden Installerkern und separatem optionalen
+  Transformerpaket installiert; DLL/Assets per SHA-256 geprueft und bestehende
+  Konfiguration erhalten. Backup vor Austausch, alte Datumsbackups erst nach
+  erfolgreicher Pruefung reduziert. Nicht gepusht oder veroeffentlicht.
+  Die reale Unity-Spielabnahme bleibt getrennt; weiterhin nur ebene freie
+  Flaechen, keine Terrain-IK und keine Multiplayer-Freigabe.
+
+## 350Z-Transformer: lokale Blender-Studie
+
+- Eigenstaendige Roboterform mit segmentierter Karosserie, artikulierten Armen
+  und Beinen, schmaler Taille und gefaltetem Rueckenpaket. Studien bis V18 sind
+  Blender-Prototypen; ein erster optionaler Laufzeitimport ist unten beschrieben.
+  Blender-Studien allein aendern die Mod nicht; lokale Laufzeitintegration siehe unten.
+- Verbindliche Gestaltungsregel: jede Scheibe bleibt ein starres, ungeteiltes
+  Bauteil. Front- und Heckscheibe, Seitenscheiben und Spiegel behalten ihre
+  Quell-Dreiecke, UVs und Normalen; auch Fassungen/Halterungen mitfuehren.
+- Spieler soll beim Umbau auf der Schulterbruecke hinter dem Kopf mitfahren
+  und bei der Rueckverwandlung wieder auf dem Fahrersitz sitzen. Den bestehenden
+  Player aus VehicleCabinDriver weiterverwenden: Inventar, Ausruestung, Gesundheit
+  und Netzwerkidentitaet erhalten; Sitzanker/Posenziele animieren.
+- Blender zeigt dafuer eine generische Referenzfigur, nicht den echten Avatar.
+  Gelenkgehaeuse, Huelsen, Rippen und ein mitfahrender Sitztraeger sind modelliert.
+- Studie 6: Knie klappen nach oben; Beinpanzer und Hinterraeder erhalten
+  Bodenfreiheit. 664 sichtbare Meshes in 529 Vor-/Rueckwaerts-Zeitpunkten
+  inklusive halber Frames gegen die Bodenebene geprueft (ground-clearance.json).
+- Studie 7: sieben durchgehende Neonleisten mit Halterungen. Drei folgen den
+  Kofferraumleisten aus VehicleShowroom; vier Unterbodenroehren sind neu
+  modellierte Hardware zu den horizontalen Lichtpositionen aus VehicleNeon.
+  Die seitlichen Leisten fahren beim Umbau auf ihren Haltern nach aussen.
+- Eingezogene Arme/Kopf vorn, Beine hinten; vier teleskopierende Gliedmassen.
+  Panzertraeger nutzen feste ineinanderschiebende Huelsen oder feste Klappglieder.
+  Lange Verbindungen laufen unter dem Fahrerraum, Scheibentraeger seitlich.
+  Die Figur zieht beim Anheben die Beine an und nimmt anschliessend die Sitzpose ein.
+- Bewegungswege sind als gepruefte bzw. nachzubessernde Schiebekurven in
+  tools/transformer_carrier_paths.json und tools/transformer_neon_paths.json
+  reproduzierbar. Pruefungen unterscheiden Boden, Fahrzeug/Neon/Figur,
+  Mechanik/Figur sowie Packstellung. Griffkontakt der vereinfachten Haende
+  ist explizit ausgewiesen; sonstige Kontakte werden nicht verschwiegen.
+- Weiter offen: verbleibende Karosseriekontakte in Zwischenstellungen und
+  Bauraum-/Montagekontakte der inneren Mechanik. Unity-Integration folgt nach
+  der weiteren Kollisions- und Bauraumarbeit.
+- Studie 8 korrigiert das Durchschwenken der Haubenhaelften durch beide
+  Scheinwerfer: erst seitlich vor den Leuchten schliessen, danach nach hinten
+  an die Brust anlegen. Anfangs werden die Hauben angehoben; beim Hochfahren
+  nutzen sie einen vorderen Korridor. Zum Schliessen passieren sie die vordere
+  Neonroehre von oben. Rueckweg in exakt umgekehrter Reihenfolge.
+  Haube/Leuchten-Test: 1057 Viertelframes inklusive Rueckverwandlung,
+  keine neuen Flaechenschnitte bei 0,01 mm Toleranz; vorhandener Kontakt der
+  Quellgeometrie separat erfasst. Vorschauen einzeln mit zwei CPU-Threads.
+- Studie 9 ist eine eigene statische Design-Endpose: sechs verlustfrei geschnittene
+  Haubensegmente, acht Tuerschuppen mit Original-UVs, ausgeformter Brust-/Bauchkern,
+  kraeftigere Gliedmassen, Gelenkgehaeuse, neues Gesicht und einzelne Fusszehen.
+  Vier Raeder, ganze Scheiben/Leuchten, sieben ungeteilte Neonroehren und dieselbe
+  Referenzfigur bleiben erhalten. Neon sitzt in Schutzkanaelen; Sitz hinter dem Kopf.
+  Reproduzierbar mit tools/build_transformer_design.py; eigene Blender-Datei,
+  vier Ansichten und optionaler Kameraumlauf in artifacts/transformer-study-v9.
+  Der Kameraumlauf zeigt KEINE Transformation. Studie-8-Animation gilt fuer diese
+  neue Form nicht; Faltwege, innere Kontakte und Packung im Auto bleiben offen.
+- Studie 10 korrigiert die Endpose nach Designfeedback: originale Frontleuchten
+  frei vor den Schultern, Rueckleuchten nach hinten gerichtet; Lichtemission
+  nach den vorhandenen lightRole-Feldern des Fahrzeugmodells. Vordere Raeder
+  nach aussen/oben geneigt als Schulterpolster, neuer Kopf mit schmalen Optiken
+  und mehrteiliger Metallmaske. Unterbodenflaechen verlustfrei in 30 starre
+  Segmente aufgeteilt und um die Beine gefaltet; hintere Gelenke, Kolben und
+  Fersenanlenkung ergaenzt. Ganze Scheiben, vier Raeder und sieben Neonroehren
+  bleiben erhalten. Erzeugen mit tools/build_transformer_design.py --revision 10
+  im Blender-Python-Aufruf; Ausgabe artifacts/transformer-study-v10.
+  Sechs Ansichten und optionaler Kameraumlauf, weiterhin keine Transformation.
+  Statische Boden-, Fahrer- und Neonpruefungen; weitere innere Karosseriekontakte
+  sind dokumentiert und offen, ebenso Packstellung und die neuen Faltbewegungen.
+- Studie 11 ersetzt Kopf/Hals und Haende anhand der neuen Bildreferenzen:
+  ueberlappende Schaedelplatten, tiefe Augensockel mit kleinen gruenen Optiken,
+  freiliegende Wangen-/Kiefermechanik und verzahnte Metallkiefer. Beide Haende
+  besitzen vier dreigliedrige Finger und einen gegenueberliegenden Daumen,
+  Knochellager, Zugstangen und gekruemmte Greifspitzen mit unterschiedlicher
+  Fingerstellung. Karosserie, Leuchten, Schulterraeder, Neon und Referenzfigur
+  behalten die Studie-10-Geometrie und -Pose. Aufruf --revision 11; Ausgabe
+  artifacts/transformer-study-v11, inklusive Kopfprofil und Handnahaufnahme.
+  Statische Flaechenpruefung der neuen Teile gegen Karosserie, Neon und Figur;
+  innere Selbstkontakte, Gesichts-/Fingeranimation und Packstellung sind offen.
+- Studie 12 korrigiert die vertauschte Haendigkeit aus Studie 11: Daumen und
+  Zeige-/Kleinfingerfolge passen nun zur nach vorn gerichteten Handrueckseite.
+  Finger und Greifspitzen beugen zur Handflaeche nach hinten. Keine negative
+  Objektskalierung; Fingerachsen halten den Panzer auf der Handrueckenseite.
+  Kopf und uebrige Meshes bleiben unveraendert. Aufruf
+  --revision 12; artifacts/transformer-study-v12 mit Nahansichten beider Haende.
+- Studie 13 dreht die Handflaechen zur Beinseite, korrigiert die Daumen-/Fingerfolge
+  fuer nach vorn gerichtete Daumen und fuehrt die Handgelenke unter der
+  Tuerpanzerung heraus. Schmalere Taille, verjuengter Brustkorb und schlankere
+  innere Beinkerne; offener gruener Bauchreaktor mit Halteringen und Streben.
+  Kuehl-/Hydraulikleitungen besitzen Anschluesse, Rippen und Haltebaender.
+  Die zwei breiten hinteren Unterbodenstreifen werden verlustfrei in vier
+  Hueftsegmente gefaltet. Originalauspuffe, sichtbarer Waermetauscher und neue
+  Rohrboegen ersetzen die flache untere Rueckenansicht; Spoiler hoeher gefaltet.
+  Sieben durchgehende Neonroehren bleiben erhalten; hintere Roehre neu positioniert.
+  Aufruf --revision 13; artifacts/transformer-study-v13 mit zwoelf Ansichten,
+  Reaktor-/Heckdetails und Kameraumlauf. Weiterhin eine statische Designstudie.
+  Boden, Fahrer, Kopf/Haende, Haube/Leuchten und Neon ohne Befund in den jeweiligen
+  statischen Flaechenpruefungen. Neue Leitungen/Reaktor gegen Karosserie, Neon und
+  Figur geprueft; enge Endanschluesse am jeweiligen Auspuff separat ausgewiesen.
+  Sonstige Karosserie-/Mechanikkontakte bleiben dokumentiert und offen;
+  Selbstkontakte, Schlauchverformung, Packstellung und Transformation ungeprueft.
+- Studie 14 setzt die Kopfvorlage als eigene 3D-Geometrie um: geschlossener
+  schwarz-gruener Helm, schraege Brauen mit je fuenf roten optischen Linsen,
+  seitliche Lueftungen und eine spitze silberne Maske mit Atemgitter.
+  Aufruf --revision 14; artifacts/transformer-study-v14 mit frontaler Kopfansicht,
+  Profil, Gesamtansichten und Kameraumlauf. Nur Kopf-Meshes ersetzt; uebrige
+  Meshes inklusive Hals, Haende, Karosserie, Neon und Figur gegen Studie 13
+  auf unveraenderte Geometrie, UVs und Welttransformationen verglichen.
+  Kopf-/Handflaechen gegen Fahrzeug, Neon und Figur ohne Schnittbefund;
+  innere Kopfkontakte, Gesichtsanimation und Packstellung weiterhin offen.
+- Studie 15 ersetzt die dreieckig facettierten Kopfflaechen durch 38 geformte
+  Platten mit Quad-Ringen, gerundeten Ecken und schmalen Metallraendern.
+  Vertiefte schwarze Augengehaeuse mit gewoelbten Linsen; Stirnschlitz zwischen
+  separaten Platten, versenkte Wabengitter und kleine Schlaefenleitungen.
+  Lack/Metall erhalten getrennte Rauheit, Mikrostruktur und Bearbeitungsspuren.
+  Aufruf --revision 15; artifacts/transformer-study-v15. Normale Ansichten
+  behalten die bisherige Beleuchtung und Figur fuer den direkten Vergleich.
+  tools/render_transformer_head_portrait.py erzeugt zusaetzliche Cycles-Portraets
+  mit gerichteter Studiobeleuchtung; nur dort wird die Referenzfigur ausgeblendet.
+  Die gespeicherte Blender-Datei wird durch diese Portraets nicht veraendert.
+  1383 Meshes ausserhalb des Kopfes gegen Studie 14 unveraendert; Kopf-/Hand-
+  Flaechenpruefung gegen Fahrzeug, Neon und Figur ohne Befund. Innere Kopfkontakte,
+  Packstellung und Transformation weiterhin offen; noch kein Film-Asset-Finish.
+- Studie 16 entfernt Stuhl, Lehne und Griffbuegel. Dieselbe Referenzfigur sitzt
+  direkt am Nacken auf flachen Hals-Panzerauflagen; Oberschenkel umschliessen den
+  Hals, Unterschenkel haengen nach vorn. Gliedmassenlaengen bleiben konstant.
+  Der ganze Originalspoiler klappt an das obere Rueckenmodul; seine Original-
+  Fuesse sitzen in sichtbaren Gelenklagern mit Anlenkung am Rueckenrahmen.
+  Die hintere Unterboden-Neonroehre samt Schutzkanal steht nun senkrecht am
+  Ruecken oberhalb der Auspuffmechanik. Sieben ganze Neonroehren bleiben erhalten.
+  Aufruf --revision 16; artifacts/transformer-study-v16 mit Nacken-/Profilansicht
+  der Figur und Nahaufnahme der Rueckenbefestigungen. Kopf aus Studie 15 behalten.
+  Gezielte statische Fahrer-, Kopf-, Neon-, Boden- und Befestigungspruefungen
+  bestanden; beabsichtigter Kontakt der Spoilerfuesse mit Gelenklagern separat
+  erfasst. Alle 336 Kopf-Meshes und die Original-Fahrzeuggeometrie erhalten.
+  Weiterhin statische Endpose, noch keine neue Transformationsanimation.
+- Studie 17 beginnt die Umsetzung mit einer Armature und 157 Bones fuer Koerper,
+  Finger, Fahrzeugmodule, Neon und Referenzfahrer. Originale Fahrzeug-Meshes/UVs,
+  ganze Scheiben, vier Raeder, Kopf, Haende und sieben Neonroehren bleiben erhalten.
+  Innere Armmechanik wird schmaler; die acht Tuerplatten bekommen in der
+  Funktions-Grundpose 20cm Abstand nach vorn. Dadurch werden Ueberschneidungen
+  der zuvor nur statischen Armkonstruktion bearbeitet. Acht starre Plattenhalter
+  werden durch verschachtelte Huelsen mit festen Laengen, Gelenklagern und
+  sichtbaren Endanschluessen ersetzt. Spiegel folgen ihren vorderen Tuerplatten.
+  Der Test entriegelt die Ellenbogenplatten, beugt jeweils einen Arm, bewegt
+  dessen Finger und kehrt in die Grundpose zurueck. Schulterhub und Fahrertransfer
+  sind noch nicht Bestandteil dieses Clips; keine Auto-Verwandlung vortaeuschen.
+  tools/build_transformer_rig.py erzeugt artifacts/transformer-study-v17,
+  tools/check_transformer_rig.py prueft Gelenke, Traeger, Boden und Flaechenkontakte,
+  tools/render_transformer_rig.py rendert den Testclip sequenziell, wahlweise mit
+  CPU-Cycles oder --engine eevee. Nie mehrere Blender-Prozesse gleichzeitig.
+  car-module-targets.json rekonstruiert die 59 urspruenglichen Fahrzeuggruppen aus
+  den spaeteren Teilstuecken. Diese Zielmatrizen sind noch keine geprueften Faltwege.
+  Gelenk-/Traeger-/Bodenpruefung und gezielte Flaechenpruefung bestehen an 417
+  Zeitpunkten einschliesslich halber Frames. Keine neuen geprueften Kontakte;
+  bestehende Kontakte werden getrennt beruecksichtigt. Huelsen behalten mindestens
+  30 Prozent Ueberdeckung, Gelenke ihre Laenge; der Zyklus kehrt exakt zurueck.
+  Vollstaendige mechanische Eigenkollisionen und eingeschlossene Volumen sind
+  weiterhin offen. Flaecheninhalt und Grenzen aller 59 Auto-Quellgruppen stimmen.
+- Studie 18 setzt auf ausdruecklichen Nutzerwunsch eine filmische Kompaktierung
+  statt vollstaendig physikalischer Packung um. Zusaetzliche innere Robotermechanik
+  darf sich komprimieren und in geschlossener Autostellung ausgeblendet sein.
+  Originalkarosserie, ganze Scheiben, Leuchten, vier Raeder, sieben Neonroehren
+  und dieselbe Referenzfigur bleiben sichtbar und formstabil. Kopf und Haende
+  entfalten sich aus der kompakten Mechanik; die detaillierte V17-Endpose bleibt.
+  Der neue Ablauf verbindet Auto, Umbau, Nackenpose und Rueckverwandlung.
+  Neue mitgefuehrte Teleskophalter ersetzen statische Plattenstreben; auch ihre
+  innere Kompression ist ein bewusster Animationstrick. Neonhalter ziehen ein,
+  der Fahrer folgt nach dem Oeffnen der Kabine der tatsaechlichen Nackenauflage.
+  tools/build_transformer_cinematic.py erzeugt die Ausgangsanimation,
+  tools/refine_transformer_cinematic.py wendet die reproduzierbaren Ausweichwege
+  aus tools/transformer_cinematic_clearance.json an. Der optionale Fitter
+  tools/fit_transformer_cinematic.py arbeitet auf der mit --no-fit gespeicherten
+  Zwischenfassung; anschliessend erneut verfeinern und unabhaengig pruefen.
+  tools/check_transformer_cinematic.py prueft Quellgeometrie/UVs, feste Aussenmasse,
+  Fahrer, Boden, Gelenk-/Traegeranschluesse, Haube/Leuchten und Neon-Flaechenkontakte.
+  tools/render_transformer_cinematic.py --animation --cinematic rendert die
+  Vorschau mit Kamerabewegung; ohne --cinematic ist die Kamera zur Kontrolle fest.
+  Ausgabe artifacts/transformer-study-v18; Blender weiterhin einzeln mit zwei
+  Threads. 529 Zeitpunkte einschliesslich halber Frames bestehen die genannten
+  Pruefungen; Quellgeometrie/UVs erhalten, Auto-Rueckkehr exakt. Das temporaere
+  Ausblenden innerer Mechanik gilt im Render. Im Blender-Viewport bleibt sie
+  zur Kontrolle sichtbar, da zwei gleichzeitig getriebene Sichtbarkeitsflags
+  in Blender 2.80 inkonsistent ausgewertet wurden. Verdeckungsqualitaet und
+  sonstige Mechanik-/Karosseriekontakte brauchen
+  weitere visuelle Pruefung; die Studie ist noch kein Unity-/Spielprototyp.
+- Naechste Umsetzungsschritte: Sichtbare Uebergaenge der Kompaktierung und weitere
+  Karosserie-/Mechanikkontakte verfeinern; ganze Scheiben, Leuchten und Neon erhalten.
+  Danach Stand-/Lauf-/Drehbewegungen, Mesh-/Materialoptimierung und ein isolierter
+  Unity-Prototyp mit Kamera, Kollisionskoerpern und Moduswechsel.
+  VehicleCabinDriver fuer denselben bestehenden Player erweitern; Inventar und
+  Ausruestung behalten, Nacken-/Fahrerpose und Rueckkehr animieren. Erst nach
+  lokalen Spieltests in die installierte Mod uebernehmen.
+- Pruefen: Karosseriepfade, ungeteilte Scheiben, Fahrerfreiraum in jeder Phase,
+  Verdeckung der kompakten Mechanik im Auto, Bodenkontakt und rueckwaerts identische
+  Fahrzeugpose. Flaechenschnittpruefungen ersetzen keine Volumen-/Physikpruefung.
+- Vor Spieleinsatz: Sitz-/Bein-IK, Kamerafuehrung, Ein-/Ausstieg, Notausstieg,
+  Tod/Despawn und Wiederherstellung der Animator-/Visual-Einstellungen testen.
+
+
+## Transformer: erster lokaler Integrationsstand
+
+- Quellenabgleich: lokales und installiertes `body.json` stimmen per SHA-256
+  ueberein. Aktuelle Raeder/Bremsen samt Tuning und gewaehlte Auspuffteile werden
+  direkt vom gespawnten Auto uebernommen; die V18-Studienauswahl ersetzt sie nicht.
+- `tools/export_transformer_runtime.py` erzeugt ein optionales, an das konkrete
+  Fahrzeug gebundenes binaeres Asset. Originalmaterialien, Leuchtflaechen,
+  Scheibentoenung und getrennte Neon-Einstellungen werden weiterverwendet.
+  Die Referenzfigur wird durch IK-Ziele fuer denselben lebenden Player ersetzt.
+- `TransformerAsset`, `TransformerVisual`, `VehicleTransformer` und die
+  gesonderte Steuerungsanbindung implementieren Verwandlung, Standmodus,
+  Nackenpose, Kamera und Rueckkehr. Originales Fahrzeughandling bleibt erhalten.
+  Gespeicherte Renderer-/Physik-/Fahrerzustaende werden bei Rueckkehr und Abbruch
+  wiederhergestellt. Standardmaessig ausgeschaltet; lokal als Teststand installiert
+  und aktiviert. Nutzer bestaetigt die Optik im Spiel anhand von Front-/Rueckansicht.
+- Reaktor nach Spielbild: Plasma-Emission fuer Valheim auf 15 Prozent reduziert,
+  damit der Kern die umgebende Mechanik nicht ueberstrahlt. Korrektur gebaut;
+  erneuter optischer Spielvergleich steht aus.
+- Gehen/Drehen V1: getrennte Vorbereitung der Kniepanzerung, Zweigelenk-IK,
+  gleitend gefuehrte Wadenpanzerung und gegenlaeufige Fussschritte beim Drehen.
+  W/S gehen langsam vor/zurueck (0,85 m/s), A/D drehen (32 Grad/s).
+  F10/F7 fordert erst Bremsen, Absetzen der Fuesse und Schliessen der Panzerung
+  an; danach beginnt die unveraenderte Rueckverwandlung. Reaktor-Emission reduziert.
+  Der gepruefte lokale Teststand ist mit Backup und SHA-256-Vergleich installiert;
+  grundlegendes Gehen wurde inzwischen vom Nutzer im Spiel bestaetigt.
+- Gang V2 nach Nutzerfeedback: schrittweise Beschleunigung ueber etwa drei
+  Sekunden auf 2,1 m/s; Schrittauslenkung von 0,22 auf 0,48 m vergroessert und
+  weiterhin geschwindigkeitsabhaengig. Rueckwaerts bis 1,4 m/s, staerkeres Bremsen
+  vor Richtungswechsel/Rueckkehr. Arme schwingen bis 20 Grad gegenlaeufig zur
+  Fussposition statt um eine Viertelphase versetzt; Ellbogen beugen sich mit.
+  Eigener Geometrie- und Controller-Audit bestanden; lokal mit Backup und
+  SHA-256-Vergleich installiert. Die Spielabnahme dieser Variante folgt.
+- Die Freigabe im lokalen Asset ist an gepruefte Quell-Hashes gebunden:
+  3379 geometrische Posen fuer Oeffnen, Teilschritte, Vor-/Rueckwaertsgehen,
+  Pivot- und Kurvenbewegungen; zusaetzlich Bewegungswerte des echten Managed-
+  Controllers. Sieben Neonroehren, Leuchten, Scheiben und vier Raeder bleiben starr.
+  Bestehende Ueberlappungen in der geschlossenen Standpose sind separat erfasst:
+  Beim Ausfahren duerfen nur diese Montagekontakte auseinanderlaufen, ohne
+  hoehere gemessene Querschnittstiefe; beim Gehen gilt der Dreiecksvergleich.
+- Weiter offen: Spielabnahme fuer Fussruhe, Hindernis-Sweeps, Kamera, Fahrer,
+  getunte Radvarianten und Performance. Unebenheiten, Stufen, Wasser und Abgruende
+  werden konservativ gesperrt. Innere Leitungen/Mechanik sind nicht vollstaendig
+  auf Selbstkontakt geprueft. Keine allgemeine Kollisionsfreiheitsgarantie.
+- Managed-Import-/Zustands-/Regressionstests ersetzen keinen Valheim-Test.
+  Live-Avatar und Roboterform sind auf den Nutzerbildern sichtbar; Materialwirkung
+  wird nachkorrigiert. Kamera, Notausstieg, vollstaendige Rueckkehr und Performance
+  brauchen weiterhin gezielte Spieltests. Keine Idee aus `scratch_3.txt` wurde als Auftrag
+  uebernommen. Anleitung und genaue Grenzen: `docs/TRANSFORMER-PROTOTYPE.md`.
+
 ## Dauerhafte Fahrzeuge (0.30.0)
 
 - 350Z/H2 werden mit Position, vollständiger Ausrichtung, Flugzustand und

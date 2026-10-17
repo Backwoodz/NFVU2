@@ -15,6 +15,7 @@ public partial class Plugin {
         current.flightAudio=VehicleEffectsAudio.CreateThruster(car,message=>Logger.LogInfo(message),prepared);
     }
     void SelectFlightMode() {
+        if(Transforming)return;
         if(HordeVehicle){ShowVehicleWarning("Hordenmodus: nur Gelände verfügbar.");return;}
         if(!driving||!DriverInputReady){status="Zum Fliegen zuerst einsteigen.";return;}
         if(body.transform.up.y<.5f){status="Zum Starten muss das Auto aufrecht stehen.";return;}

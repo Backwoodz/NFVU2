@@ -23,6 +23,8 @@ class Program {
         Frames(motion,door,20);Check(motion.SeatBlend==1&&!motion.CanDrive,"remain seated while exit door opens");
         motion.CancelExit();Check(motion.CanDrive&&motion.SeatBlend==1,"blocked exit can return to seat");
         motion.BeginExit();Frames(motion,door,250);Check(motion.Phase==CabinPhase.Complete&&motion.SeatBlend==0,"exit completes standing outside");
+        var robotSeat=new CabinTransition();robotSeat.SitImmediately();
+        Check(robotSeat.CanDrive&&robotSeat.SeatBlend==1&&robotSeat.BeginExit(),"completed robot boarding hands off to the ordinary seated cabin and exit path");
         var invalid=new CabinTransition();invalid.Arrive();invalid.Step(float.NaN,false,0);invalid.Step(float.PositiveInfinity,false,0);
         Check(invalid.TimeInPhase==0,"invalid elapsed times ignored");
         Check(CabinAppearance.SteeringDegrees(20)==80&&CabinAppearance.SteeringDegrees(-20)==-80,"corrected steering follows road wheels about driver-facing axis");

@@ -55,11 +55,11 @@ public partial class Plugin {
     void MenuNavigation(bool accessible) {
         var e=Event.current;
         if(e.type==EventType.KeyDown&&(e.keyCode==KeyCode.UpArrow||e.keyCode==KeyCode.DownArrow)) {
-            ChangeMenuTab(ControlRules.MenuNextTab(menuTab,e.keyCode==KeyCode.DownArrow?1:-1,MenuNames.Length,accessible));MenuSound(0);e.Use();
+            ChangeMenuTab(ControlRules.MenuNextTab(menuTab,e.keyCode==KeyCode.DownArrow?1:-1,MenuNames.Length,accessible,Transforming));MenuSound(0);e.Use();
         }
         int hover=-1,row=0;
         for(int i=0;i<MenuNames.Length;i++) {
-            if(!ControlRules.MenuTabVisible(i,accessible))continue;
+            if(!ControlRules.MenuTabVisible(i,accessible,Transforming))continue;
             float y=104+row++*32;
             var rect=new Rect(12,y,166,28);
             if(rect.Contains(e.mousePosition))hover=i;

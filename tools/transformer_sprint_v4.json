@@ -1,0 +1,30 @@
+{
+  "version": 4,
+  "sprintSpeed": 8.5,
+  "sprintStride": 1.32,
+  "sprintLift": 0.8,
+  "sprintArmSwing": 26,
+  "sprintArmSpeed": 125,
+  "sprintPelvisBase": -0.42,
+  "sprintHeave": 0.32,
+  "heaveMechanics": "Smooth compression and push-off from actual support-contact age; brief flight holds the high phase. Low pelvis baseline retains leg-reach room. Walking timing and posture remain unchanged.",
+  "sprintAcceleration": 1.5,
+  "sprintBraking": 3.5,
+  "sprintSupportFraction": 0.3,
+  "runBlendStartSpeed": 3.1,
+  "runBlendFullSpeed": 6.2,
+  "visualReleaseDefinition": "tools/transformer_gait_v3.json",
+  "scope": "Heavy bounding sprint: fewer longer higher steps with extended flight, restrained arms. Local gameplay tuning; full geometry review pending.",
+  "references": [
+    {
+      "title": "Joint-level mechanics of the walk-to-run transition in humans",
+      "url": "https://journals.biologists.com/jeb/article/217/19/3519/12521/Joint-level-mechanics-of-the-walk-to-run"
+    },
+    {
+      "title": "Determinants of the center of mass trajectory in human walking and running",
+      "url": "https://journals.biologists.com/jeb/article/201/21/2935/7897/Determinants-of-the-center-of-mass-trajectory-in"
+    }
+  ],
+  "turnDegrees": 90,
+  "sprintTurnDegrees": 65
+}

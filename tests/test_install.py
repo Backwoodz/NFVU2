@@ -94,6 +94,24 @@ class InstallTests(unittest.TestCase):
             (dest/install.MANIFEST).write_text(json.dumps(['../outside.wav']))
             with self.assertRaises(ValueError):install.install_payload(source,dest,backup,lambda:None)
             self.assertFalse(backup.exists())
+    def test_transformer_impacts_are_staged_installed_and_backed_up(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);source,dest,backup=self.fixture(root)
+            impacts=root/'local/audio-transformer';impacts.mkdir(parents=True)
+            (impacts/'step_01.wav').write_bytes(b'prepared impact')
+            (impacts/'manifest.json').write_text(json.dumps({'step_01.wav':'local cut'}))
+            (impacts/'source.mp3').write_bytes(b'original recording stays local')
+            (dest/'audio/transformer').mkdir(parents=True)
+            (dest/'audio/transformer/step_01.wav').write_bytes(b'old impact')
+            sync_optional_assets(root/'local',source)
+            self.assertTrue((impacts/'source.mp3').exists())
+            self.assertFalse((source/'audio/transformer/source.mp3').exists())
+            install.install_payload(source,dest,backup,lambda:None)
+            self.assertEqual((backup/'audio/transformer/step_01.wav').read_bytes(),b'old impact')
+            self.assertEqual((dest/'audio/transformer/step_01.wav').read_bytes(),b'prepared impact')
+            self.assertEqual(json.loads((dest/'audio/transformer/manifest.json').read_text()),{'step_01.wav':'local cut'})
+            self.assertIn('audio/transformer/step_01.wav',json.loads((dest/install.MANIFEST).read_text()))
+            self.assertFalse((dest/'audio/transformer/source.mp3').exists())
     def test_radio_payload_follows_playlist_and_retains_original_streams(self):
         with tempfile.TemporaryDirectory() as temp:
             root=Path(temp);local=root/'local';output=root/'build'

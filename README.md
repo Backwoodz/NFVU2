@@ -10,6 +10,7 @@ or take off and fly. Viking transportation got a little out of hand.
 ### What you get
 
 - Nissan 350Z and Hummer H2, with road, off-road and flight modes; drift mode for the 350Z.
+- Experimental 350Z Transformer: walk, sprint, crush trees and fire a shoulder-mounted Rust minigun.
 - Nitro, neon, wheel and exhaust tuning, vehicle sounds, radio and a 350Z roof turret.
 - Horde mode, cargo storage, controller support and English/German menus.
 
@@ -25,7 +26,17 @@ Remove cars through **F9 → Vehicle → Remove vehicle**.
 2. Click **Install / Update**. Music is included; BepInEx is installed if needed.
 3. Launch Valheim, enter a single-player world and press **F9 / L3 → Garage** to spawn a car.
 
-**F7 / B (Xbox) / Circle (PlayStation)** enters or exits a car.
+**E / B (Xbox) / Circle (PlayStation)** enters or exits a car.
+E keeps normal world interactions when aiming at a door, chest or other object;
+F7 remains available as an alternative vehicle key.
+
+While boarded and stopped in a grounded 350Z, **F10 / RB / R1** transforms it
+into a robot and back. Robot movement uses **WASD / left stick**, sprint uses
+**Shift / X / Square**, and **left mouse / LB / L1** fires the minigun after spin-up.
+Open **F9 / L3** while the robot is stationary to change ammunition or laser settings.
+Existing configurations with `[TransformerPrototype] Enabled = false` keep the
+feature disabled; set it to `true` with the game closed to enable it after updating.
+
 Drive with **WASD** or the **left stick + triggers**. On-screen hints show the rest.
 Customization and language settings are in **F9 / L3**.
 

@@ -8,6 +8,22 @@ public partial class Plugin {
     readonly List<ZDOID> savedVehicleIds=new List<ZDOID>();
     readonly HashSet<ZDOID> deferredVehicles=new HashSet<ZDOID>();
     ZDO restoringVehicle;
+    Game vehicleLoadGame;
+    // Called only after native terrain/ZDO readiness, before FindSpawnPoint
+    // consumes the logout position and creates the player. Keep its loading
+    // screen up until nearby saved vehicles have completed their staged build.
+    internal bool PrepareVehicleWorldEntry() {
+        if(Player.m_localPlayer!=null||Game.instance==null||!Game.instance.WaitingForRespawn()
+            ||Game.instance.IsShuttingDown()||Multiplayer())return true;
+        vehicleLoadGame=Game.instance;
+        TickVehicleRestore(vehicleLoadGame);
+        return !SpawnBusy;
+    }
+    void AdoptVehicleWorldEntry(MonoBehaviour local) {
+        if(vehicleLoadGame==null)return;
+        if(fleetOwner==vehicleLoadGame)fleetOwner=local;
+        vehicleLoadGame=null;
+    }
     IEnumerable<ZDO> SavedVehicles=>vehicleWorld==ZDOMan.instance&&vehicleWorld!=null
         ?savedVehicleIds.Select(vehicleWorld.GetZDO).Where(VehiclePersistence.IsVehicle):Enumerable.Empty<ZDO>();
     int WorldVehicleCount=>vehicleWorld==ZDOMan.instance?SavedVehicles.Count():fleet.Count;
@@ -35,8 +51,14 @@ public partial class Plugin {
     internal void CaptureVehicleSave() {
         foreach(var vehicle in fleet) {
             vehicle.storage?.Tick();
-            vehicle.storage?.SaveVehicle(vehicle.flight?.Active==true,vehicle.hasBeenDriven);
+            vehicle.storage?.SaveVehicle(vehicle.flight?.Active==true,vehicle.hasBeenDriven,vehicle.transformer?.Active==true);
         }
+    }
+}
+[HarmonyPatch(typeof(ZNetScene),"IsAreaReady")]
+internal static class SavedVehicleWorldEntry {
+    internal static void Postfix(ref bool __result) {
+        if(__result&&Plugin.ControlsOwner!=null)__result=Plugin.ControlsOwner.PrepareVehicleWorldEntry();
     }
 }
 [HarmonyPatch(typeof(ZDOMan),"PrepareSave")]

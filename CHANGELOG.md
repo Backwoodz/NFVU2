@@ -1,5 +1,46 @@
 # Changelog
 
+## 0.31.0 — 350Z Transformer and Rust minigun
+
+- Transform the 350Z into a pilotable robot and back, with five-second panel
+  animations, articulated walking, sprinting, turning and a rotating flame reactor.
+  Climb onto the robot and dismount with a backflip; keep human knees bending forward.
+- Add the Rust minigun on the left shoulder with mouse/camera aiming, a laser,
+  1000-round magazines, audible spin-up, automatic reload and lingering barrel heat.
+  Left mouse / LB / L1 fires; loaded targets can be engaged up to 250 m away.
+  Direct shots deal 12 pierce damage and confirmed hits show remaining enemy health.
+- Use explosive minigun rounds by default, reusing the existing impact explosions,
+  blast cover checks and small terrain craters. F9 / L3 while the boarded robot is
+  stationary opens its minigun/settings pages, including Normal/Explosive ammunition.
+  The car roof turret retains its separate ammunition setting.
+- Add varied bass-layered footfalls, pivot sounds, short mechanical and hydraulic
+  transformation layers, reactor loops and a late deployment sub-drop. Preserve
+  engine idle under the robot audio and play a separate return transformation mix.
+- Leave temporary dirt footprints and contact dust; flatten nearby grass without
+  permanent footstep terrain deformation. Run over native trees, logs and small
+  hostile enemies while protecting players, tames, bosses and buildings.
+- Allow shallow wading up to the robot's chest, block deeper water and use terrain
+  support rather than floating across lakes. Loose loot and destruction fragments
+  no longer become false ground or stop the robot.
+- Add a tighter cinematic deployment camera with a slow orbit and zoom, obstacle
+  avoidance and smooth handoff. Mouse/right-stick input takes control immediately.
+  Raise the bottom-right vehicle hints so the last line stays on screen.
+- Save and restore parked robot form with the world. Add vehicle map markers and
+  location discovery while driving, earlier restoration of nearby saved vehicles,
+  subtle idle exhaust vapour and nitro purge while coasting.
+- Use E to enter/exit, retaining native object interactions and F7 as an alternative.
+  RB / R1 transforms while boarded and stopped; flight retains its altitude controls.
+- Include the Transformer model, animation, prepared sounds and minigun in the
+  normal installer. Enable the experimental Transformer by default for fresh
+  configurations; existing settings are preserved, including an explicit disable.
+- Lift a sprint support foot before its reach limit makes it slide, retaining the
+  existing stride and speed. The 50 Hz physics / 60 Hz render trace now meets its
+  unchanged 4 mm planted-foot bound.
+
+Experimental single-player feature. Automated checks use controlled doubles;
+Unity terrain, collision, equipment, camera feel and controller hardware still
+need gameplay verification on other installations.
+
 ## 0.30.0 — Persistent vehicles
 
 - Save each 350Z/H2 with its world: model, position, rotation, flight state and

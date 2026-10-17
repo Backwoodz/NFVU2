@@ -4,6 +4,25 @@ static class Program {
     static int checks;
     static void Check(bool value,string label){if(!value)throw new Exception(label);checks++;Console.WriteLine("PASS "+label);}
     static void Main() {
+        Check(ControlRules.MenuTabVisible(9,true,true)&&ControlRules.MenuTabVisible(11,true,true),"parked robot exposes minigun and settings categories");
+        foreach(int tab in new[]{0,1,2,3,4,5,6,7,8,10,12})Check(!ControlRules.MenuTabVisible(tab,true,true),"robot hides car tuning and garage category "+tab);
+        Check(ControlRules.MenuNextTab(9,1,13,true,true)==11&&ControlRules.MenuNextTab(11,1,13,true,true)==9
+            &&ControlRules.MenuNextTab(9,-1,13,true,true)==11,"mouse keyboard and controller category policy cycles only safe robot pages");
+        Check(ControlRules.VehicleAccess(true,false,true),"E exits an occupied vehicle even with a world object under the cursor");
+        Check(ControlRules.VehicleAccess(false,true,false),"E boards a nearby vehicle when no world interaction has priority");
+        Check(!ControlRules.VehicleAccess(false,true,true)&&!ControlRules.VehicleAccess(false,false,false),"world interactions and distance prevent unintended E boarding");
+        var access=new VehicleInteractionKey();
+        access.ObserveWorldUse(10);
+        Check(!access.Press(true,false,true,false,10),"a native item pickup that destroys its hover target cannot also board in the same frame");
+        Check(!access.BlocksWorldUse(true)&&!access.Press(false,false,true,false,11),"world interaction keeps E and holding does not synthesize a vehicle press");
+        Check(access.Press(true,false,true,false,12),"a later fresh E press can board after the world interaction");
+        Check(access.BlocksWorldUse(true)&&!access.Press(true,true,true,false,12),"one vehicle press cannot toggle twice or leak into world use");
+        access.Release(true);Check(access.BlocksWorldUse(true),"held E stays reserved after an exit until released");
+        access.Release(false);Check(!access.BlocksWorldUse(true)&&!access.BlocksWorldUse(false),"releasing E restores normal world interaction");
+        Check(access.Press(true,true,true,true,13),"fresh E press exits even when aiming at a chest");
+        Check(ControlRules.ControllerTransform(true,true,false),"RB transforms while boarded on the ground");
+        Check(!ControlRules.ControllerTransform(true,true,true),"RB in flight remains ascend rather than transformation");
+        Check(!ControlRules.ControllerTransform(true,false,false)&&!ControlRules.ControllerTransform(false,true,false),"RB does not transform on foot or repeat from a held shoulder button");
         Func<string,string> de=s=>InterfaceText.Translate(s,false),en=s=>InterfaceText.Translate(s,true);
         var xbox=string.Join("\n",VehicleHintContent.Build(true,false,false,false,false,"F9",de));
         Check(xbox.Contains("name=\"button_lb\">  Geschütz feuern")&&xbox.Contains("name=\"button_x\">  Nitro")&&xbox.Contains("name=\"button_a\">  Handbremse"),"Xbox ground hints match physical turret, nitro and handbrake bindings");
@@ -15,6 +34,7 @@ static class Program {
         var menu=string.Join("\n",VehicleHintContent.Build(true,true,true,true,false,"F9",en));
         Check(menu.Contains("Close menu")&&menu.Contains("Categories / Content")&&menu.Contains("Select / edit")&&menu.Contains("Camera")&&!menu.Contains("Nitro")&&!menu.Contains("Fire turret"),"open menu hints describe pane focus and editing without driving actions");
         var keyboard=string.Join("\n",VehicleHintContent.Build(false,false,true,false,false,"F10",en));
+        Check(keyboard.Contains("E  Land & exit")&&!keyboard.Contains("F7"),"keyboard hints advertise E for vehicle access");
         Check(!keyboard.Contains("<sprite")&&keyboard.Contains("F10  Mod menu")&&keyboard.Contains("Shift  Ascend")&&keyboard.Contains("Space  Descend"),"keyboard flight hints use actual keys and configured menu shortcut");
         Check(!string.Join("\n",VehicleHintContent.Build(true,false,false,false,true,"F9",de)).Contains("Nitro"),"H2 ground hints omit unavailable nitro");
         Check(string.Join("\n",VehicleHintContent.Build(true,true,true,false,true,"F9",de)).Contains("Nitro"),"H2 flight hints retain available nitro");
