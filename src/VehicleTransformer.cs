@@ -33,6 +33,7 @@ internal sealed class VehicleTransformer:IDisposable {
     public bool Mounting {get;set;}
     public void SetRider(Transform rider){player=rider;}
     public float Speed=>moveSpeed;
+    public float ActualTurnRate {get;private set;}
     public bool ReturnRequested=>returnRequested;
     public bool ReadyForMount=>State.CanWalk&&!returnRequested&&Terrain.CanMove&&!Terrain.ReturnStarted
         &&Visual.FeetSettled&&Mathf.Abs(moveSpeed)<.05f&&Mathf.Abs(turnSpeed)<.01f;
@@ -147,11 +148,11 @@ internal sealed class VehicleTransformer:IDisposable {
         lights.Clear();foreach(var l in car.GetComponentsInChildren<Light>(true))lights.Add(Tuple.Create(l,l.enabled));
         // Engine idle and foot contacts have their own pause/lifecycle handling.
         // Pausing them here would bypass their playback bookkeeping.
-        sounds.Clear();foreach(var s in car.GetComponentsInChildren<AudioSource>(true))if(s.isPlaying&&owner.vehicleAudio?.Owns(s)!=true&&owner.transformerAudio?.Owns(s)!=true){sounds.Add(s);s.Pause();}
+        sounds.Clear();foreach(var s in car.GetComponentsInChildren<AudioSource>(true))if(s.isPlaying&&owner.vehicleAudio?.Owns(s)!=true&&owner.transformerAudio?.Owns(s)!=true&&owner.transformerTurnAudio?.Owns(s)!=true&&owner.transformerDeployAudio?.Owns(s)!=true&&owner.transformerReactorAudio?.Owns(s)!=true&&owner.transformerReturnAudio?.Owns(s)!=true){sounds.Add(s);s.Pause();}
         foreach(var p in car.GetComponentsInChildren<ParticleSystem>(true))p.Stop(true,ParticleSystemStopBehavior.StopEmittingAndClear);
         kinematic=body.isKinematic;gravity=body.useGravity;constraints=body.constraints;
         if(storage!=null)storage.PositionForSave=()=>new Vector3(car.position.x,groundY+carClearance,car.position.z);
-        gaitPosition=car.position;gaitYaw=car.eulerAngles.y;
+        gaitPosition=car.position;gaitYaw=car.eulerAngles.y;ActualTurnRate=0;
         body.linearVelocity=Vector3.zero;body.angularVelocity=Vector3.zero;body.isKinematic=true;body.useGravity=false;
         foreach(var c in colliders)c.Item1.enabled=false;
         Terrain.Reset(NeedsPreparation(plane));Visual.HoldReady=false;returnPrepared=false;
@@ -198,6 +199,7 @@ internal sealed class VehicleTransformer:IDisposable {
         groundY=height;body.MovePosition(next);body.MoveRotation(rotation);
     }
     public void Tick(float dt,bool blocked) {
+        ActualTurnRate=0;
         if(!Active)return;
         bool preparing=!Terrain.CanMove;
         if(returnRequested&&!returnPrepared&&State.CanWalk&&Visual.FeetSettled&&Mathf.Abs(moveSpeed)<.001f&&Mathf.Abs(turnSpeed)<.001f&&!blocked) {
@@ -209,7 +211,7 @@ internal sealed class VehicleTransformer:IDisposable {
         Visual.HoldReady=State.CanWalk&&(Terrain.HoldReady||Mounting);
         if(returnPrepared&&State.CanWalk&&Terrain.CanRetract&&Visual.Settled&&!blocked)State.Return();
         State.Step(dt,blocked);
-        if(!Active){Restore();return;}
+        if(!Active){owner.transformerReturnAudio?.CompleteReturn();Restore(true);return;}
         if(!State.CanWalk) {
             float y=groundY+carClearance*(1-Mathf.SmoothStep(0,1,State.Progress));
             var p=body.position;p.y=y;body.position=p;
@@ -230,11 +232,16 @@ internal sealed class VehicleTransformer:IDisposable {
             actualSpeed=displacement.z/gaitDt;
             actualTurn=Mathf.DeltaAngle(gaitYaw,car.eulerAngles.y)/(gaitDt*TransformerGait.TurnDegrees);
         }
+        ActualTurnRate=actualTurn*TransformerGait.TurnDegrees;
         gaitPosition=car.position;gaitYaw=car.eulerAngles.y;
         Visual.Evaluate(State.Progress,gaitDt,actualSpeed,actualTurn,motionRequested);HideCar();
     }
-    public void Restore() {
+    public void Restore(bool preserveReturnAudio=false) {
         owner.transformerAudio?.Stop();
+        owner.transformerTurnAudio?.Stop();ActualTurnRate=0;
+        owner.transformerDeployAudio?.Stop();
+        owner.transformerReactorAudio?.Stop();
+        if(!preserveReturnAudio)owner.transformerReturnAudio?.Stop();
         Mounting=false;Visual.ClearMountPose();
         if(colliders.Count==0)return;
         Visual.Root.SetActive(false);hull.enabled=false;

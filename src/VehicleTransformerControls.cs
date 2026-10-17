@@ -57,6 +57,20 @@ public partial class Plugin {
         transformerKey.Value+"  Zurueckverwandeln (im Stand)",
         padActive?"B / Kreis  Backflip absteigen":"F7  Backflip absteigen",
         "Einzelspieler-Prototyp"};
+    void TickTransformerReturnTail() {
+        if(current.transformerReturnAudio==null)return;
+        try {
+            bool blocked=audioBlocked||menuOpen||!Application.isFocused||Time.timeScale<=0
+                ||current.worldStreaming!=null&&current.worldStreaming.Waiting
+                ||current.parkedStreaming!=null&&current.parkedStreaming.Waiting;
+            // Runs for driven and parked cars. Only CompleteReturn can arm a
+            // ring, and all ordinary inactive ticks remain silent afterwards.
+            current.transformerReturnAudio.Tick(Time.deltaTime,false,false,0,blocked,soundVolume.Value,car.transform.position);
+        }catch(Exception e) {
+            current.transformerReturnAudio.Dispose();current.transformerReturnAudio=null;
+            Logger.LogWarning("Transformer return tail disabled after audio error: "+e);
+        }
+    }
     void TickTransformer() {
         var t=current.transformer;
         bool blocked=audioBlocked||menuOpen||!Application.isFocused||Time.timeScale<=0||current.worldStreaming!=null&&current.worldStreaming.Waiting;
@@ -75,8 +89,40 @@ public partial class Plugin {
             current.transformerAudio.Dispose();current.transformerAudio=null;
             Logger.LogWarning("Transformer footsteps disabled after audio error: "+e);
         }
+        if(current.transformerTurnAudio!=null)try {
+            bool turnBlocked=blocked||current.parkedStreaming!=null&&current.parkedStreaming.Waiting;
+            current.transformerTurnAudio.Tick(Time.deltaTime,t.State.CanWalk,turnBlocked,
+                t.ActualTurnRate,soundVolume.Value,t.Visual.Node("thorax").position);
+        }catch(Exception e) {
+            current.transformerTurnAudio.Dispose();current.transformerTurnAudio=null;
+            Logger.LogWarning("Transformer turn audio disabled after audio error: "+e);
+        }
+        if(current.transformerDeployAudio!=null)try {
+            bool deployBlocked=blocked||current.parkedStreaming!=null&&current.parkedStreaming.Waiting;
+            current.transformerDeployAudio.Tick(Time.deltaTime,t.Active,t.State.Returning,t.State.Progress,
+                deployBlocked,soundVolume.Value,t.Visual.Node("thorax").position);
+        }catch(Exception e) {
+            current.transformerDeployAudio.Dispose();current.transformerDeployAudio=null;
+            Logger.LogWarning("Transformer deployment audio disabled after audio error: "+e);
+        }
+        if(current.transformerReturnAudio!=null)try {
+            bool returnBlocked=blocked||current.parkedStreaming!=null&&current.parkedStreaming.Waiting;
+            current.transformerReturnAudio.Tick(Time.deltaTime,t.Active,t.State.Returning,t.State.Progress,
+                returnBlocked,soundVolume.Value,t.Active?t.Visual.Node("thorax").position:car.transform.position);
+        }catch(Exception e) {
+            current.transformerReturnAudio.Dispose();current.transformerReturnAudio=null;
+            Logger.LogWarning("Transformer return audio disabled after audio error: "+e);
+        }
+        if(current.transformerReactorAudio!=null)try {
+            bool reactorBlocked=blocked||current.parkedStreaming!=null&&current.parkedStreaming.Waiting;
+            current.transformerReactorAudio.Tick(Time.deltaTime,t.Active,t.State.Returning,t.State.Progress,
+                reactorBlocked,soundVolume.Value,t.Visual.ReactorWorldPosition);
+        }catch(Exception e) {
+            current.transformerReactorAudio.Dispose();current.transformerReactorAudio=null;
+            Logger.LogWarning("Transformer reactor audio disabled after audio error: "+e);
+        }
         if(t.Active&&vehicleAudio!=null)try {
-            vehicleAudio.TickRobotIdle(rider||ParkedRunning,blocked,soundVolume.Value,t.State.Progress);
+            vehicleAudio.TickRobotIdle(rider||ParkedRunning,blocked,soundVolume.Value,t.State.Progress,rider);
         }catch(Exception e) {
             vehicleAudio.Dispose();vehicleAudio=null;
             Logger.LogWarning("Transformer idle disabled after audio error: "+e);

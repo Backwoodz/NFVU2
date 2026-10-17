@@ -165,6 +165,14 @@ public partial class Plugin {
         if(!IsHummer&&assets.Transformer!=null) {
             current.transformerAudio=new TransformerFootstepAudio(car,assets.Audio.TransformerSteps,message=>Logger.LogInfo(message));
             yield return 0;
+            current.transformerTurnAudio=new TransformerTurnAudio(car,assets.Audio.TransformerTurns,message=>Logger.LogInfo(message));
+            yield return 0;
+            current.transformerDeployAudio=new TransformerDeployAudio(car,assets.Audio.TransformerDeploy,message=>Logger.LogInfo(message));
+            yield return 0;
+            current.transformerReactorAudio=new TransformerReactorAudio(car,assets.Audio.TransformerReactor,message=>Logger.LogInfo(message));
+            yield return 0;
+            current.transformerReturnAudio=new TransformerReturnAudio(car,assets.Audio.TransformerReturn,message=>Logger.LogInfo(message));
+            yield return 0;
         }
         try {vehicleLighting=VehicleLighting.Create(car,model,message=>Logger.LogInfo(message));}
         catch(Exception e){Logger.LogWarning("350Z lighting unavailable: "+e);}

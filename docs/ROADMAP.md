@@ -1,5 +1,206 @@
 # Nächste Aufgaben
 
+## Transformer: kurze Inside-Impulse und Vorwaerts-Bass (lokale Entwicklung)
+
+- Nutzer lehnt lange durchgaengige Inside-the-Robot-Texturen ab. Alle neun
+  Ausschnitte in beiden Richtungen, einschliesslich der vier urspruenglichen
+  Vorwaerts-Cues, sind durch isolierte 0,20–0,22-s-Attacks ersetzt bzw.
+  entsprechend gekuerzt. Kurze 6-ms-Ein-/65-ms-Ausblendung und mindestens
+  0,1 s Abstand zwischen Inside-Impulsen; keine durchgehende Inside-Flaeche.
+  Die vorher vollstaendige Vorwaerts-Grundmischung ist dadurch bewusst
+  geaendert. Growls, Einrastakzente, Laser und Moving-Tools behalten ihre
+  einzelnen Schnitte/Pegel/Einsatzzeiten, A bleibt isoliert byteidentisch.
+- Zusaetzliche Auto-zu-Roboter-Testschicht aus imgmidi-moving-bass-sfx-set-336212:
+  gewuenschter Abschnitt ab 1:15, aktiver Effekt aus 75,78–77,68 s (1,90 s)
+  ohne leisen Vorlauf, Einsatz 0,08 s. Eigene begrenzte Bassgruppe ueber der
+  bestehenden Mischung, ohne globale Pegelabsenkung. Keine Bass-Ergaenzung
+  im Rueckweg. Gezielter 75–78-s-Decode statt Lockerung der gemeinsamen
+  60-s-Quellgrenze; Manifest trennt Originaldauer und Decodierfenster.
+- Beide Soundtracks bleiben 5,3 s bei unveraenderter Animation/Laufzeit.
+  Nutzer bestaetigt den abgestimmten Soundstand inklusive Bass und kurzen
+  Inside-Impulsen im Spiel und beauftragt den Commit. Keine Aenderung an
+  Gang-/Fahrphysik oder Motor-/Reaktorkurven durch diese letzte Abstimmung.
+- Build, elf Audio-Aufbereitungschecks (mit lokalen Originalquellen) und
+  81 Ladechecks bestanden. Unabhaengige Neuberechnung bestaetigt beide
+  WAV-Hashes, alle neun kurzen Inside-Cues, Bass-Quellsekunden per separatem
+  Sampletrim sowie die unveraenderten isolierten Nicht-Inside-Sounds.
+  84 sonstige Payload-Dateien inklusive DLL sind bytegleich zum Vorzustand.
+  Reviewevidenz: artifacts/audio-transformer/short-impulse-independent-review.json.
+- Bei geschlossenem Valheim installiert; alle 88 Payload-Dateien per SHA-256
+  verifiziert, einschliesslich Bass und neun kurzen Inside-Impulsen. Konfiguration
+  erhalten und beide Backupordner nach erfolgreicher Pruefung auf je zwei
+  Zeitstempelstaende begrenzt. Native Hoerabnahme der neuen Mischung bestaetigt.
+
+## Transformer: Reaktor und weitere Soundabstimmung (lokale Entwicklung)
+
+- Nutzer bestaetigt die erweiterte Mischung. Weitere Balance: Motorleerlauf
+  bis 20 Prozent Entfaltung mit vollem Autopegel, danach weich bis auf
+  40 Prozent bei fertigem Roboter absenken. Rueckweg entsprechend umgekehrt;
+  gleicher Pitch und gleiche besetzte/geparkte Reichweite, keine Loop-Neustarts.
+  Reaktor-Laufzeitpegel um 50 Prozent angehoben (0,5 auf 0,75); seine sichtbare
+  Einblendphase bleibt bei 55–100 Prozent Entfaltung. Audio-WAVs unveraendert.
+- Growling startet bei 0 s mit 40 ms Einblendung statt erst nach 0,85 s.
+  Bisheriger 3,5-s-Ausschnitt und Pegel erhalten. Zunaechst vier Bewegungstexturen
+  aus inside-the-robot-70923 bei 0,22/1,10/2,10/3,52 s ergaenzt; inzwischen
+  auf Einzelimpulse gekuerzt (siehe oben). Laser-Charge
+  aus gregorquendel-laser-charge-175727 als 2,8-s-Schicht ab 0,35 s zum Testen.
+  Zwoelf bestaetigte Einrastakzente erhalten; neue Schichten begrenzen nur sich
+  selbst, ohne Growl/Einrasten herunterzuziehen. Keine Animationsaenderung.
+- kernreaktor.mp3 liefert einen eigenen 8-s-Loop am echten bewegten
+  Reaktormittelpunkt, mit 800 ms kreisfoermiger Ueberblendung aus 8–16,8 s
+  der Originalaufnahme. tools/prepare_transformer_reactor_audio.py erzeugt
+  reactor.wav und reactor_manifest.json lokal. Zwischen 55 und 100 Prozent
+  Entfaltung einblenden, beim Falten entsprechend ausblenden; geparkte Roboter
+  behalten den Reaktor auch unabhaengig vom Motor-Weiterlaufen-Schalter.
+  Pause/Fokus-/Streamingstopp pausieren den Loop; Entfernen stoppt/raeumt auf.
+- Build, 34 Reaktor-, 156 Leerlauf- und bestehende 66 Ladechecks sowie
+  61 Verwandlungschecks fuer die neue Balance bestanden; weitere bestehende
+  Verwandlungs-/Dreh-/Schritt-/Audiopruefungen bestanden. Zwei Pythonchecks
+  fuer Loop-Aufbereitung und zehn Installations-/Stagingtests gruen.
+  Bei geschlossenem Valheim lokal installiert; DLL und alle 86 Payload-Dateien
+  per SHA-256 geprueft, Konfiguration erhalten, beide Backupordner nach Erfolg
+  auf je zwei Zeitstempelstaende begrenzt. Schritte und Drehsamples unveraendert.
+  Frueherer Growl, Bewegungstexturen/Laser und Reaktor vom Nutzer bestaetigt;
+  neue Pegelbalance lokal installiert, erneute Spielabstimmung offen.
+
+## Transformer: Mechanik fuer beide Verwandlungen (vorherige lokale Stufe)
+
+- Nutzer bestaetigt Rueckweg-Hauptschicht A im Spiel und wuenscht nun
+  Einrastakzente sowie weitere Ausschnitte aus moving-tools-3-40372 und
+  inside-the-robot-70923 in beiden Richtungen. Je fuenf neue kurze
+  Bewegungstexturen verwenden unterschiedliche aktive Quellabschnitte.
+  Auto-zu-Roboter behaelt seine bestaetigte Gesamtmischung als unveraenderte
+  Grundlage; eine zusaetzliche, separat begrenzte Texturgruppe kommt hinzu.
+- Roboter-zu-Auto erhaelt acht gruppierte Akzente: Spiegel lokal bei 2,125 s,
+  Kopfrotation/Kompaktierung bei 2,229 s, Fuss-/Zehenwinkel bei 2,958 s,
+  Bodenblech-Weltpose bei 3,583 s, Fusskompaktierung bei 4,062 s, lokale
+  Gliedmassen-/Hueftbaugruppen bei 4,500 s, Seitenscheiben bei 4,667 s und
+  Karosserieabschluss bei 5,000 s. Fruehe Komponentenendpunkte bedeuten noch
+  keine stillstehende gesamte Baugruppe; nahe Ereignisse sind gebuendelt.
+  Timing gegen echte Auto-Endpose aller verbleibenden Rueckwaertsframes
+  geprueft, nicht durch Spiegeln der Vorwaerts-Akzentzeiten.
+- Beide Spuren bleiben 5,3 s bei unveraenderter 5-s-Animation. Im Rueckweg
+  darf nur der natuerliche Abschluss maximal 0,3 s Nachklang freigeben;
+  Auto-Ticks fuehren ihn auch geparkt weiter. Abbruch/Restore/Dispose und
+  erneute Verwandlung stoppen ihn; Pause/Fokus/Streaming frieren ihn ein.
+  Kein Nachklang beim Laden geparkter Autos, keine verlaengerten Ringe durch
+  wiederholte Abschlussmeldungen. Motor-/Reaktorkurven bleiben erhalten.
+- tools/prepare_transformer_mechanical_audio.py beschreibt die neuen
+  Texturausschnitte, die beiden bisherigen Aufbereitungsskripte mischen sie
+  getrennt hinzu. A bleibt isoliert SHA-256-identisch; die bestaetigte
+  Vorwaertsmischung ebenso. Keine globale Pegelabsenkung oder Zeitstreckung;
+  neue Texturen begrenzen nur sich selbst in den verbleibenden Spitzenraum.
+  Exakte Schnitte, Pegel, Quellen-/Ausgabehashes und Timing in den lokalen
+  deploy_manifest.json/return_manifest.json. Native Hoerabnahme offen.
+- Build sowie 79 Rueckweg-, 81 Lade-, 61 Vorwaerts-, 156 Leerlauf- und 34
+  Reaktorchecks bestanden. Sieben Pythonchecks inklusive Originalquellen-
+  Regression fuer beide bestaetigten Grundlagen und zehn Installationschecks
+  bestanden. Der zusaetzliche komplette Transformertest scheitert an der
+  bestehenden Stuetzkontinuitaet im Walk-to-Sprint-Trace: maximal 0,11711 m
+  bei 38,433334 s links statt <0,004 m. Isolierter Nachbau nur aus
+  TransformerGait.cs/GaitPreview.cs des vorherigen Commits f656fed erzeugt
+  denselben Trace byteidentisch; keine Audioregression. Gait/Testdateien
+  unveraendert. Herkunft und Reproduktion im ignorierten Bericht
+  artifacts/tests/gait-audio-scope-baseline/evidence.json; keine native
+  Bewegungsmessung im Spiel und kein vollstaendiger gruener Transformertest.
+- Bei geschlossenem Valheim lokal installiert, DLL und alle 88 Payload-Dateien
+  per SHA-256 verifiziert. 30 sonstige Audio-Payload-Dateien unveraendert;
+  Konfiguration erhalten und beide Backupordner nach erfolgreicher Pruefung
+  auf je zwei Zeitstempelstaende begrenzt. Neue Hoerabnahme im Spiel offen.
+
+## Transformer: Roboter-zu-Auto, bestaetigte Hauptschicht (lokale Entwicklung)
+
+- Nutzer waehlt Hoerkandidat A: transformers-growling-31509, Originalsekunden
+  6,0–10,2. Die isolierte Growl-Schicht ist SHA-256-bytegleich zur Vorschau;
+  4,2 s Mono-PCM16, 40 ms Ein-/250 ms Ausblendung, unveraendertes Tempo/Pitch.
+- Sound beginnt erst mit TransformerState.Returning, nach Bremsen, Fussruhe
+  und Gelaendeausrichtung. Der bestehende Animationsfortschritt fuehrt die
+  Wiedergabe ueber (1 - Progress) * 5; die Animation bleibt fuenf Sekunden.
+  Erste 4,2 s enthalten die Growl-Hauptschicht; Mechanik ergaenzt jetzt den
+  gesamten Rueckweg samt Abschlussnachklang (siehe oben).
+- Pause/Fokus-/Streamingstopp halten die Spur an; Fortsetzen und Framehitches
+  synchronisieren zur echten Phase. Kein Sound bei blosser Rueckkehranfrage,
+  Vorwaertsverwandlung oder geladenem Roboter. Kein Wiederanlaufen am Clipende.
+- Bestehender Reaktor-/Motoruebergang bleibt: Reaktor ueber die ersten 2,25 s
+  ausblenden, Motor zur Autoform wieder zum vollen Pegel bringen. Schritte bei
+  vorbereitender Fussruhe erhalten. tools/prepare_transformer_return_audio.py
+  --source-dir <Ordner> erzeugt return.wav und return_manifest.json lokal.
+- Erste Spielstufe mit nur A und bestehendem Uebergang vom Nutzer im Spiel
+  bestaetigt. Morph-47358 bleibt eine optionale weitere Quelle.
+- Build, 56 Rueckverwandlungs-, 81 Lade-, 61 Vorwaertsverwandlungs-, 156
+  Leerlauf- und 34 Reaktorchecks bestanden. Bei geschlossenem Valheim lokal
+  installiert; DLL und alle 88 Payload-Dateien per SHA-256 geprueft. Die 32
+  vorherigen Audio-Payload-Dateien sind unveraendert. Konfiguration erhalten,
+  beide Backupordner nach Erfolg auf je zwei Zeitstempelstaende begrenzt.
+  Native Hoerabnahme der damaligen Hauptschicht bestaetigt; erweiterte Mechanik
+  separat abzustimmen.
+
+## Transformer: Auto-zu-Roboter-Sound (lokale Entwicklung)
+
+- Spielrueckmeldung: Growling passt; vorherige Einrastakzente zu leise und
+  zu wenige. Zwoelf deutlich kraeftigere, kurze Bauteilgruppen-Akzente aus
+  passenden Schritt-/Mechanikaufnahmen ersetzen die drei bisherigen Akzente.
+  Gelenkwinkel-/Ausfahrenden liefern fruehe Akzente, vollstaendige lokale
+  Bauteil-Endstellungen verdichten sich bei 4,85–5,00 s. Paare werden gruppiert.
+- Leerlauffehler korrigiert: Der bisherige Fortschritts-Fade schaltete den
+  Motorleerlauf bis 72 Prozent Umbaufortschritt stumm. Die Motor-Grundschicht
+  bleibt jetzt in beiden Verwandlungsrichtungen durchgehend erhalten,
+  ohne Neustart/Hochdrehen. Pause und Motor-Weiterlaufen-Einstellung bleiben aktiv.
+- Vorwaerts-Verwandlungsschicht aus den Nutzeraufnahmen: kurzer
+  mechanischer Auftakt, 3,5 s transformers-growling-31509 und Einrastakzente
+  aus footstep-020-500843, giant-robot-in-space-352492 und kurzen Ausschnitten
+  der bestaetigten Schrittquellen. Keine globale Normalisierung; nur Mechanik-
+  Spitzen weich begrenzt, Growl-Ausschnitt und Pegel erhalten. Kein Strecken der
+  ganzen 21-s-Datei, keine Aenderung der vorhandenen fuenfsekündigen Animation.
+- Akzente anhand der aktuellen gebackenen Posen ab etwa 2,42 s; innere
+  Ausfahrmechanik um 3,54 s, Kopfnahe-Endstellung um 4,48 s und Abschluss um 5 s.
+  Die Karosserie bewegt sich bis zum Ende weiter; die fruehen Akzente sind
+  keine Behauptung bereits vollstaendig verriegelter Fahrzeugteile.
+- Ein lokal vorgemischter Mono-PCM16-Clip (5,30 s inklusive kurzem Ausklang)
+  folgt dem tatsaechlichen TransformerState-Fortschritt. Pause haelt ihn an;
+  bei Fortsetzen/Frame-Aussetzern wird zur Animationsphase synchronisiert.
+  Geladene geparkte Roboter starten keinen Umbau-Sound. Rueckverwandlung und
+  Entfernen stoppen die Vorwaertsspur. Bestehende Schritte/Drehung/Idle erhalten.
+- Reproduzierbar mit tools/prepare_transformer_deploy_audio.py --source-dir
+  <Ordner>; deploy.wav und separates deploy_manifest.json bleiben lokal.
+  Herkunft, Schnitte, Layerpegel, Cuezeiten und SHA-256 dokumentiert;
+  Vorschau artifacts/audio-transformer/deploy-preview.wav. Ueberarbeitete
+  Mischung anhand der Wellenform; erneute native Hoerabnahme noch offen.
+- Build, 61 Verwandlungs-Soundchecks, 35 aktualisierte Leerlaufchecks und
+  56 Ladechecks bestanden; neue Mischung auf zwoelf Akzente, unveraenderte
+  Growl-Parameter und Spitzenpegel unter 0,95 geprueft;
+  bestehende Dreh-/Schritt-/Leerlauf-/Audio-/Speicherpruefungen sowie zehn
+  Installations-/Stagingtests gruen. Lokal bei geschlossenem Valheim installiert;
+  DLL und alle 84 Payload-Dateien per SHA-256 verglichen. Bestaetigte Schritt-
+  und Drehaudiodateien unveraendert, Konfiguration erhalten, beide Backupordner
+  nach Erfolg auf je zwei Zeitstempelstaende begrenzt. Ueberarbeitete Mischung
+  samt durchgehendem Leerlauf lokal installiert; erneute Spielabnahme offen.
+- Roboter-zu-Auto verwendet jetzt den ausgewaehlten Growl A als erste
+  Hauptschicht (siehe oben); morph-transforms-47358 bleibt eine optionale
+  Ergaenzung. Kein automatisches Rueckwaertsabspielen der Vorwaertsspur.
+
+## Transformer: Drehmechanik (lokale Entwicklung)
+
+- Vier kurze Ausschnitte aus der vom Nutzer gewaehlten dreh sounds.mp3,
+  separat von den bestaetigten Schritten und dem Leerlauf. Mechanik folgt
+  der tatsaechlich gemessenen Rumpfdrehung, auch beim Gehen; Tastendruck
+  allein erzeugt keinen Sound. Unter 2 Grad/s stumm, Pegel folgt Drehtempo.
+- Leise kurze Varianten mit Wechsel ohne direkte Wiederholung, begrenzten
+  Stimmen und weichen Uebergaengen. Beim Anhalten rund 150 ms Ausklang;
+  Menue/Pause, Fokusverlust, Streamingpause, Rueckwandlung und Entfernen
+  stoppen sofort. Bestehende Bewegung und bestaetigte Laufsounds bleiben erhalten.
+- tools/prepare_transformer_turn_audio.py erzeugt vier Mono-PCM16-Dateien
+  (0,9 bis 1,2 s) samt separatem turn_manifest.json in .local/audio-transformer.
+  Herkunft, Schnittgrenzen und SHA-256 dokumentiert; Wellenform-Erstschnitt,
+  Nutzer bestaetigt den Drehsound im Spiel als passend.
+  Vergleich artifacts/audio-transformer/turns-comparison.wav.
+- Build, 45 Dreh-Sound- und 46 Ladechecks sowie bestehende Schritt-, Leerlauf-,
+  Kamera- und Audiopruefungen bestanden; zehn Installations-/Stagingtests gruen.
+  Lokal bei geschlossenem Valheim installiert, DLL und alle 82 Payload-Dateien
+  per SHA-256 verglichen. Sechs Schritt-WAVs und ihre Pegel unveraendert;
+  Konfiguration erhalten und beide Backupordner nach Erfolg auf je zwei
+  Zeitstempelstaende begrenzt. Native Hoerabnahme der Drehmechanik vom Nutzer bestaetigt.
+
 ## Transformer: erste Soundstufe (lokale Entwicklung)
 
 - Sechs kurze Schrittvarianten aus drei vom Nutzer ausgewaehlten MP3s,
@@ -11,8 +212,8 @@
   wegen seines herausstechenden hellen Tons entfernt; uebrige Varianten passen.
   Schrittlautstaerke linear um 5 Prozent erhoeht. Anpassung gebaut, geprueft
   und bei geschlossenem Valheim installiert. Leerlauf bleibt unveraendert.
-- Vorhandener 350Z-Motorleerlauf bleibt leiser als Grundschicht erhalten,
-  auch waehrend der Fortbewegung ohne Hochdrehen. Umbau blendet ihn aus/ein.
+- Vorhandener 350Z-Motorleerlauf bleibt mit gleichem Autopegel erhalten,
+  auch waehrend der Fortbewegung und des gesamten Umbaus ohne Hochdrehen.
   Parken folgt der vorhandenen Motor-Weiterlaufen-Einstellung. Menue/Pause,
   Fokusverlust und Streamingpause stoppen Schritte ohne spaeteres Nachholen.
 - tools/prepare_transformer_audio.py erzeugt lokale Mono-PCM16-Ausschnitte
@@ -20,8 +221,8 @@
   Vergleichsdatei: artifacts/audio-transformer/footsteps-comparison.wav.
   Nutzer bestaetigt die Laufsounds nach Entfernung der hellen Variante und
   der Pegelerhoehung im Spiel als passend.
-- Naechste getrennte Stufen: Drehmechanik aus dreh sounds.mp3, danach
-  Auto-zu-Roboter mit transformers-growling-31509 als zusaetzlicher Schicht,
+- Naechste getrennte Stufen nach der Drehmechanik: Auto-zu-Roboter mit
+  transformers-growling-31509 als zusaetzlicher Schicht,
   Rueckverwandlung mit morph-transforms-47358. Einrastakzente aus footstep-020
   und giant-robot-in-space-352492; footstep-017 fuer Schritt oder Einrasten
   vergleichen. Laufsounds bestaetigt; leisen Leerlauf bei Bedarf weiter abstimmen.

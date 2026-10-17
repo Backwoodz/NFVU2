@@ -5,6 +5,8 @@ using UnityEngine;
 namespace Rachel350Z {
 internal sealed partial class TransformerVisual {
     static readonly Vector3 ReactorCenter=new Vector3(0,2.98f,.56f);
+    public Vector3 ReactorWorldPosition=>Root.transform.TransformPoint(
+        (pose[ids["thorax"]]*neutral[ids["thorax"]].inverse).MultiplyPoint3x4(ReactorCenter));
     static readonly string[] MachineWheels={"panel.front_wheel_L","panel.front_wheel_R","panel.rear_wheel_L","panel.rear_wheel_R"};
     readonly List<Tuple<Transform,bool>> reactorParts=new List<Tuple<Transform,bool>>();
     readonly Dictionary<Transform,float> rollingWheels=new Dictionary<Transform,float>();

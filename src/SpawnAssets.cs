@@ -56,6 +56,10 @@ public sealed class SpawnAudio {
     readonly Dictionary<string,Exception> errors=new Dictionary<string,Exception>();
     public readonly WavData Reverse;
     public readonly Dictionary<string,WavData> TransformerSteps=new Dictionary<string,WavData>();
+    public readonly Dictionary<string,WavData> TransformerTurns=new Dictionary<string,WavData>();
+    public readonly WavData TransformerDeploy;
+    public readonly WavData TransformerReactor;
+    public readonly WavData TransformerReturn;
     public SpawnAudio(string folder,bool hummer,SpawnAssetCache cache,CancellationToken token) {
         var assembly=typeof(SpawnAudio).Assembly;
         foreach(var name in assembly.GetManifestResourceNames())if(name.StartsWith("Rachel350Z.Audio.",StringComparison.Ordinal)&&name.EndsWith(".wav",StringComparison.Ordinal))
@@ -76,6 +80,31 @@ public sealed class SpawnAudio {
                 if(clips.TryGetValue(Key(file),out var data))TransformerSteps[Path.GetFileName(file)]=data;
             }
         }catch(OperationCanceledException){throw;}catch(Exception error){errors[Key(robotFolder)]=error;}
+        if(!hummer&&Directory.Exists(robotFolder))try {
+            foreach(var file in Directory.GetFiles(robotFolder,"turn_*.wav").OrderBy(p=>p,StringComparer.OrdinalIgnoreCase).Take(8)) {
+                token.ThrowIfCancellationRequested();
+                Read(file,()=>cache.Load(file,p=>WavPcm16.Read(File.OpenRead(p),3),token),token);
+                if(clips.TryGetValue(Key(file),out var data))TransformerTurns[Path.GetFileName(file)]=data;
+            }
+        }catch(OperationCanceledException){throw;}catch(Exception error){errors[Key(robotFolder)]=error;}
+        token.ThrowIfCancellationRequested();
+        var deployFile=Path.Combine(robotFolder,"deploy.wav");
+        if(!hummer&&File.Exists(deployFile)) {
+            Read(deployFile,()=>cache.Load(deployFile,p=>WavPcm16.Read(File.OpenRead(p),6),token),token);
+            if(clips.TryGetValue(Key(deployFile),out var data))TransformerDeploy=data;
+        }
+        token.ThrowIfCancellationRequested();
+        var reactorFile=Path.Combine(robotFolder,"reactor.wav");
+        if(!hummer&&File.Exists(reactorFile)) {
+            Read(reactorFile,()=>cache.Load(reactorFile,p=>WavPcm16.Read(File.OpenRead(p),12),token),token);
+            if(clips.TryGetValue(Key(reactorFile),out var data))TransformerReactor=data;
+        }
+        token.ThrowIfCancellationRequested();
+        var returnFile=Path.Combine(robotFolder,"return.wav");
+        if(!hummer&&File.Exists(returnFile)) {
+            Read(returnFile,()=>cache.Load(returnFile,p=>WavPcm16.Read(File.OpenRead(p),6),token),token);
+            if(clips.TryGetValue(Key(returnFile),out var data))TransformerReturn=data;
+        }
         token.ThrowIfCancellationRequested();
         Reverse=ReverseGearSound.Create();
     }

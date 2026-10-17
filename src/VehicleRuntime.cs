@@ -38,6 +38,10 @@ internal sealed class VehicleRuntime {
     public bool hasBeenDriven;
     public VehicleAudio vehicleAudio;
     public TransformerFootstepAudio transformerAudio;
+    public TransformerTurnAudio transformerTurnAudio;
+    public TransformerDeployAudio transformerDeployAudio;
+    public TransformerReactorAudio transformerReactorAudio;
+    public TransformerReturnAudio transformerReturnAudio;
     public VehicleLighting vehicleLighting;
     public VehicleNeon vehicleNeon;
     public VehicleRadio vehicleRadio;

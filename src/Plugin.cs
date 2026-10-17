@@ -219,6 +219,7 @@ public partial class Plugin : BaseUnityPlugin {
     void TickVehicle() {
         if(car==null)return;
         if(Transforming){try{TickTransformer();TickVehicleStorage();TickExhaustSmoke();if(driving)VehicleWorldStreaming.Follow(player as Player);}catch(Exception e){Logger.LogError("Transformer stopped: "+e);if(driving)Exit();else current.transformer.Restore();}return;}
+        TickTransformerReturnTail();
         TickVehicleStorage();
         TickExhaustCustomization();
         TickExhaustSmoke();
@@ -362,6 +363,10 @@ public partial class Plugin : BaseUnityPlugin {
         current.parkedStreaming?.Dispose();current.parkedStreaming=null;
         current.transformer?.Dispose();current.transformer=null;current.transformerAsset=null;
         current.transformerAudio?.Dispose();current.transformerAudio=null;
+        current.transformerTurnAudio?.Dispose();current.transformerTurnAudio=null;
+        current.transformerDeployAudio?.Dispose();current.transformerDeployAudio=null;
+        current.transformerReactorAudio?.Dispose();current.transformerReactorAudio=null;
+        current.transformerReturnAudio?.Dispose();current.transformerReturnAudio=null;
         current.storage?.Release(removeVehicle);current.storage=null;
         current.flight?.Dispose();current.flight=null;
         current.flightEffects?.Dispose();current.flightEffects=null;
