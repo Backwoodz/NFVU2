@@ -21,7 +21,8 @@ public sealed class NitroState {
             if(refillDelay==0&&forwardSpeed>2&&grounded)Charge=Math.Min(1,Charge+dt/10);
         }
         if(!held||throttle<0)return;
-        if(speed<.65f){Purging=grounded;return;}
+        // Purge follows released throttle, including coasting at road speed.
+        if(throttle==0){Purging=grounded;return;}
         float limit=terrain?27:42;
         if(exhausted||Charge<=0||forwardSpeed<1.5f||speed>=limit||throttle<=0||braking||!grounded)return;
         Boosting=true;Charge=Math.Max(0,Charge-dt/6);refillDelay=2;

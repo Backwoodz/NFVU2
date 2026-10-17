@@ -1,5 +1,12 @@
 # Nächste Aufgaben
 
+## Purge beim Rollen (lokale Entwicklung)
+
+- Purge funktioniert mit gehaltener Nitrotaste auch beim Rollen ohne Gas,
+  unabhaengig von der Geschwindigkeit; Gasgeben schaltet auf die bestehende
+  Boostlogik um. Bodenkontakt und aktive Fahrzeugsteuerung bleiben erforderlich.
+  Gezielte Nitrochecks; Partikel und Sound beim Rollen im Spiel pruefen.
+
 ## Transformer: Sprint, Handkontakte und Boden V4 (lokale Entwicklung)
 
 - Ausfahrmechanik beim Anlaufen wiederhergestellt: Die vereinfachte
