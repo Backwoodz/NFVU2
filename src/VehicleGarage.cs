@@ -14,6 +14,7 @@ public partial class Plugin {
     }
     void ForEachVehicle(Action action)=>fleet.Visit(action);
     void CleanupAll() {
+        CleanupVehicleMap();
         vehicleLoadGame=null;
         ClearHorde();
         ClearNitroVisuals();

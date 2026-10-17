@@ -11,6 +11,7 @@ def build():
     refs.append(game/'BepInEx/core/0Harmony.dll')
     refs.append(managed/'assembly_valheim.dll')
     refs.append(managed/'assembly_utils.dll')
+    refs.append(managed/'Splatform.dll')
     missing=[str(p) for p in refs if not p.exists()]
     if missing:raise SystemExit('Missing installed game/mod-loader references:\n'+'\n'.join(missing))
     audio=sorted((LOCAL/'audio-assets').glob('*.wav'))

@@ -1,5 +1,20 @@
 # Nächste Aufgaben
 
+## Orte im Fahrzeug und Fahrzeugmarker (lokale Entwicklung)
+
+- Der deaktivierte Fahrer erhaelt nach der Sitz-/Transformerpose gezielt
+  Valheims native Orts-/Biomaktualisierung. Bekannte Orte, Biome und Meldungen
+  folgen damit der Fahrzeugposition; Spielerbewegung und Eingabe bleiben aus.
+- Mini- und Weltkarte zeigen eigene temporaere Marker fuer 350Z und H2,
+  einschliesslich entfernter gespeicherter Autos. Geladene Fahrzeuge liefern
+  ihre aktuelle Position auch im Flug und als Transformer. Entfernen und
+  Weltwechsel raeumen die Marker auf; persoenliche Pins bleiben erhalten.
+- Symbol aus dem vorhandenen originalen NFSU2-Menue: CRIB_ICON_CAR_SELECT
+  (FRONTEND/FrontB.lzc, 0xa964095b), ohne Auswahlpfeile. Bei fehlender optionaler
+  Menuegrafik dient eine eigene Autosilhouette als Ersatz.
+- Build, 9 Entdeckungs- und 22 Kartenchecks bestanden. Orts-/Biommeldungen
+  beim Fahren und Marker auf beiden Karten im Spiel pruefen.
+
 ## Gespeicherte Autos im Weltladebildschirm (lokale Entwicklung)
 
 - Nahe gespeicherte Autos werden nach nativer Terrain-/ZDO-Bereitschaft vor
