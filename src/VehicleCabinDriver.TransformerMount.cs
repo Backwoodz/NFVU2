@@ -258,9 +258,14 @@ internal sealed partial class VehicleCabinDriver {
                 knee=pelvis+facing*new Vector3(sign*Mathf.Lerp(.22f,.62f,around),-.25f,Mathf.Lerp(.65f,-.10f,around));
             }
             if(climbing) {
-                // Bend beside the torso, outside the hatch. The former forward
-                // pole drove knees through the panel even with planted boots.
-                knee=pelvis+facing*new Vector3(sign*.48f,-.30f,-.10f);
+                // Use each real hip and the body's sagittal hinge. An outward,
+                // rearward world-space pole made knees fold sideways/backwards.
+                // Keep pelvis clearance and planted contacts independent of it.
+                if(bones.TryGetValue(side+"UpLeg",out var thigh)) {
+                    var leg=Quaternion.Inverse(body)*(foot-thigh.position);
+                    TransformerClimbLeg.PoleOffset(leg.y,leg.z,out float poleUp,out float poleForward);
+                    knee=thigh.position+body*new Vector3(0,poleUp,poleForward);
+                }
                 elbow=pelvis+facing*new Vector3(sign*.58f,.10f,-.12f);
             }
             if(!robotMount.Entering&&TryTransformerFlipTargets(s,pelvis,body,i==1,out var flipFoot,out var flipHand,out var flipKnee,out var flipElbow)) {

@@ -51,7 +51,7 @@ def main():
         elif suite=='transformerreturnaudio':sources.extend(BASE/'src'/name for name in ('TransformerReturnSoundModel.cs','TransformerReturnAudio.cs','WavPcm16.cs'))
         elif suite=='transformerreactoraudio':sources.extend(BASE/'src'/name for name in ('TransformerReactorAudio.cs','WavPcm16.cs'))
         elif suite=='robotidleaudio':sources.extend(BASE/'src'/name for name in ('VehicleAudio.cs','EngineSoundModel.cs','TurboSoundModel.cs','ReverseGearSound.cs','ExhaustSoundProfile.cs','DrivingMath.cs','WavPcm16.cs'))
-        elif suite=='transformermount':sources.extend(BASE/'src'/name for name in ('TransformerMountMotion.cs','TransformerFlipShape.cs','TransformerDismountArc.cs'))
+        elif suite=='transformermount':sources.extend(BASE/'src'/name for name in ('TransformerMountMotion.cs','TransformerFlipShape.cs','TransformerDismountArc.cs','TransformerClimbLeg.cs'))
         elif suite=='horde':sources.extend(BASE/'src'/name for name in ('HordeWave.cs','HordeRun.cs','HordePact.cs','HordeBonus.cs','HordeElementRules.cs'))
         elif suite=='hordeweather':sources.append(BASE/'src/HordeWeather.cs')
         elif suite=='horderadar':sources.append(BASE/'src/HordeMapProjection.cs')

@@ -5,6 +5,7 @@ class Program {
     static void Check(bool ok,string label){if(!ok)throw new Exception(label);checks++;Console.WriteLine("PASS "+label);}
     static bool Near(float a,float b)=>Math.Abs(a-b)<.00001f;
     static void Main() {
+        ClimbLegChecks.Run(Check);
         Check(Near(TransformerMountMotion.SeatForward(0),0)&&Near(TransformerMountMotion.SeatLower(0),0)
             &&Near(TransformerMountMotion.SeatForward(1),1)&&Near(TransformerMountMotion.SeatLower(1),1),"seat transfer preserves standing and seated endpoints");
         Check(Near(TransformerMountMotion.SeatForward(.5f),0)&&TransformerMountMotion.SeatLower(.5f)>.7f,

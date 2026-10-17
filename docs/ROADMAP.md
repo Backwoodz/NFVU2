@@ -1,5 +1,23 @@
 # Nächste Aufgaben
 
+## Transformer: anatomische Knie beim Hochklettern (lokale Entwicklung)
+
+- Die bisherige Kletterpose gab beiden Knien einen stark seitlichen,
+  leicht rueckwaertigen IK-Pol vor. Bei typischen Auftritten kehrte dies
+  die Kniebeugung um. Jetzt stammt der Pol aus dem jeweiligen echten
+  Hueftgelenk und der Hueft-Fuss-Richtung in der Koerperebene; die Knie
+  beugen vorwaerts und beim hohen Auftritt nach oben. Keine seitliche
+  Ausweichbeugung mehr, kein Richtungswechsel beim Anheben des Fusses.
+- Gepflanzte Fussziele, gemessene Beinlaengen, Beckenausgleich und der
+  Uebergang zu den vorhandenen Sitzreferenzen bleiben erhalten.
+- 59 Mount-/Kletter-/Abstiegschecks bestanden, darunter Regressionen fuer
+  beide zuvor verkehrt gebeugten Beine und ein Raster erreichbarer
+  Fusspositionen mit festen Knochenlaengen. Native Hautverformung und
+  Abstand zur Panzerung waehrend der Klettersequenz im Spiel pruefen.
+- Build und 27 Kabinenchecks ebenfalls bestanden. Mit Backup lokal
+  installiert: 107 Dateien per SHA-256 geprueft, nur DLL geaendert;
+  Assets und Konfiguration bytegleich, je zwei Installationsbackups.
+
 ## Transformer: Linksklick, Minigun-Anlauf und Laufglut (lokale Entwicklung)
 
 - Roboterminigun feuert mit gehaltener linker Maustaste, Controller weiter
