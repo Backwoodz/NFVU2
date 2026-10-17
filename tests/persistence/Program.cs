@@ -6,9 +6,10 @@ using UnityEngine;
 // Asset construction is replaced with a completed load of the same storage record.
 namespace Rachel350Z {
 internal sealed class VehicleRuntime {
-    public VehicleStorage storage;public TestFlight flight=new TestFlight();public bool hasBeenDriven;
+    public VehicleStorage storage;public TestFlight flight=new TestFlight();public TestTransformer transformer=new TestTransformer();public bool hasBeenDriven;
 }
 internal sealed class TestFlight {public bool Active;}
+internal sealed class TestTransformer {public bool Active;}
 public partial class Plugin {
     internal static Plugin ControlsOwner=null;
     readonly List<VehicleRuntime> fleet=new List<VehicleRuntime>();
@@ -24,7 +25,7 @@ public partial class Plugin {
     public void Adopt()=>AdoptVehicleWorldEntry(Player.m_localPlayer);
     public void Complete() {
         var car=new GameObject();car.transform.SetPositionAndRotation(VehiclePersistence.Location(requested),VehiclePersistence.Orientation(requested));
-        fleet.Add(new VehicleRuntime{storage=new VehicleStorage(car,requested),hasBeenDriven=VehiclePersistence.WasDriven(requested),flight=new TestFlight{Active=VehiclePersistence.Flying(requested)}});fleetOwner=loadOwner;SpawnBusy=false;restoringVehicle=null;
+        fleet.Add(new VehicleRuntime{storage=new VehicleStorage(car,requested),hasBeenDriven=VehiclePersistence.WasDriven(requested),flight=new TestFlight{Active=VehiclePersistence.Flying(requested)},transformer=new TestTransformer{Active=VehiclePersistence.Transformed(requested)}});fleetOwner=loadOwner;SpawnBusy=false;restoringVehicle=null;
     }
     public void Cancel(){deferredVehicles.Add(requested.m_uid);SpawnBusy=false;restoringVehicle=null;}
 }
@@ -85,6 +86,13 @@ class Program {
         Check(plugin.Entry()&&plugin.starts==0,"shutdown cannot start a world-entry vehicle load");
         Game.instance.shuttingDown=false;Game.instance.waiting=false;
         Check(plugin.Entry()&&plugin.starts==0,"unrelated area-readiness calls outside respawn cannot trigger loading");
+        World();var robot=Car();VehiclePersistence.Save(robot,new Vector3(5,.35f,8),Quaternion.identity,0,false,true,true);
+        plugin=new Plugin();plugin.Tick();plugin.Complete();plugin.CaptureVehicleSave();
+        Check(VehiclePersistence.Transformed(robot)&&!VehiclePersistence.Flying(robot),"ordinary world save captures active parked transformer form");
+        plugin.SaveVehiclesBeforeShutdown();
+        Check(VehiclePersistence.Transformed(robot)&&VehiclePersistence.IsVehicle(robot),"shutdown preserves transformer form and original world record before disposal");
+        plugin=new Plugin();plugin.Tick();
+        Check(plugin.requested==robot&&VehiclePersistence.Transformed(plugin.requested),"world re-entry reuses the saved transformer record");
         Console.WriteLine(checks+" persistence coordination checks passed; native save/load and Harmony runtime require a game test.");
     }
 }

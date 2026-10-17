@@ -38,7 +38,8 @@ public partial class Plugin {
         spawnCancellation=new CancellationTokenSource();spawnTimer=Stopwatch.StartNew();
         LoadStage("Dateien im Hintergrund einlesen",0);
         var folder=Path.GetDirectoryName(Info.Location);
-        var cache=spawnCache;var token=spawnCancellation.Token;bool loadTransformer=transformerEnabled.Value;
+        var cache=spawnCache;var token=spawnCancellation.Token;
+        bool loadTransformer=transformerEnabled.Value||saved!=null&&VehiclePersistence.Transformed(saved);
         spawnCacheUsed=true;
         spawnRead=Task.Run(()=>SpawnAssets.Load(folder,hummer,cache,token,loadTransformer),token);
         // Observe failures even if the player cancels/leaves before the worker finishes.
@@ -98,6 +99,8 @@ public partial class Plugin {
         yield return StagedWork.NextFrame;
         while(!spawnRead.IsCompleted)yield return StagedWork.NextFrame;
         var assets=spawnRead.GetAwaiter().GetResult();
+        if(restoringVehicle!=null&&VehiclePersistence.Transformed(restoringVehicle)&&assets.Transformer==null)
+            throw new InvalidOperationException("Gespeicherter Transformer kann ohne seine Modelldaten nicht wiederhergestellt werden.");
         foreach(var warning in assets.Warnings)Logger.LogWarning(warning);
         var model=assets.Model;
         current.transformerAsset=assets.Transformer;
@@ -201,7 +204,16 @@ public partial class Plugin {
             savedVehicleIds.Add(current.storage.Data.m_uid);
         }
         car.SetActive(true);
-        if(restoringVehicle!=null&&VehiclePersistence.Flying(restoringVehicle))current.flight?.Fly();
+        // Prime every movable source before RestoreParked snapshots its meshes.
+        // Robot mode bypasses the ordinary car LateUpdate, including this setup.
+        wheelSizeVisuals?.Apply(IsHummer?h2RimInches.Value:rimInches.Value);
+        for(int i=0;i<4;i++)if(wheels[i]!=null&&visuals[i]!=null)UpdateWheelVisual(i,true);
+        current.interior?.Tick(0,windowTint.Value,false);
+        if(showroom!=null)showroom.Tick(0,false,doorStyle.Value,false,trunkNeonEnabled.Value,trunkNeonPulsing.Value,
+            NeonColors[Math.Max(0,Array.IndexOf(ColorNames,trunkNeonColor.Value))]);
+        if(restoringVehicle!=null&&VehiclePersistence.Transformed(restoringVehicle)) {
+            if(!current.transformer.RestoreParked(out var reason))throw new InvalidOperationException("Transformer konnte nicht wiederhergestellt werden: "+reason);
+        } else if(restoringVehicle!=null&&VehiclePersistence.Flying(restoringVehicle))current.flight?.Fly();
         // Freeze until the saved terrain collider is available, even if this
         // staged load finishes after its zone has unloaded again.
         current.parkedStreaming=new VehicleWorldStreaming(body);

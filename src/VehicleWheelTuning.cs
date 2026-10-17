@@ -47,9 +47,12 @@ public partial class Plugin {
         if(next!=setting.Value)setting.Value=next;
     }
 
-    void UpdateWheelVisual(int index) {
+    void UpdateWheelVisual(int index,bool initialPose=false) {
         Vector3 pos;Quaternion rot;
-        if(Flying)current.flight.WheelPose(index,out pos,out rot);else wheels[index].GetWorldPose(out pos,out rot);
+        // No physics step has placed freshly loaded wheel visuals yet. Use
+        // their authored hubs before a saved robot captures borrowed meshes.
+        if(initialPose){pos=wheels[index].transform.TransformPoint(wheels[index].center);rot=wheels[index].transform.rotation;}
+        else if(Flying)current.flight.WheelPose(index,out pos,out rot);else wheels[index].GetWorldPose(out pos,out rot);
         float fold=Flying?current.flight.State.Blend:0;
         var vectoring=Flying?car.transform.rotation*Quaternion.Euler(current.flight.WheelPitch*fold,0,current.flight.WheelRoll*fold)*Quaternion.Inverse(car.transform.rotation):Quaternion.identity;
         if(!originalWheels) {

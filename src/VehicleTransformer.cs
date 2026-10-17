@@ -164,6 +164,14 @@ internal sealed class VehicleTransformer:IDisposable {
         // only after both feet have settled at the final stationary location.
         returnRequested=true;returnPrepared=false;returnBlocked=false;motionRequested=false;return true;
     }
+    public bool RestoreParked(out string reason) {
+        if(!Begin(null,out reason))return false;
+        State.RestoreParked();Terrain.Reset(false);
+        supportTilt=carTilt=Quaternion.identity;
+        body.position=new Vector3(car.position.x,groundY,car.position.z);
+        body.rotation=transformationYaw;gaitPosition=car.position;gaitYaw=car.eulerAngles.y;
+        hull.enabled=true;Visual.Evaluate(1,0,0,0);HideCar();return true;
+    }
     void HideCar(){foreach(var r in renderers)if(r.Item1!=null)r.Item1.enabled=false;foreach(var l in lights)if(l.Item1!=null)l.Item1.enabled=false;}
     public void Step(bool blocked,float forward,float turn,bool sprint=false) {
         if(!Active)return;

@@ -128,7 +128,7 @@ internal sealed partial class TransformerVisual:IDisposable {
                 var indices=new List<int>(b.Indices.Length);
                 var rotating=new List<int>();
                 for(int j=0;j<b.Indices.Length;j+=3) {
-                    bool hidden=false;
+                    bool hidden=ReplacedRearNeonTriangle(b,j,v);
                     for(int corner=0;corner<3;corner++) {
                         string name=asset.Manifest.nodes[b.Bones[b.Weights[b.Indices[j+corner]]]].name;
                         if(name=="neon.trunk rear"||name.EndsWith(" - neon.trunk rear",StringComparison.Ordinal)){hidden=true;break;}
@@ -150,7 +150,7 @@ internal sealed partial class TransformerVisual:IDisposable {
                 renderers.Add(Tuple.Create<Renderer,bool>(renderer,b.Concealed));
                 yield return StagedWork.NextFrame;
             }
-            CreateReactor(mats);yield return StagedWork.NextFrame;
+            CreateReactor(mats);CreateRearBadge(mats);yield return StagedWork.NextFrame;
             Evaluate(0,0,0,0);initialized=true;
     }
     public void CaptureCurrentCar() {

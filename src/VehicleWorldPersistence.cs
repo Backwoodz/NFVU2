@@ -51,7 +51,7 @@ public partial class Plugin {
     internal void CaptureVehicleSave() {
         foreach(var vehicle in fleet) {
             vehicle.storage?.Tick();
-            vehicle.storage?.SaveVehicle(vehicle.flight?.Active==true,vehicle.hasBeenDriven);
+            vehicle.storage?.SaveVehicle(vehicle.flight?.Active==true,vehicle.hasBeenDriven,vehicle.transformer?.Active==true);
         }
     }
 }

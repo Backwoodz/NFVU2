@@ -25,7 +25,7 @@ public partial class Plugin {
         ClearNitroVisuals();
         if(spawnCacheUsed){spawnCache=new SpawnAssetCache();spawnCacheUsed=false;}
         CancelSpawn(null);
-        foreach(var vehicle in fleet)vehicle.storage?.SaveVehicle(vehicle.flight?.Active==true,vehicle.hasBeenDriven);
+        foreach(var vehicle in fleet)vehicle.storage?.SaveVehicle(vehicle.flight?.Active==true,vehicle.hasBeenDriven,vehicle.transformer?.Active==true);
         if(driving||player!=null)Exit();
         CloseVehicleMenu();
         foreach(var vehicle in fleet.ToArray()){current=vehicle;ReleaseVehicle();}

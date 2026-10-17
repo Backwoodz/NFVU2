@@ -84,6 +84,8 @@ public sealed class TransformerState {
         Active=true;Returning=false;Progress=0;return true;
     }
     public bool Return(){if(!CanWalk)return false;Returning=true;return true;}
+    // World restore resumes a parked robot, without replaying deployment.
+    public void RestoreParked(){Active=true;Returning=false;Progress=1;}
     public void Step(float dt,bool blocked) {
         if(!Active||blocked||float.IsNaN(dt)||float.IsInfinity(dt)||dt<=0)return;
         Progress=Math.Max(0,Math.Min(1,Progress+(Returning?-1:1)*Math.Min(dt,.1f)/5));

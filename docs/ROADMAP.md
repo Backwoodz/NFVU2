@@ -1,5 +1,28 @@
 # Nächste Aufgaben
 
+## Transformer beim Weltbeitritt (lokale Entwicklung)
+
+- Spieltest-Nachkorrektur: Rad-/Bremsenpositionen, Felgengroesse, Innenraum und
+  geschlossene Ausbaupose werden vor der Uebernahme in die geladene Roboterform
+  initialisiert. Die Radhalter uebernehmen keine ungesetzten Ursprungspositionen.
+- Ruecken-Neon: senkrechte lange Roehre samt Traeger entfernt. Die sechs an
+  der Huefte schwebenden Leuchten werden durch den Schriftzug SLY unten mittig
+  auf dem Kofferraumdeckel ersetzt. Konturen und Halter folgen der echten
+  Deckelflaeche; die gesamte Baugruppe folgt starr dessen Verwandlung und Gang.
+  SLY auf 65 Prozent verkleinert und leicht hoeher gesetzt, um den Auspuff
+  freizuhalten. Eigene dauerhaft gruene Emission ohne Puls oder Abhaengigkeit
+  von den Kofferraum-Neoneinstellungen.
+- Die aktive Roboterform wird mit Fahrzeugposition und Stauraum im bestehenden
+  Welt-Datensatz gespeichert, vor dem Aufraeumen beim Verlassen der Welt.
+  Beim Laden steht der Transformer direkt wieder geparkt da; die Verwandlung
+  wird nicht erneut abgespielt. Aufsteigen und Rueckverwandeln bleiben moeglich.
+- Wiederherstellung erfolgt im vorhandenen gestaffelten Fahrzeug-Ladeprozess.
+  Alte Datensaetze ohne Formangabe bleiben Autos; H2 und Flugmodus behalten
+  ihre bisherigen Ladewege. Fehlende Transformerdateien lassen den gespeicherten
+  Datensatz unveraendert, statt ihn als Auto zu ueberschreiben.
+- Build und gezielte Speicher-/Wiederherstellungschecks; nativen Weltwechsel
+  mit abgestelltem und besetztem Transformer im Spiel pruefen.
+
 ## Transformer: Hochklettern und Backflip (lokale Entwicklung)
 
 - F7/B/Kreis bremst bis zur Fussruhe. Der echte Spielcharakter steht auf der
