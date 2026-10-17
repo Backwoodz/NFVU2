@@ -1,5 +1,48 @@
 # Nächste Aufgaben
 
+## Transformer: zweite Kernreaktorschicht (lokale Entwicklung)
+
+- Zusaetzlich zu kernreaktor.mp3 nun die vom Nutzer gewaehlte Aufnahme
+  freesound_community-evil-robot-or-spaceship-or-something-idk-94720.mp3.
+  Aktiver Ausschnitt 0,8–5,6 s mit 800 ms kreisfoermiger Ueberblendung ergibt
+  einen 4-s-Loop; zweimal ohne Luecke ueber den bisherigen 8-s-Grundloop gelegt.
+  Zusatzschicht mit maximalem 80-ms-RMS-Zielpegel 0,035, bisherige Grundschicht
+  mit 0,055 und ihrem Ausschnitt/Pegel erhalten. Keine Zeit-/Pitch-Aenderung.
+- Gemeinsames reactor.wav nutzt die bestehende bewegte Reaktorposition,
+  Laufzeitverstaerkung 0,75, sichtbare Phase von 55 bis 100 Prozent sowie
+  Pause-/Streaming-/Parkverhalten. Keine neue Laufzeitlogik oder Aenderung
+  an der SLY-Sichtbarkeit. Native Hoerabnahme der Zusatzschicht offen.
+- Build, sieben Aufbereitungschecks inklusive Originalquellen-Regression,
+  34 Reaktor-Laufzeitadapterchecks und 81 Ladechecks bestanden. Unabhaengige
+  Neuberechnung bestaetigt den unveraenderten Grundloop und die additive
+  Mischung aus zwei natuerlichen Zusatzzyklen: kein Ducking/Normalisieren,
+  durchgehende Loop-Naht. 86 sonstige Payload-Dateien inklusive DLL sind
+  bytegleich zum zuvor installierten SLY-Stand. Reviewevidenz unter
+  artifacts/audio-transformer/additional-reactor-independent-review.json.
+- Bei geschlossenem Valheim installiert, DLL und alle 88 Payload-Dateien
+  per SHA-256 geprueft; zwei Reaktorschichten und unveraenderte Grundschicht
+  bestaetigt. Konfiguration erhalten und beide Backupordner nach Erfolg auf
+  je zwei Zeitstempelstaende begrenzt. Native Hoerabnahme noch offen.
+
+## Transformer: SLY erst unter dem hochgeklappten Spoiler (lokale Entwicklung)
+
+- Schriftzug und Montagekanaele haben eine eigene Sichtbarkeit statt der
+  fruehen allgemeinen Mechanik-Einblendung bei 11,5/120 Fortschritt (~0,48 s).
+  Jetzt erst ab Frame 175/240, also 72,92 Prozent bzw. ~3,65 s: Dort liegt
+  die gesamte Unterkante des Originalspoiler-Fluegels erstmals ueber der
+  Oberkante des Schriftzugs, und seine Breite deckt den Schriftzug ab.
+  Ermittelt aus dem vorhandenen gebackenen Clip und den echten Badge-Konturen;
+  keine zusaetzlichen Mechanikhalter in die Spoilergrenze einbezogen.
+- Beim Rueckweg verschwindet SLY an derselben Pose. Geladene Roboter bei
+  Fortschritt 1 behalten den Schriftzug direkt; seine Befestigung und stetige
+  gruene Emission bleiben erhalten. Build und 81 Ladechecks bestanden;
+  native Sichtabnahme des geaenderten Einblendzeitpunkts offen.
+- Bei geschlossenem Valheim lokal installiert; DLL und alle 88 Payload-Dateien
+  per SHA-256 geprueft, 87 Dateien ausser der DLL bytegleich zum Vorzustand.
+  Konfiguration erhalten, beide Backupordner nach Erfolg auf je zwei
+  Zeitstempelstaende begrenzt. Geometriebericht und Seitenansicht unter
+  artifacts/audio-transformer/badge-spoiler-reveal.json bzw. .png.
+
 ## Transformer: kurze Inside-Impulse und Vorwaerts-Bass (lokale Entwicklung)
 
 - Nutzer lehnt lange durchgaengige Inside-the-Robot-Texturen ab. Alle neun

@@ -206,6 +206,7 @@ internal sealed partial class TransformerVisual:IDisposable {
         UpdateMachineEffects(progress,dt,turn);
         for(int i=0;i<nodes.Length;i++)Apply(nodes[i],pose[i]);
         foreach(var r in renderers)r.Item1.enabled=!r.Item2||progress>=11.5f/120;
+        UpdateRearBadge(progress);
         foreach(var entry in borrowed) {
             var anchor=pose[entry.Item2];
             if(entry.Item4)anchor=Matrix4x4.TRS(Position(anchor),anchor.rotation,Vector3.one);

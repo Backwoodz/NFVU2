@@ -4,6 +4,15 @@ using UnityEngine;
 namespace Rachel350Z {
 internal sealed partial class TransformerVisual {
     struct BadgeTriangle {public Vector3 A,B,C;}
+    // In the authored five-second clip, frame 175 is the first pose where
+    // the original spoiler's entire lower edge clears the top of the badge.
+    // Its full width already spans SLY. Use the same pose in both directions;
+    // a restored robot (progress 1) shows the badge immediately.
+    const float RearBadgeRevealProgress=175f/240;
+    readonly List<Renderer> rearBadgeRenderers=new List<Renderer>();
+    void UpdateRearBadge(float progress) {
+        foreach(var renderer in rearBadgeRenderers)renderer.enabled=progress>=RearBadgeRevealProgress;
+    }
     // Remove only the former dorsal tube, its carrier, and the six rear vent
     // lights being replaced. Other coolant lines and underbody neon remain.
     bool ReplacedRearNeonTriangle(TransformerBatch batch,int triangle,Vector3[] vertices) {
@@ -77,9 +86,9 @@ internal sealed partial class TransformerVisual {
         var mesh=new Mesh{name=name};meshes.Add(mesh);mesh.SetVertices(vertices);mesh.triangles=indices.ToArray();mesh.RecalculateNormals();mesh.RecalculateBounds();
         var obj=new GameObject(name);obj.transform.SetParent(nodes[hatch],false);
         obj.AddComponent<MeshFilter>().sharedMesh=mesh;var renderer=obj.AddComponent<MeshRenderer>();renderer.sharedMaterial=material;
-        // Same reveal as the authored mechanism. The geometry stays rigidly
-        // attached to the hatch for both transformation directions and walking.
-        renderers.Add(Tuple.Create<Renderer,bool>(renderer,true));
+        // Badge and channels wait for the spoiler, independently of the much
+        // earlier mechanism reveal. Both remain rigidly attached to the hatch.
+        renderer.enabled=false;rearBadgeRenderers.Add(renderer);
     }
 }
 }

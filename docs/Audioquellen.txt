@@ -87,6 +87,22 @@ spielen den Loop ebenfalls; Menue/Pause halten den Abspielcursor an.
 Quellenhash, Ausschnitt, Loop-/Pegelwerte und Ausgabe-SHA-256 im lokalen Manifest.
 Erste Wellenformauswahl; Hoerabnahme im Spiel offen.
 
+Zusaetzliche Kernreaktorschicht:
+freesound_community-evil-robot-or-spaceship-or-something-idk-94720.mp3,
+rund 6,91 s. Ausschnitt 0,8–5,6 s, 800 ms kreisfoermige Equal-Power-
+Ueberblendung ergeben einen natuerlichen 4-s-Loop. Zweimal ohne Luecke ueber
+den bestehenden 8-s-Kernreaktorloop gelegt, ohne Zeitstreckung oder Pitch-
+Aenderung. Maximaler 80-ms-RMS-Zielpegel der Zusatzschicht 0,035 gegenueber
+0,055 der bisherigen Grundschicht. Der bisherige isolierte Grundloop bleibt
+bytegleich, seine Ausgabe-SHA-256 lautet:
+4a097a649d509efac721d9dfe08899df3941cc6a3e9ac44f47b50162508f60fd
+tools/prepare_transformer_reactor_audio.py --source-file <Kernreaktor-MP3>
+--additional-source-file <Evil-Robot-MP3> erstellt die gemeinsame 8-s-Datei
+reactor.wav samt Quellen-, Schnitt-, Loop- und Pegelmetadaten. Die Mischung
+folgt in der Laufzeit gemeinsam der sichtbaren Kernphase, auch im geparkten
+Roboter; Pause/Streaming halten den Cursor an. Neue Mischung signalbasiert
+vorbereitet, native Hoerabnahme offen.
+
 Weitere Bewegungstexturen fuer beide Verwandlungen:
 freesound_community-moving-tools-3-40372.mp3 (rund 6,91 s) und
 freesound_community-029974_inside-the-robot-70923.mp3 (rund 38,11 s).
