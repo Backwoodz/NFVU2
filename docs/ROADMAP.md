@@ -1,5 +1,28 @@
 # Nächste Aufgaben
 
+## Fahrzeugsteuerung: Controller-Verwandlung und E-Zugang (lokale Entwicklung)
+
+- RB/R1 verwandelt den besetzten 350Z am Boden und den besetzten Roboter
+  zurueck, jeweils mit den vorhandenen Stand-/Platz-/Animationspruefungen.
+  Im Flug bleibt RB/R1 Steigen, zu Fuss bleibt die native Belegung erhalten.
+  LB/L1 feuert weiterhin die Roboterminigun. F10 bleibt konfigurierbar.
+- E steigt ins Fahrzeug/auf den Roboter ein und wieder aus; F7 bleibt
+  alternativer Fahrzeugzugang, B/Kreis auf Controller bleibt erhalten.
+  Anvisierte native Interaktionen wie Tueren, Kisten und aufhebbare Items
+  haben zu Fuss Vorrang. Ein bereits von Player.Update ausgefuehrter Use
+  wird pro Frame beobachtet, damit ein zerstoertes Pickup nicht zugleich
+  den Einstieg ausloest. Ein verbrauchter E-Druck bleibt bis zum Loslassen
+  fuer den Fahrzeugzugang reserviert, auch nach Wiederfreigabe des Spielers.
+- Native und alternative Hinweise, Garage, Statusmeldungen, Uebersetzungen
+  und README nennen E beziehungsweise RB/R1. Kein Verwandlungshinweis fuer
+  RB im Flug; Menues behalten ihre bisherigen Controllerbelegungen.
+- Build sowie 159 Steuerungs-, 27 Kabinen-, 59 Mount-, 31 Minigun- und
+  37 Flugchecks bestanden. Native Controllerhardware, Harmony-Interaktion
+  und Ein-/Ausstieg an Weltobjekten muessen im Spiel bestaetigt werden.
+- Mit Backup lokal installiert und alle 107 Dateien per SHA-256 geprueft;
+  nur DLL geaendert, Originalassets und Konfiguration bytegleich. Beide
+  Installations-Backupordner enthalten je zwei Zeitstempelbackups.
+
 ## Transformer: anatomische Knie beim Hochklettern (lokale Entwicklung)
 
 - Die bisherige Kletterpose gab beiden Knien einen stark seitlichen,

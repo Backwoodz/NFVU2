@@ -58,7 +58,7 @@ public partial class Plugin {
         if(MenuButton(new Rect(25,310,510,40),padActive?"Fahrzeug spawnen ("+ButtonName("A","Kreuz")+")":"Ausgewähltes Fahrzeug spawnen (F6)")){Spawn(LocalPlayer());return;}
         GUI.enabled=true;
         UiLabel(new Rect(25,366,510,60),"Gespawnt: "+WorldVehicleCount+" / 4\n"+string.Join(" · ",SavedVehicles.Select(v=>VehiclePersistence.Hummer(v)?"H2":"350Z")),labelStyle);
-        UiLabel(new Rect(25,436,510,72),"Autos werden mit der Welt gespeichert. Zum Einsteigen oder Einstellen zum gewünschten Auto gehen: F7 / F9. Entfernen nur im Fahrzeugmenü.",mutedStyle);
+            UiLabel(new Rect(25,436,510,72),"Autos werden mit der Welt gespeichert. Zum Einsteigen oder Einstellen zum gewünschten Auto gehen: E / F9. Entfernen nur im Fahrzeugmenü.",mutedStyle);
     }
 }
 }

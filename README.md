@@ -25,7 +25,9 @@ Remove cars through **F9 → Vehicle → Remove vehicle**.
 2. Click **Install / Update**. Music is included; BepInEx is installed if needed.
 3. Launch Valheim, enter a single-player world and press **F9 / L3 → Garage** to spawn a car.
 
-**F7 / B (Xbox) / Circle (PlayStation)** enters or exits a car.
+**E / B (Xbox) / Circle (PlayStation)** enters or exits a car.
+E keeps normal world interactions when aiming at a door, chest or other object;
+F7 remains available as an alternative vehicle key.
 Drive with **WASD** or the **left stick + triggers**. On-screen hints show the rest.
 Customization and language settings are in **F9 / L3**.
 

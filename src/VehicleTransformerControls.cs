@@ -9,10 +9,12 @@ public partial class Plugin {
     bool transformerEntryPending;
     bool transformerSprintHeld;
     bool Transforming=>current.transformer!=null&&current.transformer.Active;
+    string TransformerToggleHint=>padActive?ButtonName("RB","R1"):transformerKey.Value.ToString();
+    bool TransformerToggleDown()=>transformerKey.Value.IsDown()||ControlRules.ControllerTransform(PadDown("transform"),driving,Flying);
     void InitializeTransformer() {
         TransformerFootstepGrass.Initialize(controlsHarmony,message=>Logger.LogInfo(message));
-        transformerEnabled=Config.Bind("TransformerPrototype","Enabled",false,"Enable the local robot playtest. F7 dismounts by backflip; near the parked robot F7 boards from any side. F10 returns to the car. Single-player.");
-        transformerKey=Config.Bind("TransformerPrototype","ToggleKey",new KeyboardShortcut(KeyCode.F10),"Transform or return while stopped. Prototype keyboard toggle; movement supports keyboard/gamepad.");
+        transformerEnabled=Config.Bind("TransformerPrototype","Enabled",false,"Enable the local robot playtest. E or B/Circle boards and dismounts by backflip. F10 or RB/R1 transforms while stopped and boarded. Single-player.");
+        transformerKey=Config.Bind("TransformerPrototype","ToggleKey",new KeyboardShortcut(KeyCode.F10),"Transform or return while stopped. Keyboard toggle; RB/R1 also toggles when boarded and on the ground.");
     }
     void ToggleTransformer() {
         if(transformerEntryPending||transformerExitPending||cabinDriver!=null&&cabinDriver.RobotTransitionActive)return;
@@ -32,13 +34,14 @@ public partial class Plugin {
         if(!current.transformer.Begin(player.transform,out string reason)){ShowVehicleWarning(reason);return;}
         cabinDriver.BeginTransformer();vehicleNeon?.Tick(false,0);
         transformerExitPending=transformerSprintHeld=false;
-        status=current.transformer.WalkingReady?"Transformer: W/S gehen, Shift + W rennen, A/D drehen, F10 zurueckverwandeln.":"Transformer-Standmodus: F10 zurueckverwandeln, F7 zurueck und aussteigen.";
+        status=current.transformer.WalkingReady?"Transformer: "+TransformerToggleHint+" zurueckverwandeln (im Stand).":
+            "Transformer-Standmodus: "+TransformerToggleHint+" zurueckverwandeln, "+(padActive?ButtonName("B","Kreis"):"E")+" aussteigen.";
     }
     void ReadTransformerControls() {
-        if(Input.GetKeyDown(KeyCode.F7)||PadDown("back")) {
+        if(VehicleAccessDown(LocalPlayer())) {
             RequestRobotExit();return;
         }
-        if(transformerKey.Value.IsDown())ToggleTransformer();
+        if(TransformerToggleDown()){ToggleTransformer();return;}
         if(Input.GetMouseButtonDown(0))padActive=false;
         ReadVehicleControls();nitroHeld=burnoutHeld=honking=handbrakeHeld=false;current.flightVertical=0;
         bool allowed=controlsGate.Allow(ControlsHeld());
@@ -52,15 +55,15 @@ public partial class Plugin {
         string[] hints=current.transformer!=null&&!current.transformer.WalkingReady?new[]{
         "Standmodus",
         padActive?"RS  Kamera":"Maus  Kamera",
-        transformerKey.Value+"  Zurueckverwandeln",
-        padActive?"B / Kreis  Backflip absteigen":"F7  Backflip absteigen",
+        TransformerToggleHint+"  Zurueckverwandeln",
+        padActive?ButtonName("B","Kreis")+"  Backflip absteigen":"E  Backflip absteigen",
         "Einzelspieler-Prototyp"}:new[]{
         padActive?"RT / LT  Gehen vor / zurueck":"W / S  Gehen vor / zurueck",
         padActive?ButtonName("X","Quadrat")+" halten  Rennen":"Shift + W  Rennen",
         padActive?"LS  Drehen":"A / D  Drehen",
         padActive?"RS  Kamera":"Maus  Kamera",
-        transformerKey.Value+"  Zurueckverwandeln (im Stand)",
-        padActive?"B / Kreis  Backflip absteigen":"F7  Backflip absteigen",
+        TransformerToggleHint+"  Zurueckverwandeln (im Stand)",
+        padActive?ButtonName("B","Kreis")+"  Backflip absteigen":"E  Backflip absteigen",
         "Einzelspieler-Prototyp"};
         if(current.transformerMinigun!=null) {
             Array.Resize(ref hints,hints.Length+1);
@@ -127,7 +130,7 @@ public partial class Plugin {
         t.Tick(Time.deltaTime,blocked);
         ObserveTransformerFootsteps(t);
         if(current.transformerAudio!=null)try {
-            // F7 marks mounting before the last swing lands. Keep those genuine
+            // Dismount marks mounting before the last swing lands. Keep those genuine
             // contacts audible; the settled mount pose creates no new footfalls.
             current.transformerAudio.Tick(Time.deltaTime,t.State.CanWalk,blocked,
                 t.Visual.LeftFootfalls,t.Visual.RightFootfalls,t.Visual.RunBlend,soundVolume.Value,

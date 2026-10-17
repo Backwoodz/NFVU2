@@ -12,7 +12,7 @@ public partial class Plugin {
     bool PrepareRobotEntry(MonoBehaviour local,out Vector3 ground) {
         ground=local!=null?local.transform.position:Vector3.zero;
         // The rider routes the approach to the rear. Position, terrain and
-        // nearby scenery never veto F7; settling is handled after taking control.
+        // nearby scenery never veto boarding; settling happens after taking control.
         return local!=null&&current.interior!=null&&current.transformer!=null;
     }
     void RequestRobotExit() {
@@ -20,7 +20,7 @@ public partial class Plugin {
         if(cabinDriver!=null&&cabinDriver.RobotTransitionActive&&!cabinDriver.RobotTransitionEntering)return;
         var t=current.transformer;
         if(transformerEntryPending||cabinDriver!=null&&cabinDriver.RobotTransitionActive) {
-            // F7 during approach/climbing always releases the rider immediately.
+            // Exit during approach/climbing always releases the rider immediately.
             Exit(true,TransformerMountClearance.FindLanding(car.transform,player.transform));return;
         }
         if(cabinDriver==null||!t.State.CanWalk||t.ReturnRequested) {

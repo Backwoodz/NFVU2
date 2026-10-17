@@ -18,7 +18,7 @@ public partial class Plugin : BaseUnityPlugin {
     ConfigEntry<float> mouseSensitivity;
     MonoBehaviour player, gameCamera; Rigidbody playerBody; bool playerEnabled, cameraEnabled, playerKinematic;
     Renderer[] playerRenderers; bool[] renderStates; Collider[] playerColliders; bool[] colliderStates;
-    string status = "F6: Fahrzeug erstellen | F7: einsteigen | F9: Garage";
+    string status = "F6: Fahrzeug erstellen | E: einsteigen | F9: Garage";
     Vector3 lastExitPosition;
     VehicleCabinDriver cabinDriver;
     bool DriverInputReady=>!transformerEntryPending&&(cabinDriver==null||
@@ -98,7 +98,7 @@ public partial class Plugin : BaseUnityPlugin {
             if(Input.GetKeyDown(KeyCode.F6)) { if(Multiplayer()){status="Nur in einer lokalen Einzelspieler-Testwelt verwenden.";return;} Spawn(local); }
             if(Input.GetKeyDown(KeyCode.F8)&&SpawnBusy)CancelSpawn("Laden abgebrochen.");
             if(driving&&Transforming){ReadTransformerControls();return;}
-            if(transformerEnabled.Value&&transformerKey.Value.IsDown()){ToggleTransformer();return;}
+            if(transformerEnabled.Value&&TransformerToggleDown()){ToggleTransformer();return;}
             TickControlActions(local);
             if(driving&&!DriverInputReady){BlockDrivingInput();return;}
             if(driving)ReadVehicleControls();
@@ -350,7 +350,7 @@ public partial class Plugin : BaseUnityPlugin {
             if(playerBody!=null){playerBody.isKinematic=playerKinematic;if(!playerKinematic){playerBody.linearVelocity=Vector3.zero;playerBody.angularVelocity=Vector3.zero;}}player.enabled=playerEnabled;}
         VehicleWorldStreaming.Follow(player as Player);
         if(gameCamera!=null)gameCamera.enabled=cameraEnabled;
-        player=null;gameCamera=null;status="F6: Fahrzeug erstellen | F7: einsteigen | F9: Garage";
+        player=null;gameCamera=null;status="F6: Fahrzeug erstellen | E: einsteigen | F9: Garage";
     }
     void Cleanup(){
         bool cargoLeft=current.storage!=null&&current.storage.Count!=0;
