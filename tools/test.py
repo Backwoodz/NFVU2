@@ -4,7 +4,7 @@ from build import build
 from build_support import compile_cs,test_refs,runtime_config
 
 def main():
-    suites=['model','mesh','handling','audio','radio','nitro','impact','transformerimpact','showroom','driving','turret','targeting','terrain','blast','hummer','menu','cabin','flight','loading','lighting','controls','hotbar','rumble','nitroview','horde','hordehull','hordecorpses','turretfireaudio','hordeweather','horderadar','hordeelements','storage','persistence','streaming','placement','transformer','discovery','vehiclemap','transformershake','transformermount','exhaustsmoke','transformeraudio','robotidleaudio','transformerturnaudio','transformerdeployaudio','transformerreactoraudio','transformerreturnaudio','transformerfootstepeffects','transformerfootstepgrass']
+    suites=['model','mesh','handling','audio','radio','nitro','impact','transformerimpact','showroom','driving','turret','targeting','terrain','blast','hummer','menu','cabin','flight','loading','lighting','controls','hotbar','rumble','nitroview','horde','hordehull','hordecorpses','turretfireaudio','hordeweather','horderadar','hordeelements','storage','persistence','streaming','placement','transformer','discovery','vehiclemap','transformershake','transformermount','exhaustsmoke','transformeraudio','robotidleaudio','transformerturnaudio','transformerdeployaudio','transformerreactoraudio','transformerreturnaudio','transformerfootstepeffects','transformerfootstepgrass','transformerwater','transformerminigun','transformerground','transformerminigunheat','transformerminigunaudio']
     parser=argparse.ArgumentParser();parser.add_argument('--skip-build',action='store_true');parser.add_argument('--handling-only',action='store_true')
     parser.add_argument('--suite',action='append',choices=suites,help='Run only these C# suites; repeat to combine.')
     args=parser.parse_args()
@@ -36,6 +36,13 @@ def main():
         elif suite=='discovery':sources.append(BASE/'src/VehicleDiscovery.cs')
         elif suite=='vehiclemap':sources.extend(BASE/'src'/name for name in ('VehicleMap.cs','VehicleMapPins.cs'))
         elif suite=='transformershake':sources.extend(BASE/'src'/name for name in ('TransformerGait.cs','TransformerStepShake.cs'))
+        elif suite=='transformerground':sources.extend(BASE/'src'/name for name in ('TransformerGroundProbe.cs','TransformerWaterRules.cs'))
+        elif suite=='transformerwater':sources.append(BASE/'src/TransformerWaterRules.cs')
+        elif suite=='transformerminigun':sources.extend(BASE/'src'/name for name in ('TransformerMinigunModel.cs','TransformerMinigunDamage.cs'))
+        elif suite=='transformerminigunheat':sources.append(BASE/'src/TransformerMinigunHeatModel.cs')
+        elif suite=='transformerminigunaudio':
+            sources.extend(BASE/'src'/name for name in ('TransformerMinigunAudio.cs','TransformerMinigunSoundLevels.cs','WavPcm16.cs'))
+            arguments=[str(LOCAL/'minigun')]
         elif suite=='transformerfootstepgrass':sources.append(BASE/'src/TransformerFootstepGrass.cs')
         elif suite=='transformerfootstepeffects':sources.append(BASE/'src/TransformerFootstepEffectModel.cs')
         elif suite=='transformeraudio':sources.extend(BASE/'src'/name for name in ('TransformerGait.cs','TransformerFootstepModel.cs','TransformerFootstepAudio.cs','WavPcm16.cs'))

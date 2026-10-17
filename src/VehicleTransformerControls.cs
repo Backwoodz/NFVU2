@@ -39,13 +39,17 @@ public partial class Plugin {
             RequestRobotExit();return;
         }
         if(transformerKey.Value.IsDown())ToggleTransformer();
-        ReadVehicleControls();nitroHeld=burnoutHeld=turretHeld=honking=handbrakeHeld=false;current.flightVertical=0;
+        if(Input.GetMouseButtonDown(0))padActive=false;
+        ReadVehicleControls();nitroHeld=burnoutHeld=honking=handbrakeHeld=false;current.flightVertical=0;
         bool allowed=controlsGate.Allow(ControlsHeld());
+        // The car retains RMB; the robot uses LMB with the same release gate.
+        if(!padActive||pad==null)turretHeld=allowed&&Input.GetMouseButton(0);
         if(allowed&&padActive&&pad!=null)throttle=ControlRules.Axis(pad.rightTrigger.ReadValue(),.05f)-ControlRules.Axis(pad.leftTrigger.ReadValue(),.05f);
         transformerSprintHeld=allowed&&throttle>0&&(padActive&&pad!=null?pad.buttonWest.isPressed:Input.GetKey(KeyCode.LeftShift)||Input.GetKey(KeyCode.RightShift));
-        if(!allowed||!DriverInputReady||!current.transformer.State.CanWalk||!current.transformer.WalkingReady||current.transformer.ReturnRequested||transformerExitPending){throttle=steer=0;brake=1;transformerSprintHeld=false;}
+        if(!allowed||!DriverInputReady||!current.transformer.State.CanWalk||!current.transformer.WalkingReady||current.transformer.ReturnRequested||transformerExitPending){throttle=steer=0;brake=1;transformerSprintHeld=turretHeld=false;}
     }
-    string[] TransformerHints()=>current.transformer!=null&&!current.transformer.WalkingReady?new[]{
+    string[] TransformerHints() {
+        string[] hints=current.transformer!=null&&!current.transformer.WalkingReady?new[]{
         "Standmodus",
         padActive?"RS  Kamera":"Maus  Kamera",
         transformerKey.Value+"  Zurueckverwandeln",
@@ -58,6 +62,12 @@ public partial class Plugin {
         transformerKey.Value+"  Zurueckverwandeln (im Stand)",
         padActive?"B / Kreis  Backflip absteigen":"F7  Backflip absteigen",
         "Einzelspieler-Prototyp"};
+        if(current.transformerMinigun!=null) {
+            Array.Resize(ref hints,hints.Length+1);
+            hints[hints.Length-1]=padActive?ButtonName("LB","L1")+"  Minigun":"LMB  Minigun | R  Nachladen";
+        }
+        return hints;
+    }
     void TickTransformerReturnTail() {
         if(current.transformerReturnAudio==null)return;
         try {
@@ -178,7 +188,8 @@ public partial class Plugin {
                 NeonColors[Math.Max(0,Array.IndexOf(ColorNames,trunkNeonColor.Value))],trunkNeonEnabled.Value,trunkNeonPulsing.Value,Time.time);
             if(rider) {
                 if(TickRobotMount(t,blocked))return;
-                orbitCamera.LateFrame(car.transform.forward*t.Speed,dynamicCamera.Value,cameraFollow.Value,blocked);
+                orbitCamera.LateFrame(car.transform.forward*t.Speed,dynamicCamera.Value,cameraFollow.Value,blocked,
+                    current.transformerMinigun!=null&&t.State.CanWalk);
             }
         } else {
             if(rider) {

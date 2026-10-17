@@ -14,15 +14,26 @@ internal sealed class VehicleTransformer:IDisposable {
     readonly VehicleRuntime owner;
     VehicleStorage storage=>owner.storage;
     readonly CapsuleCollider hull;
-    readonly RaycastHit[] groundHits=new RaycastHit[32];
+    readonly TransformerGroundProbe groundProbe;
     readonly Collider[] nearby=new Collider[64];
+    readonly TransformerWaterPoint[] waterFootprint=new TransformerWaterPoint[19],waterFuture=new TransformerWaterPoint[18];
+    readonly float[] waterStartingDepth=new float[19];
+    readonly WaterVolume[] waterVolumes=new WaterVolume[16];
+    readonly Bounds[] waterVolumeBounds=new Bounds[16];
+    int waterVolumeCount;
+    bool waterVolumeOverflow;
+    readonly TransformerWaterProbe waterProbe;
+    readonly float waterThoraxHeight,waterShoulderHeight;
+    float maximumWadingDepth=TransformerWaterRules.DefaultMaximumDepth;
+    float waterReferenceY;
+    bool waterRecovery;
     readonly TransformerImpact impact=new TransformerImpact();
     readonly List<Tuple<Collider,bool>> colliders=new List<Tuple<Collider,bool>>();
     readonly List<Tuple<Renderer,bool>> renderers=new List<Tuple<Renderer,bool>>();
     readonly List<Tuple<Light,bool>> lights=new List<Tuple<Light,bool>>();
     readonly List<AudioSource> sounds=new List<AudioSource>();
     bool kinematic,gravity,motionRequested,returnRequested,returnBlocked,returnPrepared;RigidbodyConstraints constraints;
-    float groundY,carClearance,moveSpeed,turnSpeed,returnHeight,nextObstacleReport;
+    float groundY,carClearance,moveSpeed,turnSpeed,returnHeight,nextObstacleReport,nextGroundReport;
     Quaternion carTilt=Quaternion.identity,supportTilt=Quaternion.identity;
     Quaternion transformationYaw=Quaternion.identity;
     Vector3 gaitPosition;
@@ -35,11 +46,16 @@ internal sealed class VehicleTransformer:IDisposable {
     public float Speed=>moveSpeed;
     public float ActualTurnRate {get;private set;}
     public bool ReturnRequested=>returnRequested;
+    public float MaximumWadingDepth=>maximumWadingDepth;
     public bool ReadyForMount=>State.CanWalk&&!returnRequested&&Terrain.CanMove&&!Terrain.ReturnStarted
         &&Visual.FeetSettled&&Mathf.Abs(moveSpeed)<.05f&&Mathf.Abs(turnSpeed)<.01f;
     public bool TakeBlockedReturn(){bool result=returnBlocked;returnBlocked=false;return result;}
     public VehicleTransformer(VehicleRuntime vehicle,TransformerAsset asset,bool staged=false) {
         owner=vehicle;car=vehicle.car.transform;body=vehicle.body;
+        groundProbe=new TransformerGroundProbe(Own);
+        waterProbe=WaterSupport;
+        waterThoraxHeight=asset.Manifest.nodes.First(n=>n.name=="thorax").neutral[7];
+        waterShoulderHeight=(asset.Manifest.nodes.First(n=>n.name=="clavicle.L").neutral[7]+asset.Manifest.nodes.First(n=>n.name=="clavicle.R").neutral[7])*.5f;
         WalkingReady=asset.Manifest.walkingReady;
         Visual=new TransformerVisual(car,asset,vehicle.vehicleMaterials,staged);
         Visual.GroundPlane=FootPlane;
@@ -50,25 +66,73 @@ internal sealed class VehicleTransformer:IDisposable {
     public IEnumerable<int> LoadSteps()=>Visual.LoadSteps();
     bool Own(Collider c)=>c==null||c.transform.IsChildOf(car)||player!=null&&c.transform.IsChildOf(player);
     bool Ground(Vector3 point,out float height,out Vector3 normal)=>Ground(point,out height,out normal,out _);
-    bool Ground(Vector3 point,out float height,out Vector3 normal,out Collider support) {
-        // Loaded terrain is support regardless of its slope or local roughness.
-        // Probe from just above the root/terrain, not above the treetops.
-        height=point.y;normal=Vector3.up;support=null;bool found=false;
-        var map=Heightmap.FindHeightmap(point);
-        if(map!=null&&map.GetWorldHeight(point,out float terrainHeight)) {height=terrainHeight;support=map.GetComponent<Collider>();found=true;}
-        float probeTop=Mathf.Max(point.y,height)+1.8f;
-        int count=Physics.RaycastNonAlloc(new Vector3(point.x,probeTop,point.z),Vector3.down,groundHits,found?Mathf.Max(8,probeTop-height+2):128,TransformerImpact.CollisionMask,QueryTriggerInteraction.Ignore);
-        float closest=float.PositiveInfinity;
-        for(int i=0;i<count;i++)if(!Own(groundHits[i].collider)&&groundHits[i].distance<closest) {
-            var hit=groundHits[i];
-            if(hit.normal.y<.1f||TransformerImpact.IgnoreMovementCollider(hit.collider)
-                ||hit.collider.GetComponentInParent<Character>()!=null)continue;
-            closest=hit.distance;
-            if(!found||hit.point.y>=height-.05f){height=hit.point.y;normal=hit.normal;support=hit.collider;found=true;}
+    bool Ground(Vector3 point,out float height,out Vector3 normal,out Collider support)=>groundProbe.Sample(point,out height,out normal,out support);
+    bool WaterSupport(float x,float z,out float height,out float liquid) {
+        liquid=-10000;
+        height=0;if(waterVolumeOverflow)return false;
+        if(!Ground(new Vector3(x,waterReferenceY,z),out height,out _,out _))return false;
+        liquid=LiquidAt(x,z,height);return true;
+    }
+    float LiquidAt(float x,float z,float height) {
+        float liquid=-10000;
+        if(ZoneSystem.instance!=null)liquid=ZoneSystem.instance.m_waterLevel;
+        // Retain native local liquids (including tar); ocean volumes below are
+        // cached once per sweep so no second overlap query is needed per point.
+        liquid=Mathf.Max(liquid,Floating.GetLiquidLevel(new Vector3(x,height+.02f,z),1));
+        for(int i=0;i<waterVolumeCount;i++) {
+            var bounds=waterVolumeBounds[i];
+            if(x>=bounds.min.x&&x<=bounds.max.x&&z>=bounds.min.z&&z<=bounds.max.z&&waterVolumes[i]!=null)
+                liquid=Mathf.Max(liquid,waterVolumes[i].GetWaterSurface(new Vector3(x,height,z),1));
         }
-        // Wade at the surface rather than following a deep sea floor into black water.
-        if(found&&ZoneSystem.instance!=null)height=Mathf.Max(height,ZoneSystem.instance.m_waterLevel-.8f);
-        return found;
+        return liquid;
+    }
+    void PrepareWaterVolumes(Vector3 from,Vector3 to) {
+        waterVolumeCount=0;waterVolumeOverflow=false;
+        float minX=Mathf.Min(from.x,to.x)-4,maxX=Mathf.Max(from.x,to.x)+4,minZ=Mathf.Min(from.z,to.z)-4,maxZ=Mathf.Max(from.z,to.z)+4;
+        foreach(var volume in WaterVolume.Instances) {
+            if(volume==null)continue;var collider=volume.GetComponent<Collider>();if(collider==null||!collider.enabled)continue;
+            var bounds=collider.bounds;
+            if(bounds.max.x<minX||bounds.min.x>maxX||bounds.max.z<minZ||bounds.min.z>maxZ)continue;
+            if(waterVolumeCount==waterVolumes.Length){waterVolumeOverflow=true;return;}
+            waterVolumes[waterVolumeCount]=volume;waterVolumeBounds[waterVolumeCount++]=bounds;
+        }
+    }
+    int WaterFootprint(bool live,float futureStride=0) {
+        int count=0;waterFootprint[count++]=new TransformerWaterPoint(0,0);
+        float soleHeight=float.PositiveInfinity;
+        var inverse=Quaternion.Inverse(car.rotation);
+        for(int side=0;side<2;side++) {
+            Vector3 center,direction;Vector2 size;
+            Visual.RestFootContact(side!=0,out var restCenter,out var restSize);
+            soleHeight=Mathf.Min(soleHeight,restCenter.y);
+            if(live) {
+                Visual.FootContact(side!=0,out center,out direction,out size);
+                center=inverse*(center-car.position);direction=inverse*direction;
+                direction.y=0;direction.Normalize();
+            } else {center=restCenter;size=restSize;direction=Vector3.forward;}
+            var right=Vector3.Cross(Vector3.up,direction);
+            for(int x=-1;x<=1;x++)for(int z=-1;z<=1;z++) {
+                var p=center+right*(x*size.x*.5f)+direction*(z*size.y*.5f);
+                waterFootprint[count++]=new TransformerWaterPoint(p.x,p.z);
+            }
+            // Future soles are separate from the real standing baseline, and
+            // only in the actual movement direction (signed stride). Standing
+            // near water can therefore never disable reversing away from it.
+            for(int x=-1;x<=1;x++)for(int z=-1;z<=1;z++)
+                waterFuture[side*9+(x+1)*3+z+1]=new TransformerWaterPoint(center.x+x*size.x*.5f,futureStride+z*size.y*.5f+restCenter.z);
+        }
+        maximumWadingDepth=TransformerWaterRules.ChestDepth(waterThoraxHeight,waterShoulderHeight,soleHeight)*Mathf.Abs(car.lossyScale.y);
+        return count;
+    }
+    static TransformerWaterPose WaterPose(Vector3 point,Quaternion rotation)=>new TransformerWaterPose(point.x,point.z,rotation.eulerAngles.y*Mathf.Deg2Rad);
+    bool WaterPathClear(Vector3 next,Quaternion rotation,bool sprint) {
+        waterReferenceY=body.position.y;
+        PrepareWaterVolumes(body.position,next);
+        float stride=Mathf.Lerp(TransformerGait.Stride,TransformerGait.SprintStride,sprint?1:Visual.RunBlend)*Mathf.Sign(moveSpeed);
+        int count=WaterFootprint(true,stride),futureCount=Mathf.Abs(moveSpeed)>.0001f?waterFuture.Length:0;
+        bool allowed=TransformerWaterRules.CanTraverse(WaterPose(body.position,body.rotation),WaterPose(next,rotation),waterFootprint,count,waterProbe,waterStartingDepth,waterRecovery,waterFuture,futureCount,maximumWadingDepth);
+        if(allowed&&waterRecovery&&TransformerWaterRules.WithinDepth(WaterPose(next,rotation),waterFootprint,count,waterProbe,maximumWadingDepth))waterRecovery=false;
+        return allowed;
     }
     bool Supported(Vector3 position,Quaternion rotation,out TransformerGroundPlane plane,bool walking=false) {
         plane=new TransformerGroundPlane();
@@ -110,9 +174,9 @@ internal sealed class VehicleTransformer:IDisposable {
     }
     Quaternion Yaw=>Quaternion.Euler(0,car.eulerAngles.y,0);
     bool CoreClear(Vector3 next,Quaternion rotation,Collider support=null) {
-        int count=Physics.OverlapCapsuleNonAlloc(next+Vector3.up, next+Vector3.up*4.2f,.65f,nearby,TransformerImpact.CollisionMask,QueryTriggerInteraction.Ignore);
+        int count=Physics.OverlapCapsuleNonAlloc(next+Vector3.up, next+Vector3.up*4.2f,.65f,nearby,TransformerGroundProbe.MovementMask,QueryTriggerInteraction.Ignore);
         for(int i=0;i<count;i++) {
-            var other=nearby[i];if(Own(other)||other==support||other.GetComponent<Heightmap>()!=null)continue;
+            var other=nearby[i];if(Own(other)||TransformerGroundProbe.IsFluid(other)||other==support||other.GetComponent<Heightmap>()!=null)continue;
             // A tree/log may keep its solid collider until native felling RPCs
             // finish. It is damageable scenery, never a braking obstacle for
             // the robot. Keep walls, rocks and characters in the solid check.
@@ -135,17 +199,45 @@ internal sealed class VehicleTransformer:IDisposable {
         }
         return true;
     }
+    void ReportGrounding(Collider support,float floor,float previousY) {
+        if(Time.unscaledTime<nextGroundReport)return;
+        nextGroundReport=Time.unscaledTime+1;
+        float liquid=LiquidAt(body.position.x,body.position.z,floor),gap=previousY-floor;
+        if(Mathf.Abs(gap)<.15f&&liquid<floor+.05f)return;
+        nextGroundReport=Time.unscaledTime+10;
+        Debug.Log("NFVU2 Transformer ground: rootY="+previousY.ToString("F3")+" floorY="+floor.ToString("F3")
+            +" gap="+gap.ToString("F3")+" liquidY="+liquid.ToString("F3")+" support="+(support!=null?support.name:"none")
+            +" layer="+(support!=null?LayerMask.LayerToName(support.gameObject.layer):"none"));
+    }
+    void SettleCurrentSupport() {
+        if(!Ground(body.position,out float height,out _,out var support))return;
+        var next=body.position;next.y=TransformerGroundProbe.FollowHeight(next.y,height,Time.fixedDeltaTime);
+        ReportGrounding(support,height,body.position.y);
+        if(!CoreClear(next,body.rotation,support))return;
+        groundY=height;body.MovePosition(next);
+    }
     static Quaternion SupportTilt(TransformerGroundPlane plane)=>Quaternion.FromToRotation(Vector3.up,new Vector3(-plane.SlopeX,1,-plane.SlopeZ).normalized);
     static bool NeedsPreparation(TransformerGroundPlane plane)=>Mathf.Abs(plane.SlopeX)+Mathf.Abs(plane.SlopeZ)>.001f||plane.Residual>.002f;
-    public bool Begin(Transform livePlayer,out string reason) {
+    public bool Begin(Transform livePlayer,out string reason)=>BeginCore(livePlayer,false,out reason);
+    bool BeginCore(Transform livePlayer,bool restoringParked,out string reason) {
         reason="Zum Verwandeln kurz anhalten; die Welt unter dem Fahrzeug muss geladen sein.";player=livePlayer;
         if(Active||body.linearVelocity.magnitude>.15f||body.angularVelocity.magnitude>.1f||!Supported(car.position,car.rotation,out var plane))return false;
+        waterReferenceY=body.position.y;
+        PrepareWaterVolumes(body.position,body.position);
+        int waterCount=WaterFootprint(false,0);
+        bool dry=TransformerWaterRules.Dry(WaterPose(car.position,Yaw),waterFootprint,waterCount,waterProbe);
+        if(!restoringParked) {
+            if(!dry) {
+                reason="Zum Verwandeln muss die gesamte Aufstandsflaeche trocken sein. Erst ans Ufer oder auf eine trockene Bruecke fahren.";return false;
+            }
+        }
+        waterRecovery=restoringParked&&!TransformerWaterRules.WithinDepth(WaterPose(car.position,Yaw),waterFootprint,waterCount,waterProbe,maximumWadingDepth);
         groundY=plane.Height+plane.Residual;carClearance=body.position.y-groundY;transformationYaw=Yaw;carTilt=Quaternion.Inverse(transformationYaw)*body.rotation;supportTilt=SupportTilt(plane);
         var origin=new Vector3(car.position.x,groundY,car.position.z);
         Visual.CaptureCurrentCar();
         colliders.Clear();foreach(var c in car.GetComponentsInChildren<Collider>(true))if(c!=hull)colliders.Add(Tuple.Create(c,c.enabled));
         renderers.Clear();foreach(var r in car.GetComponentsInChildren<Renderer>(true))if(!r.transform.IsChildOf(Visual.Root.transform)&&owner.exhaustSmoke?.Owns(r.transform)!=true)renderers.Add(Tuple.Create(r,r.enabled));
-        lights.Clear();foreach(var l in car.GetComponentsInChildren<Light>(true))lights.Add(Tuple.Create(l,l.enabled));
+        lights.Clear();foreach(var l in car.GetComponentsInChildren<Light>(true))if(!l.transform.IsChildOf(Visual.Root.transform))lights.Add(Tuple.Create(l,l.enabled));
         // Engine idle and foot contacts have their own pause/lifecycle handling.
         // Pausing them here would bypass their playback bookkeeping.
         sounds.Clear();foreach(var s in car.GetComponentsInChildren<AudioSource>(true))if(s.isPlaying&&owner.vehicleAudio?.Owns(s)!=true&&owner.transformerAudio?.Owns(s)!=true&&owner.transformerTurnAudio?.Owns(s)!=true&&owner.transformerDeployAudio?.Owns(s)!=true&&owner.transformerReactorAudio?.Owns(s)!=true&&owner.transformerReturnAudio?.Owns(s)!=true){sounds.Add(s);s.Pause();}
@@ -168,7 +260,9 @@ internal sealed class VehicleTransformer:IDisposable {
         returnRequested=true;returnPrepared=false;returnBlocked=false;motionRequested=false;return true;
     }
     public bool RestoreParked(out string reason) {
-        if(!Begin(null,out reason))return false;
+        // Existing wet parked saves remain recoverable. This does not permit a
+        // player to start a new underwater transformation through Begin().
+        if(!BeginCore(null,true,out reason))return false;
         State.RestoreParked();Terrain.Reset(false);
         supportTilt=carTilt=Quaternion.identity;
         body.position=new Vector3(car.position.x,groundY,car.position.z);
@@ -187,12 +281,16 @@ internal sealed class VehicleTransformer:IDisposable {
         var rotation=Quaternion.Euler(0,body.rotation.eulerAngles.y+turnSpeed*Mathf.Lerp(TransformerGait.TurnDegrees,TransformerGait.SprintTurnDegrees,fast)*Time.fixedDeltaTime,0);
         var movement=rotation*Vector3.forward*(moveSpeed*Time.fixedDeltaTime);
         var next=body.position+movement;
-        if(!Ground(next,out float height,out _,out var support)){moveSpeed=0;motionRequested=false;body.MoveRotation(rotation);return;}
-        next.y=Mathf.MoveTowards(body.position.y,height,Time.fixedDeltaTime*18);
+        if((moveSpeed!=0||turnSpeed!=0)&&!WaterPathClear(next,rotation,sprint||Visual.RunBlend>.5f)) {
+            moveSpeed=turnSpeed=0;motionRequested=false;SettleCurrentSupport();return;
+        }
+        if(!Ground(next,out float height,out _,out var support)){moveSpeed=0;motionRequested=false;SettleCurrentSupport();body.MoveRotation(rotation);return;}
+        ReportGrounding(support,height,body.position.y);
+        next.y=TransformerGroundProbe.FollowHeight(body.position.y,height,Time.fixedDeltaTime);
         if(next.y<height-.1f) {next.x=body.position.x;next.z=body.position.z;}
         if(!returnRequested&&Visual.ReadyToWalk)
             impact.Step(car,player!=null?player.GetComponent<Character>():null,next,rotation*Vector3.forward*(forward<0?-1:1),Mathf.Abs(moveSpeed),forward);
-        if(!CoreClear(next,rotation,support)){moveSpeed=0;motionRequested=false;body.MoveRotation(rotation);return;}
+        if(!CoreClear(next,rotation,support)){moveSpeed=0;motionRequested=false;SettleCurrentSupport();body.MoveRotation(rotation);return;}
         // Ground height alone does not require terrain preparation. Latching
         // the open terrain stage here (even at zero speed) holds every armor
         // carrier out forever instead of letting the gait open and close it.
@@ -237,11 +335,13 @@ internal sealed class VehicleTransformer:IDisposable {
         Visual.Evaluate(State.Progress,gaitDt,actualSpeed,actualTurn,motionRequested);HideCar();
     }
     public void Restore(bool preserveReturnAudio=false) {
+        owner.transformerMinigun?.Stop();
         owner.transformerAudio?.Stop();
         owner.transformerTurnAudio?.Stop();ActualTurnRate=0;
         owner.transformerDeployAudio?.Stop();
         owner.transformerReactorAudio?.Stop();
         if(!preserveReturnAudio)owner.transformerReturnAudio?.Stop();
+        waterRecovery=false;
         Mounting=false;Visual.ClearMountPose();
         if(colliders.Count==0)return;
         Visual.Root.SetActive(false);hull.enabled=false;
@@ -258,8 +358,8 @@ internal sealed class VehicleTransformer:IDisposable {
             var point=car.position+new Vector3(Mathf.Cos(angle),0,Mathf.Sin(angle))*(2.5f+ring*1.5f);
             if(!Ground(point,out float height,out _))continue;
             point.y=height+.15f;
-            int count=Physics.OverlapCapsuleNonAlloc(point+Vector3.up*.35f,point+Vector3.up*1.5f,.28f,nearby,Physics.DefaultRaycastLayers,QueryTriggerInteraction.Ignore);
-            bool clear=true;for(int j=0;j<count;j++)if(!Own(nearby[j])){clear=false;break;}
+            int count=Physics.OverlapCapsuleNonAlloc(point+Vector3.up*.35f,point+Vector3.up*1.5f,.28f,nearby,TransformerGroundProbe.MovementMask,QueryTriggerInteraction.Ignore);
+            bool clear=true;for(int j=0;j<count;j++)if(!Own(nearby[j])&&!TransformerGroundProbe.IsFluid(nearby[j])){clear=false;break;}
             if(clear)return point;
         }
         var fallback=car.position+car.right*3;fallback.y=Mathf.Max(car.position.y,groundY)+2;return fallback;

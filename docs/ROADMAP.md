@@ -1,5 +1,127 @@
 # Nächste Aufgaben
 
+## Transformer: Linksklick, Minigun-Anlauf und Laufglut (lokale Entwicklung)
+
+- Roboterminigun feuert mit gehaltener linker Maustaste, Controller weiter
+  LB/L1. Hinweise und HUD angepasst, bestehendes Loslass-Gate bleibt aktiv.
+  Originale Anlaufzeit von 1,5 s bis zum ersten Schuss bleibt erhalten.
+- Motorclips beim Laufzeit-Upload um bis zu 12 dB angehoben und originale
+  feste Rust-Motorschicht ohne Pitchwechsel ergaenzt. Frueher hoerbarer
+  Lautstaerkeaufbau statt fast stummem linearem Einblenden. Einzelpeaks und
+  gemeinsamer Motorbus auf 0,97 begrenzt; zehn feste Audiostimmen.
+  Schuss-/Mechanik-/Bass-/Nachladepegel und Original-WAVs bleiben gleich.
+- Vordere originale Laufoberflaechen bekommen eine eigene, rotierende
+  Glutschicht mit weichem Frontverlauf. Waerme nur durch abgefeuerte Schuesse:
+  sichtbar nach ca. 2 s, volle Glut nach 6 s Dauerfeuer. Danach 2 s halten
+  und ca. 5 s sichtbar abkuehlen; auch inaktive/verborgene Waffen kuehlen ab.
+  Pause haelt die Zeit an. Keine spielmechanische Ueberhitzungssperre.
+- Build sowie 21 Hitze-, 38 Audioadapter-, 31 Minigun-, 145 Steuerungs-,
+  98 Lade- und 47 Dach-Turretchecks bestanden. Audioadapter prueft echte
+  Original-PCM und Cacheunveraendertheit mit Unity-Doubles. Native Glut-
+  darstellung und Lautstaerkeabstimmung muessen im Spiel bestaetigt werden.
+- Lokal mit Backup installiert, alle 107 Dateien per SHA-256 geprueft;
+  nur DLL geaendert, Originalassets und Konfiguration bytegleich. Beide
+  Installations-Backupordner enthalten je zwei Zeitstempelbackups.
+
+## Transformer: Visierkorrektur und echter Wassergrund (lokale Entwicklung)
+
+- Nutzer-Screenshot markiert das gewuenschte Visier unterhalb des bisherigen
+  hohen Punkts. Gemeinsamer HUD-/Zielstrahlpunkt wieder Viewport-Y 0,62;
+  angehobene Robotkamera mit 4,10-m-Pivot bleibt bestehen.
+- Wasserlaufen in originalen installierten Spieldaten erklaert: WaterSurface
+  besitzt neben dem Trigger einen aktiven Non-Trigger-BoxCollider auf Layer
+  Water. IgnoreTrigger allein liess ihn zum hoechsten Boden werden; die
+  daraus berechnete Tiefe war praktisch null. Groundprobe verwendet jetzt
+  Valheims native Boden-Layer und verwirft Fluessigkeitskomponenten explizit.
+  Wasserhoehe und echter Seeboden/Brueckendeck werden separat abgefragt.
+- Bei blockierter Laufbewegung wird die vertikale Bodenannaeherung weiterhin
+  ausgefuehrt. Der kinematische Roboter bleibt dadurch nicht auf einer alten
+  Schwebehoehe haengen. Brusttiefe von ca. 2,758 m bleibt die erlaubte Grenze.
+- Boden- und Hindernismasken getrennt: Figuren bleiben feste Hindernisse,
+  Wasseroberflaechen und Fluessigkeitsvolumen werden in beiden gefiltert.
+  Bei nassem Support oder Bodenspalt begrenzte Diagnose mit echtem Support,
+  Layer, Boden-, Root- und Wasserhoehe (hoechstens eine Meldung pro 10 s).
+- Build, 24 echte Groundprobe-Adapterchecks mit Physics-Doubles (inklusive
+  Wasseroberflaeche vor Seeboden und integrierter Tiefenentscheidung),
+  47 Wasser-, 34 Boden-, 32 Streaming-, 98 Lade- und 31 Minigunchecks
+  bestanden. Unabhaengiger Review ohne Blocker; native Sichtabnahme offen.
+- Mit Backup lokal installiert und alle 107 Dateien per SHA-256 geprueft.
+  Nur DLL geaendert, Modelle/Sounds und Konfiguration unveraendert;
+  beide Backupordner nach erfolgreicher Verifikation auf je zwei Staende.
+
+## Transformer: Zielkamera, Laservisier und Waten (vorheriger lokaler Stand)
+
+- Nutzerabnahme des ersten Minigunstands positiv; Fadenkreuz lag noch auf dem
+  Fahrer. Eigene gemeinsame Transformer-Zielkoordinaten: Viewport (0,5/0,78).
+  HUD projiziert exakt diesen Kamerapunkt; Kameraray verwendet dieselben UVs.
+  Robot-Zielkamera mit 4,10 m Pivot und mindestens 9,5 m freier Distanz,
+  damit Roboter und Fahrer unterhalb des Zielbereichs liegen. Hindernisse
+  duerfen die Kamera weiterhin einziehen. Auto-Framing bleibt unveraendert.
+- Eigenes kleines NFVU2-Lasermodul aussen an der linken Minigunseite.
+  Sichtbarer Strahl mit hellem Kern und oberflaechengebundenem Trefferpunkt;
+  konvergiert zum echten Muendungsziel, eigener Kollisionsweg gegen Waende,
+  Eigenrumpf und Figuren. Strahl nur im aktiven besetzten Robotermodus,
+  Pause/Rueckverwandlung/Stop entfernen ihn. Bestehende Laserfarbe, Staerke
+  und Schalter des Turrets werden genutzt; kein neues importiertes Rustteil.
+- Waten jetzt bis zur Brust statt kompletter Wassersperre: Brustlinie aus
+  Thorax- und Schulterneutralpose minus echter Sohle, derzeit ca. 2,758 m
+  Wassertiefe. Einstieg und Tiefenwechsel bis zur Grenze erlaubt, tiefere
+  Wege/Sprintlandungen blockiert. Echte Grundhoehe bleibt massgeblich;
+  Bruecken und Rueckweg funktionieren weiter. Neue Auto-zu-Roboter-
+  Verwandlungen benoetigen weiterhin einen trockenen Aufstellplatz.
+- Build, 47 Wasser-, 31 Minigun-Modell-/Schadens-, 20 Ziel-, 98 Lade- und
+  18 Kamera-Schrittimpulschecks bestanden; unabhaengiger Code-Review ohne
+  Blocker. Native Sichtpruefung von Kamera/Laser und Waten noch offen.
+- Mit Backup lokal installiert, alle 107 Dateien per SHA-256 geprueft;
+  nur DLL geaendert. Saemtliche Modell-/Sounddateien und Konfiguration
+  bytegleich. Nach erfolgreicher Installation je zwei Zeitstempelbackups
+  in beiden Installations-Backupordnern bestaetigt.
+
+## Transformer: Wassergrenze und Rust-Schulterminigun (erster lokaler Stand)
+
+- Laufen, Sprint, Rueckwaertsgehen und Drehen pruefen den gesamten Weg bis
+  zum naechsten Fussauftritt auf Wasser. Echte Sohlenflaechen und tatsaechliche
+  Colliderhoehen statt Knochelsockel/Meeresspiegel-Wadeclamp; native Wellen
+  und lokale Fluessigkeiten werden beruecksichtigt. Trockene Bruecken bleiben
+  begehbar, Rueckwaertsgehen vom Ufer bleibt moeglich. Neue Verwandlung nur
+  mit trockener Aufstandsflaeche. Bereits nass gespeicherte Roboter duerfen
+  ueber gleich tiefe oder flachere Flaechen ans Ufer; keine tiefere Bewegung.
+- Originales Rust-Minigun-Weltmodell samt Albedo, Laufgelenk und Original-
+  Motor-/Feuer-/Auslauf-/Nachladesamples lokal aus dem vorhandenen Spiel
+  exportiert. Werkzeuge und Herkunfts-/Hashpruefungen reproduzierbar;
+  Originaldateien und generierte Assets bleiben ignoriert. Eigenes NFVU2-
+  Schulterlager mit Drehkranz und Schwenkgelenk folgt der linken Clavicula.
+  Waffe fuer den Roboter 1,4-fach skaliert, getrennte Laufrotation.
+- Zielpunkt und RMB/LB-Steuerung wie beim manuellen Auto-Turret, gleiche
+  erhoehte Reticleposition; echtes Muendungs-Hitscan mit Selbst-/Wandschutz
+  entlang des gesamten Laufs. Kein automatisches Wachen als geparkter Roboter.
+  Vollstaendig ausgefahren und besetzt erforderlich; Pause, Menues, Mounting,
+  Rueckverwandlung und Tod stoppen Feuer und Motor. Munitionsanzeige im HUD.
+- 1000 Schuss pro Magazin, native Rust-Werte 600 RPM/1,5 s Anlauf/3,5 s
+  Nachladen. Automatisches Nachladen sowie R fuer vorzeitiges Nachladen.
+  Vier begrenzte Audioloops und fuenf feste Aktionsstimmen statt Stimmen
+  pro Projektil. Nur 3,34 Stichschaden pro Treffer auf feindliche Kreaturen,
+  keine Explosiv-/Terrain-/Gebaeudetreffer. Das lokale native Greydwarf-
+  Prefab bestaetigt 40 HP und normalen Stichwiderstand: zwoelf gewoehnliche
+  Treffer als Basis; vorhandener Stagger und Weltmodifikatoren gelten weiter.
+- Originalwaffe statisch in Blender visuell geprueft. Native Darstellung,
+  Zielgefuehl, Soundmischung und Wasser-/Brueckenphysik im Spiel noch offen.
+- Montage am vollstaendigen gebackenen Roboter-Endzustand ebenfalls visuell
+  geprueft, Position (-0,83 / 4,10 / -0,04), seitlicher Kopfabstand 36,4 cm.
+  Physisch links nutzt wegen vertauschter Legacy-Rignamen clavicle.R;
+  Gait-Knochenbezeichnungen bleiben unveraendert. Originalgun und Halterung
+  sind oberhalb der Schulterpanzerung sichtbar; kein nativer Animationstest.
+- Build sowie 37 Wasser-, 31 Minigun-Modell-/Schadens-, 98 Lade-, 34 Boden-,
+  20 Ziel-, 47 Dach-Turret-, 40 Schritt-Audio-, 24 Fussspur- und 23 Gras-
+  Callbackchecks bestanden. Installer: fuenf Pythonchecks mit 62 Datei-
+  Engine- und 50 Updatechecks; vier bestehende Rust-Importchecks bestanden.
+  Modell-/Damage-Doubles ersetzen keine native Physik-/Audioabnahme.
+- Lokal mit Backup installiert; alle 107 Dateien per SHA-256 geprueft.
+  Neu: 19 Minigun-Dateien. Von den 88 bisherigen Dateien nur DLL geaendert;
+  alle bisherigen Modelle/Sounds und die Konfiguration bytegleich.
+  Beide Backupordner nach erfolgreicher Pruefung auf je zwei Zeitstaende
+  begrenzt. Noch kein nativer Spiel-/Hoertest.
+
 ## Transformer: temporaere Stampfspuren und Staub (lokale Entwicklung)
 
 - Echte linke/rechte Gait-Fusskontakte erzeugen kurze erdige Staubstoesse

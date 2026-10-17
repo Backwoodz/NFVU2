@@ -39,6 +39,7 @@ internal sealed class VehicleRuntime {
     public VehicleAudio vehicleAudio;
     public TransformerFootstepAudio transformerAudio;
     public TransformerFootstepEffects transformerFootstepEffects;
+    public TransformerMinigun transformerMinigun;
     public bool transformerFootstepEffectsFailed;
     public TransformerTurnAudio transformerTurnAudio;
     public TransformerDeployAudio transformerDeployAudio;

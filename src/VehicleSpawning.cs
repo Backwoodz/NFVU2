@@ -201,6 +201,15 @@ public partial class Plugin {
             LoadStage("Transformer vorbereiten",.96f);
             current.transformer=new VehicleTransformer(current,current.transformerAsset,true);
             foreach(var step in current.transformer.LoadSteps())yield return step;
+            if(assets.Minigun!=null&&assets.MinigunRig!=null) {
+                current.transformerMinigun=new TransformerMinigun();
+                foreach(var step in StagedWork.Optional(current.transformerMinigun.LoadSteps(car,local,
+                    current.transformer.Visual.LeftShoulderMount,Path.Combine(Path.GetDirectoryName(Info.Location),"minigun"),
+                    assets.Minigun,assets.MinigunRig,message=>Logger.LogInfo(message),assets.Audio),error=>{
+                        current.transformerMinigun.Dispose();current.transformerMinigun=null;
+                        Logger.LogWarning("Transformer minigun unavailable: "+error);
+                    }))yield return step;
+            }
         }
         yield return StagedWork.NextFrame;
         // Player/world may have moved since F6. Resolve a free location again.

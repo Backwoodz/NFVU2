@@ -159,6 +159,29 @@ class Program {
             Reject<InvalidDataException>(()=>deleted.FileData(path),"deleted return soundtrack cannot be retrieved from a warm runtime cache");
         }finally{Directory.Delete(root,true);}
     }
+    static void MinigunAssets(string folder,SpawnAssetCache cache) {
+        if(!File.Exists(Path.Combine(folder,"minigun/minigun.json"))||!File.Exists(Path.Combine(folder,"transformer/transformer.json"))) {
+            Console.WriteLine("Optional shoulder minigun assets absent; worker asset checks skipped.");return;
+        }
+        var robot=Task.Run(()=>SpawnAssets.Load(folder,false,cache,CancellationToken.None,true)).GetAwaiter().GetResult();
+        Check(robot.Transformer!=null&&robot.Minigun!=null&&robot.MinigunRig!=null,"worker loads actual robot, original minigun model and validated barrel rig together");
+        Check(robot.Warnings.Count==0,"original minigun assets pass optional worker validation");
+        var warm=SpawnAssets.Load(folder,false,cache,CancellationToken.None,true);
+        Check(ReferenceEquals(robot.Minigun,warm.Minigun)&&ReferenceEquals(robot.MinigunRig,warm.MinigunRig),"repeat robot spawn shares parsed minigun mesh and rig data");
+        foreach(string name in new[]{"spin_start","spin_loop","fire_start","fire_loop","fire_tail","reload"}) {
+            string path=Path.Combine(folder,"minigun",name+".wav");
+            var clip=robot.Audio.FileData(path);
+            Check(clip.Channels==1&&clip.Samples.Length>0&&clip.Samples.Length<=clip.SampleRate*15,"worker decodes bounded original minigun "+name);
+            Check(ReferenceEquals(clip,warm.Audio.FileData(path)),"repeat robot spawn reuses minigun audio "+name);
+        }
+        string temporary=Path.Combine(Path.GetTempPath(),"NFVU2-minigun-rig-"+Guid.NewGuid().ToString("N")+".json");
+        try {
+            File.WriteAllText(temporary,"{\"schemaVersion\":1,\"forward\":\"+Z\",\"up\":\"+Y\",\"units\":\"metres\",\"barrelAxis\":{\"z\":1},\"muzzle\":{\"z\":0.6}}");
+            Check(TransformerMinigunRig.Load(temporary).muzzle.z==.6f,"managed minigun rig reader accepts a bounded forward muzzle");
+            File.WriteAllText(temporary,File.ReadAllText(temporary).Replace("\"z\":1","\"z\":0"));
+            Reject<InvalidDataException>(()=>TransformerMinigunRig.Load(temporary),"invalid minigun spin axis cannot reach runtime construction");
+        } finally {File.Delete(temporary);}
+    }
     static void Main(string[] args) {
         int caller=Thread.CurrentThread.ManagedThreadId;
         var work=new StagedWork(Steps());
@@ -206,6 +229,7 @@ class Program {
         TransformerAudio(assets.Audio.Embedded("road.wav"));
         ReactorAudio(assets.Audio.Embedded("road.wav"));
         ReturnAudio(assets.Audio.Embedded("road.wav"));
+        MinigunAssets(args[0],cache);
         Check(assets.Audio.FileData(Path.Combine(args[0],"audio","effects","nitro.wav")).Samples.Length>0,"native path separators resolve prefetched audio");
         Check(ReferenceEquals(assets.Audio.FileData(Path.Combine(args[0],"audio/effects/nitro.wav")),assets.Audio.FileData(Path.Combine(args[0],"audio","effects","nitro.wav"))),"mixed path separators share one audio key");
         var h2=SpawnAssets.Load(args[0],true,cache,CancellationToken.None);

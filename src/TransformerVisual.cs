@@ -203,6 +203,7 @@ internal sealed partial class TransformerVisual:IDisposable {
         }
         if(progress>=1&&asset.Manifest.walkingReady)Walk(dt,speed,turn,motionRequested);else gait.Reset();
         ApplyMountPose(progress);
+        UpdateShoulderMount();
         UpdateMachineEffects(progress,dt,turn);
         for(int i=0;i<nodes.Length;i++)Apply(nodes[i],pose[i]);
         foreach(var r in renderers)r.Item1.enabled=!r.Item2||progress>=11.5f/120;

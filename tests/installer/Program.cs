@@ -26,6 +26,9 @@ static class Tests {
         if (robot) {
             files.Add(InstallerCore.ModRoot+"audio/transformer/step_01.wav", "robot impact");
             files.Add(InstallerCore.ModRoot+"audio/transformer/manifest.json", "{}");
+            files.Add(InstallerCore.ModRoot+"minigun/minigun.json", "minigun model");
+            files.Add(InstallerCore.ModRoot+"minigun/rig.json", "minigun rig");
+            files.Add(InstallerCore.ModRoot+"minigun/motor_loop.wav", "minigun motor");
         }
         using (var archive = new ZipArchive(stream, ZipArchiveMode.Create, true)) {
             var hashes = new Dictionary<string, string>();
@@ -96,6 +99,10 @@ static class Tests {
 
             Check(InstallerCore.ModName(InstallerCore.ModRoot+"audio/transformer/step_01.wav"), "robot impact path allowed");
             Check(InstallerCore.ModName(InstallerCore.ModRoot+"audio/transformer/manifest.json"), "robot provenance manifest allowed");
+            Check(InstallerCore.ModName(InstallerCore.ModRoot+"minigun/minigun.json"), "shoulder minigun model allowed");
+            Check(InstallerCore.ModName(InstallerCore.ModRoot+"minigun/motor_loop.wav"), "shoulder minigun prepared audio allowed");
+            Check(!InstallerCore.ModName(InstallerCore.ModRoot+"minigun/../private.dll"), "minigun traversal rejected");
+            Check(!InstallerCore.ModName(InstallerCore.ModRoot+"minigun/source.mp3"), "minigun original source excluded");
             Check(!InstallerCore.ModName(InstallerCore.ModRoot+"audio/transformer/../step.wav"), "robot path traversal rejected");
             Check(!InstallerCore.ModName(InstallerCore.ModRoot+"audio/transformer/nested/step.wav"), "nested robot source folder rejected");
             Check(!InstallerCore.ModName(InstallerCore.ModRoot+"audio/transformer/source.mp3"), "original robot recording excluded");
@@ -103,8 +110,12 @@ static class Tests {
             using (var zip = Payload(robot: true)) Core(root).Install(zip);
             Check(Read(root, InstallerCore.ModRoot+"audio/transformer/step_01.wav") == "robot impact", "robot impacts install through normal engine");
             Check(Read(root, InstallerCore.ModRoot+"audio/transformer/manifest.json") == "{}", "robot provenance manifest installed");
+            Check(Read(root, InstallerCore.ModRoot+"minigun/minigun.json") == "minigun model", "original minigun model installs through normal engine");
+            Check(Read(root, InstallerCore.ModRoot+"minigun/rig.json") == "minigun rig", "minigun moving rig installs through normal engine");
+            Check(Read(root, InstallerCore.ModRoot+"minigun/motor_loop.wav") == "minigun motor", "minigun prepared audio installs through normal engine");
             Core(root).Uninstall(true);
             Check(!File.Exists(Path.Combine(root, InstallerCore.ModRoot+"audio/transformer/step_01.wav")), "owned robot impacts uninstall");
+            Check(!File.Exists(Path.Combine(root, InstallerCore.ModRoot+"minigun/minigun.json")), "owned shoulder minigun assets uninstall");
 
             root = Fixture(parent, "corrupt");
             using (var zip = Payload(corrupt: true)) Fails(() => Core(root).Install(zip), "checksum");

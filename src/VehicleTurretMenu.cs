@@ -106,6 +106,7 @@ public partial class Plugin {
         UiLabel(new Rect(25,490,510,26),"Stärke und Farbe gelten für Strahl und Treffpunkt.",mutedStyle);
     }
     void DrawTurretAim() {
+        if(Transforming){DrawTransformerMinigunAim();return;}
         if(!driving||Flying||menuOpen||audioBlocked||hordeWave.Choosing||turret==null||!turret.Enabled||Camera.main==null)return;
         var old=GUI.color;
         try {

@@ -34,5 +34,10 @@ internal sealed partial class TransformerVisual {
         var scale=Root.transform.lossyScale;
         size=new Vector2(contactSizes[side].x*Mathf.Abs(scale.x),contactSizes[side].y*Mathf.Abs(scale.z));
     }
+    public void RestFootContact(bool right,out Vector3 center,out Vector2 size) {
+        if(!contactsCached)CacheFootContacts();
+        int side=right?1:0,foot=ids["foot."+(right?"R":"L")];
+        center=neutral[foot].MultiplyPoint3x4(contactCenters[side]);size=contactSizes[side];
+    }
 }
 }

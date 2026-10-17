@@ -21,7 +21,8 @@ public sealed class SpawnAssetCache {
     }
 }
 public sealed class SpawnAssets {
-    public ModelData Model,Interior,Turret,Flames;
+    public ModelData Model,Interior,Turret,Flames,Minigun;
+    public TransformerMinigunRig MinigunRig;
     public TransformerAsset Transformer;
     public HudData Hud;
     public SpawnAudio Audio;
@@ -41,6 +42,12 @@ public sealed class SpawnAssets {
                 },"Transformer prototype",token);
             result.Optional(()=>result.Interior=cache.Load(Path.Combine(folder,"interior/interior.json"),ModelFile.Load,token),"Cabin",token);
             result.Optional(()=>result.Turret=cache.Load(Path.Combine(folder,"turret/turret.json"),ModelFile.Load,token),"Turret",token);
+            if(transformer&&result.Transformer!=null&&File.Exists(Path.Combine(folder,"minigun/minigun.json")))
+                result.Optional(()=>{
+                    var model=cache.Load(Path.Combine(folder,"minigun/minigun.json"),ModelFile.Load,token);
+                    var rig=cache.Load(Path.Combine(folder,"minigun/rig.json"),TransformerMinigunRig.Load,token);
+                    result.Minigun=model;result.MinigunRig=rig;
+                },"Transformer minigun",token);
         }
         result.Optional(()=>result.Hud=cache.Load(Path.Combine(folder,"hud/hud.json"),HudFile.Load,token),"HUD",token);
         result.Audio=new SpawnAudio(folder,hummer,cache,token);
@@ -64,7 +71,7 @@ public sealed class SpawnAudio {
         var assembly=typeof(SpawnAudio).Assembly;
         foreach(var name in assembly.GetManifestResourceNames())if(name.StartsWith("Rachel350Z.Audio.",StringComparison.Ordinal)&&name.EndsWith(".wav",StringComparison.Ordinal))
             Read(name,()=>cache.Load(assembly.Location,_=>WavPcm16.Read(assembly.GetManifestResourceStream(name)),token,name),token);
-        foreach(var subfolder in hummer?new[]{"audio/effects","audio/hummer"}:new[]{"audio/effects","audio/turbo","turret"}) {
+        foreach(var subfolder in hummer?new[]{"audio/effects","audio/hummer"}:new[]{"audio/effects","audio/turbo","turret","minigun"}) {
             string path=Path.Combine(folder,subfolder);
             if(!Directory.Exists(path))continue;
             foreach(var file in Directory.GetFiles(path,"*.wav"))
