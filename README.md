@@ -20,7 +20,7 @@ Windows 10/11, 64-bit. **Single-player only**; cars and cargo are saved with the
 
 Remove cars through **F9 → Vehicle → Remove vehicle**.
 
-**[Download the Windows installer](https://github.com/Backwoodz/NFVU2/releases/download/v0.30.0/NFVU2-Setup-0.30.0.exe)** — v0.30.0, 142 MiB
+**[Download the Windows installer](https://github.com/Backwoodz/NFVU2/releases/download/v0.31.0/NFVU2-Setup-0.31.0.exe)** — v0.31.0, 154 MiB
 
 1. Close Valheim, run the installer and select **valheim.exe**.
 2. Click **Install / Update**. Music is included; BepInEx is installed if needed.
