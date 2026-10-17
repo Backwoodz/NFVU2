@@ -4,6 +4,10 @@ static class Program {
     static int checks;
     static void Check(bool value,string label){if(!value)throw new Exception(label);checks++;Console.WriteLine("PASS "+label);}
     static void Main() {
+        Check(ControlRules.MenuTabVisible(9,true,true)&&ControlRules.MenuTabVisible(11,true,true),"parked robot exposes minigun and settings categories");
+        foreach(int tab in new[]{0,1,2,3,4,5,6,7,8,10,12})Check(!ControlRules.MenuTabVisible(tab,true,true),"robot hides car tuning and garage category "+tab);
+        Check(ControlRules.MenuNextTab(9,1,13,true,true)==11&&ControlRules.MenuNextTab(11,1,13,true,true)==9
+            &&ControlRules.MenuNextTab(9,-1,13,true,true)==11,"mouse keyboard and controller category policy cycles only safe robot pages");
         Check(ControlRules.VehicleAccess(true,false,true),"E exits an occupied vehicle even with a world object under the cursor");
         Check(ControlRules.VehicleAccess(false,true,false),"E boards a nearby vehicle when no world interaction has priority");
         Check(!ControlRules.VehicleAccess(false,true,true)&&!ControlRules.VehicleAccess(false,false,false),"world interactions and distance prevent unintended E boarding");

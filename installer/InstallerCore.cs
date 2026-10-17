@@ -71,6 +71,7 @@ public sealed class InstallerCore {
         if (!name.StartsWith(ModRoot, StringComparison.Ordinal)) return false;
         string n = name.Substring(ModRoot.Length);
         if (n == "Rachel350Z.dll" || n == "body.json") return true;
+        if (n == "transformer/transformer.json" || n == "transformer/transformer.bin") return true;
         return Regex.IsMatch(n, @"^(radio|menu|audio/turbo|audio/effects|audio/hummer|audio/transformer|hud|hummer|interior|turret|minigun)/[A-Za-z0-9_ .-]+\.(json|wav|ogg)$");
     }
     public static bool LoaderName(string n) {

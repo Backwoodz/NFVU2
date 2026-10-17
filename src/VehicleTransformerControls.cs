@@ -15,7 +15,7 @@ public partial class Plugin {
     bool TransformerToggleDown()=>transformerKey.Value.IsDown()||ControlRules.ControllerTransform(PadDown("transform"),driving,Flying);
     void InitializeTransformer() {
         TransformerFootstepGrass.Initialize(controlsHarmony,message=>Logger.LogInfo(message));
-        transformerEnabled=Config.Bind("TransformerPrototype","Enabled",false,"Enable the local robot playtest. E or B/Circle boards and dismounts by backflip. F10 or RB/R1 transforms while stopped and boarded. Single-player.");
+        transformerEnabled=Config.Bind("TransformerPrototype","Enabled",true,"Enable the experimental 350Z Transformer. E or B/Circle boards and dismounts by backflip. F10 or RB/R1 transforms while stopped and boarded. Single-player.");
         transformerKey=Config.Bind("TransformerPrototype","ToggleKey",new KeyboardShortcut(KeyCode.F10),"Transform or return while stopped. Keyboard toggle; RB/R1 also toggles when boarded and on the ground.");
         transformerCinematic=Config.Bind("TransformerPrototype","CinematicCamera",true,"Cinematic camera during car-to-robot deployment. Mouse look/right stick takes control; return transformation uses the normal camera.");
         transformerMinigunAmmo=Config.Bind("TransformerPrototype","MinigunAmmo","Explosiv",new ConfigDescription("Robot minigun ammunition. Explosiv adds the existing impact blast and small terrain craters.",new AcceptableValueList<string>("Normal","Explosiv")));

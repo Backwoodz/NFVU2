@@ -1,5 +1,31 @@
 # Nächste Aufgaben
 
+## Release 0.31.0: Transformer und Minigun
+
+- Vollstaendiger Transformer-Branch fuer den angeforderten oeffentlichen Release.
+  Installer erlaubt gezielt transformer/transformer.json und transformer.bin;
+  keine allgemeine Freigabe fremder Binaerdateien. Modell, Bewegung, Minigun und
+  vorbereitete Audiodateien werden im regulaeren Payload mitgefuehrt.
+- Frische Konfiguration: Transformer aktiviert. Bestehende Enabled-Werte bleiben
+  erhalten. F9/L3 ist beim besetzten stillstehenden Roboter freigegeben; dort nur
+  Minigun/Einstellungen, keine Fahrzeugumbauten oder Garage waehrend Robotermodus.
+- Alten Sprint-Tracefehler behoben: Reichweitengrenze loest den Abhebevorgang aus,
+  statt auf 60 Prozent des anderen Schwungbeins zu warten und den Standfuss am
+  Anschlag gleiten zu lassen. Gangtempo und Schrittmass unveraendert. Bestehender
+  50-Hz-/60-Hz-Trace: maximale Abweichung 0.940 mm bei unveraenderter 4-mm-Grenze,
+  79 Transformer- und 172 Steuerungschecks bestanden; keine Unity-Physiktests.
+- Vorherige lokale Pruefnotizen weiter unten sind historische Zwischenstaende.
+  Offene Spielpruefungen: unebene Ufer, Hindernisse und Terrain, Ausstattung beim
+  Klettern, Kamera-/Controllergefuehl, gleichzeitige Audioeffekte und neue
+  Installationen. Keine neue native Spielabnahme fuer den Release behauptet.
+- Releasepruefung: Build, 143 Python-Tests und alle 55 Managed-Suiten bestanden.
+  Installer 0.31.0 mit 107 Moddateien, 27 Radiotracks und 129 Payload-Eintraegen
+  vollstaendig gegen Manifest und aktuelle DLL gehasht; eingebettete Ressource
+  entspricht payload.zip. Echter Payload im isolierten Installerkern installiert,
+  aktualisiert und deinstalliert: 76 Checks bestanden. Keine Spielinstallation
+  ueberschrieben. Der bekannte alte Sprint-Tracefehler ist damit kein offener Test
+  mehr; die historischen lokalen Zwischenberichte bleiben zur Nachvollziehbarkeit.
+
 ## Transformer: Explosivmunition als Standard (lokale Entwicklung)
 
 - Eigene TransformerPrototype.MinigunAmmo-Einstellung, Standard Explosiv.

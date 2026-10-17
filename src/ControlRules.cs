@@ -14,9 +14,9 @@ public static class ControlRules {
     }
     public static bool AutomaticTurret(bool flying,bool driving,bool driven,bool parkedAuto)=>flying||!driving&&driven&&parkedAuto;
     public static int MenuMove(int focus,int direction,int count)=>count<=0?0:((focus+direction)%count+count)%count;
-    public static bool MenuTabVisible(int tab,bool vehicleAvailable)=>vehicleAvailable||tab==10||tab==11;
-    public static int MenuNextTab(int tab,int direction,int count,bool vehicleAvailable) {
-        for(int i=0;i<count;i++){tab=MenuMove(tab,direction,count);if(MenuTabVisible(tab,vehicleAvailable))return tab;}
+    public static bool MenuTabVisible(int tab,bool vehicleAvailable,bool robot=false)=>robot?tab==9||tab==11:vehicleAvailable||tab==10||tab==11;
+    public static int MenuNextTab(int tab,int direction,int count,bool vehicleAvailable,bool robot=false) {
+        for(int i=0;i<count;i++){tab=MenuMove(tab,direction,count);if(MenuTabVisible(tab,vehicleAvailable,robot))return tab;}
         return 10;
     }
     public static int MenuHorizontalNeighbor(int focus,int direction,MenuControlBounds[] items) {

@@ -1,65 +1,45 @@
 # Changelog
 
-## Unreleased — Local Transformer locomotion
+## 0.31.0 — 350Z Transformer and Rust minigun
 
-- Enlarge the central reactor flame, emit beyond the containment lip and use
-  camera-facing sprites for frontal visibility; increase rotation to 120 degrees/s.
-- Exclude loose item drops and native destruction fragments from robot obstacle,
-  ground and contact-cover checks. These independent colliders could still stop
-  the machine or create a temporary false floor after a tree was destroyed.
-  Record remaining solid blockers at a throttled rate for local playtest diagnosis.
-- Correct tyre spin to the wheel mesh's own axle rather than the differently
-  oriented panel holder. Increase reactor rotation from 38 to 65 degrees/s;
-  use the existing flame atlas for a visible upward central plasma flame.
-- Let robot movement pass through native tree/log colliders while felling
-  completes, retaining speed instead of stopping for the destruction delay.
-- Reduce sprint stride by about 9 percent, retaining speed and high bounding
-  steps. Roll the four existing wheels in opposite directions on left/right
-  turns while keeping brake calipers stationary.
-- Replace the reactor dome with a recessed metallic cavity, a dim inner core,
-  clockwise rotating original containment hardware and a small plasma flame.
-- Add robot-only native contact damage for small hostile enemies, all native
-  tree species, fallen logs and saplings. Preserve players, tames, bosses,
-  oversized creatures and buildings; cover blocks hits. Falling logs and
-  creatures no longer supply robot ground height.
-- Fix false blocked-door reports by excluding the car's own colliders from
-  the exit-space check and trying nearby outward positions.
-- Stop treating standing trees as walkable ground; limit the surface probe to
-  just above the terrain/root instead of casting down from above tree crowns.
-- Align sprint palms toward the torso using the authored palm plane, replacing
-  fixed 55-degree forearm pronation. Increase robot turning to 90 degrees/s
-  when walking and 65 degrees/s when sprinting, with earlier pivot footsteps.
-- Remove slope/roughness and armor-envelope movement vetoes from the local
-  robot playtest; follow loaded terrain height with a central obstacle core
-  and allow escape from existing overlaps. F7 dismounts immediately; returning
-  to the car no longer requires flat ground or a full transformation sweep.
-- Prepare robot meshes across vehicle-loading frames, removing their first-F10
-  allocation burst and the synchronous full-path preflight in both directions.
-- Retune sprint for longer, higher bounds with longer flight and restrained
-  shoulder angles. Hide the neon tube and mounts below the reactor.
-- Quick local playtest tuning: rearward arm travel with an opening elbow,
-  8.5 m/s sprint, longer steps and greater support-synchronized body heave.
-  Only build and focused controller checks rerun; full geometry review pending.
-- Add a forward sprint while holding Shift (X/Square on a controller), targeting
-  7 m/s with progressive acceleration, longer recovery steps, shorter ground
-  contacts, brief flight phases and stronger bent-arm counter-swing.
-- Check the actual rigid part envelopes when transforming and moving. Fit mild
-  transformation slopes up to 8 degrees and adjust boots to local support planes; distinguish genuine
-  obstacles from empty bounding-box corners touching a supporting convex floor.
-- Include the complete authored hands and fingers in clearance checks and
-  route their motion outside the hip and leg armor.
-- Refine the existing sprint: keep its foot timing and stride, bring arms closer
-  with a smaller, slower swing, and add support-synchronized compression and
-  push-off with about 15 cm of body rise and fall. Walking permits 20-degree
-  slopes and bounded uneven ground; low boot/shin parts may sink slightly into
-  terrain without weakening wall, missing-ground or water checks. Packed-car
-  transformation and return retain their stricter ground requirements.
-- Rework the optional Transformer walk with planted support feet, longer strides,
-  forward-facing knees, weight transfer, forward lean and opposing arm/torso motion.
-  Accelerate progressively, brake before reversing and place feet individually
-  before returning to the car. This remains a local single-player prototype.
-- Preserve the 0.30.0 world-streaming and vehicle persistence baseline; saves during
-  robot mode use the recoverable car height.
+- Transform the 350Z into a pilotable robot and back, with five-second panel
+  animations, articulated walking, sprinting, turning and a rotating flame reactor.
+  Climb onto the robot and dismount with a backflip; keep human knees bending forward.
+- Add the Rust minigun on the left shoulder with mouse/camera aiming, a laser,
+  1000-round magazines, audible spin-up, automatic reload and lingering barrel heat.
+  Left mouse / LB / L1 fires; loaded targets can be engaged up to 250 m away.
+  Direct shots deal 12 pierce damage and confirmed hits show remaining enemy health.
+- Use explosive minigun rounds by default, reusing the existing impact explosions,
+  blast cover checks and small terrain craters. F9 / L3 while the boarded robot is
+  stationary opens its minigun/settings pages, including Normal/Explosive ammunition.
+  The car roof turret retains its separate ammunition setting.
+- Add varied bass-layered footfalls, pivot sounds, short mechanical and hydraulic
+  transformation layers, reactor loops and a late deployment sub-drop. Preserve
+  engine idle under the robot audio and play a separate return transformation mix.
+- Leave temporary dirt footprints and contact dust; flatten nearby grass without
+  permanent footstep terrain deformation. Run over native trees, logs and small
+  hostile enemies while protecting players, tames, bosses and buildings.
+- Allow shallow wading up to the robot's chest, block deeper water and use terrain
+  support rather than floating across lakes. Loose loot and destruction fragments
+  no longer become false ground or stop the robot.
+- Add a tighter cinematic deployment camera with a slow orbit and zoom, obstacle
+  avoidance and smooth handoff. Mouse/right-stick input takes control immediately.
+  Raise the bottom-right vehicle hints so the last line stays on screen.
+- Save and restore parked robot form with the world. Add vehicle map markers and
+  location discovery while driving, earlier restoration of nearby saved vehicles,
+  subtle idle exhaust vapour and nitro purge while coasting.
+- Use E to enter/exit, retaining native object interactions and F7 as an alternative.
+  RB / R1 transforms while boarded and stopped; flight retains its altitude controls.
+- Include the Transformer model, animation, prepared sounds and minigun in the
+  normal installer. Enable the experimental Transformer by default for fresh
+  configurations; existing settings are preserved, including an explicit disable.
+- Lift a sprint support foot before its reach limit makes it slide, retaining the
+  existing stride and speed. The 50 Hz physics / 60 Hz render trace now meets its
+  unchanged 4 mm planted-foot bound.
+
+Experimental single-player feature. Automated checks use controlled doubles;
+Unity terrain, collision, equipment, camera feel and controller hardware still
+need gameplay verification on other installations.
 
 ## 0.30.0 — Persistent vehicles
 

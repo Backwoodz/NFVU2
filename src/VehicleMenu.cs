@@ -38,12 +38,14 @@ public partial class Plugin {
         neonPulsing=BindVehicle("Neon","Pulsing",false,"Pulse the underbody neon.");
         neonColor=BindVehicle("Neon","Color","Grün",new ConfigDescription("Underbody neon colour.",new AcceptableValueList<string>(ColorNames)));
     }
-    bool CanUseVehicleMenu(MonoBehaviour local)=>local!=null&&!Multiplayer()&&!Transforming;
+    bool CanUseVehicleMenu(MonoBehaviour local)=>local!=null&&!Multiplayer()&&(!Transforming
+        ||driving&&!transformerEntryPending&&!transformerExitPending&&current.transformer.ReadyForMount);
     void BlockDrivingInput(bool blockCamera=true){controlsGate.Block();handbrakeHeld=turretHeld=false;throttle=steer=0;current.flightVertical=0;brake=1;honking=false;burnoutHeld=false;nitroHeld=false;nitroInput.Reset();ActiveNitro?.Stop();if(blockCamera)orbitCamera?.InputFrame(false,mouseSensitivity.Value,invertMouseY.Value);}
     void SetVehicleMenu(bool open) {
         if(open==menuOpen)return;
         if(open){
             EnsureMenuAssets();MenuSound(1);hoveredTab=-1;
+            if(Transforming)ChangeMenuTab(9);
             if(!CanAccessCurrent(LocalPlayer()))menuTab=10;
             menuOldLock=Cursor.lockState;menuOldVisible=Cursor.visible;menuOpen=true;
             if(!driving){
@@ -114,7 +116,8 @@ public partial class Plugin {
             UiLabel(new Rect(22,15,650,36),"NFVU2  /  "+(CanAccessCurrent(LocalPlayer())?VehicleName:"Garage"),titleStyle);
             if(UiButton(new Rect(690,19,30,30),"×")){CloseVehicleMenu();return;}
             UiLabel(new Rect(23,57,660,25),"UNDERGROUND GARAGE   /   "+(Flying?DriveModeName:driving?"Fahrzeug bremst":"Tuning & Fahrzeugsteuerung")+"   /   by BCKWDZ",mutedStyle);
-            if(menuTab!=10&&menuTab!=11&&!CanAccessCurrent(LocalPlayer()))ChangeMenuTab(10);
+            if(Transforming&&!ControlRules.MenuTabVisible(menuTab,true,true))ChangeMenuTab(9);
+            else if(menuTab!=10&&menuTab!=11&&!CanAccessCurrent(LocalPlayer()))ChangeMenuTab(10);
             MenuNavigation(CanAccessCurrent(LocalPlayer()));
             uiBuilding=true;
             GUI.BeginGroup(new Rect(180,0,560,522));

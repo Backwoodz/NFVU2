@@ -190,7 +190,10 @@ public sealed class TransformerGait {
         var candidate=nextRight?right:left;var other=nextRight?left:right;
         if(candidate.swing||!other.swing)return;
         bool reach=AtReach(candidate,nextRight,speed,omega);
-        if((nextStep<=anticipation||reach)&&other.elapsed>=other.duration*(reach?.60f:.80f)) {
+        // A supporting foot must lift before its reach clamp starts moving it
+        // across the ground, even while the other foot is early in its swing.
+        // The ordinary timed take-off still waits for late recovery.
+        if(reach||nextStep<=anticipation&&other.elapsed>=other.duration*.80f) {
             float travel=smoothSpeed+(nextRight?1:-1)*smoothTurn*TurnDegrees*(float)Math.PI/180*HalfTrack;
             BeginSwing(candidate,nextRight,(1-Support)/frequency,travel,false);
             nextRight=!nextRight;nextStep=.5f/frequency;

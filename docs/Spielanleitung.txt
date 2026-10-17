@@ -1,4 +1,18 @@
-NFVU2 0.22.0 – 350Z und Hummer H2, lokaler Test für Valheim
+NFVU2 0.31.0 – 350Z, Hummer H2 und experimenteller Transformer für Valheim
+
+NEU: 350Z-TRANSFORMER UND RUST-MINIGUN
+Im besetzten, stillstehenden 350Z am Boden mit F10 / RB / R1 verwandeln.
+WASD / linker Stick bewegt den Roboter, Shift / X / Quadrat sprintet.
+Linke Maustaste / LB / L1 feuert die linke Schulter-Minigun nach dem Hochdrehen.
+1000 Schuss, automatisches Nachladen, 250 m Reichweite und Explosivmunition
+als Standard. F9 / L3 im stillstehenden, besetzten Roboter öffnet Minigun und
+Einstellungen; dort Munition, Laservisier und Lautstärke wählen.
+E / B / Kreis steigt ein oder aus; F7 bleibt eine Alternative. Im Flug behalten
+RB/R1 und LB/L1 ihre Höhensteuerung. Native E-Interaktionen haben zu Fuß Vorrang.
+Neue Konfigurationen aktivieren den experimentellen Transformer. Steht in
+BepInEx/config/local.rachel350z.prototype.cfg unter [TransformerPrototype]
+Enabled = false, bleibt diese Einstellung erhalten; bei geschlossenem Spiel
+auf true ändern. Nur Einzelspieler; unebener Boden und Ausrüstung testen.
 
 NEU: TURBOANZEIGE, SOUND UND KLEINE BÄUME
 Beim 350Z zeigt das kleine linke Instrument jetzt Turbo und Unterdruck.
