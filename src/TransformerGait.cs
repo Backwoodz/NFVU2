@@ -35,6 +35,8 @@ public sealed class TransformerGait {
     public float TorsoRoll {get;private set;}
     public float TorsoYaw {get;private set;}
     public float RunBlend {get;private set;}
+    public uint LeftFootfalls {get;private set;}
+    public uint RightFootfalls {get;private set;}
     public bool Flying=>left.swing&&right.swing;
     public float CurrentStride=>Math.Max(Stride+(SprintStride-Stride)*RunBlend,Math.Max(Math.Abs(left.z),Math.Abs(right.z)));
     public float CurrentLift=>Math.Max(Lift+(SprintLift-Lift)*RunBlend,Math.Max(left.y,right.y));
@@ -286,6 +288,7 @@ public sealed class TransformerGait {
         float landingPitch=leg.settling?0:(9-3*RunBlend)*Clamp(leg.targetZ/.25f,-1,1);
         leg.pitch=leg.startPitch+(landingPitch-leg.startPitch)*t;
         if(leg.elapsed>=leg.duration) {
+            if(leg==right)RightFootfalls++;else LeftFootfalls++;
             leg.swing=false;leg.x=leg.targetX;leg.z=leg.targetZ;leg.y=0;leg.yaw=leg.targetYaw;leg.pitch=landingPitch;leg.age=0;
         }
     }
@@ -310,6 +313,7 @@ public sealed class TransformerGait {
         return walk+(run-walk)*RunBlend;
     }
     public void Reset() {
+        LeftFootfalls=RightFootfalls=0;
         Clear(left);Clear(right);active=false;nextRight=true;frequency=.6f;nextStep=smoothSpeed=smoothTurn=previousSpeed=acceleration=stillTime=runHeave=0;
         Phase=Amount=Release=Left=Right=PelvisHeight=PelvisSide=PelvisYaw=TorsoLean=TorsoRoll=TorsoYaw=RunBlend=0;
     }

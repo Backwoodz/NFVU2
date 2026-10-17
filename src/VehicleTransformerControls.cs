@@ -68,6 +68,8 @@ public partial class Plugin {
             ShowVehicleWarning("Hier fehlt Platz zum Zurueckverwandeln. Erst auf eine freie Flaeche gehen.");
         }
         orbitCamera.RobotBlend=t.State.Progress;
+        orbitCamera.RobotFootsteps(Time.deltaTime,driving&&t.State.CanWalk&&!blocked,
+            t.Visual.LeftFootfalls,t.Visual.RightFootfalls,t.Visual.RunBlend);
         if(t.Active) {
             t.Visual.SetNeon(NeonColors[Math.Max(0,Array.IndexOf(ColorNames,neonColor.Value))],neonEnabled.Value,neonPulsing.Value,
                 NeonColors[Math.Max(0,Array.IndexOf(ColorNames,trunkNeonColor.Value))],trunkNeonEnabled.Value,trunkNeonPulsing.Value,Time.time);

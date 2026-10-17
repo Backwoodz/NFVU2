@@ -11,6 +11,7 @@ public sealed class VehicleOrbitCamera {
     float yaw,pitch=18,distance=6,smoothedDistance=6;
     Vector3 smoothedPivot;
     readonly ChaseCameraState chase=new ChaseCameraState();
+    readonly TransformerStepShake footsteps=new TransformerStepShake();
     bool dynamicMode=true;
     bool active,hadInput;
     bool suv;
@@ -29,6 +30,7 @@ public sealed class VehicleOrbitCamera {
         }
     }
     public void Begin(Transform target,bool hummer=false) {
+        footsteps.Reset();
         suv=hummer;RobotBlend=0;
         vehicle=target;camera=Camera.main;
         oldLock=Cursor.lockState;oldVisible=Cursor.visible;active=true;hadInput=false;
@@ -54,6 +56,7 @@ public sealed class VehicleOrbitCamera {
         if(Input.GetMouseButtonDown(2)){yaw=0;pitch=18;distance=6;chase.Reset(vehicle.eulerAngles.y);}
     }
     public Vector2 ReadMouseDelta()=>mouseDelta();
+    public void RobotFootsteps(float dt,bool enabled,uint left,uint right,float runBlend)=>footsteps.Step(dt,enabled,left,right,runBlend);
     // Menu look owns neither vehicle controls nor the menu cursor.
     public void MenuFrame(Vector2 degrees,float scroll) {
         hadInput=false;
@@ -94,9 +97,13 @@ public sealed class VehicleOrbitCamera {
         }
         // Retract immediately at obstacles, ease back out when the view clears.
         smoothedDistance=clear<smoothedDistance?clear:Mathf.Lerp(smoothedDistance,clear,blend);
-        camera.transform.SetPositionAndRotation(smoothedPivot+direction*smoothedDistance,rotation);
+        if(blocked)footsteps.Stop();
+        if(RobotBlend<=0)footsteps.Reset();
+        var shake=Quaternion.Euler(footsteps.Pitch,0,footsteps.Roll);
+        camera.transform.SetPositionAndRotation(smoothedPivot+direction*smoothedDistance,rotation*shake);
     }
     public void End() {
+        footsteps.Reset();
         if(!active)return;
         Cursor.lockState=oldLock;Cursor.visible=oldVisible;active=false;hadInput=false;vehicle=null;camera=null;
     }

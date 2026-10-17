@@ -4,7 +4,7 @@ from build import build
 from build_support import compile_cs,test_refs,runtime_config
 
 def main():
-    suites=['model','mesh','handling','audio','radio','nitro','impact','transformerimpact','showroom','driving','turret','targeting','terrain','blast','hummer','menu','cabin','flight','loading','lighting','controls','hotbar','rumble','nitroview','horde','hordehull','hordecorpses','turretfireaudio','hordeweather','horderadar','hordeelements','storage','persistence','streaming','placement','transformer','discovery','vehiclemap']
+    suites=['model','mesh','handling','audio','radio','nitro','impact','transformerimpact','showroom','driving','turret','targeting','terrain','blast','hummer','menu','cabin','flight','loading','lighting','controls','hotbar','rumble','nitroview','horde','hordehull','hordecorpses','turretfireaudio','hordeweather','horderadar','hordeelements','storage','persistence','streaming','placement','transformer','discovery','vehiclemap','transformershake']
     parser=argparse.ArgumentParser();parser.add_argument('--skip-build',action='store_true');parser.add_argument('--handling-only',action='store_true')
     parser.add_argument('--suite',action='append',choices=suites,help='Run only these C# suites; repeat to combine.')
     args=parser.parse_args()
@@ -34,6 +34,7 @@ def main():
         elif suite=='streaming':sources.append(BASE/'src/VehicleWorldStreaming.cs')
         elif suite=='discovery':sources.append(BASE/'src/VehicleDiscovery.cs')
         elif suite=='vehiclemap':sources.extend(BASE/'src'/name for name in ('VehicleMap.cs','VehicleMapPins.cs'))
+        elif suite=='transformershake':sources.extend(BASE/'src'/name for name in ('TransformerGait.cs','TransformerStepShake.cs'))
         elif suite=='horde':sources.extend(BASE/'src'/name for name in ('HordeWave.cs','HordeRun.cs','HordePact.cs','HordeBonus.cs','HordeElementRules.cs'))
         elif suite=='hordeweather':sources.append(BASE/'src/HordeWeather.cs')
         elif suite=='horderadar':sources.append(BASE/'src/HordeMapProjection.cs')

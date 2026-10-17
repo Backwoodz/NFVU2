@@ -1,5 +1,17 @@
 # Nächste Aufgaben
 
+## Transformer: Kamera bei Fusslandungen (lokale Entwicklung)
+
+- Jede abgeschlossene Fussschwungphase liefert einen Landekontakt an die
+  Fahrzeugkamera. Ein kleiner Nick-/Rollimpuls klingt innerhalb von 0,24 s aus;
+  linke und rechte Landung rollen gegenlaeufig. Sprint blendet die Staerke
+  bis auf das 1,8-Fache. Keine eigene Schrittuhr und kein dauerndes Wackeln.
+- Kameraabstand und Hindernispruefung bleiben erhalten. Menue, Pause,
+  Fokusverlust, Rueckverwandlung und Ausstieg loeschen den Effekt; blockierte
+  Schritte werden beim Fortsetzen nicht nachgeholt. Gang und Fahrphysik bleiben
+  bis auf reine Landekontaktzaehler unveraendert. Build und 18 gezielte Checks
+  bestanden; Kameragefuehl im Spiel pruefen.
+
 ## Orte im Fahrzeug und Fahrzeugmarker (lokale Entwicklung)
 
 - Der deaktivierte Fahrer erhaelt nach der Sitz-/Transformerpose gezielt

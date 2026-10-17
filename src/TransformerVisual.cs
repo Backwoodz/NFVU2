@@ -28,6 +28,9 @@ internal sealed partial class TransformerVisual:IDisposable {
     public bool Settled=>gait.Settled;
     public bool HoldReady {get;set;}
     public bool FeetSettled=>gait.FeetSettled;
+    public uint LeftFootfalls=>gait.LeftFootfalls;
+    public uint RightFootfalls=>gait.RightFootfalls;
+    public float RunBlend=>gait.RunBlend;
     public Transform Node(string name)=>nodes[ids[name]];
     public Matrix4x4 Pose(int node)=>pose[node];
     public Func<Vector3,Vector4> GroundPlane;
