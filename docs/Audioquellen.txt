@@ -20,6 +20,21 @@ entfernt; uebrige Varianten passen. Verbleibende Dateinamen bleiben stabil
 (step_01 bis step_05 und step_07). Schrittpegel in der Laufzeit um 5 Prozent
 angehoben. Nutzer bestaetigt die angepassten Laufsounds im Spiel als passend.
 
+Zusaetzlicher Bass unter jedem Schritt:
+Nutzerdatei bass.mp3, rund 3,76 s. Der Ausschnitt 0,20–0,48 s liefert einen
+0,28-s-Tieftonimpuls mit 6 ms Ein-/90 ms Ausblendung und maximalem
+80-ms-RMS-Zielpegel 0,20. Der Bassanstieg wird pro Variante mit dem
+mechanischen Auftritt (~15 ms nach Clipstart) ausgerichtet. Alle sechs
+Schritt-WAVs enthalten diese Zusatzschicht, sodass jeder echte Fusskontakt
+den Bass erhaelt; er wird nicht als weitere Zufallsvariante einsortiert.
+tools/prepare_transformer_audio.py --source-dir <Ordner> --bass-file <MP3>
+erzeugt diese Mischungen samt Einzelquellen-/Schnitt-/Pegelmetadaten und
+isolierten mechanischen Hashes. Ohne --bass-file bleiben die urspruenglichen
+mechanischen Exporte reproduzierbar. Keine globale Absenkung der Mechanik,
+kein Time-Stretch oder neue Tonhoehenaenderung bei der Aufbereitung. Die
+bisherige leichte Runtime-Pitchvariation und 5-Prozent-Verstaerkung gelten
+weiter fuer jeden kombinierten Clip. Hoerabstimmung des neuen Basses offen.
+
 Build kopiert nur die optionalen WAVs/Metadaten nach audio/transformer.
 Die Laufzeit decodiert bis zu 16 kurze Schritte im Spawn-Worker; fehlende
 oder defekte optionale Aufnahmen verhindern den Fahrzeugspawn nicht.

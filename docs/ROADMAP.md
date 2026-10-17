@@ -1,5 +1,36 @@
 # Nächste Aufgaben
 
+## Transformer: zusaetzlicher Bass bei jedem Schritt (lokale Entwicklung)
+
+- Nutzeraufnahme bass.mp3 liefert einen kurzen Tieftonimpuls fuer jeden
+  echten Fusskontakt. Ausschnitt 0,20–0,48 s (0,28 s), 6 ms Ein-/90 ms
+  Ausblendung, maximaler 80-ms-RMS-Zielpegel 0,20. Sein Anstieg wird am
+  bestehenden mechanischen Auftritt (~15 ms nach Clipstart) ausgerichtet.
+- Alle sechs bisherigen step_01 bis step_05 und step_07 enthalten die
+  Bassschicht zusaetzlich; keine siebte Zufallsvariante und kein Auslassen
+  einzelner Kontakte. Mechanische Einzelaufnahmen und deren Pegel bleiben
+  erhalten, nur die neue Gruppe nutzt bei Bedarf eine Spitzenbegrenzung.
+  Die Bassschicht ist kurz genug fuer einzelne Sprintkontakte; kein voller
+  langer Ausklang der MP3 unter jedem Schritt.
+- Keine Aenderung an Laufzeit, Gait, Schrittzaehlern, Shuffle oder bisherigem
+  5-Prozent-Schrittgain. Dieselben raeumlichen Stimmen spielen pro Kontakt
+  den kombinierten Clip. Einbau ueber tools/prepare_transformer_audio.py mit
+  optionalem --bass-file; ohne diesen Parameter bleibt der bisherige Export
+  reproduzierbar. Native Hoerabnahme des zusaetzlichen Schrittbasses offen.
+- Build, sechs Aufbereitungschecks mit Originalquellen/CLI-Reproduktion,
+  40 Schritt-Audio-/Modellchecks und 81 Ladechecks bestanden. Unabhaengige
+  Neuberechnung aller sechs Mischungen bestaetigt originale mechanische
+  Grundlagen und Pegel, samplegenaue Attack-Ausrichtung bei 15,011 ms sowie
+  6,47–8,44 dB mehr Tieftonenergie (20–100 Hz in den ersten 0,30 s) in jeder
+  Variante. Kein Clipping; 81 sonstige Payload-Dateien inklusive DLL,
+  Verwandlungen und Reaktor bytegleich. Reviewevidenz unter
+  artifacts/audio-transformer/step-bass-independent-review.json.
+- Bei geschlossenem Valheim lokal installiert, DLL und alle 88 Payload-Dateien
+  per SHA-256 geprueft; Bass und originale Mechanikbasis in jeder der sechs
+  Varianten gesondert bestaetigt. Konfiguration erhalten, beide Backupordner
+  nach erfolgreicher Pruefung auf je zwei Zeitstempelstaende begrenzt.
+  Native Hoerabnahme des zusaetzlichen Schrittbasses noch offen.
+
 ## Transformer: spaeter Sub-Drop bei Auto-zu-Roboter (lokale Entwicklung)
 
 - Nutzeraufnahme brvhrtz-sub-drop-short-232033.mp3 als zusaetzlicher
