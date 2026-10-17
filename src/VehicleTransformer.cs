@@ -178,7 +178,9 @@ internal sealed class VehicleTransformer:IDisposable {
         if(!returnRequested&&Visual.ReadyToWalk)
             impact.Step(car,player!=null?player.GetComponent<Character>():null,next,rotation*Vector3.forward*(forward<0?-1:1),Mathf.Abs(moveSpeed),forward);
         if(!CoreClear(next,rotation,support)){moveSpeed=0;motionRequested=false;body.MoveRotation(rotation);return;}
-        Terrain.ActivateUpright();
+        // Ground height alone does not require terrain preparation. Latching
+        // the open terrain stage here (even at zero speed) holds every armor
+        // carrier out forever instead of letting the gait open and close it.
         groundY=height;body.MovePosition(next);body.MoveRotation(rotation);
     }
     public void Tick(float dt,bool blocked) {

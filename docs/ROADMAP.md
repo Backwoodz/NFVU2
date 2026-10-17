@@ -2,6 +2,13 @@
 
 ## Transformer: Sprint, Handkontakte und Boden V4 (lokale Entwicklung)
 
+- Ausfahrmechanik beim Anlaufen wiederhergestellt: Die vereinfachte
+  Bodenfuehrung aktivierte selbst im Stand dauerhaft die offene Terrainphase.
+  Ohne diesen unbedingten Wechsel steuert wieder der Gang die Panzertraeger:
+  vor dem ersten Schritt ausfahren, nach Fussruhe wieder einfahren.
+  Build und kurze Gang-/Sprintchecks bestanden; die volle Transformer-Suite
+  scheitert beim separaten Sprint-Trace an der Standfussgrenze (117 statt 4 mm).
+  Gangparameter unveraendert; Aus-/Einfahren vom Nutzer im Spiel bestaetigt.
 - Aktuell: Reaktor 120 Grad/s, deutlich groessere Flamme vor dem Einfassungsrand
   mit zur Kamera gerichteten Sprites. Lose Holzbeute und eigenstaendige Truemmer
   werden aus Hindernis-, Boden- und Kontaktdeckungsabfragen entfernt; sie hatten
