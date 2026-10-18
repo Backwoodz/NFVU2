@@ -71,6 +71,7 @@ public partial class Plugin : BaseUnityPlugin {
         if(!ready)return;
         SampleControls();
         var local=LocalPlayer();
+        TickDriftTrack(local);
         TickHordeWeather(local);
         CheckHordeContext(local);
         if(local==null) {
@@ -404,6 +405,6 @@ public partial class Plugin : BaseUnityPlugin {
         status=message;
         if(MessageHud.instance!=null)MessageHud.instance.ShowMessage(MessageHud.MessageType.Center,Tr(message),log:false);
     }
-    void OnDestroy(){DriftSeedFeedback.Clear();ReleaseCameraRumble(gameCamera);ReleaseCameraRumble(menuCamera);controlsHarmony?.UnpatchSelf();TransformerFootstepGrass.Shutdown();if(ControlsOwner==this)ControlsOwner=null;ClearNitroVisuals();CleanupAll();DisposeVehicleMap();hordeWeather?.Dispose();hordeWeather=null;DisposeVehicleHints();fleetMusic?.Dispose();DisposeMenu();}
+    void OnDestroy(){driftTrack?.Clear();DriftSeedFeedback.Clear();ReleaseCameraRumble(gameCamera);ReleaseCameraRumble(menuCamera);controlsHarmony?.UnpatchSelf();TransformerFootstepGrass.Shutdown();if(ControlsOwner==this)ControlsOwner=null;ClearNitroVisuals();CleanupAll();DisposeVehicleMap();hordeWeather?.Dispose();hordeWeather=null;DisposeVehicleHints();fleetMusic?.Dispose();DisposeMenu();}
 }
 }

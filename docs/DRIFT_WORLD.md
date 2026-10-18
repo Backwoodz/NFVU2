@@ -9,7 +9,12 @@ fuer unsere kuenftige Driftstrecke. Die Funktion steckt direkt in der vorhandene
 1. Den aktuellen lokalen NFVU2-Build installieren und Valheim starten.
 2. Eine neue Einzelspielerwelt anlegen. Der Weltname ist frei waehlbar.
 3. Im Feld **Seed** exakt `drift` eingeben. `DRIFT` funktioniert ebenfalls.
-4. Die freie Wiesenflaeche wird unser Baugrund fuer die spaetere Strecke.
+4. Der erste Drift-Testabschnitt entsteht etwa 100 m oestlich vom Weltstart.
+   Folge dem Schild oder der Kartenmarkierung **NFVU2 Drift**. Beim ersten
+   Besuch einige Sekunden fuer den Aufbau der nahen Abschnitte einplanen.
+
+Auch die bestehende `drift`-Welt erhaelt den Testabschnitt beim naechsten Laden.
+Der Bau arbeitet an gerade geladenen Bereichen weiter, waehrend du dich naeherst.
 
 Der Seed-Text wird bei exakt `drift` gruen (auch `DRIFT`). Bei anderen Eingaben
 kehrt seine normale Farbe zurueck. `drift2`, `adrift`, `my-drift` und normale
@@ -21,15 +26,26 @@ installiert bleiben; die Drift-Welt liest keine seiner Einstellungen.
 
 - Flaches Wiesenbiom im Weltinneren, Hoehe 32, zwei Meter ueber dem Meeresspiegel.
   Valheims urspruengliches Verhalten am aeusseren Weltrand bleibt erhalten.
-- Keine neu erzeugten nativen Gebaeude, Startsteine, Baeume, Felsen oder Erzlager.
-  Gras und normale Wiesen-Kreaturen bleiben.
+- Keine zufaelligen Vanilla-Gebaeude, Startsteine, Baeume, Felsen oder Erzlager.
+  Gezielt platzierte Streckenbauteile sind davon getrennt. Gras und normale
+  Wiesen-Kreaturen bleiben ausserhalb der Pflasterung.
 - Standardstart im Weltzentrum bei `(0,32,0)`. Native Ladepruefungen, Betten und
   gespeicherte Logoutpositionen bleiben zustaendig.
 - Selbst gebaute Elemente und Terrainbearbeitungen verwenden die normale
   Weltspeicherung. NFVU2 setzt sie beim Betreten nicht zurueck.
 
-In dieser ersten Stufe entstehen nur der Baugrund und der Startpunkt.
-Die Fahrbahn nach dem Referenzbild, Valheim-Dekorationen und Checkpoints folgen.
+Der erste Fahrabschnitt besteht aus 108 m Gerade, einer weiten 180-Grad-Kehre
+mit 38 m Radius und 108 m Rueckgerade. Die Fahrbahn ist 16 m breit, in der Kurve
+20 m. Sie nutzt echtes Valheim-Pflaster auf dem bestehenden Terrain; Hoehe und
+Fahrzeughandling bleiben gleich. Niedrige Markierungssteine stehen etwa 4 m
+ausserhalb der Fahrbahnkante (bis Steinmitte, ca. 3,5 m freier Auslauf).
+Schilder und zwei Banner markieren Start/Ende. Der Verlauf steht im
+[massstaeblichen Entwurf](DRIFT_TRACK_DESIGN.md), die nativen Materialien in
+[der Bauteilrecherche](DRIFT_TRACK_MATERIALS.md).
+
+Die komplette Strecke nach dem Referenzbild und Checkpoints folgen nach dem
+Fahrtest dieses offenen Abschnitts. Abgeschlossene Abschnitte werden nicht bei
+jedem Laden neu gepflastert; absichtlich entfernte Streckenbauteile bleiben weg.
 NFVU2 fuer eine bebaute `drift`-Welt aktiv lassen, damit deren Grundgelaende beim
 erneuten Laden gleich bleibt.
 
@@ -38,6 +54,7 @@ erneuten Laden gleich bleibt.
 ```powershell
 python tools/build.py
 python tools/test.py --skip-build --suite driftworld
+python tools/test.py --skip-build --suite drifttrack
 python tools/install.py
 ```
 
@@ -57,3 +74,7 @@ Sie laden keine echte Unity-Welt. Der Nutzer hat nach der Pufferkorrektur im
 Spiel bestaetigt, dass die Welt laedt und komplett flach ist. Speichern/Neuladen,
 Weltwechsel, die Seed-Farbe und ein Start mit deaktiviertem FlatGrass bleiben
 als native Pruefungen offen. Mehrspieler ist nicht abgenommen.
+
+Der neue Streckenadapter wurde auf Geometrie, Bereichsgrenzen, gespeicherten
+Fortschritt und echte native Paint-Settings geprueft. Darstellung, Fahrkontakt,
+Schilderstuetzung und Speichern/Neuladen der neuen Strecke sind im Spiel offen.

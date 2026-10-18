@@ -7,6 +7,7 @@ def main():
     suites=['model','mesh','handling','audio','radio','nitro','impact','transformerimpact','showroom','driving','turret','targeting','terrain','blast','hummer','menu','cabin','flight','loading','lighting','controls','hotbar','rumble','nitroview','horde','hordehull','hordecorpses','turretfireaudio','hordeweather','horderadar','hordeelements','storage','persistence','streaming','placement','transformer','discovery','vehiclemap','transformershake','transformermount','exhaustsmoke','transformeraudio','robotidleaudio','transformerturnaudio','transformerdeployaudio','transformerreactoraudio','transformerreturnaudio','transformerfootstepeffects','transformerfootstepgrass','transformerwater','transformerminigun','transformerground','transformerminigunheat','transformerminigunaudio']
     suites.append('transformercamera')
     suites.append('driftworld')
+    suites.append('drifttrack')
     parser=argparse.ArgumentParser();parser.add_argument('--skip-build',action='store_true');parser.add_argument('--handling-only',action='store_true')
     parser.add_argument('--suite',action='append',choices=suites,help='Run only these C# suites; repeat to combine.')
     args=parser.parse_args()
@@ -62,8 +63,9 @@ def main():
         elif suite=='terrain':sources.extend(BASE/'src'/name for name in ('TurretTerrain.cs','TurretState.cs'))
         elif suite=='targeting':sources.extend(BASE/'src'/name for name in ('TurretTargeting.cs','TurretState.cs'))
         elif suite=='blast':sources.extend(BASE/'src'/name for name in ('TurretDamage.cs','TurretState.cs'))
-        elif suite in ('hotbar','rumble','hordehull','hordecorpses','hordeelements','driftworld'):
+        elif suite in ('hotbar','rumble','hordehull','hordecorpses','hordeelements','driftworld','drifttrack'):
             if suite=='driftworld':sources.extend(BASE/'src'/name for name in ('DriftWorldRules.cs','DriftWorldPatches.cs','DriftSeedFeedback.cs'))
+            elif suite=='drifttrack':sources.extend(BASE/'src'/name for name in ('DriftTrackLayout.cs','DriftTrackConstructionPlan.cs','DriftTrackPieces.cs'))
             elif suite=='hordeelements':sources.extend(BASE/'src'/name for name in ('HordeElementCombat.cs','HordeElementStatus.cs','HordeElementRules.cs','HordePact.cs'))
             elif suite=='hordehull':sources.extend(BASE/'src'/name for name in ('VehicleHordeHull.cs','VehicleImpactRules.cs'))
             elif suite=='hordecorpses':sources.extend(BASE/'src'/name for name in ('HordeCorpses.cs','HordeProjectiles.cs'))
@@ -98,7 +100,7 @@ def main():
         if suite=='turret':
             jsondll=out/'Newtonsoft.Json.dll';shutil.copy2(valheim_dir()/'valheim_Data/Managed/Newtonsoft.Json.dll',jsondll);refs.append(jsondll)
             arguments=[str(LOCAL/'turret')]
-        if suite=='driftworld':
+        if suite in ('driftworld','drifttrack'):
             # The installed BepInEx HarmonyX/MonoMod build targets the desktop
             # CLR/Mono. Run actual detours there, not on an unsupported .NET 9.
             from build_installer import framework

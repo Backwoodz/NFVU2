@@ -6,7 +6,7 @@
   built into the existing `Rachel350Z.dll`. FlatGrass is not required.
 - Generate flat Meadows at height 32 without native structures, vegetation or
   ore deposits, and supply a world-centre start point. Keep native world-edge
-  behavior and normal-world generation. No track is placed yet.
+  behavior and normal-world generation.
 - Keep the existing NFVU2 plugin identity and regular build/install workflow.
   No extra world plugin, separate installer or FlatGrass bridge is needed.
 - Highlight the exact `drift` seed in green in the new-world menu, using the
@@ -15,6 +15,13 @@
 - Rewind the native generation-result buffer before its caller reads it. This
   fixes an `EndOfStreamException` that left drift worlds stuck at "Generating".
   The regression test now uses Valheim's actual ZPackage implementation.
+- Add the first 335 m drift test section east of the spawn: two 108 m straights
+  joined by a 38 m radius hairpin, 16–20 m wide. Use native paved terrain,
+  sparse grounded stone guides, supported signs/start banners and a map pin.
+- Build loaded tiles incrementally after native readiness and save progress
+  alongside native terrain data. Resume unfinished tiles; completed construction
+  does not repaint or respawn deliberately dismantled guides on each login.
+  Keep terrain height and vehicle handling unchanged.
 
 ## 0.31.2 — ZIP updates and older installer compatibility
 

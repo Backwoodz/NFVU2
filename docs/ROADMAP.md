@@ -1,5 +1,31 @@
 # Nächste Aufgaben
 
+## Drift-Teststrecke: erster Fahrabschnitt (lokale Entwicklung)
+
+- Teamarbeit fuer native Materialien, Fahrzeugmassstab und Persistenz.
+  [Streckenentwurf](DRIFT_TRACK_DESIGN.md) mit massstaeblichem SVG und
+  [Bauteilrecherche](DRIFT_TRACK_MATERIALS.md) aus lokalen Originaldaten.
+- 335,38 m offener U-Abschnitt etwa 100 m oestlich vom Weltstart: 108 m Gerade,
+  Kehre mit 38 m Radius, 108 m Rueckgerade; Breite 16 bis 20 m. 350Z-Karosserie
+  gemessen: 1,926 x 4,376 m. Handling und Grundhoehe 32 bleiben unveraendert.
+- Native Paved-Farbmaske statt gekachelter Fahrbahncollider. Niedrige geerdete
+  Steinmarkierungen, gestuetzte Schilder/Banner und temporaere Minimap-Markierung.
+  Kein komplettes Referenz-Rundkursmodell und keine Runden-/Checkpointlogik.
+- Inkrementeller Aufbau erst nach nativer Tile-/ZDO-Bereitschaft und lokalem
+  Spielerspawn. Pro Tile native Terrain- und eigene Fortschrittsdaten gemeinsam
+  speichern; ungeladene Nachbarn spaeter bauen. Keine Wiederholung fertiger
+  Tilearbeit und kein automatisches Respawnen absichtlich abgebauter Bauteile.
+- Fortschrittsmarker synchronisieren den nativen TerrainComp-Revisionscache,
+  damit reine Pflasterung keine unnoetigen Collider-Neuaufbauten ausloest.
+- Build und 6029 Streckenpruefungen bestanden, mit Geometrie/Bereichsgrenzen,
+  Fortschritt und echten nativen Paint-Settings. Entwurfs-SVG gerendert geprueft.
+  Zusaetzlich Driftwelt-, Steuerungs-, Handling-, Persistenz- und Ladechecks bestanden.
+- Lokal mit Backup installiert: 107 Payload-Dateien per SHA-256 geprueft,
+  nur Rachel350Z.dll geaendert, FlatGrass-DLL und aktuelle Konfigurationen
+  bytegleich. Zwei Zeitstempelbackups im verwendeten Installationsbackupordner.
+- Offen: echte Fahrt/Drift, sichtbare Pflasterraender und Bauteilstuetzung sowie
+  Speichern/Neuladen. Nach diesem Fahrtest den kompletten Kurs mit S-Kurven planen.
+
 ## Drift-Bauwelt in NFVU2 (lokale Entwicklung)
 
 - Eigene Welterzeugung fuer den exakten Seed `drift`, direkt in der vorhandenen
@@ -33,10 +59,7 @@
   Speichern/Neuladen, Wechsel zu normalen Welten, ein Start mit deaktiviertem
   FlatGrass und die gerenderte Seed-Anzeige. Beide verwendeten Backupordner
   halten hoechstens zwei Zeitstempelstaende.
-- Naechster Schritt: Streckenverlauf und Massstab anhand des Referenzbildes
-  festlegen. Zuerst einen kurzen Fahrbahnabschnitt aus Valheim-Elementen bauen
-  und Breite, Uebergaenge sowie Fahrbarkeit mit dem 350Z pruefen, dann den
-  vollstaendigen Rundkurs aufbauen. Noch keine Fahrbahn oder Checkpoints vorhanden.
+- Streckenverlauf und Massstab sowie erster U-Testabschnitt siehe oben.
 
 ## Release 0.31.2: ZIP-Updater und Kompatibilität
 
