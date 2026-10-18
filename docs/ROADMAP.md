@@ -15,6 +15,10 @@
 - Alle 129 Payload-Einträge, 107 Moddateien und 27 Radiotracks gehasht;
   106 Nicht-DLL-Moddateien bytegleich zu 0.31.1. Eingebettete Ressource,
   EXE-/ZIP-Prüfsummen und identische EXE in der ZIP verifiziert. ZIP: 153,85 MiB.
+- Öffentlicher Release nach Upload geprüft: alle vier Assets heruntergeladen und
+  gehasht. Unveränderter 0.31.0-Updater erkennt 0.31.2 als EXE; neuer Updater
+  bevorzugt die ZIP und lädt/prüft/entpackt das echte öffentliche Paket zu exakt
+  derselben EXE. Kein Installer gestartet, keine Spielinstallation verändert.
 
 ## Release 0.31.1: Installer als ZIP
 

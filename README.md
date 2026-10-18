@@ -20,9 +20,9 @@ Windows 10/11, 64-bit. **Single-player only**; cars and cargo are saved with the
 
 Remove cars through **F9 → Vehicle → Remove vehicle**.
 
-**[Download the Windows installer (ZIP)](https://github.com/Backwoodz/NFVU2/releases/download/v0.31.1/NFVU2-Setup-0.31.1.zip)** — v0.31.1, 154 MiB
+**[Download the Windows installer (ZIP)](https://github.com/Backwoodz/NFVU2/releases/download/v0.31.2/NFVU2-Setup-0.31.2.zip)** — v0.31.2, 154 MiB
 
-1. Download and **extract the ZIP**, close Valheim, then run **NFVU2-Setup-0.31.1.exe** and select **valheim.exe**.
+1. Download and **extract the ZIP**, close Valheim, then run **NFVU2-Setup-0.31.2.exe** and select **valheim.exe**.
 2. Click **Install / Update**. Music is included; BepInEx is installed if needed.
 3. Launch Valheim, enter a single-player world and press **F9 / L3 → Garage** to spawn a car.
 
@@ -41,9 +41,10 @@ Drive with **WASD** or the **left stick + triggers**. On-screen hints show the r
 Customization and language settings are in **F9 / L3**.
 
 To update or uninstall, run the installer again and select the same game.
-For updates, download the latest ZIP from [Releases](https://github.com/Backwoodz/NFVU2/releases/latest),
-extract it and run the included setup. The existing installer update downloader
-requires standalone EXE assets and cannot download ZIP releases automatically.
+Installer 0.31.2 and newer download and verify ZIP updates automatically.
+Older installers can update through the identical compatibility EXE provided with
+each release. You can also download and extract the latest ZIP from
+[Releases](https://github.com/Backwoodz/NFVU2/releases/latest).
 The ZIP contains the Windows setup EXE; it is not a manual-install mod package.
 
 ### Gameplay
