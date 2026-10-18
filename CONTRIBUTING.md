@@ -95,7 +95,7 @@ The project skills separate local builds from GitHub publication:
 `/installer` (or `$installer`) builds and verifies a local setup, then removes
 older local installers after success. `/release` (or `$release`) prepares a new
 version, builds and tests it, commits and pushes the release changes, creates
-a version tag and publishes a GitHub Release with the installer and checksum.
+a version tag and publishes a GitHub Release with the installer ZIP and checksum.
 Use `/release` only when you intend to publish; creating or editing the skill
 does not publish anything. A normal push does not invoke either skill.
 
@@ -116,7 +116,7 @@ Run `python tools/extract_music.py` and rebuild the mod to supply it.
 The installer embeds the same user-provided logo as the README from
 `docs/images/nfvu2-logo.png`. Its `LICENSE` window has a Close button and supports
 Escape and Enter.
-Mod and installer share one Major.Minor.Patch version, currently 0.31.0.
+Mod and installer share one Major.Minor.Patch version, currently 0.31.1.
 Use minor versions for features and patch versions for fixes, including installer fixes.
 There is no separate setup revision. Update both `src/NFVU2.csproj` and the
 `BepInPlugin` attribute together; the builder checks that they match. Existing
@@ -126,8 +126,9 @@ provides a Changelog window (release notes for an available update, packaged not
 It compares Major.Minor.Patch numerically, verifies downloaded EXEs with the release's
 SHA-256 sidecar and available GitHub digests, then starts the new setup with the selected
 Valheim path. The new setup performs the installation with its own normal guards.
-Publish a matching `NFVU2-Setup-<version>.exe` and `.sha256` pair under the
-matching `v<version>` release tag. Legacy revision filenames remain readable for
+The existing update downloader requires a standalone EXE/checksum asset pair;
+it cannot download the new ZIP releases. Users must download the ZIP from GitHub
+and extract it before running setup. Legacy revision filenames remain readable for
 compatibility, but revisions never affect update ordering. Existing public r6 EXEs
 require a one-time manual download of 0.29.0 or later to gain update detection.
 A local build does not change public downloads.
@@ -137,9 +138,22 @@ files from the installed game, private plugins, local config, source archives
 or everything under `artifacts/`. Changing a pinned dependency requires
 checking its source and updating its digest deliberately.
 
-The EXE is unsigned. Creating it does not publish a GitHub Release or change
-repository visibility. Release uploads should contain the player EXE and its
-checksum, with version-specific notes and results of the manual checks below.
+After verifying the installer and its embedded payload, create the public package:
+
+```powershell
+python tools/package_installer.py
+```
+
+Release uploads contain `NFVU2-Setup-<version>.zip` and its `.zip.sha256`
+sidecar. The ZIP contains exactly the setup EXE, its original `.sha256` and
+`INSTALL.txt`; do not upload a standalone EXE unless explicitly requested.
+The wrapper is stored without another compression pass because the payload is
+already compressed. It preserves the verified setup bytes and adds an extraction
+step. It is not a manual-install mod archive and does not make the EXE safer.
+
+The EXE is unsigned. Creating it or its ZIP does not publish a GitHub Release or
+change repository visibility. Include version-specific notes and results of the
+manual checks below.
 Create a version tag only for an actual release, pointing to the commit used
 to build its downloadable installer. Development snapshots and local builds
 do not receive tags; the former prototype tag `v0.1.5` was retired.

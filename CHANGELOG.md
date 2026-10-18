@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.31.1 — Installer ZIP download
+
+- Distribute the Windows installer in `NFVU2-Setup-0.31.1.zip`, with the setup
+  EXE, its SHA-256 checksum and extraction/installation instructions inside.
+  Publish a separate SHA-256 checksum for the ZIP.
+- Extract the ZIP before running the setup. BepInEx, all 27 radio tracks,
+  models, sounds and gameplay are unchanged from 0.31.0; only the shared
+  mod/installer version and release packaging change.
+- Download future ZIP releases from GitHub manually. The existing installer
+  update downloader requires standalone EXE assets and cannot load ZIP releases.
+  ZIP packaging does not change the executable's security properties.
+
 ## 0.31.0 — 350Z Transformer and Rust minigun
 
 - Transform the 350Z into a pilotable robot and back, with five-second panel

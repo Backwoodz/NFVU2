@@ -1,4 +1,4 @@
-NFVU2 0.31.0 – 350Z, Hummer H2 und experimenteller Transformer für Valheim
+NFVU2 0.31.1 – 350Z, Hummer H2 und experimenteller Transformer für Valheim
 
 NEU: 350Z-TRANSFORMER UND RUST-MINIGUN
 Im besetzten, stillstehenden 350Z am Boden mit F10 / RB / R1 verwandeln.
@@ -357,8 +357,14 @@ Flammen-/Gasanimation, Düsenpositionen und Boost-Abstimmung sind Mod-Anpassunge
 Die Felgen besitzen nun einen hellen Chromring und einen goldbronzenen Stern.
 
 INSTALLATION
-Valheim schließen, dann python tools/install.py ausführen. Der Installer
+Die Release-ZIP vollständig entpacken und Valheim schließen. Die enthaltene
+NFVU2-Setup-0.31.1.exe starten, valheim.exe auswählen und Install / Update
+anklicken. BepInEx und alle 27 Radiotitel sind enthalten. Der Installer
 sichert die vorherigen Dateien und prüft alle Kopien mit SHA-256.
+Neue ZIP-Releases manuell von https://github.com/Backwoodz/NFVU2/releases/latest
+laden; der bisherige automatische Installer-Download unterstützt nur EXE-Assets.
+Die ZIP enthält weiterhin eine Setup.exe; es ist kein manuelles Modpaket.
+Für lokale Entwicklung: Valheim schließen, dann python tools/install.py ausführen.
 Manuell: den gesamten Inhalt von artifacts/mod/ nach
 <Valheim>/BepInEx/plugins/Rachel350Z/ kopieren, einschließlich radio/ und
 audio/turbo/ und audio/effects/. Plugin-ID und Rachel350Z.dll heißen weiterhin wie zuvor.

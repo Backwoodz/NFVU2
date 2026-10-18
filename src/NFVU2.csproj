@@ -3,7 +3,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <LangVersion>latest</LangVersion>
     <AssemblyName>Rachel350Z</AssemblyName>
-    <Version>0.31.0</Version>
+    <Version>0.31.1</Version>
     <ValheimDir Condition="'$(ValheimDir)' == ''">$(NFVU2_VALHEIM)</ValheimDir>
     <ManagedDir>$(ValheimDir)/valheim_Data/Managed</ManagedDir>
   </PropertyGroup>

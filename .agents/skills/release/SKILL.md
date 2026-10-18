@@ -1,6 +1,6 @@
 ---
 name: release
-description: Veröffentliche einen NFVU2-Release auf GitHub mit Versionstag, Release-Notizen, geprüftem Windows-Installer und SHA-256. Verwenden bei /release, $release oder einem ausdrücklichen Veröffentlichungsauftrag.
+description: Veröffentliche einen NFVU2-Release auf GitHub mit Versionstag, Release-Notizen, geprüftem Windows-Installer als ZIP und SHA-256. Verwenden bei /release, $release oder einem ausdrücklichen Veröffentlichungsauftrag.
 ---
 
 # NFVU2 GitHub Release
@@ -39,6 +39,18 @@ Veröffentlichungsauftrag. `/installer` baut ausschließlich lokal.
   Release-Notizen mit konkreten Änderungen, Installationshinweis, Plattform und
   Prüfergebnissen. Behaupte nur durchgeführte Spieltests. Schreibe die Notizen unter
   `artifacts/` und verwende bei `gh` `--notes-file` für echte Zeilenumbrüche.
+- Verpacke danach mit `python tools/package_installer.py` die geprüfte EXE als
+  `artifacts/installer/NFVU2-Setup-<version>.zip`. Die ZIP enthält exakt die EXE,
+  ihre `.sha256` und `INSTALL.txt`; die äußere Prüfsumme heißt
+  `NFVU2-Setup-<version>.zip.sha256`. Prüfe ZIP-Inhalt, CRC, enthaltene EXE gegen
+  die ursprüngliche EXE-Prüfsumme und die ZIP gegen ihre eigene Prüfsumme.
+  Die Nutzlast ist bereits komprimiert; die äußere ZIP darf ZIP_STORED verwenden.
+- Dies ist der Standard für künftige Releases: ZIP mit dem bisherigen Installer,
+  kein manuelles Modpaket. Lade keine eigenständige EXE hoch, außer bei einem
+  ausdrücklichen abweichenden Auftrag. Versprich keine zusätzliche Sicherheit
+  durch ZIP. Anleitung: vollständig entpacken, dann enthaltene Setup.exe starten.
+  Der bestehende Updater benötigt EXE-Assets; weise auf den manuellen ZIP-Download
+  hin, solange kein gesondert beauftragtes ZIP-Updater-Update implementiert ist.
 - Committe den geprüften Stand einschließlich gemeinsamer Mod-/Installer-Version mit
   expliziten Dateipfaden. Ignorierte Assets/Binaries bleiben lokal. Der Tag muss
   exakt auf den Commit zeigen, dessen Build-Eingaben den Installer erzeugt haben.
@@ -49,12 +61,13 @@ Veröffentlichungsauftrag. `/installer` baut ausschließlich lokal.
 
 ## GitHub-Release
 
-- Erstelle zuerst einen Draft mit Tag, Titel, Notizen und der verifizierten EXE
-  samt `.sha256` als Assets. Lade weder `.rsp` noch `payload.zip` hoch.
+- Erstelle zuerst einen Draft mit Tag, Titel, Notizen und der verifizierten
+  Installer-ZIP samt `.zip.sha256` als Assets. Lade weder eine eigenständige EXE
+  noch deren innere `.sha256`, `.rsp` oder `payload.zip` hoch.
   GitHub stellt die Source-code-Archive selbst bereit. Mit CLI beispielsweise:
 
 ```powershell
-gh release create <tag> <installer.exe> <installer.sha256> --repo Backwoodz/NFVU2 --verify-tag --draft --title <title> --notes-file <notes-file>
+gh release create <tag> <installer.zip> <installer.zip.sha256> --repo Backwoodz/NFVU2 --verify-tag --draft --title <title> --notes-file <notes-file>
 gh release view <tag> --repo Backwoodz/NFVU2 --json url,isDraft,tagName,assets
 ```
 
@@ -62,7 +75,9 @@ gh release view <tag> --repo Backwoodz/NFVU2 --json url,isDraft,tagName,assets
   Wiederholungsversuchen, ob Draft oder Upload bereits existieren. Bestehende
   Assets nicht blind mit `--clobber` ersetzen; beachte unveränderliche Releases.
 - Lade hochgeladene Assets in ein separates ignoriertes Prüfverzeichnis herunter
-  und vergleiche ihre SHA-256 mit lokalen Dateien. Prüfe Tag, Zielcommit, Titel und
+  und vergleiche ihre SHA-256 mit lokalen Dateien. Öffne auch die heruntergeladene
+  ZIP und prüfe die enthaltene EXE gegen die ursprüngliche EXE-Prüfsumme.
+  Prüfe Tag, Zielcommit, Titel und
   Notizen. Bei Fehlern belasse den Draft und melde den Fehler.
 - Bei Veröffentlichungsauftrag publiziere den geprüften Draft, beispielsweise
   mit `gh release edit <tag> --repo Backwoodz/NFVU2 --draft=false`.
@@ -74,7 +89,7 @@ gh release view <tag> --repo Backwoodz/NFVU2 --json url,isDraft,tagName,assets
 
 ## Abschluss
 
-Liefere den direkten GitHub-Release-Link, Version/Tag, Installer-Downloadlink und
+Liefere den direkten GitHub-Release-Link, Version/Tag, ZIP-Downloadlink und
 Prüfergebnis; benenne ausstehende Spieltests. Bei fehlendem Zugriff erledige die
 lokalen Vorbereitungen und nenne den noch erforderlichen Anmeldeschritt.
 Ein normaler Push führt diesen Skill nicht aus; ein automatischer

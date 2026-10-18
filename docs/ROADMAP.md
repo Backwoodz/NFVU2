@@ -1,5 +1,21 @@
 # Nächste Aufgaben
 
+## Release 0.31.1: Installer als ZIP
+
+- Reiner Verpackungsrelease: Setup.exe, innere SHA-256 und INSTALL.txt in einer
+  ZIP, dazu eine äußere ZIP-Prüfsumme. Künftige /release-Aufrufe veröffentlichen
+  diese ZIP statt einer eigenständigen EXE. Vollständig entpacken, dann Setup starten.
+- Gemeinsame Mod-/Installer-Version 0.31.1; keine Änderung an Gameplay, Modellen,
+  Sounds oder Musik gegenüber 0.31.0. Keine neue Spielabnahme behauptet.
+- Bestehender Installer-Updater benötigt EXE-Assets. ZIP-Releases werden manuell
+  von GitHub heruntergeladen. Eine ZIP-Updater-Implementierung ist nicht Teil
+  dieses Verpackungsauftrags.
+- Build und vollständige Testsuite bestanden: 145 Python-Tests (10 übersprungen)
+  und 55 Managed-Suiten. Alle 129 Payload-Einträge gehasht; 107 Moddateien mit
+  27 Radiotracks enthalten. 106 Nicht-DLL-Dateien bytegleich zu 0.31.0, einzige
+  Plugin-Quelländerung ist die Versionsangabe. Eingebettete Ressource, EXE- und
+  ZIP-Prüfsummen sowie unveränderte EXE-Bytes in der ZIP geprüft. ZIP: 153,84 MiB.
+
 ## Release 0.31.0: Transformer und Minigun
 
 - Vollstaendiger Transformer-Branch fuer den angeforderten oeffentlichen Release.
