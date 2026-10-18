@@ -36,7 +36,7 @@ public static class DriftTrackPieces {
         pieces.Add(new DriftTrackPiece("wood_pole2",x,.9f,z,yaw));
         double radians=yaw*Math.PI/180;
         pieces.Add(new DriftTrackPiece("sign",x-.2f*(float)Math.Sin(radians),1.4f,
-            z-.2f*(float)Math.Cos(radians),yaw,text));
+            z-.2f*(float)Math.Cos(radians),(yaw+180)%360,text));
     }
 }
 public struct DriftTrackPiece {

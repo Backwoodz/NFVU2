@@ -17,6 +17,7 @@ internal sealed class DriftTrackBuilder {
     readonly List<Tile> tiles=new List<Tile>();
     readonly Action<string> log;
     readonly HashSet<string> missing=new HashSet<string>();
+    readonly List<ZDOID> legacySigns=new List<ZDOID>();
     readonly AnimationCurve paintCurve=new AnimationCurve(new Keyframe(0,1),new Keyframe(.99f,1),new Keyframe(1,0));
     ZDOMan world;
     Game game;
@@ -38,7 +39,7 @@ internal sealed class DriftTrackBuilder {
         if(failed||world==null||game==null||game.IsShuttingDown()||Time.timeScale<=0||ZNetScene.instance==null||ZoneSystem.instance==null)return;
         try {
             UpdatePin();
-            if(Time.unscaledTime>=nextScan){Discover();nextScan=Time.unscaledTime+.5f;}
+            if(Time.unscaledTime>=nextScan){CorrectLegacySigns();Discover();nextScan=Time.unscaledTime+.5f;}
             // Bounded main-thread work; never ask the terrain builder to load
             // remote zones or hold up the game's world-loading coroutines.
             int work=0;
@@ -72,6 +73,34 @@ internal sealed class DriftTrackBuilder {
         }
     }
     bool Ready(Vector3 position)=>ZoneSystem.instance.IsZoneLoaded(position)&&ZNetScene.instance.IsAreaReady(position);
+    void CorrectLegacySigns() {
+        // World chunks may arrive later. Revisit the small authored-piece index
+        // during discovery rather than assuming every sign was present at entry.
+        legacySigns.Clear();
+        foreach(var id in ZDOExtraData.GetAllZDOIDsWithHash(ZDOExtraData.Type.Int,PieceTag.GetStableHashCode())) {
+            var data=world.GetZDO(id);
+            if(data!=null&&data.GetPrefab()=="sign".GetStableHashCode()&&data.GetInt(PieceTag)==1
+                &&data.GetInt(DriftTrackSignCorrection.VersionKey)==0)legacySigns.Add(id);
+        }
+        for(int i=legacySigns.Count-1;i>=0;i--) {
+            var data=world.GetZDO(legacySigns[i]);
+            if(data==null||data.GetInt(DriftTrackSignCorrection.VersionKey)>0){legacySigns.RemoveAt(i);continue;}
+            var root=ZNetScene.instance.FindInstance(data.m_uid);
+            if(root==null||root.GetComponent<ZNetView>()?.IsOwner()!=true)continue;
+            var position=data.GetPosition();
+            foreach(var piece in DriftTrackPieces.Items) {
+                if(!DriftTrackSignCorrection.LegacyPose(piece,position.x,position.y-DriftWorldRules.GroundHeight,position.z,
+                    data.GetRotation().eulerAngles.y,data.GetString(ZDOVars.s_text)))continue;
+                var legacy=Quaternion.Euler(0,piece.Yaw-180,0);
+                if(Quaternion.Angle(data.GetRotation(),legacy)>.5f||Quaternion.Angle(root.transform.rotation,legacy)>.5f)continue;
+                var corrected=Quaternion.Euler(0,piece.Yaw,0);
+                root.transform.rotation=corrected;data.SetRotation(corrected);
+                data.Set(DriftTrackSignCorrection.VersionKey,1);
+                break;
+            }
+            legacySigns.RemoveAt(i);
+        }
+    }
     bool Step(Tile tile) {
         if(tile.Map==null||tile.Compiler==null||!tile.Compiler.IsOwner()||!Ready(tile.Map.transform.position))return false;
         int progress=DriftTrackConstructionPlan.ResumeIndex(tile.Data.GetInt(PaintProgress),tile.Paint.Count);
@@ -119,6 +148,7 @@ internal sealed class DriftTrackBuilder {
                 var sign=root.GetComponent<Sign>();
                 if(sign==null)throw new InvalidOperationException("Track sign prefab lacks Sign");
                 sign.SetText(piece.Text);
+                data.Set(DriftTrackSignCorrection.VersionKey,1);
             }
         } catch {
             if(root.GetComponent<ZNetView>()?.GetZDO()!=null)ZNetScene.instance.Destroy(root);
@@ -133,6 +163,6 @@ internal sealed class DriftTrackBuilder {
         if(map!=null)pin=map.AddPin(new Vector3(DriftTrackLayout.StartX,DriftWorldRules.GroundHeight,DriftTrackLayout.StartZ),Minimap.PinType.Icon3,"NFVU2 Drift",false,false);
     }
     void RemovePin(){if(map!=null&&pin!=null)map.RemovePin(pin);map=null;pin=null;}
-    internal void Clear(){RemovePin();tiles.Clear();missing.Clear();world=null;game=null;nextScan=0;cursor=0;failed=false;}
+    internal void Clear(){RemovePin();tiles.Clear();missing.Clear();legacySigns.Clear();world=null;game=null;nextScan=0;cursor=0;failed=false;}
 }
 }

@@ -22,6 +22,9 @@
   alongside native terrain data. Resume unfinished tiles; completed construction
   does not repaint or respawn deliberately dismantled guides on each login.
   Keep terrain height and vehicle handling unchanged.
+- Turn generated sign faces away from their supporting posts. Correct saved
+  NFVU2 signs when their original position, text and rotation are unchanged;
+  preserve player edits and do not reconstruct dismantled signs.
 
 ## 0.31.2 — ZIP updates and older installer compatibility
 

@@ -2,6 +2,16 @@
 
 ## Drift-Teststrecke: erster Fahrabschnitt (lokale Entwicklung)
 
+- Nutzer-Screenshots bestaetigen sichtbaren Streckenverlauf, Pflaster,
+  Markierungssteine und Banner im Spiel. Schildschrift war zum Pfosten gedreht:
+  Rootrotation um 180 Grad korrigiert, Position und native Stuetze bleiben.
+  Vorhandene eigene Schilder werden nur bei unveraenderter Originalpose und
+  Originaltext korrigiert. Keine Wiederherstellung abgebauter/veraenderter Teile.
+- Build, 6057 Strecken-/Schildpruefungen und 124 Driftweltpruefungen bestanden.
+  Neue Schildausrichtung und gespeicherte Korrektur im Spiel noch zu pruefen.
+- Nutzer ist mit dem aktuellen Drift-Handling unzufrieden. Referenzspiel und
+  konkrete Stoerungen werden als Grundlage der naechsten Fahrphysikarbeit
+  geklaert; diese Schildkorrektur veraendert das Handling nicht.
 - Teamarbeit fuer native Materialien, Fahrzeugmassstab und Persistenz.
   [Streckenentwurf](DRIFT_TRACK_DESIGN.md) mit massstaeblichem SVG und
   [Bauteilrecherche](DRIFT_TRACK_MATERIALS.md) aus lokalen Originaldaten.
@@ -23,7 +33,7 @@
 - Lokal mit Backup installiert: 107 Payload-Dateien per SHA-256 geprueft,
   nur Rachel350Z.dll geaendert, FlatGrass-DLL und aktuelle Konfigurationen
   bytegleich. Zwei Zeitstempelbackups im verwendeten Installationsbackupordner.
-- Offen: echte Fahrt/Drift, sichtbare Pflasterraender und Bauteilstuetzung sowie
+- Offen: abgestimmte Fahrt/Drift, genaue Pflasterraender und Bauteilstuetzung sowie
   Speichern/Neuladen. Nach diesem Fahrtest den kompletten Kurs mit S-Kurven planen.
 
 ## Drift-Bauwelt in NFVU2 (lokale Entwicklung)

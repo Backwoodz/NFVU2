@@ -62,9 +62,29 @@ static class Program {
             Check(DriftTrackPieces.Items.Any(piece=>piece.Prefab=="wood_pole2"&&piece.X==flag.X&&piece.Z==flag.Z&&piece.HeightOffset==2.85f),"upper grounded-chain pole supports each high flag");
         }
     }
+    static void SignCorrection() {
+        foreach(var sign in DriftTrackPieces.Items.Where(piece=>piece.Prefab=="sign")) {
+            float oldYaw=sign.Yaw-180;
+            Check(DriftTrackSignCorrection.LegacyPose(sign,sign.X,sign.HeightOffset,sign.Z,oldYaw,sign.Text),"unchanged saved v1 sign qualifies for correction");
+            Check(DriftTrackSignCorrection.LegacyPose(sign,sign.X,sign.HeightOffset,sign.Z,oldYaw+360,sign.Text),"equivalent wrapped legacy rotation qualifies");
+            Check(!DriftTrackSignCorrection.LegacyPose(sign,sign.X,sign.HeightOffset,sign.Z,sign.Yaw,sign.Text),"corrected sign is not rotated again");
+            Check(!DriftTrackSignCorrection.LegacyPose(sign,sign.X+.1f,sign.HeightOffset,sign.Z,oldYaw,sign.Text),"moved player sign is preserved");
+            Check(!DriftTrackSignCorrection.LegacyPose(sign,sign.X,sign.HeightOffset+.1f,sign.Z,oldYaw,sign.Text),"vertically moved sign is preserved");
+            Check(!DriftTrackSignCorrection.LegacyPose(sign,sign.X,sign.HeightOffset,sign.Z,oldYaw+15,sign.Text),"player rotation is preserved");
+            Check(!DriftTrackSignCorrection.LegacyPose(sign,sign.X,sign.HeightOffset,sign.Z,oldYaw,sign.Text+"!"),"edited sign text is preserved");
+            Check(!DriftTrackSignCorrection.LegacyPose(sign,sign.X,sign.HeightOffset,sign.Z,float.NaN,sign.Text),"invalid stored rotation is rejected");
+            var pole=DriftTrackPieces.Items.Single(piece=>piece.Prefab=="wood_pole2"&&piece.HeightOffset==.9f
+                &&Math.Abs(piece.X-sign.X)<=.21&&Math.Abs(piece.Z-sign.Z)<=.21);
+            double angle=sign.Yaw*Math.PI/180;
+            double tx=sign.X+.07*Math.Sin(angle)-pole.X,tz=sign.Z+.07*Math.Cos(angle)-pole.Z;
+            Check(Math.Sqrt(tx*tx+tz*tz)>.26,"measured native text plane faces beyond the support pole");
+        }
+        var stone=DriftTrackPieces.Items.First(piece=>piece.Prefab=="stone_wall_2x1");
+        Check(!DriftTrackSignCorrection.LegacyPose(stone,stone.X,stone.HeightOffset,stone.Z,stone.Yaw-180,stone.Text),"non-sign guide pieces never qualify");
+    }
     static void Main(string[] args) {
         checks+=LayoutTests.Run();checks+=PlanTests.Run();
-        Pieces();Native(args[0],args[1]);
+        Pieces();SignCorrection();Native(args[0],args[1]);
         Console.WriteLine(checks+" drift track checks passed (geometry, tile progress, native API/settings). No Unity driving/render/save-load test performed.");
     }
 }

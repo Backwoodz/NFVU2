@@ -97,10 +97,14 @@ mit der tatsaechlichen Fahrzeughuelle beurteilt werden.
   Ein nativer Licht-/Bauteiltest muss deren Sichtwirkung, Kontakt und Verhalten
   nach Speichern/Neuladen bestaetigen.
 - Ein `wood_pole2` bei Bodenhoehe 32 mit Ursprung Y=32,9 gruendet 0,1 m im
-  Boden. Ein `sign` bei Y=33,4 mit gleicher Ausrichtung und 0,20 m Versatz
-  entlang der lokalen Z-Achse hat etwa 4 cm Colliderueberlappung zum Pfosten.
-  Das erlaubt die native Stuetzpruefung ohne pauschales Abschalten von
-  WearNTear. Die Schildvorderseite muss im Spiel visuell geprueft werden.
+  Boden. Ein `sign` bei Y=33,4 und -0,20 m Versatz entlang der lokalen
+  Pfosten-Z-Achse hat etwa 4 cm Colliderueberlappung zum Pfosten.
+  Das Schild selbst muss um 180 Grad gegenueber dem Pfosten gedreht sein:
+  Sein natives Canvas liegt lokal bei Z=+0,07 m. Mit der urspruenglich gleichen
+  Rotation lag die Schrift bei -0,13 m im Pfosten; gedreht liegt sie bei
+  -0,27 m, also 7 cm vor dessen Oberflaeche. Die symmetrische Colliderbox bleibt
+  gestuetzt. Nutzer-Screenshot und lokale Canvas-Transformdaten bestaetigen
+  diese Ursache. Die korrigierte Vorderseite ist erneut im Spiel zu pruefen.
 - `Sign.SetText(string)` ist public und verwendet die native Zugangspruefung,
   ClaimOwnership, Text-/Autor-/Anzeigename-ZDOs und die native Aktualisierung
   mit Sichtrechten. Dies ist der vorgesehene Initialisierungspfad. Ein direkter
