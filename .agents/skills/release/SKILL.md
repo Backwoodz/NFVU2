@@ -45,12 +45,13 @@ Veröffentlichungsauftrag. `/installer` baut ausschließlich lokal.
   `NFVU2-Setup-<version>.zip.sha256`. Prüfe ZIP-Inhalt, CRC, enthaltene EXE gegen
   die ursprüngliche EXE-Prüfsumme und die ZIP gegen ihre eigene Prüfsumme.
   Die Nutzlast ist bereits komprimiert; die äußere ZIP darf ZIP_STORED verwenden.
-- Dies ist der Standard für künftige Releases: ZIP mit dem bisherigen Installer,
-  kein manuelles Modpaket. Lade keine eigenständige EXE hoch, außer bei einem
-  ausdrücklichen abweichenden Auftrag. Versprich keine zusätzliche Sicherheit
-  durch ZIP. Anleitung: vollständig entpacken, dann enthaltene Setup.exe starten.
-  Der bestehende Updater benötigt EXE-Assets; weise auf den manuellen ZIP-Download
-  hin, solange kein gesondert beauftragtes ZIP-Updater-Update implementiert ist.
+- Standard: ZIP als Hauptdownload, dazu dieselbe EXE und ihre innere `.sha256`
+  als Kompatibilitätsassets für ältere Installer (einschließlich 0.31.0/0.31.1).
+  Nicht auf ZIP-only umstellen: ältere bereits heruntergeladene Installer können
+  ihre EXE-Suche nicht nachträglich ändern. Ab 0.31.2 bevorzugt der Updater die ZIP,
+  prüft äußere und innere SHA-256 und startet die verifizierte entpackte EXE.
+  Es bleibt ein Installerpaket, kein manuelles Modpaket. Versprich keine zusätzliche
+  Sicherheit durch ZIP. Für manuelle Downloads: entpacken, dann Setup.exe starten.
 - Committe den geprüften Stand einschließlich gemeinsamer Mod-/Installer-Version mit
   expliziten Dateipfaden. Ignorierte Assets/Binaries bleiben lokal. Der Tag muss
   exakt auf den Commit zeigen, dessen Build-Eingaben den Installer erzeugt haben.
@@ -61,13 +62,13 @@ Veröffentlichungsauftrag. `/installer` baut ausschließlich lokal.
 
 ## GitHub-Release
 
-- Erstelle zuerst einen Draft mit Tag, Titel, Notizen und der verifizierten
-  Installer-ZIP samt `.zip.sha256` als Assets. Lade weder eine eigenständige EXE
-  noch deren innere `.sha256`, `.rsp` oder `payload.zip` hoch.
+- Erstelle zuerst einen Draft mit Tag, Titel, Notizen und genau vier Assets:
+  Installer-ZIP, `.zip.sha256`, identische Kompatibilitäts-EXE und deren `.sha256`.
+  Lade weder `.rsp` noch `payload.zip` hoch.
   GitHub stellt die Source-code-Archive selbst bereit. Mit CLI beispielsweise:
 
 ```powershell
-gh release create <tag> <installer.zip> <installer.zip.sha256> --repo Backwoodz/NFVU2 --verify-tag --draft --title <title> --notes-file <notes-file>
+gh release create <tag> <installer.zip> <installer.zip.sha256> <installer.exe> <installer.sha256> --repo Backwoodz/NFVU2 --verify-tag --draft --title <title> --notes-file <notes-file>
 gh release view <tag> --repo Backwoodz/NFVU2 --json url,isDraft,tagName,assets
 ```
 
@@ -77,11 +78,16 @@ gh release view <tag> --repo Backwoodz/NFVU2 --json url,isDraft,tagName,assets
 - Lade hochgeladene Assets in ein separates ignoriertes Prüfverzeichnis herunter
   und vergleiche ihre SHA-256 mit lokalen Dateien. Öffne auch die heruntergeladene
   ZIP und prüfe die enthaltene EXE gegen die ursprüngliche EXE-Prüfsumme.
+  Vergleiche sie auch mit der separat hochgeladenen Kompatibilitäts-EXE.
   Prüfe Tag, Zielcommit, Titel und
   Notizen. Bei Fehlern belasse den Draft und melde den Fehler.
 - Bei Veröffentlichungsauftrag publiziere den geprüften Draft, beispielsweise
   mit `gh release edit <tag> --repo Backwoodz/NFVU2 --draft=false`.
-  Prüfe danach die erreichbare Release-Seite und beide Download-Assets.
+  Prüfe danach die erreichbare Release-Seite und alle vier Download-Assets.
+  Prüfe den öffentlichen neuesten Release mit altem Updater-Code (EXE wird
+  erkannt) und neuem Code (ZIP wird bevorzugt). Der echte ZIP-Download muss eine
+  geprüfte EXE für die Übergabe liefern; den Installer dabei nicht ins Spiel
+  installieren oder die heruntergeladene EXE ungefragt starten.
   Bezeichne einen Entwurf nie als veröffentlicht.
 - Aktualisiere anschließend README-Downloadlink und Größenangabe auf das
   tatsächlich veröffentlichte Asset; committe und pushe diese Dokumentationsänderung.

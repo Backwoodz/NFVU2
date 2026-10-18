@@ -116,19 +116,22 @@ Run `python tools/extract_music.py` and rebuild the mod to supply it.
 The installer embeds the same user-provided logo as the README from
 `docs/images/nfvu2-logo.png`. Its `LICENSE` window has a Close button and supports
 Escape and Enter.
-Mod and installer share one Major.Minor.Patch version, currently 0.31.1.
+Mod and installer share one Major.Minor.Patch version, currently 0.31.2.
 Use minor versions for features and patch versions for fixes, including installer fixes.
 There is no separate setup revision. Update both `src/NFVU2.csproj` and the
 `BepInPlugin` attribute together; the builder checks that they match. Existing
 installer files are never overwritten; use the next project version for a changed build.
 The installer asynchronously checks GitHub's latest stable public release and
 provides a Changelog window (release notes for an available update, packaged notes offline).
-It compares Major.Minor.Patch numerically, verifies downloaded EXEs with the release's
-SHA-256 sidecar and available GitHub digests, then starts the new setup with the selected
-Valheim path. The new setup performs the installation with its own normal guards.
-The existing update downloader requires a standalone EXE/checksum asset pair;
-it cannot download the new ZIP releases. Users must download the ZIP from GitHub
-and extract it before running setup. Legacy revision filenames remain readable for
+It compares Major.Minor.Patch numerically and prefers the installer ZIP plus its
+`.zip.sha256` sidecar. It verifies the downloaded archive against the sidecar and
+available GitHub digest, then verifies the expected inner setup EXE against its
+included checksum before handing off with the selected Valheim path. Only the EXE
+is extracted; unexpected archive entries, links, sizes and checksums are rejected.
+The new setup performs the installation with its own normal guards.
+Older installers, including 0.31.0 and 0.31.1, require standalone EXE/checksum assets.
+Keep publishing that identical compatibility pair alongside the primary ZIP download.
+New installers also accept EXE-only releases. Legacy revision filenames remain readable for
 compatibility, but revisions never affect update ordering. Existing public r6 EXEs
 require a one-time manual download of 0.29.0 or later to gain update detection.
 A local build does not change public downloads.
@@ -144,9 +147,10 @@ After verifying the installer and its embedded payload, create the public packag
 python tools/package_installer.py
 ```
 
-Release uploads contain `NFVU2-Setup-<version>.zip` and its `.zip.sha256`
-sidecar. The ZIP contains exactly the setup EXE, its original `.sha256` and
-`INSTALL.txt`; do not upload a standalone EXE unless explicitly requested.
+Release uploads contain `NFVU2-Setup-<version>.zip`, its `.zip.sha256` sidecar,
+and the identical `NFVU2-Setup-<version>.exe` plus its `.sha256` for older updaters.
+The ZIP contains exactly the setup EXE, its original `.sha256` and `INSTALL.txt`.
+Keep README links and the main release download instructions on the ZIP.
 The wrapper is stored without another compression pass because the payload is
 already compressed. It preserves the verified setup bytes and adds an extraction
 step. It is not a manual-install mod archive and does not make the EXE safer.

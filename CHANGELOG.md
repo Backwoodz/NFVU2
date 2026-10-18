@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.31.2 — ZIP updates and older installer compatibility
+
+- Detect and prefer installer ZIP releases, verify the ZIP checksum, extract
+  only the expected setup EXE and verify its inner checksum before starting it.
+  Keep the selected Valheim path and update handoff behavior.
+- Reject unexpected ZIP contents, linked entries, oversized files and incorrect
+  checksums. Cancellation and failed downloads clean up their own partial files.
+- Keep ZIP as the main download and publish the identical standalone EXE and its
+  checksum for older installers, including 0.31.0 and 0.31.1. Those installers
+  can update to this version; this version can use ZIP updates thereafter.
+- Gameplay, models, sounds and all 27 radio tracks remain unchanged.
+
 ## 0.31.1 — Installer ZIP download
 
 - Distribute the Windows installer in `NFVU2-Setup-0.31.1.zip`, with the setup

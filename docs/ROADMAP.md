@@ -1,5 +1,21 @@
 # Nächste Aufgaben
 
+## Release 0.31.2: ZIP-Updater und Kompatibilität
+
+- Neuer Installer bevorzugt ZIP-Releases, prüft äußere ZIP- und innere EXE-SHA-256,
+  entpackt nur die erwartete Setup.exe und übergibt weiterhin den gewählten
+  Valheim-Pfad. Keine allgemeinen ZIP-Pfade oder zusätzlichen Programme ausführen.
+- ZIP bleibt Hauptdownload. Identische EXE mit ihrer Prüfsumme zusätzlich für
+  0.31.0/0.31.1 und andere bisherige Installer; diese erkennen so den neuen Release.
+- Gemeinsame Version 0.31.2. Gameplay und Assets unverändert. Keine Installation
+  ins echte Spiel und keine neue native Spielabnahme für diese Updater-Korrektur.
+- Build, 145 Python-Tests (10 übersprungen) und alle 55 Managed-Suiten bestanden;
+  darunter 103 Update- und 71 Installerkern-Prüfungen. ZIP-Download, innere/äußere
+  Hashes, ungültige Archive, Abbruch, Alt-EXE-Fallback und Dateierhalt geprüft.
+- Alle 129 Payload-Einträge, 107 Moddateien und 27 Radiotracks gehasht;
+  106 Nicht-DLL-Moddateien bytegleich zu 0.31.1. Eingebettete Ressource,
+  EXE-/ZIP-Prüfsummen und identische EXE in der ZIP verifiziert. ZIP: 153,85 MiB.
+
 ## Release 0.31.1: Installer als ZIP
 
 - Reiner Verpackungsrelease: Setup.exe, innere SHA-256 und INSTALL.txt in einer

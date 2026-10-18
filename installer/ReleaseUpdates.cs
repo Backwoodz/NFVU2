@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
@@ -27,6 +28,8 @@ public sealed class UpdateRelease {
         Version=version; Notes=notes; Page=page; Setup=setup; Checksum=checksum;
     }
     public string Display { get { return Version.ToString(); } }
+    public bool IsZip { get { return Setup.Name.EndsWith(".zip",StringComparison.Ordinal); } }
+    public string ExecutableName { get { return IsZip?Path.ChangeExtension(Setup.Name,".exe"):Setup.Name; } }
     public bool IsNewerThan(Version current) {
         return Version.CompareTo(new Version(current.Major,current.Minor,Math.Max(0,current.Build)))>0;
     }
@@ -55,7 +58,7 @@ public sealed class ReleaseUpdates : IDisposable {
     sealed class ApiAsset { public string name {get;set;} public string browser_download_url {get;set;} public string digest {get;set;} public long size {get;set;} }
     sealed class ApiRelease { public string tag_name {get;set;} public string body {get;set;} public bool draft {get;set;} public bool prerelease {get;set;} public ApiAsset[] assets {get;set;} }
     // Recognize old published assets for compatibility; new builds have no revision suffix.
-    static readonly Regex SetupName=new Regex(@"^NFVU2-Setup-(\d+\.\d+\.\d+)(?:-r([1-9]\d*))?\.exe$");
+    static readonly Regex SetupName=new Regex(@"^NFVU2-Setup-(\d+\.\d+\.\d+)(?:-r([1-9]\d*))?\.(exe|zip)$");
     public static UpdateRelease Parse(string json) {
         var release=new JavaScriptSerializer { MaxJsonLength=2*1024*1024 }.Deserialize<ApiRelease>(json);
         if(release==null || release.draft || release.prerelease || !Regex.IsMatch(release.tag_name??"",@"^v\d+\.\d+\.\d+$"))
@@ -71,19 +74,21 @@ public sealed class ReleaseUpdates : IDisposable {
             var match=SetupName.Match(asset.name??""); int revision=0; Version assetVersion;
             if(!match.Success || !Version.TryParse(match.Groups[1].Value,out assetVersion) || assetVersion!=version
                 || match.Groups[2].Success && !Int32.TryParse(match.Groups[2].Value,out revision))continue;
-            string checksumName=Path.ChangeExtension(asset.name,".sha256");
+            bool zip=match.Groups[3].Value=="zip";
+            if(zip && match.Groups[2].Success)continue;
+            string checksumName=zip?asset.name+".sha256":Path.ChangeExtension(asset.name,".sha256");
             var checksum=assets.SingleOrDefault(a=>a.name==checksumName);
             if(checksum==null)continue;
             var setup=Asset(asset,release.tag_name,MaxInstaller);
             var hash=Asset(checksum,release.tag_name,8192);
-            long rank=match.Groups[2].Success?revision:Int64.MaxValue;
+            long rank=zip?Int64.MaxValue:match.Groups[2].Success?revision:Int64.MaxValue-1;
             if(selected==null || rank>selectedRank) {
                 selectedRank=rank;
                 selected=new UpdateRelease(version,(release.body??"").Substring(0,Math.Min(131072,(release.body??"").Length)),
                     Repository+"/releases/tag/"+release.tag_name,setup,hash);
             }
         }
-        if(selected==null)throw new IOException("The latest release has no complete Windows installer and checksum pair.");
+        if(selected==null)throw new IOException("The latest release has no complete Windows installer ZIP/EXE and checksum pair.");
         return selected;
     }
     static ReleaseAsset Asset(ApiAsset asset,string tag,long maximum) {
@@ -154,10 +159,12 @@ public sealed class ReleaseUpdates : IDisposable {
         return match.Groups[1].Value.ToLowerInvariant();
     }
     public async Task<string> Download(UpdateRelease release,string directory,IProgress<UpdateProgress> progress,CancellationToken token) {
-        InstallerCore.Safe(directory,release.Setup.Name);
+        InstallerCore.Safe(directory,release.ExecutableName);
         Directory.CreateDirectory(directory);
-        string target=InstallerCore.Safe(directory,release.Setup.Name),partial=InstallerCore.Safe(directory,release.Setup.Name+".download");
-        if(File.Exists(target) || File.Exists(partial))throw new IOException("Update destination is already in use.");
+        string target=InstallerCore.Safe(directory,release.ExecutableName),partial=InstallerCore.Safe(directory,release.Setup.Name+".download");
+        string extracted=InstallerCore.Safe(directory,release.ExecutableName+".download");
+        if(File.Exists(target) || File.Exists(partial) || File.Exists(extracted))throw new IOException("Update destination is already in use.");
+        bool ownPartial=false,ownExtracted=false;
         using(var timeout=CancellationTokenSource.CreateLinkedTokenSource(token)) {
             timeout.CancelAfter(TimeSpan.FromMinutes(20));
             try {
@@ -176,6 +183,7 @@ public sealed class ReleaseUpdates : IDisposable {
                     using(var abort=timeout.Token.Register(()=>input.Dispose()))
                     using(var output=new FileStream(partial,FileMode.CreateNew,FileAccess.Write,FileShare.None,131072,true))
                     using(var sha=SHA256.Create()) {
+                        ownPartial=true;
                         var buffer=new byte[131072];long total=0;int count;var clock=Stopwatch.StartNew();
                         while((count=await input.ReadAsync(buffer,0,buffer.Length,timeout.Token).ConfigureAwait(false))!=0) {
                             total+=count;
@@ -191,8 +199,60 @@ public sealed class ReleaseUpdates : IDisposable {
                 }
                 timeout.Token.ThrowIfCancellationRequested();
                 if(InstallerCore.Hash(partial)!=expected)throw new IOException("Saved installer checksum verification failed.");
-                File.Move(partial,target);return target;
-            } catch { if(File.Exists(partial))File.Delete(partial);timeout.Token.ThrowIfCancellationRequested();throw; }
+                timeout.Token.ThrowIfCancellationRequested();
+                if(release.IsZip) {
+                    string extractedHash;
+                    using(var output=new FileStream(extracted,FileMode.CreateNew,FileAccess.Write,FileShare.None,131072,true)) {
+                        ownExtracted=true;
+                        extractedHash=await ExtractSetup(partial,release.ExecutableName,output,timeout.Token).ConfigureAwait(false);
+                    }
+                    if(InstallerCore.Hash(extracted)!=extractedHash)throw new IOException("Saved extracted installer checksum verification failed.");
+                    timeout.Token.ThrowIfCancellationRequested();
+                    File.Delete(partial);ownPartial=false;
+                    File.Move(extracted,target);ownExtracted=false;
+                } else { File.Move(partial,target);ownPartial=false; }
+                return target;
+            } catch {
+                if(ownPartial && File.Exists(partial))File.Delete(partial);
+                if(ownExtracted && File.Exists(extracted))File.Delete(extracted);
+                timeout.Token.ThrowIfCancellationRequested();throw;
+            }
+        }
+    }
+    static async Task<string> ExtractSetup(string path,string executable,Stream output,CancellationToken token) {
+        token.ThrowIfCancellationRequested();
+        using(var input=File.OpenRead(path))
+        using(var archive=new ZipArchive(input,ZipArchiveMode.Read)) {
+            string checksum=Path.ChangeExtension(executable,".sha256");
+            var names=new[]{executable,checksum,"INSTALL.txt"};
+            if(archive.Entries.Count!=names.Length || names.Any(name=>archive.Entries.Count(e=>e.FullName==name)!=1)
+                || archive.Entries.Any(e=>((e.ExternalAttributes>>16)&0xf000)==0xa000 || (e.ExternalAttributes&0x400)!=0))
+                throw new IOException("Unexpected files or linked entries in the installer ZIP.");
+            var setup=archive.GetEntry(executable);var hash=archive.GetEntry(checksum);var instructions=archive.GetEntry("INSTALL.txt");
+            if(setup.Length<=0 || setup.Length>MaxInstaller || hash.Length<=0 || hash.Length>8192 || instructions.Length>65536)
+                throw new IOException("Invalid installer ZIP entry size.");
+            string expected;
+            using(var source=hash.Open())using(var bytes=new MemoryStream()) {
+                var buffer=new byte[8192];int count;
+                while((count=await source.ReadAsync(buffer,0,buffer.Length,token).ConfigureAwait(false))!=0) {
+                    if(bytes.Length+count>8192)throw new IOException("Installer ZIP checksum is too large.");
+                    bytes.Write(buffer,0,count);
+                }
+                if(bytes.Length!=hash.Length)throw new IOException("Truncated installer ZIP checksum.");
+                expected=ParseChecksum(Encoding.UTF8.GetString(bytes.ToArray()),executable);
+            }
+            using(var source=setup.Open())using(var sha=SHA256.Create()) {
+                var buffer=new byte[131072];long total=0;int count;
+                while((count=await source.ReadAsync(buffer,0,buffer.Length,token).ConfigureAwait(false))!=0) {
+                    token.ThrowIfCancellationRequested();total+=count;
+                    if(total>setup.Length || total>MaxInstaller)throw new IOException("Extracted installer exceeds its expected size.");
+                    await output.WriteAsync(buffer,0,count,token).ConfigureAwait(false);
+                    sha.TransformBlock(buffer,0,count,buffer,0);
+                }
+                sha.TransformFinalBlock(new byte[0],0,0);
+                if(total!=setup.Length || Hex(sha.Hash)!=expected)throw new IOException("Extracted installer checksum verification failed. Nothing was started.");
+            }
+            return expected;
         }
     }
     public void Dispose() { http.Dispose(); }

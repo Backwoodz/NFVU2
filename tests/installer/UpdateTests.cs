@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography;
@@ -16,6 +17,56 @@ static class UpdateTests {
     static string Hash(byte[] bytes) { using(var sha=SHA256.Create())return BitConverter.ToString(sha.ComputeHash(bytes)).Replace("-","").ToLowerInvariant(); }
     static string Name(string version="0.29.1",int revision=0) { return "NFVU2-Setup-"+version+(revision==0?"":"-r"+revision)+".exe"; }
     static byte[] Checksum(string name=null) { return Encoding.UTF8.GetBytes(Hash(Payload)+"  "+(name??Name())+"\n"); }
+    static string ZipName { get { return Path.ChangeExtension(Name(),".zip"); } }
+    static ZipArchiveEntry ZipEntry(ZipArchive archive,string name) {
+        var entry=archive.CreateEntry(name);entry.LastWriteTime=new DateTimeOffset(2020,1,1,0,0,0,TimeSpan.Zero);return entry;
+    }
+    static byte[] ZipPayload(string failure="") {
+        if(failure=="not-zip")return Payload;
+        using(var stream=new MemoryStream()) {
+            using(var zip=new ZipArchive(stream,ZipArchiveMode.Create,true)) {
+                var entry=ZipEntry(zip,failure=="path"?"../escaped.exe":Name());
+                if(failure=="symlink")entry.ExternalAttributes=unchecked((int)0xa1ff0000);
+                using(var output=entry.Open()) {
+                    var bytes=failure=="inner-corrupt"?new byte[]{1,2,3}:failure=="empty-exe"?new byte[0]:Payload;
+                    output.Write(bytes,0,bytes.Length);
+                }
+                if(failure!="missing-checksum")using(var output=ZipEntry(zip,Path.ChangeExtension(Name(),".sha256")).Open()) {
+                    var bytes=failure=="large-checksum"?new byte[8193]:Checksum(failure=="inner-name"?"other.exe":null);
+                    output.Write(bytes,0,bytes.Length);
+                }
+                if(failure!="missing-instructions")using(var output=ZipEntry(zip,"INSTALL.txt").Open()) {
+                    var bytes=new byte[failure=="large-instructions"?65537:10];output.Write(bytes,0,bytes.Length);
+                }
+                if(failure=="duplicate")ZipEntry(zip,Name());
+                if(failure=="extra")ZipEntry(zip,"unrequested.exe");
+            }
+            byte[] result=stream.ToArray();
+            if(failure=="large-exe") {
+                // Central-directory uncompressed length: reject without allocating 2 GiB.
+                for(int i=0;i<result.Length-46;i++)if(BitConverter.ToUInt32(result,i)==0x02014b50
+                    && Encoding.UTF8.GetString(result,i+46,BitConverter.ToUInt16(result,i+28))==Name()) {
+                    Array.Copy(BitConverter.GetBytes(2147483649U),0,result,i+24,4);break;
+                }
+            }
+            return result;
+        }
+    }
+    static string ZipJson(byte[] bytes,bool includeExe=false,bool checksum=true) {
+        var assets=new List<object> {Asset(ZipName,"0.29.1",bytes.Length,"sha256:"+Hash(bytes))};
+        byte[] sidecar=Encoding.UTF8.GetBytes(Hash(bytes)+"  "+ZipName+"\n");
+        if(checksum)assets.Add(Asset(ZipName+".sha256","0.29.1",sidecar.Length,"sha256:"+Hash(sidecar)));
+        if(includeExe) {
+            assets.Add(Asset(Name(),"0.29.1",Payload.Length,"sha256:"+Hash(Payload)));
+            assets.Add(Asset(Path.ChangeExtension(Name(),".sha256"),"0.29.1",Checksum().Length,"sha256:"+Hash(Checksum())));
+        }
+        return new JavaScriptSerializer().Serialize(new {tag_name="v0.29.1",body="ZIP update",draft=false,prerelease=false,assets=assets});
+    }
+    static DownloadHandler ZipHandler(string failure="") {
+        byte[] bytes=ZipPayload(failure);
+        return new DownloadHandler {Data=bytes,Metadata=ZipJson(bytes),ExpectedLength=bytes.Length,
+            Sidecar=Encoding.UTF8.GetBytes(Hash(bytes)+"  "+ZipName+"\n")};
+    }
     static object Asset(string name,string version,long size,string digest=null) {
         return new { name=name,browser_download_url=ReleaseUpdates.Repository+"/releases/download/v"+version+"/"+name,size=size,digest=digest };
     }
@@ -35,6 +86,7 @@ static class UpdateTests {
         public HttpStatusCode ApiStatus=HttpStatusCode.OK;
         public Action OnRead;
         public bool Stall,StallMetadata;
+        public long ExpectedLength=Payload.Length;
         public readonly List<string> Requests=new List<string>();
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken token) {
             token.ThrowIfCancellationRequested();string url=request.RequestUri.AbsoluteUri;Requests.Add(url);
@@ -43,7 +95,7 @@ static class UpdateTests {
             if(Redirect!=null) { var result=new HttpResponseMessage(HttpStatusCode.Redirect);result.Headers.Location=new Uri(Redirect);return Task.FromResult(result); }
             var response=new HttpResponseMessage(HttpStatusCode.OK){Content=Stall?(HttpContent)new StreamContent(new StalledStream()):OnRead==null?(HttpContent)new ByteArrayContent(Data):new StreamContent(new ReadStream(Data,OnRead))};
             // Simulate a truncated or tampered server body with a nominal header.
-            response.Content.Headers.ContentLength=Payload.Length;
+            response.Content.Headers.ContentLength=ExpectedLength;
             return Task.FromResult(response);
         }
     }
@@ -84,6 +136,13 @@ static class UpdateTests {
         Check(incomplete.Setup.Name==Name(),"incomplete old-style asset cannot replace new verified pair");
         var mixed=ReleaseUpdates.Parse(Json(revision:12,extra:new[]{Asset(Name(),"0.29.1",Payload.Length),Asset(Path.ChangeExtension(Name(),".sha256"),"0.29.1",93)}));
         Check(mixed.Setup.Name==Name(),"canonical filename takes priority over legacy revisions");
+        byte[] package=ZipPayload();var zipRelease=ReleaseUpdates.Parse(ZipJson(package));
+        Check(zipRelease.IsZip&&zipRelease.ExecutableName==Name(),"ZIP-only release is recognized and names its inner setup EXE");
+        Check(ReleaseUpdates.Parse(ZipJson(package,includeExe:true)).IsZip,"ZIP is preferred when compatibility EXE assets also exist");
+        Check(!ReleaseUpdates.Parse(ZipJson(package,includeExe:true,checksum:false)).IsZip,"incomplete ZIP pair falls back to verified compatibility EXE");
+        Fails(()=>ReleaseUpdates.Parse(ZipJson(package,checksum:false)),"ZIP without its own checksum is rejected");
+        Fails(()=>ReleaseUpdates.Parse(ZipJson(package).Replace(ZipName+".sha256",Path.ChangeExtension(Name(),".sha256"))),"EXE checksum cannot stand in for ZIP checksum");
+        Fails(()=>ReleaseUpdates.Parse(ZipJson(package).Replace("https://github.com/Backwoodz","https://github.com/OtherOwner")),"ZIP downloads outside official repository rejected");
         Fails(()=>ReleaseUpdates.Parse(Json().Replace("v0.29.1\"","v0.30.0\"")),"release tag and installer version must match");
         Fails(()=>ReleaseUpdates.Parse(Json().Replace("NFVU2-Setup-0.29.1.sha256","missing.sha256")),"missing checksum pair rejected");
         Check(release.Notes.Contains("Test update"),"release changelog is retained for display");
@@ -112,6 +171,44 @@ static class UpdateTests {
                 string path=await client.Download(parsed,Path.Combine(root,"good"),null,CancellationToken.None);
                 Check(File.Exists(path)&&InstallerCore.Hash(path)==Hash(Payload),"download accepted only after exact size and SHA-256 match");
                 Check(!File.Exists(path+".download"),"verified download promoted from partial file");
+            }
+            handler=ZipHandler();using(var client=new ReleaseUpdates(handler)) {
+                string folder=Path.Combine(root,"zip-good");
+                string path=await client.Download(zipRelease,folder,null,CancellationToken.None);
+                Check(Path.GetFileName(path)==Name()&&InstallerCore.Hash(path)==Hash(Payload),"ZIP update returns the exact verified extracted EXE for handoff");
+                Check(Directory.GetFiles(folder).Length==1,"successful ZIP update leaves only the verified EXE, no archive or partial files");
+                Check(handler.Requests.Exists(url=>url.EndsWith(ZipName+".sha256")),"ZIP update validates the outer ZIP checksum sidecar");
+            }
+            foreach(string failure in new[]{"not-zip","inner-corrupt","inner-name","path","symlink","duplicate","extra","missing-checksum","missing-instructions","large-checksum","large-instructions","large-exe","empty-exe","outer-corrupt","outer-name","outer-digest","outer-truncated"}) {
+                handler=ZipHandler(failure);string folder=Path.Combine(root,"zip-"+failure);
+                if(failure=="outer-corrupt")handler.Data[0]^=1;
+                if(failure=="outer-name")handler.Sidecar=Checksum();
+                if(failure=="outer-digest")handler.Metadata=handler.Metadata.Replace("sha256:"+Hash(handler.Data),"sha256:"+new string('0',64));
+                if(failure=="outer-truncated")handler.Data=new byte[]{1,2};
+                using(var client=new ReleaseUpdates(handler)) {
+                    var parsed=await client.Latest(CancellationToken.None);
+                    Fails(()=>client.Download(parsed,folder,null,CancellationToken.None).GetAwaiter().GetResult(),"unsafe ZIP update rejected: "+failure);
+                    Check(Directory.GetFiles(folder).Length==0&&!File.Exists(Path.Combine(root,"escaped.exe")),"failed ZIP leaves no executable, escaped file or partial: "+failure);
+                }
+            }
+            foreach(string existing in new[]{Name(),Name()+".download",ZipName+".download"}) {
+                string folder=Path.Combine(root,"zip-existing-"+existing);Directory.CreateDirectory(folder);
+                string sentinel=Path.Combine(folder,existing);File.WriteAllText(sentinel,"keep existing");
+                using(var client=new ReleaseUpdates(ZipHandler())) {
+                    Fails(()=>client.Download(zipRelease,folder,null,CancellationToken.None).GetAwaiter().GetResult(),"ZIP update refuses occupied path: "+existing);
+                    Check(File.ReadAllText(sentinel)=="keep existing"&&Directory.GetFiles(folder).Length==1,"existing update cache file preserved: "+existing);
+                }
+            }
+            handler=ZipHandler();using(var cancel=new CancellationTokenSource())using(var client=new ReleaseUpdates(handler)) {
+                handler.OnRead=()=>cancel.Cancel();string folder=Path.Combine(root,"zip-cancel");
+                Fails(()=>client.Download(zipRelease,folder,null,cancel.Token).GetAwaiter().GetResult(),"ZIP download cancellation prevents extraction and handoff");
+                Check(Directory.GetFiles(folder).Length==0,"cancelled ZIP removes all owned partial files");
+            }
+            handler=ZipHandler();using(var client=new ReleaseUpdates(handler)) {
+                string folder=Path.Combine(root,"zip-race");string sentinel=Path.Combine(folder,Name()+".download");
+                handler.OnRead=()=>File.WriteAllText(sentinel,"created by another operation");
+                Fails(()=>client.Download(zipRelease,folder,null,CancellationToken.None).GetAwaiter().GetResult(),"ZIP extraction cannot replace a concurrently created file");
+                Check(File.ReadAllText(sentinel)=="created by another operation"&&Directory.GetFiles(folder).Length==1,"failed ZIP cleanup preserves a partial file it does not own");
             }
             foreach(string failure in new[]{"corrupt","truncated","checksum-name","digest","redirect"}) {
                 handler=new DownloadHandler();

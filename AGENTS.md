@@ -6,7 +6,8 @@
   read and follow `.agents/skills/release/SKILL.md`.
 - Publish the Windows installer as `NFVU2-Setup-<version>.zip` plus its ZIP
   SHA-256 sidecar. The ZIP contains the setup EXE, its checksum and instructions;
-  do not upload standalone EXE assets unless explicitly requested.
+  also publish the identical EXE and its checksum for older installer updaters.
+  Keep the ZIP as the primary player download; new installers prefer ZIP updates.
 - For `/tiktok`, `$tiktok`, or a request to cut NFVU2 gameplay into vertical
   social clips, read and follow `.agents/skills/tiktok/SKILL.md`.
 - This repository is the source of truth for further NFVU2 development.
