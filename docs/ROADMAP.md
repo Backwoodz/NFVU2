@@ -1,5 +1,43 @@
 # Nächste Aufgaben
 
+## Drift-Bauwelt in NFVU2 (lokale Entwicklung)
+
+- Eigene Welterzeugung fuer den exakten Seed `drift`, direkt in der vorhandenen
+  Rachel350Z.dll. Keine Laufzeit-, Build- oder Konfigurationsabhaengigkeit von
+  FlatGrass. Keine separate Drift-DLL und keine zusaetzliche Plugin-ID.
+- Eigene feste Grundhoehe 32, Wiesenbiom und leerer Baugrund ohne native
+  Gebaeude, Baeume/Felsen/Erze. Startpunkt bei (0,32,0); native Lade-/Speicher-,
+  Bett- und Logoutlogik bleiben zustaendig. Nativer Weltrand bleibt erhalten.
+- Die originale aeussere Location-Coroutine bleibt aktiv; einzelne
+  Platzierungsworker liefern null Versuche. Keine Aenderung gemeinsamer
+  Location-/Vegetationsdefinitionen und keine Zufallssuche in fehlenden Biomen.
+- Quellen: `src/DriftWorldRules.cs`, `src/DriftWorldPatches.cs` und
+  `src/VehicleDriftWorld.cs`. Initialisierung und Abbau ueber die vorhandene
+  NFVU2-Harmony-Instanz. Regulaerer Build und Installationsweg.
+  Anleitung und technische Grenzen: [Drift-Bauwelt](DRIFT_WORLD.md).
+- Pruefungen verwenden echte Harmony-Patches an Doubles und Metadaten der
+  installierten nativen APIs sowie der integrierten NFVU2-DLL.
+- Seed-Rueckmeldung ergaenzt: exaktes `drift` wird im Menue gruen, ohne
+  Abhaengigkeit von FlatGrass. Gemeinsames Seed-Praedikat fuer Anzeige und
+  Welterzeugung, normale Farbe bei Aenderung/Schliessen/Plugin-Abbau wiederherstellen.
+  Gerenderte Anzeige offen.
+- Im nativen Test hing die Generierung mit EndOfStreamException beim Lesen
+  des Location-Ergebnisses. Ursache: fehlendes SetPos(0) nach Write(0).
+  Korrigiert; Queue-Testdouble durch die echte installierte ZPackage-Klasse
+  ersetzt. Der Test reproduziert den Fehler vor der Korrektur und besteht danach.
+  Build sowie 124 Driftwelt-/Menue-, 172 Steuerungs- und 98 Ladepruefungen bestanden.
+  Mit Backup installiert, 107 Payload-Dateien gehasht; aktuelle Konfigurationen
+  und FlatGrass-DLL bytegleich erhalten. Seed-Farbrueckmeldung mit installiert.
+- Nutzer bestaetigt nach der Korrektur: Die Welt laedt und ist komplett flach.
+  Damit ist das erstmalige native Laden der Grundmap bestaetigt. Offen bleiben
+  Speichern/Neuladen, Wechsel zu normalen Welten, ein Start mit deaktiviertem
+  FlatGrass und die gerenderte Seed-Anzeige. Beide verwendeten Backupordner
+  halten hoechstens zwei Zeitstempelstaende.
+- Naechster Schritt: Streckenverlauf und Massstab anhand des Referenzbildes
+  festlegen. Zuerst einen kurzen Fahrbahnabschnitt aus Valheim-Elementen bauen
+  und Breite, Uebergaenge sowie Fahrbarkeit mit dem 350Z pruefen, dann den
+  vollstaendigen Rundkurs aufbauen. Noch keine Fahrbahn oder Checkpoints vorhanden.
+
 ## Release 0.31.2: ZIP-Updater und Kompatibilität
 
 - Neuer Installer bevorzugt ZIP-Releases, prüft äußere ZIP- und innere EXE-SHA-256,

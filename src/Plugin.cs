@@ -210,6 +210,7 @@ public partial class Plugin : BaseUnityPlugin {
         if(driving&&player!=null&&cabinDriver==null)player.transform.position=car.transform.TransformPoint(new Vector3(0,.8f,.3f));
     }
     void LateUpdate() {
+        UpdateDriftSeedFeedback();
         ForEachVehicle(TickVehicle);
         if(driving)VehicleDiscovery.Step(player as Player);
         TickVehicleMap();
@@ -403,6 +404,6 @@ public partial class Plugin : BaseUnityPlugin {
         status=message;
         if(MessageHud.instance!=null)MessageHud.instance.ShowMessage(MessageHud.MessageType.Center,Tr(message),log:false);
     }
-    void OnDestroy(){ReleaseCameraRumble(gameCamera);ReleaseCameraRumble(menuCamera);controlsHarmony?.UnpatchSelf();TransformerFootstepGrass.Shutdown();if(ControlsOwner==this)ControlsOwner=null;ClearNitroVisuals();CleanupAll();DisposeVehicleMap();hordeWeather?.Dispose();hordeWeather=null;DisposeVehicleHints();fleetMusic?.Dispose();DisposeMenu();}
+    void OnDestroy(){DriftSeedFeedback.Clear();ReleaseCameraRumble(gameCamera);ReleaseCameraRumble(menuCamera);controlsHarmony?.UnpatchSelf();TransformerFootstepGrass.Shutdown();if(ControlsOwner==this)ControlsOwner=null;ClearNitroVisuals();CleanupAll();DisposeVehicleMap();hordeWeather?.Dispose();hordeWeather=null;DisposeVehicleHints();fleetMusic?.Dispose();DisposeMenu();}
 }
 }

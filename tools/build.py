@@ -10,6 +10,7 @@ def build():
     refs.append(game/'BepInEx/core/BepInEx.dll')
     refs.append(game/'BepInEx/core/0Harmony.dll')
     refs.append(managed/'assembly_valheim.dll')
+    refs.append(managed/'gui_framework.dll')
     refs.append(managed/'assembly_utils.dll')
     refs.append(managed/'Splatform.dll')
     missing=[str(p) for p in refs if not p.exists()]

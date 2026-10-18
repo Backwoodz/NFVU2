@@ -1,5 +1,21 @@
 # Changelog
 
+## Unreleased — Integrated drift build world
+
+- Add NFVU2's own world generation for the exact seed `drift` (case insensitive),
+  built into the existing `Rachel350Z.dll`. FlatGrass is not required.
+- Generate flat Meadows at height 32 without native structures, vegetation or
+  ore deposits, and supply a world-centre start point. Keep native world-edge
+  behavior and normal-world generation. No track is placed yet.
+- Keep the existing NFVU2 plugin identity and regular build/install workflow.
+  No extra world plugin, separate installer or FlatGrass bridge is needed.
+- Highlight the exact `drift` seed in green in the new-world menu, using the
+  same predicate as world generation. Restore the previous text color on edits,
+  panel changes and plugin shutdown, preserving feedback supplied by other mods.
+- Rewind the native generation-result buffer before its caller reads it. This
+  fixes an `EndOfStreamException` that left drift worlds stuck at "Generating".
+  The regression test now uses Valheim's actual ZPackage implementation.
+
 ## 0.31.2 — ZIP updates and older installer compatibility
 
 - Detect and prefer installer ZIP releases, verify the ZIP checksum, extract

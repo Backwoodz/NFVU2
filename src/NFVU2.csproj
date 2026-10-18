@@ -14,6 +14,7 @@
     <Reference Include="Unity.InputSystem"><HintPath>$(ManagedDir)/Unity.InputSystem.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="0Harmony"><HintPath>$(ValheimDir)/BepInEx/core/0Harmony.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="assembly_valheim"><HintPath>$(ManagedDir)/assembly_valheim.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="gui_framework"><HintPath>$(ManagedDir)/gui_framework.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="assembly_utils"><HintPath>$(ManagedDir)/assembly_utils.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="BepInEx"><HintPath>$(ValheimDir)/BepInEx/core/BepInEx.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine"><HintPath>$(ManagedDir)/UnityEngine.dll</HintPath><Private>false</Private></Reference>

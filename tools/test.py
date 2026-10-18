@@ -6,6 +6,7 @@ from build_support import compile_cs,test_refs,runtime_config
 def main():
     suites=['model','mesh','handling','audio','radio','nitro','impact','transformerimpact','showroom','driving','turret','targeting','terrain','blast','hummer','menu','cabin','flight','loading','lighting','controls','hotbar','rumble','nitroview','horde','hordehull','hordecorpses','turretfireaudio','hordeweather','horderadar','hordeelements','storage','persistence','streaming','placement','transformer','discovery','vehiclemap','transformershake','transformermount','exhaustsmoke','transformeraudio','robotidleaudio','transformerturnaudio','transformerdeployaudio','transformerreactoraudio','transformerreturnaudio','transformerfootstepeffects','transformerfootstepgrass','transformerwater','transformerminigun','transformerground','transformerminigunheat','transformerminigunaudio']
     suites.append('transformercamera')
+    suites.append('driftworld')
     parser=argparse.ArgumentParser();parser.add_argument('--skip-build',action='store_true');parser.add_argument('--handling-only',action='store_true')
     parser.add_argument('--suite',action='append',choices=suites,help='Run only these C# suites; repeat to combine.')
     args=parser.parse_args()
@@ -61,8 +62,9 @@ def main():
         elif suite=='terrain':sources.extend(BASE/'src'/name for name in ('TurretTerrain.cs','TurretState.cs'))
         elif suite=='targeting':sources.extend(BASE/'src'/name for name in ('TurretTargeting.cs','TurretState.cs'))
         elif suite=='blast':sources.extend(BASE/'src'/name for name in ('TurretDamage.cs','TurretState.cs'))
-        elif suite in ('hotbar','rumble','hordehull','hordecorpses','hordeelements'):
-            if suite=='hordeelements':sources.extend(BASE/'src'/name for name in ('HordeElementCombat.cs','HordeElementStatus.cs','HordeElementRules.cs','HordePact.cs'))
+        elif suite in ('hotbar','rumble','hordehull','hordecorpses','hordeelements','driftworld'):
+            if suite=='driftworld':sources.extend(BASE/'src'/name for name in ('DriftWorldRules.cs','DriftWorldPatches.cs','DriftSeedFeedback.cs'))
+            elif suite=='hordeelements':sources.extend(BASE/'src'/name for name in ('HordeElementCombat.cs','HordeElementStatus.cs','HordeElementRules.cs','HordePact.cs'))
             elif suite=='hordehull':sources.extend(BASE/'src'/name for name in ('VehicleHordeHull.cs','VehicleImpactRules.cs'))
             elif suite=='hordecorpses':sources.extend(BASE/'src'/name for name in ('HordeCorpses.cs','HordeProjectiles.cs'))
             else:sources.append(BASE/'src'/('VehicleHotbarCapture.cs' if suite=='hotbar' else 'VehicleCameraShake.cs'))
@@ -96,6 +98,27 @@ def main():
         if suite=='turret':
             jsondll=out/'Newtonsoft.Json.dll';shutil.copy2(valheim_dir()/'valheim_Data/Managed/Newtonsoft.Json.dll',jsondll);refs.append(jsondll)
             arguments=[str(LOCAL/'turret')]
+        if suite=='driftworld':
+            # The installed BepInEx HarmonyX/MonoMod build targets the desktop
+            # CLR/Mono. Run actual detours there, not on an unsupported .NET 9.
+            from build_installer import framework
+            root=framework()
+            refs=[root/(name+'.dll') for name in ('mscorlib','System','System.Core')]+[harmony]
+            facade=out/'netstandard.dll'
+            shutil.copy2(valheim_dir()/'valheim_Data/Managed/netstandard.dll',facade)
+            refs.append(facade)
+            for name in ('MonoMod.RuntimeDetour','MonoMod.Utils','Mono.Cecil'):
+                shutil.copy2(valheim_dir()/'BepInEx/core'/(name+'.dll'),out/(name+'.dll'))
+            refs.append(out/'Mono.Cecil.dll')
+            native=out/'assembly_valheim.dll';shutil.copy2(valheim_dir()/'valheim_Data/Managed/assembly_valheim.dll',native)
+            refs.append(('NativeValheim',native))
+            for name in ('UnityEngine','UnityEngine.CoreModule','assembly_utils','Splatform'):
+                shutil.copy2(valheim_dir()/'valheim_Data/Managed'/(name+'.dll'),out/(name+'.dll'))
+            refs.append(('NativeUnity',out/'UnityEngine.CoreModule.dll'))
+            refs.append(('NativeUtils',out/'assembly_utils.dll'))
+            exe=out/(suite+'Tests.exe');compile_cs(exe,sources,refs)
+            subprocess.run([str(exe),str(valheim_dir()),str(OUTPUT/'mod/Rachel350Z.dll')],check=True)
+            continue
         dll=out/(suite+'Tests.dll');compile_cs(dll,sources,refs);runtime_config(dll,tfm,version)
         subprocess.run(['dotnet',str(dll),*arguments],check=True)
     print('Requested checks passed. These tests do not execute Unity physics or playback.')
