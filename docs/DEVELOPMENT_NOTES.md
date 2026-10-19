@@ -203,5 +203,17 @@ Die beiden Nitrobank-Loops sind vorläufig Boost/Purge zugeordnet. Ob und ab
 welcher Tuningstufe NFS automatisch Lastwechsel-Flammen auslöst, bleibt offen.
 Das Kennzeichen verwendet die feste Originaltextur „UNDRGND 2“ auf einer eigenen
 kleinen Schildfläche. Freier NFS-Kennzeichentext ist nicht nachgewiesen.
+Die aktuelle 350Z-Audiomischung verwendet weiterhin die lokal importierten
+NFSU2-Aufnahmen. Eigene vordere Motor- und hintere Auspuffquellen teilen sich
+die dekodierten Motorclips, erhalten unterschiedliche Frequenzfilter und
+starten synchron. Beim Drehen der Kamera vor das Auto werden Motor und Turbo
+betont, von hinten der Auspuff; der Wechsel ist geglaettet. Die Aufnahmen
+enthalten bereits einen Gesamtklang, die Trennung ist eine NFVU2-Abstimmung.
+Blowoff wird beim deutlichen Schliessen des Gases aus gespeichertem Ladedruck
+ausgeloest, nicht bei kleinen Gaskorrekturen. Der Mix ist um rund 8 dB leiser,
+Schalt-Releases zusaetzlich reduziert; eine eigene Huellkurve blendet die lange
+Aufnahme innerhalb von 550 ms aus. Exakte NFS-Ausloese- und Kameralogik sind
+nicht rekonstruiert. Hummer-Sound und Fahrzeughandling bleiben unveraendert.
+
 Neon-Pulsverlauf, Lichtstärken, Kennzeichenposition und Turbo-Auslösung sind
 NFVU2-Anpassungen; eine vollständige originale Rachel-Rekonstruktion bleibt offen.

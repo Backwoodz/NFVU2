@@ -1,5 +1,41 @@
 # Nächste Aufgaben
 
+## 350Z: Blowoff und Front-/Heckmischung (lokale Entwicklung)
+
+- Zweite Spielabnahme: Motor wieder hoerbar, Reifen/Turbo/Blowoff fehlen.
+  Native Unity-Probe belegt 32 reale Stimmen, 32 hoeher priorisierte Motorloops
+  und dadurch virtualisierte Effektquellen trotz positiver Lautstaerke.
+  Motorprioritaet auf normalen Loopwert gesetzt, Strassengeraeusch gleichrangig;
+  Reifen und Turbo behalten ihre bisherigen, nun hoeheren Effektprioritaeten.
+  Keine globale Erhoehung des Stimmenlimits. Neue 32-Stimmen-Regression
+  scheitert vor und besteht nach der Korrektur; 168 Adapterchecks bestanden.
+  Native Gegenprobe mit echtem Unity-Audio belegt fuer Reifen, Turboloop und
+  Blowoff jeweils nichtvirtualisierte PCM-Ausgabe. Menuefixture mit simulierten
+  Fahrwerten; die Hoerabnahme in der Spielwelt bleibt davon zu unterscheiden.
+- Erste Spielabnahme meldete komplett fehlenden Fahrzeugton. Im nativen Log
+  nachgewiesen: Filter vor AudioSource angelegt, AddComponent abgelehnt,
+  NullReferenceException und Abbruch des optionalen Audioladens. Reihenfolge
+  korrigiert: zuerst AudioSource, dann Filter. Das Adapterdouble erzwingt jetzt
+  diese native Voraussetzung; reproduziert den Fehler vor der Korrektur und
+  besteht danach. Native Hoerabnahme der korrigierten Version steht noch aus.
+- Bestehende NFSU2-Samples beibehalten. Akustische Release-Lautstaerke um
+  rund 8 dB reduziert, Schaltungen nochmals dezenter. Kleine Gasbewegungen
+  loesen keinen Release aus; echtes Schliessen des Gases bleibt hoerbar.
+  Originale lange Aufnahmen klingen ueber eine eigene Huellkurve in 550 ms aus.
+- Eigene vordere Motor- und hintere Auspuffquellen mit unterschiedlichen
+  Frequenzfiltern; derselbe dekodierte PCM-Speicher wird geteilt. Gemeinsamer
+  DSP-Start verhindert versetzte Schleifen. Kameraposition blendet die Mischung
+  weich um, vorne mehr Motor/Turbo, hinten mehr Auspuff. Vorhandene Aufnahmen
+  enthalten bereits einen Gesamtklang, keine neu nachgewiesenen getrennten
+  Ansaug-/Auspuffaufnahmen. Keine exakte NFS-/Forza-Mischlogik behaupten.
+- Build, 103 Audio-, 166 Adapter-, Handling-, 98 Lade-, Steuerungs- und
+  Fahrmenuepruefungen sowie fuenf Audio-Pythonchecks bestanden. Offline-
+  Front-/Heckvorschau ohne Clipping erzeugt; keine native Hoerabnahme.
+- Bei geschlossenem Valheim mit Backup installiert, 108 Payload-Dateien per
+  SHA-256 geprueft. Nur Haupt-DLL geaendert; Physikbibliothek, Medien und
+  Konfiguration unveraendert. Zwei datierte Backups bleiben erhalten.
+- Offen: Hoerabnahme bei Lastwechsel, Schalten und langsamen Kameraumrundungen.
+
 ## Drift-Teststrecke: erster Fahrabschnitt (lokale Entwicklung)
 
 - Nutzer-Screenshots bestaetigen sichtbaren Streckenverlauf, Pflaster,

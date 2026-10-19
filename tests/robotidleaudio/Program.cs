@@ -18,14 +18,20 @@ static class Program {
         var road=Find("road.wav");var skid=Find("skid.wav");var horn=Find("horn.wav");var reverse=Find("reverse_whine_synth");
         var charge=Find("charge.wav");var low=Find("blowoff_low.wav");var high=Find("blowoff_high.wav");
         var other=new AudioSource();
-        Check(engine.Length==16&&sources.Length==23&&sources.All(a.Owns)&&!a.Owns(other),"adapter owns exactly its engine/effect/turbo sources for transform capture exclusion");
+        Check(engine.Length==32&&sources.Length==39&&sources.All(a.Owns)&&!a.Owns(other),"adapter owns front/rear voices and all effects for transform capture exclusion");
+        Check(engine.Select(s=>s.clip).Distinct().Count()==16,"front/rear voices share the original sixteen decoded engine clips");
+        Check(GameObject.All.Count(o=>o.Components.OfType<AudioHighPassFilter>().Any())==16&&GameObject.All.Count(o=>o.Components.OfType<AudioLowPassFilter>().Any())==16,
+            "each engine/exhaust voice has its own filter without filtering turbo or tyre effects");
         void Drive(float throttle=1,bool honk=true)=>a.Tick(true,throttle,false,honk,false,true,1);
         void Idle(bool running=true,bool blocked=false,float volume=1,float progress=1,bool occupied=true)=>a.TickRobotIdle(running,blocked,volume,progress,occupied);
         body.linearVelocity=new Vector3(0,0,12);foreach(var w in wheels){w.rpm=500;w.Hit=new WheelHit{sidewaysSlip=2,forwardSlip=1};}
         for(int i=0;i<150;i++)Drive();
+        Check(engine.All(s=>Math.Abs(s.ScheduledAt-100.03)<1e-8),"front/rear engine voices start on the same DSP time to avoid a doubled playback offset");
         Check(a.Rpm>2000&&a.Load>.99f&&road.volume>0&&skid.volume>0&&horn.volume>0&&charge.volume>0,"actual driving path establishes revving, tyre, horn and turbo output");
+        Check(!skid.isVirtual&&!charge.isVirtual&&!road.isVirtual,"32-voice budget preserves audible tyres, road and turbo beside all engine loops");
         Drive(0,false);
         Check(low.Playing||high.Playing,"normal throttle release establishes an active turbo tail before robot entry");
+        Check((low.Playing&&!low.isVirtual)||(high.Playing&&!high.isVirtual),"release receives a real voice instead of being crowded out by silent engine bands");
         Idle();
         Check(road.volume==0&&skid.volume==0&&horn.volume==0&&reverse.volume==0&&charge.volume==0,"robot idle immediately removes tyre, horn, reverse and turbo charge gains");
         Check(!low.Playing&&!high.Playing&&low.volume==0&&high.volume==0&&a.TurboPressure==0,"robot idle stops turbo one-shot tails and clears charge state");
@@ -98,9 +104,39 @@ static class Program {
         }
         for(int i=0;i<30;i++)Idle(running:false,occupied:false);
         Check(sources.All(s=>!s.Playing),"unoccupied robot respects disabled keep-running and shuts down the same engine loops");
+        foreach(var wheel in wheels)wheel.enabled=false;
+        body.linearVelocity=new Vector3(0,0,12);
+        var physical=new VehiclePhysicsTelemetry{EngineRpm=4200,Gear=2,RearWheelRpm=750,Contacts=4,Skid=.8f};
+        for(int i=0;i<120;i++)a.Tick(true,.7f,false,false,false,false,1,physics:physical);
+        Check(a.Rpm==4200&&a.Gear==2&&road.volume>0&&skid.volume>0,
+            "native drivetrain and contact telemetry drive audio with WheelColliders disabled");
+        var front=engine.Where(s=>s.transform.parent.localPosition.z>0).ToArray();
+        var rear=engine.Where(s=>s.transform.parent.localPosition.z<0).ToArray();
+        Camera.main=new Camera();Camera.main.transform.position=new Vector3(0,0,8);
+        physical.EngineRpm=5900;
+        for(int i=0;i<120;i++)a.Tick(true,1,false,false,false,false,1,physics:physical);
+        float frontCharge=charge.volume;
+        Check(front.Length==16&&rear.Length==16&&front.Sum(s=>s.volume)>rear.Sum(s=>s.volume)*1.9f,
+            "actual adapter routes the front camera to engine-bay dominance");
+        a.Tick(true,0,false,false,false,false,1,physics:physical);float frontRelease=Math.Max(low.volume,high.volume);
+        for(int i=0;i<30;i++)a.Tick(true,0,false,false,false,false,1,physics:physical);
+        Check(frontRelease>0&&!low.Playing&&!high.Playing&&low.volume==0&&high.volume==0,
+            "adapter fades and stops long release samples within 600 milliseconds");
+        Camera.main.transform.position=new Vector3(0,0,-8);
+        for(int i=0;i<120;i++)a.Tick(true,1,false,false,false,false,1,physics:physical);
+        Check(rear.Sum(s=>s.volume)>front.Sum(s=>s.volume)*1.9f&&charge.volume<frontCharge*.51f,
+            "actual adapter emphasizes exhaust and softens charge from behind at the same RPM/load");
+        a.Tick(true,0,false,false,false,false,1,physics:physical);
+        Check(Math.Max(low.volume,high.volume)<frontRelease*.51f,"release tail follows the camera-dependent turbo gain");
+        a.Tick(true,0,false,false,false,false,0,physics:physical);
+        Check(sources.All(s=>s.volume==0),"master zero also silences front/rear voices and a running release tail");
+        Camera.main=null;
         a.Dispose();a.Dispose();Idle();
         Check(sources.All(s=>!s.Playing&&s.clip==null)&&AudioClip.All.All(c=>c.Destroyed),"disposal is idempotent and releases owned engine and effect clips");
         Check(other.Stops==0&&!other.Destroyed,"robot idle and disposal leave unrelated sources untouched");
+        int beforeHummer=AudioSource.All.Count;
+        var h2=new VehicleAudio(true);foreach(var step in h2.LoadSteps(car,body,wheels,_=>{},new SpawnAudio())){}
+        Check(AudioSource.All.Count-beforeHummer==EngineSoundModel.HummerBands.Length*2+4,"Hummer retains its existing voice count without front/rear duplication or turbo");h2.Dispose();
         Console.WriteLine(checks+" robot idle adapter checks passed; actual spatial mix requires game listening.");
     }
 }

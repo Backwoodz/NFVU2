@@ -41,7 +41,7 @@ if turbo_available and 'turbo' in state.dtype.names:
             start=round(event['time']*rate);end=min(len(result),start+len(sample))
             # Runtime stops both previous release voices when a new event fires.
             result[start:]=0;result[start:end]=sample[:end-start]*event['blowoff_gain']
-        return result
+        return result*np.interp(t,telemetry['time'],telemetry['release_envelope'])
     signal+=release_track(state)*.8*level
     comparison=np.genfromtxt(OUTPUT/'tests/audio/turbo-comparison-state.csv',delimiter=',',names=True)
     turbo_signal=.8*(play('charge.wav',np.interp(t,comparison['time'],comparison['charge_pitch']),turbo_folder)*np.interp(t,comparison['time'],comparison['charge_gain'])+release_track(comparison))

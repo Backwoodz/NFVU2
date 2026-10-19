@@ -1,7 +1,22 @@
 # Changelog
 
-## Unreleased — Integrated drift build world
+## Unreleased — 350Z audio and integrated drift build world
 
+- Fix the 350Z front/rear engine loops crowding out tyre, turbo and release
+  voices at Valheim's 32-real-voice limit. Let silent RPM bands yield to audible
+  effects through normal loop priority; keep the global audio settings intact.
+- Fix the new front/rear sound emitters' initialization order: create each
+  AudioSource before adding its native filter. The reversed order rejected
+  the filter and aborted vehicle audio loading, silencing all vehicle sounds.
+- Refine 350Z audio using the existing NFSU2 recordings: lower blow-off mix by
+  about 8 dB, soften shift releases further, ignore throttle feathering, and
+  fade long release tails to silence within 550 ms. Keep boost/RPM/handling
+  controls separate from these acoustic changes.
+- Place filtered engine and exhaust voices at the front and rear, sharing the
+  decoded engine clips and starting on the same DSP time. Smoothly emphasize
+  engine/turbo when listening from the front and exhaust from behind. This is
+  NFVU2's own mix, not a recovered NFS/Forza implementation; Hummer stays on
+  its existing audio path. Add an offline front/rear listening illustration.
 - Add NFVU2's own world generation for the exact seed `drift` (case insensitive),
   built into the existing `Rachel350Z.dll`. FlatGrass is not required.
 - Generate flat Meadows at height 32 without native structures, vegetation or

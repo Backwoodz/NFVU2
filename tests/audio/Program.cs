@@ -107,15 +107,27 @@ class AudioTests {
         Check(ExhaustSoundProfile.Clamp(-1)==0&&ExhaustSoundProfile.Pitch(999)==1,"unknown exhaust profiles safely restore original sound");
         for(int profile=0;profile<3;profile++)foreach(float mix in new[]{0f,.2f,.8f,1f})
             Check(ExhaustSoundProfile.PowerMix(profile,mix)>=0&&ExhaustSoundProfile.PowerMix(profile,mix)<=1,"exhaust mix keeps power/coast crossfade bounded");
+        var physical=new EngineSoundModel();
+        var measured=new VehiclePhysicsTelemetry{EngineRpm=3210,Gear=3};
+        for(int i=0;i<120;i++)physical.StepPhysics(1f/60,true,.4f,measured);
+        Check(physical.Rpm==3210&&physical.Gear==3&&!physical.IsShifting&&physical.Load>.39f&&physical.Load<.41f,
+            "physical telemetry controls RPM and gear without acoustic automatic upshifts");
+        measured.EngineRpm=1850;measured.Gear=-1;
+        for(int i=0;i<120;i++)physical.StepPhysics(1f/60,true,-.5f,measured);
+        Check(physical.Rpm==1850&&physical.Gear==-1&&physical.Load==.5f,
+            "physical reverse gear and RPM feed the audio model directly");
+        physical.Step(1f/60,true,0,0,0,false);
+        Check(physical.Gear==1,"leaving the physical backend returns to the existing acoustic gearbox");
         TurboChecks.Run(Check,args[0]);
         using(var writer=new StreamWriter(args[0])){
-            writer.WriteLine("time,rpm,load,level,shift,speed,gear,turbo,blowoff,charge_gain,charge_pitch,blowoff_gain,pressure");model=new EngineSoundModel();turbo=new TurboSoundModel();
+            writer.WriteLine("time,rpm,load,level,shift,speed,gear,turbo,blowoff,charge_gain,charge_pitch,blowoff_gain,pressure,release_envelope");model=new EngineSoundModel();turbo=new TurboSoundModel();float releaseAge=1;
             for(int i=0;i<900;i++){
                 float t=i/60f;float speed=t<2?0:t<10?(t-2)*2:Math.Max(0,16-(t-10)*5);
                 float gas=t>=2&&t<10?1:0;
                 model.Step(1f/60,t<14,speed,WheelRpm(speed),gas,false);
                 turbo.Step(1f/60,t<14,model.Rpm,gas,model.IsShifting,false,model.Load);
-                writer.WriteLine(string.Join(",",new[]{t,model.Rpm,model.Load,model.Level,model.ShiftGain,speed,(float)model.Gear,turbo.Charge,(float)turbo.BlowOff,turbo.ChargeGain,turbo.ChargePitch,turbo.BlowOffGain,turbo.Pressure}.Select(v=>v.ToString("R",CultureInfo.InvariantCulture))));
+                releaseAge=turbo.BlowOff!=0?0:releaseAge+1f/60;
+                writer.WriteLine(string.Join(",",new[]{t,model.Rpm,model.Load,model.Level,model.ShiftGain,speed,(float)model.Gear,turbo.Charge,(float)turbo.BlowOff,turbo.ChargeGain,turbo.ChargePitch,turbo.BlowOffGain,turbo.Pressure,TurboSoundModel.ReleaseEnvelope(releaseAge)}.Select(v=>v.ToString("R",CultureInfo.InvariantCulture))));
             }
         }
         Console.WriteLine(checks+" audio checks passed against the compiled plugin. Unity playback still requires an in-game check.");

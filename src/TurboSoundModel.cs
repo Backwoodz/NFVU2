@@ -15,6 +15,16 @@ public sealed class TurboSoundModel {
     public const float ChargeSampleGain=8000f/32768f;
     public const float LowSampleGain=24500f/32768f;
     public const float HighSampleGain=16500f/32768f;
+    // Our mix trim preserves the sample-bank ratios while keeping releases
+    // below the engine. Shifts vent much less audibly than a complete lift.
+    public const float ReleaseMixGain=.4f;
+    public const float ShiftReleaseGain=.35f;
+    public const float ReleaseDuration=.55f;
+    public static float ReleaseEnvelope(float age) {
+        if(float.IsNaN(age)||float.IsInfinity(age)||age<0||age>=ReleaseDuration)return 0;
+        float remaining=1-DrivingMath.Clamp((age-.065f)/(ReleaseDuration-.065f),0,1);
+        return remaining*remaining;
+    }
     // A one-frame event: 0 = none, 1 = low boost, 2 = high boost.
     public int BlowOff {get;private set;}
     float releaseReference,cooldown,flutterLeft,flutterStrength;
@@ -36,16 +46,18 @@ public sealed class TurboSoundModel {
         // A decaying recent throttle peak detects a normal controller lift
         // across many frames; single-frame deltas missed analog releases.
         releaseReference=Math.Max(throttle,releaseReference-dt*.8f);
-        bool released=releaseReference>.2f&&releaseReference-throttle>.18f;
+        // Feathering the accelerator at high load must not fire a full vent.
+        // Keep the recent-peak detector for smooth analog trigger releases.
+        bool released=throttle<.35f&&releaseReference>.2f&&releaseReference-throttle>.18f;
         bool shift=shifting&&!wasShifting;
         if((released||shift)&&Charge>.12f&&cooldown==0) {
             // Capture pressure before dumping it; the voice keeps this gain
             // for its complete sample, independent of next frame's charge.
             ReleasedCharge=Charge;
             BlowOff=ReleasedCharge>.6f?2:1;
-            BlowOffGain=(BlowOff==2?HighSampleGain:LowSampleGain)*(float)Math.Pow(ReleasedCharge,1.2);
+            BlowOffGain=ReleaseMixGain*(BlowOff==2?HighSampleGain:LowSampleGain)*(float)Math.Pow(ReleasedCharge,1.2)*(shift&&!released?ShiftReleaseGain:1);
             flutterLeft=.42f;flutterStrength=ReleasedCharge;
-            Charge*=.12f;cooldown=.25f;
+            Charge*=.12f;cooldown=.4f;
             releaseReference=throttle;
         }
         float revs=DrivingMath.Clamp((rpm-1900)/3600,0,1);

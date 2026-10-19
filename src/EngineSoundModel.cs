@@ -1,6 +1,12 @@
 using System;
 
 namespace Rachel350Z {
+// Optional physical drivetrain/contact measurements. Ordinary WheelCollider
+// vehicles continue using the existing acoustic gearbox when this is absent.
+public struct VehiclePhysicsTelemetry {
+    public float EngineRpm,RearWheelRpm,Skid;
+    public int Gear,Contacts;
+}
 // A gearbox for sound only. It never writes to the vehicle's physics.
 public sealed class EngineSoundModel {
     public static readonly int[] Bands={1400,2100,2800,3500,4300,5100,5900,6500};
@@ -44,6 +50,18 @@ public sealed class EngineSoundModel {
         float target=driving?Math.Max(950+input*(brake?3300:1700),rawRpm):950;
         if(driving&&burnout){Gear=1;shiftRemaining=cooldown=0;input=1;target=Math.Max(5000,rawRpm);}
         target=DrivingMath.Clamp(target,suv?1000:950,suv?4782:6700);
+        Rpm=Move(Rpm,target,dt*(target>Rpm?6000:9500));
+        Load=Move(Load,input,dt*5);
+        ShiftGain=Move(ShiftGain,shiftRemaining>0?.32f:1,dt*12);
+    }
+    public void StepPhysics(float dt,bool running,float throttle,VehiclePhysicsTelemetry physics) {
+        dt=DrivingMath.Clamp(Safe(dt),0,.1f);
+        float input=running?Math.Abs(DrivingMath.Clamp(Safe(throttle),-1,1)):0;
+        bool changed=Gear!=physics.Gear;
+        Gear=physics.Gear;
+        cooldown=0;shiftRemaining=changed?.14f:Math.Max(0,shiftRemaining-dt);
+        Level=Move(Level,running?1:0,dt*3);
+        float target=DrivingMath.Clamp(Safe(physics.EngineRpm),0,20000);
         Rpm=Move(Rpm,target,dt*(target>Rpm?6000:9500));
         Load=Move(Load,input,dt*5);
         ShiftGain=Move(ShiftGain,shiftRemaining>0?.32f:1,dt*12);
