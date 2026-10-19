@@ -66,4 +66,12 @@ The ZIP contains the Windows setup EXE; it is not a manual-install mod package.
 
 Experimental fan mod with its own driving physics.
 
+The current development source builds a separate `NFVU2.DriftPhysics.dll` for
+350Z drift mode, with its own drivetrain and tyre model. It ships beside
+`Rachel350Z.dll` through the normal build; no original racing-game library or
+installation is required. The replacement passes core, adapter and actual
+Unity/PhysX checks, including separate-library loading; personal in-game
+handling acceptance remains open. See [local drift development](docs/DRIFT_WORLD.md).
+The download above remains the published release.
+
 [Releases](https://github.com/Backwoodz/NFVU2/releases) · [Changelog](CHANGELOG.md) · [Contributing](CONTRIBUTING.md) · [Known limitations](docs/ROADMAP.md)

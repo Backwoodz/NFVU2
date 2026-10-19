@@ -15,7 +15,7 @@ static class TurboChecks {
         check(noLoad.Charge==0&&noLoad.ChargeGain==0,"RPM and open throttle without engine load do not build boost");
         light.Step(1f/60,true,5900,0,false,false,0);full.Step(1f/60,true,5900,0,false,false,0);
         check(light.BlowOff==1&&full.BlowOff==2&&light.BlowOffGain<full.BlowOffGain*.55f,"release volume captures prior pressure instead of using fixed full volume");
-        check(full.ReleasedCharge>.9f&&full.BlowOffGain>.15f&&full.BlowOffGain<.22f&&full.Pressure<0,"full lift releases stored boost at a restrained gain and enters negative pressure");
+        check(full.ReleasedCharge>.9f&&full.BlowOffGain>.24f&&full.BlowOffGain<.29f&&full.Pressure<0,"full lift releases stored boost at a moderately raised gain and enters negative pressure");
         float captured=full.BlowOffGain;
         full.Step(1f/60,true,5900,0,false,false,0);
         check(full.BlowOff==0&&full.BlowOffGain==0&&captured>0,"release is a one-frame event whose captured gain can outlive charge");

@@ -1,5 +1,48 @@
 # Nächste Aufgaben
 
+## 350Z: Lastwechsel und Backfire-Sound (lokale Entwicklung)
+
+- Spielabnahme: Flammenknall hoerbar, Burble beim Ausrollen fehlt. Die erste
+  Fassung endet konstruktionsbedingt nach zwei/drei leisen Pops in weniger
+  als einer halben Sekunde; sie bildet keinen anhaltenden Schubklang ab.
+- Im lokal installierten Online-2-Playtest separat gepackte FMOD-Banken
+  gefunden. Anti-Lag-Event rendert als fortlaufende Klangschicht; getrennte
+  Backfire-Events und deklarierte Parameter/Bedingungsbausteine belegt.
+  Keine vollstaendige Rekonstruktion der Original-Schwellwerte behaupten.
+- Zusaetzliche neutrale overrun_loop.wav mit eigener NFVU2-Schubsteuerung:
+  Drehzahlabhaengiger Pegel/Pitch bleibt beim Ausrollen nach dem kurzen
+  Pop-Impuls erhalten; Ausblenden bei erneutem Gas oder niedriger Drehzahl.
+  Fokus/Menu/Flug/Ausstieg und ungueltige Werte sperren die Ebene. Drei
+  Medienaufbereitungs-, 138 Audio-, 180 Adapter-, 102 Lade- und 65 Nitrochecks
+  bestanden. Hoerabnahme beim Fahren bleibt erforderlich.
+- Native Gegenprobe mit vier Sekunden Schubphase und fallender Drehzahl:
+  laufende, nichtvirtualisierte PCM-Ausgabe auch 1.2/2.2/3.5 Sekunden nach
+  Gaswegnahme; nach erneutem Gas gestoppt. Test-Menue setzt den Listener nur
+  im temporaeren Testprozess auf Pegel 1, da Valheim die verdeckte Menueszene
+  stummschaltet. Keine Messung waehrend einer Fahrt in der Spielwelt.
+  113 Payload-Dateien mit Backup installiert und nach der Probe erneut
+  SHA-256-geprueft. Physik, bisherige Aufnahmen und Konfiguration unveraendert.
+- Drei kurze optionale PCM-Aufnahmen aus lokal gerenderten, gemeinsam
+  abgelegten Backfire-Events gefunden. Keine belegte Zuordnung zu einem
+  bestimmten Fahrzeug. Herkunft und Hashes bleiben im lokalen Medienmanifest.
+- Eigene Lastwechselsteuerung: nach Lastaufbau bei hoher Drehzahl und
+  Vorwaertsfahrt eine begrenzte, leiser werdende Knatterfolge. Staerkerer Knall
+  folgt genau dem bestehenden Flammenereignis; keine neuen Partikeleffekte.
+  Bei erneutem Gas, Fokus-/Menuesperre, Flug und Ausstieg wird abgebrochen.
+- Neutrale Dateien/Funktionen, optionale Medien unter audio/exhaust,
+  Worker-Dekodierung und Installations-Allowlist. Keine native Fremdbibliothek
+  und keine Laufzeitabhaengigkeit von der Quelle. Blowoff gegenueber dem
+  vorigen, reduzierten Mix um 2.3 dB angehoben (weiterhin weicher Ausklang).
+- Build sowie 128 Audio-, 177 Audioadapter-, 101 Lade-, 65 Nitro- und
+  102 Handlingchecks bestanden; Medienaufbereitung und Installationsengine
+  ebenfalls geprueft. Native Unity-Menueprobe belegt nichtvirtualisierte
+  PCM-Ausgabe fuer Knall, beide Burble-Varianten, Reifen, Turbo und Blowoff
+  bei 32 realen Stimmen. Keine Hoerabnahme in einer befahrenen Spielwelt.
+- Mit geschlossenem Spiel und Backup installiert: 112 Payload-Dateien
+  SHA-256-geprueft. Nur Haupt-DLL und vier neue Auspuff-Mediendateien
+  unterscheiden sich; Physik und Konfiguration unveraendert. Zwei datierte
+  Backups erhalten. Offen: persoenliche Hoerabnahme bei Lastwechseln.
+
 ## 350Z: Blowoff und Front-/Heckmischung (lokale Entwicklung)
 
 - Zweite Spielabnahme: Motor wieder hoerbar, Reifen/Turbo/Blowoff fehlen.
@@ -36,6 +79,111 @@
   Konfiguration unveraendert. Zwei datierte Backups bleiben erhalten.
 - Offen: Hoerabnahme bei Lastwechsel, Schalten und langsamen Kameraumrundungen.
 
+## Grafikstabilitaet eingrenzen (lokale Entwicklung)
+
+- Nach dem vom Nutzer bestaetigten Tuning-Reset meldet die oeffentliche NVIDIA-
+  API `GetPstates20` am 19.10. um 20:48 GPU-/Speichertakt-Offsets 0 in allen
+  gemeldeten P-States. Anschliessend meldet Afterburner ebenfalls Offset 0 und
+  die angepasste V/F-Kurve als deaktiviert. Treiber von 610.88 auf 617.42
+  aktualisiert; Afterburner/RTSS danach wieder gestartet, Overlay-Hooks im neuen
+  Spielprozess weiterhin vorhanden. Nutzer meldet fuenf Minuten ohne Haenger;
+  die begrenzte Logsicherung erfasste keinen neuen NVIDIA-Dump. Fehler damit
+  nicht als behoben bestaetigt und keine einzelne Aenderung als Ursache belegt.
+- Read-only aus Afterburners dokumentiertem MACM-Shared-Memory am 19.10.
+  aktuellen Core-Offset +246 MHz und aktivierte V/F-Kurve ausgelesen
+  (Einstellungszeitstempel 20:42:05, nach dem GPU-Reset). Das belegt den
+  aktuellen Tuningzustand, nicht den Zustand waehrend des Fehlers oder dessen
+  Ursache. Anschliessender Reset und neuer Treiber siehe oben.
+- Erneuter Haenger am 19.10.: NVIDIA-Dump von 20:41:30 mit Hung/Engine-Reset,
+  Windows-Treiberwiederherstellung 20:41:31 und LiveKernelEvent 141. Zusaetzlich
+  einen Live-Minidump des noch laufenden Spiels gesichert: Hauptthread wartet
+  in `GfxDeviceD3D11::WaitForLastPresentationAndGetTimestamp`; Render-Worker
+  wartet auf seinen Befehlsstrom. Dieser Zustand nach dem GPU-Reset benennt
+  nicht dessen Ausloeser. Shader-/Markerinformationen erneut nicht verfuegbar;
+  administrative Suche fand erneut nur den alten leeren WATCHDOG-Dump von
+  2025. Der neue Windows-Kernel-Dump wurde trotz Ereignisverweis nicht gefunden;
+  ob er nie fertig geschrieben oder bereits entfernt wurde, ist nicht belegt.
+- Wiederholte Windows-GPU-Fehler mit NVIDIA "Illegal Instruction Encoding",
+  Treiberwiederherstellung und LiveKernelEvent 141 waehrend Driftfahrten belegt.
+  Der Ausloeser ist offen; fehlende C#-Exceptions entlasten Mod-Rendering nicht.
+  Headless-Physikpruefungen belegen keine GPU-Stabilitaet.
+- `[Effects] TyreSmokeEnabled=false` verhindert die Erstellung der Reifenrauch-
+  Partikelsysteme samt Material und Textur. Standard ist true; Neustart noetig.
+  Der Vergleichslauf bestaetigt im Spiel-Log, dass diese Ressourcen nicht erzeugt
+  wurden; trotzdem erneuter GPU-Timeout mit Treiberreset. Reifenrauch ist damit
+  keine notwendige Voraussetzung fuer den beobachteten Haenger.
+- NVIDIA-eigenen Dump des rauchfreien Haengers mit dem offiziellen Aftermath-
+  Decoder ausgelesen: valheim.exe, Direct3D 11.2, Geraetezustand Hung,
+  Engine-Reset. Shader- und Markerinformationen sind in diesem Dump nicht
+  verfuegbar. Ursache damit weiterhin offen. Die anschliessende administrative
+  Suche in LiveKernelReports und den WER-Ordnern fuer Kernel 141/117 fand nur
+  einen leeren WATCHDOG-Dump vom 30.07.2025; die aktuellen .dmp-Dateien wurden
+  dabei nicht gefunden. Die alten Ereigniseintraege belegen deren damalige
+  Dateinamen, nicht ihre heutige Verfuegbarkeit.
+- Der separate Vulkan-Batchmode-Test scheitert laut passender Unity-Symbole in
+  `vk::OffscreenSwapChain::AcquireNextImage`, aufgerufen beim Setzen von VSync.
+  Dieser Offscreen-Testfehler erlaubt keine negative Aussage ueber Vulkan im
+  normalen Spielbetrieb und ist von den Direct3D-11-GPU-Timeouts zu unterscheiden.
+- Der Vulkan-Crashbericht enthaelt RTSS-, NVIDIA-Capture-, Steam-Overlay- und
+  TikTok-Capture-Hooks im Spielprozess. Deren Anwesenheit beweist keine Ursache;
+  ein Vergleich ohne Aufnahme-/Overlay-Hooks und mit geklaertem GPU-Taktprofil
+  steht noch aus. Aktive Aufnahmen/Livestreams nicht ungefragt unterbrechen.
+
+## Driftkamera (lokale Entwicklung)
+
+- Separate, standardmaessig aktive Driftkamera fuer den 350Z. Sie folgt fast
+  vollstaendig der begrenzten Bewegungsrichtung und zieht weicher nach, sodass
+  das Auto im Drift von der Seite sichtbar wird. Mehr Vorausschau entlang der
+  Strecke; manuelles Umsehen, Parkansicht und Rueckwaertsschutz bleiben erhalten.
+- `[Camera] DriftFollow=true` wirkt unabhaengig von `DynamicFollow`; Schalter
+  "Driftkamera" im Anzeige-Menue. Normale Fahrt, Hummer, Flug und Transformer
+  verwenden ihr bisheriges Kameraprofil.
+- Build sowie 37 Kamera/HUD-, 27 Cinematic-, 172 Eingabe- und 27 Kabinenchecks
+  bestanden. Die Tests pruefen Winkel, Driftwechsel, Rueckwaertsfahrt und
+  Frame-Raten; die persoenliche Spielabnahme des Bildausschnitts bleibt offen.
+
+## Eigene Driftphysik (lokale Entwicklung)
+
+- Ersatz des bisherigen privaten Bibliotheksexperiments durch
+  `NFVU2.DriftPhysics.dll`: eigene C#-Implementierung von Motor, Kupplung,
+  Sechsgangautomatik und Reifen mit kombiniertem Laengs-/Seitenschlupf.
+  Die Bibliothek unter `physics/` hat keine Unity- oder Spieldateireferenzen.
+- `src/DriftVehicleAdapter.cs` verbindet die Bibliothek mit vier Strahlabfragen
+  fuer Federung und Bodenkontakt. Unity integriert die berechneten Kraefte und
+  loest Chassiskollisionen. WheelCollider-Kraefte und Unity-Fahrzeugschwerkraft
+  sind waehrenddessen abgeschaltet; der Adapter verwendet 9,81 m/s2, ohne
+  Valheims globale Schwerkraft zu aendern.
+- Eigene Lenkregelung, Radposen und Telemetrie fuer Drehzahl, Gang, Reifenrauch,
+  Reifensound und Nitro. Moduswechsel, Flug, Transformer, Ausstieg und Abbau
+  stellen den vorherigen Physikzustand wieder her. Andere Modi und der Hummer
+  verwenden weiterhin den bisherigen Controller.
+- Die neue DLL wird vor `Rachel350Z.dll` gebaut, von ihr referenziert und im
+  normalen Payload mitgeliefert. Plugin-ID und Haupt-DLL-Name bleiben erhalten.
+  Es werden weder eine Originalbibliothek noch eine fremde Installation
+  geladen. Aktive Quell- und Werkzeugdateien tragen neutrale NFVU2-Namen.
+- Der 350Z-Driftmodus nutzt die eigene Physik mit `[DriftPhysics] Enabled=true`;
+  `false` waehlt den bisherigen Driftcontroller. Die eigene DLL gehoert in
+  beiden Faellen zum vollstaendigen Build. Details in [Driftwelt](DRIFT_WORLD.md).
+- Pruefwege: `driftphysics` fuer die portable Bibliothek, `driftadapter` fuer
+  die Unity-Anbindung mit Doubles und `tools/test_drift_unity.py` fuer eine
+  ausdrueckliche Menueprobe mit echter Unity-Physik. Keine Testergebnisse des
+  vorherigen Backends als Nachweis fuer diesen Ersatz uebernehmen.
+- Build, 52 Core- und 187 Adapterpruefungen sowie 134 echte Unity-/PhysX-
+  Pruefungen mit der separat installierten Bibliothek bestanden. Die Installation
+  ist gesichert und per SHA-256 verifiziert. Die vorherige Original-DLL ist archiviert.
+- Radzittern korrigiert: Radposen folgen dem interpolierten Render-Transform
+  der Karosserie; Federweg, Rack und volle Radumdrehungen werden geglaettet.
+  Echte Render-Frames pruefen alle vier Hubpositionen und Drehung zwischen
+  Physikschritten. Die Korrektur veraendert keine Fahrkraefte.
+- Offen: persoenliche Spielabnahme des Fahrgefuehls, der Kollisionen, der
+  Moduswechsel und des Speicherns/Neuladens.
+  Gemeinsame Reifenreibung klassifiziert die verschiedenen Valheim-Boeden
+  noch nicht einzeln. Kein identisches Fahrgefuehl zu einem Referenzspiel behauptet.
+- Herkunft: Ein vorheriger lokaler Machbarkeitsversuch verwendete eine Kopie
+  der CarX-Playtest-Bibliothek. Quellen und Analysebelege dieses Versuchs sind
+  nur im ignorierten lokalen Archiv erhalten; dessen native Bibliothek ist
+  keine Abhaengigkeit der aktuellen Implementierung.
+
 ## Drift-Teststrecke: erster Fahrabschnitt (lokale Entwicklung)
 
 - Nutzer-Screenshots bestaetigen sichtbaren Streckenverlauf, Pflaster,
@@ -45,9 +193,9 @@
   Originaltext korrigiert. Keine Wiederherstellung abgebauter/veraenderter Teile.
 - Build, 6057 Strecken-/Schildpruefungen und 124 Driftweltpruefungen bestanden.
   Neue Schildausrichtung und gespeicherte Korrektur im Spiel noch zu pruefen.
-- Nutzer ist mit dem aktuellen Drift-Handling unzufrieden. Referenzspiel und
-  konkrete Stoerungen werden als Grundlage der naechsten Fahrphysikarbeit
-  geklaert; diese Schildkorrektur veraendert das Handling nicht.
+- Nutzer ist mit dem bisherigen Drift-Handling unzufrieden. Die neue eigene
+  Physik ist oben beschrieben. Die Schildkorrektur selbst veraendert das
+  Handling nicht.
 - Teamarbeit fuer native Materialien, Fahrzeugmassstab und Persistenz.
   [Streckenentwurf](DRIFT_TRACK_DESIGN.md) mit massstaeblichem SVG und
   [Bauteilrecherche](DRIFT_TRACK_MATERIALS.md) aus lokalen Originaldaten.

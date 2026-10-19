@@ -20,7 +20,7 @@ class AudioTests {
             var data=WavPcm16.Read(assembly.GetManifestResourceStream(name));
             Check(data.Channels==1 && data.Samples.Length>2000 && data.Samples.All(s=>!float.IsNaN(s)&&Math.Abs(s)<=.83f) && data.Samples.Any(s=>Math.Abs(s)>.05f),"valid non-silent PCM: "+name);
         }
-        if(args.Length>1 && Directory.Exists(args[1]))foreach(var path in Directory.GetFiles(args[1],"*.wav")) {
+        foreach(var folder in args.Skip(1).Where(Directory.Exists))foreach(var path in Directory.GetFiles(folder,"*.wav")) {
             var data=WavPcm16.Read(File.OpenRead(path));
             Check(data.Channels==1 && data.Samples.Length>1000 && data.Samples.All(s=>!float.IsNaN(s)&&Math.Abs(s)<=.83f) && data.Samples.Any(s=>Math.Abs(s)>.05f),"runtime reader accepts prepared effect: "+Path.GetFileName(path));
         }
@@ -119,6 +119,7 @@ class AudioTests {
         physical.Step(1f/60,true,0,0,0,false);
         Check(physical.Gear==1,"leaving the physical backend returns to the existing acoustic gearbox");
         TurboChecks.Run(Check,args[0]);
+        ExhaustChecks.Run(Check);
         using(var writer=new StreamWriter(args[0])){
             writer.WriteLine("time,rpm,load,level,shift,speed,gear,turbo,blowoff,charge_gain,charge_pitch,blowoff_gain,pressure,release_envelope");model=new EngineSoundModel();turbo=new TurboSoundModel();float releaseAge=1;
             for(int i=0;i<900;i++){

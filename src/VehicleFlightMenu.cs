@@ -20,6 +20,7 @@ public partial class Plugin {
         if(!driving||!DriverInputReady){status="Zum Fliegen zuerst einsteigen.";return;}
         if(body.transform.up.y<.5f){status="Zum Starten muss das Auto aufrecht stehen.";return;}
         BlockDrivingInput();
+        ReleaseDriftPhysics();
         if(!Flying)handling?.Step(false,0,0,1); // Reset burnout and motor torque before releasing the wheel controller.
         current.flight?.Fly();showroom?.State.CloseAll();
         current.boostLogCount=0;current.boostLogTimer=0;

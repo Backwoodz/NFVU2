@@ -232,6 +232,9 @@ class Program {
         MinigunAssets(args[0],cache);
         Check(assets.Audio.FileData(Path.Combine(args[0],"audio","effects","nitro.wav")).Samples.Length>0,"native path separators resolve prefetched audio");
         Check(ReferenceEquals(assets.Audio.FileData(Path.Combine(args[0],"audio/effects/nitro.wav")),assets.Audio.FileData(Path.Combine(args[0],"audio","effects","nitro.wav"))),"mixed path separators share one audio key");
+        string exhaustFolder=Path.Combine(args[0],"audio/exhaust");
+        if(Directory.Exists(exhaustFolder))foreach(var exhaustPath in Directory.GetFiles(exhaustFolder,"*.wav"))
+            Check(assets.Audio.FileData(exhaustPath).Samples.Length>1000&&ReferenceEquals(assets.Audio.FileData(exhaustPath),warm.Audio.FileData(exhaustPath)),"optional exhaust is worker-decoded and cached: "+Path.GetFileName(exhaustPath));
         var h2=SpawnAssets.Load(args[0],true,cache,CancellationToken.None);
         Check(h2.Model.parts.Length>0&&h2.Interior==null&&h2.Turret==null&&ReferenceEquals(h2.Flames,assets.Model),"H2 shares the flight atlas without re-reading 350Z data");
         Check(h2.Audio.FileData(Path.Combine(args[0],"audio/hummer/engine_1000.wav")).Samples.Length>0,"H2 engine audio decoded in preparation");

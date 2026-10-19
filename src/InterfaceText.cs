@@ -3,6 +3,7 @@ using System.Linq;
 namespace Rachel350Z {
 public static class InterfaceText {
     static readonly KeyValuePair<string,string>[] English={
+        new KeyValuePair<string,string>("Driftkamera","Drift camera"),
         new KeyValuePair<string,string>("Welt wird geladen. Fahrzeug wartet kurz.","Loading world. Vehicle is waiting briefly."),
         new KeyValuePair<string,string>("Der Inhalt bleibt als Kiste am Fahrzeugstandort.","Cargo remains in a chest at the vehicle's location."),
         new KeyValuePair<string,string>("Beim Entfernen bleibt Inhalt als Kiste zurück.","Removing the car leaves its cargo in a chest."),
@@ -230,6 +231,7 @@ public static class InterfaceText {
         new KeyValuePair<string,string>("T\u00fcren und Motorhaube","Doors and hood"),
         new KeyValuePair<string,string>("Flugmodus / Schweben","Flight / hovering"),
         new KeyValuePair<string,string>("Drift / Heckantrieb","Drift / rear-wheel drive"),
+        new KeyValuePair<string,string>("Driftphysik nicht verfuegbar. Bisheriger Driftmodus aktiv; Details im Log.","Drift physics unavailable. Existing drift mode active; see the log for details."),
         new KeyValuePair<string,string>("Flugmodus / Landung","Flight / landing"),
         new KeyValuePair<string,string>("NOS nicht verf\u00fcgbar","NOS unavailable"),
         new KeyValuePair<string,string>("Sprache / Language","Language / Sprache"),

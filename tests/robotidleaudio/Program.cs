@@ -137,6 +137,7 @@ static class Program {
         int beforeHummer=AudioSource.All.Count;
         var h2=new VehicleAudio(true);foreach(var step in h2.LoadSteps(car,body,wheels,_=>{},new SpawnAudio())){}
         Check(AudioSource.All.Count-beforeHummer==EngineSoundModel.HummerBands.Length*2+4,"Hummer retains its existing voice count without front/rear duplication or turbo");h2.Dispose();
+        ExhaustAdapterChecks.Run(Check);
         Console.WriteLine(checks+" robot idle adapter checks passed; actual spatial mix requires game listening.");
     }
 }

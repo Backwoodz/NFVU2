@@ -20,6 +20,12 @@ def build():
     model=LOCAL/'model/body.json'
     if not model.exists():raise SystemExit('Run tools/export_geometry.py first to generate body.json.')
     output=OUTPUT/'mod/Rachel350Z.dll'
+    physics=output.parent/'NFVU2.DriftPhysics.dll'
+    physics_sources=sorted((BASE/'physics').glob('*.cs'))
+    if not physics_sources:raise SystemExit('Missing own drift physics sources in physics/.')
+    # The reusable physics assembly has no Unity, BepInEx or game references.
+    compile_cs(physics,physics_sources,standard_refs(),library=True)
+    refs.append(physics)
     compile_cs(output,sorted((BASE/'src').glob('*.cs')),refs,audio,library=True)
     shutil.copy2(model,output.parent/'body.json')
     # Long stereo songs and optional original turbo clips stay external.

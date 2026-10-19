@@ -8,6 +8,7 @@ def main():
     suites.append('transformercamera')
     suites.append('driftworld')
     suites.append('drifttrack')
+    suites.extend(('driftphysics','driftadapter'))
     parser=argparse.ArgumentParser();parser.add_argument('--skip-build',action='store_true');parser.add_argument('--handling-only',action='store_true')
     parser.add_argument('--suite',action='append',choices=suites,help='Run only these C# suites; repeat to combine.')
     args=parser.parse_args()
@@ -23,6 +24,10 @@ def main():
         out=OUTPUT/'tests'/suite;out.mkdir(parents=True,exist_ok=True)
         sources=list((BASE/'tests'/suite).glob('*.cs'));refs=list(references);arguments=[]
         if suite=='handling':sources.extend(BASE/'src'/name for name in ('DrivingMath.cs','VehicleHandling.cs','VehicleDriftTuning.cs','HummerTuning.cs','VehicleRideHeight.cs'))
+        elif suite=='driftphysics':sources.extend(sorted((BASE/'physics').glob('*.cs')))
+        elif suite=='driftadapter':
+            sources.extend(sorted((BASE/'physics').glob('*.cs')))
+            sources.extend(BASE/'src'/name for name in ('DriftVehicleAdapter.cs','VehicleNitro.cs','NitroState.cs','DrivingMath.cs'))
         elif suite=='mesh':sources.append(BASE/'src/VehicleMesh.cs')
         elif suite=='placement':sources.append(BASE/'src/TransformerPlacement.cs')
         elif suite=='lighting':sources.extend(BASE/'src'/name for name in ('VehicleLightingState.cs','DrivingMath.cs'))
@@ -54,7 +59,7 @@ def main():
         elif suite=='transformerdeployaudio':sources.extend(BASE/'src'/name for name in ('TransformerDeploySoundModel.cs','TransformerDeployAudio.cs','WavPcm16.cs'))
         elif suite=='transformerreturnaudio':sources.extend(BASE/'src'/name for name in ('TransformerReturnSoundModel.cs','TransformerReturnAudio.cs','WavPcm16.cs'))
         elif suite=='transformerreactoraudio':sources.extend(BASE/'src'/name for name in ('TransformerReactorAudio.cs','WavPcm16.cs'))
-        elif suite=='robotidleaudio':sources.extend(BASE/'src'/name for name in ('VehicleAudio.cs','VehicleSoundPerspective.cs','EngineSoundModel.cs','TurboSoundModel.cs','ReverseGearSound.cs','ExhaustSoundProfile.cs','DrivingMath.cs','WavPcm16.cs'))
+        elif suite=='robotidleaudio':sources.extend(BASE/'src'/name for name in ('VehicleAudio.cs','VehicleEffectsAudio.cs','ExhaustOverrunModel.cs','VehicleSoundPerspective.cs','EngineSoundModel.cs','TurboSoundModel.cs','ReverseGearSound.cs','ExhaustSoundProfile.cs','DrivingMath.cs','WavPcm16.cs'))
         elif suite=='transformermount':sources.extend(BASE/'src'/name for name in ('TransformerMountMotion.cs','TransformerFlipShape.cs','TransformerDismountArc.cs','TransformerClimbLeg.cs'))
         elif suite=='horde':sources.extend(BASE/'src'/name for name in ('HordeWave.cs','HordeRun.cs','HordePact.cs','HordeBonus.cs','HordeElementRules.cs'))
         elif suite=='hordeweather':sources.append(BASE/'src/HordeWeather.cs')
@@ -73,13 +78,14 @@ def main():
             harmony=out/'0Harmony.dll';shutil.copy2(valheim_dir()/'BepInEx/core/0Harmony.dll',harmony);refs.append(harmony)
         else:
             plugin=out/'Rachel350Z.dll';shutil.copy2(OUTPUT/'mod/Rachel350Z.dll',plugin);refs.append(plugin)
+            physics=out/'NFVU2.DriftPhysics.dll';shutil.copy2(OUTPUT/'mod/NFVU2.DriftPhysics.dll',physics);refs.append(physics)
         if suite=='model':
             jsondll=out/'Newtonsoft.Json.dll';shutil.copy2(valheim_dir()/'valheim_Data/Managed/Newtonsoft.Json.dll',jsondll);refs.append(jsondll)
             arguments=[str(LOCAL/'model/body.json')]
         if suite=='loading':
             jsondll=out/'Newtonsoft.Json.dll';shutil.copy2(valheim_dir()/'valheim_Data/Managed/Newtonsoft.Json.dll',jsondll);refs.append(jsondll)
             arguments=[str(OUTPUT/'mod')]
-        if suite=='audio':arguments=[str(out/'preview-state.csv'),str(OUTPUT/'mod/audio/effects')]
+        if suite=='audio':arguments=[str(out/'preview-state.csv'),str(OUTPUT/'mod/audio/effects'),str(OUTPUT/'mod/audio/exhaust')]
         if suite=='radio':
             jsondll=out/'Newtonsoft.Json.dll';shutil.copy2(valheim_dir()/'valheim_Data/Managed/Newtonsoft.Json.dll',jsondll);refs.append(jsondll)
         if suite=='menu':
@@ -104,6 +110,9 @@ def main():
             # The installed BepInEx HarmonyX/MonoMod build targets the desktop
             # CLR/Mono. Run actual detours there, not on an unsupported .NET 9.
             from build_installer import framework
+            # Reflection-based plugin checks resolve its own physics dependency
+            # beside the test executable, without adding it to desktop CLR refs.
+            shutil.copy2(OUTPUT/'mod/NFVU2.DriftPhysics.dll',out/'NFVU2.DriftPhysics.dll')
             root=framework()
             refs=[root/(name+'.dll') for name in ('mscorlib','System','System.Core')]+[harmony]
             facade=out/'netstandard.dll'

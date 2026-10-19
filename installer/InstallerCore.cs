@@ -19,6 +19,16 @@ public sealed class Journal {
     public string Backup;
     public Dictionary<string, string> Before;
 }
+public sealed class DriftDependencyInspector : MarshalByRefObject {
+    public bool NeedsPhysics(byte[] plugin) {
+        try {
+            return Assembly.ReflectionOnlyLoad(plugin).GetReferencedAssemblies()
+                .Any(a => a.Name == "NFVU2.DriftPhysics");
+        } catch (BadImageFormatException) {
+            return false;
+        }
+    }
+}
 // No Unity/game assemblies are loaded by the installer.
 public sealed class InstallerCore {
     public const string ModRoot = "BepInEx/plugins/Rachel350Z/";
@@ -70,9 +80,9 @@ public sealed class InstallerCore {
     public static bool ModName(string name) {
         if (!name.StartsWith(ModRoot, StringComparison.Ordinal)) return false;
         string n = name.Substring(ModRoot.Length);
-        if (n == "Rachel350Z.dll" || n == "body.json") return true;
+        if (n == "Rachel350Z.dll" || n == "NFVU2.DriftPhysics.dll" || n == "body.json") return true;
         if (n == "transformer/transformer.json" || n == "transformer/transformer.bin") return true;
-        return Regex.IsMatch(n, @"^(radio|menu|audio/turbo|audio/effects|audio/hummer|audio/transformer|hud|hummer|interior|turret|minigun)/[A-Za-z0-9_ .-]+\.(json|wav|ogg)$");
+        return Regex.IsMatch(n, @"^(radio|menu|audio/turbo|audio/effects|audio/exhaust|audio/hummer|audio/transformer|hud|hummer|interior|turret|minigun)/[A-Za-z0-9_ .-]+\.(json|wav|ogg)$");
     }
     public static bool LoaderName(string n) {
         return n == "winhttp.dll" || n == "doorstop_config.ini" || n == ".doorstop_version"
@@ -117,6 +127,19 @@ public sealed class InstallerCore {
         Directory.CreateDirectory(Path.GetDirectoryName(target));
         File.Copy(source, target, true);
         if (Hash(target) != expected) throw new IOException("Checksum verification failed: " + target);
+    }
+    static bool NeedsDriftPhysics(string plugin) {
+        // Old setup payloads predate the separate own physics assembly. Inspect
+        // metadata only, never execute a plugin to decide what it depends on.
+        // Isolate metadata inspection: multiple updates in the same wizard may
+        // contain distinct assemblies with identical identities. Never let the
+        // reflection-only load context reuse metadata from a previous payload.
+        var domain = AppDomain.CreateDomain("NFVU2-payload-metadata-" + Guid.NewGuid().ToString("N"));
+        try {
+            var inspector = (DriftDependencyInspector)domain.CreateInstanceFromAndUnwrap(
+                typeof(DriftDependencyInspector).Assembly.Location, typeof(DriftDependencyInspector).FullName);
+            return inspector.NeedsPhysics(File.ReadAllBytes(plugin));
+        } finally { AppDomain.Unload(domain); }
     }
     bool LoaderPresent() {
         string dll = Safe(Root, "BepInEx/core/BepInEx.dll");
@@ -179,6 +202,9 @@ public sealed class InstallerCore {
                         (mod ? desired.Mod : desired.Loader)[entry.Key] = entry.Value;
                     }
                 }
+                if (NeedsDriftPhysics(Safe(stage, ModRoot + "Rachel350Z.dll"))
+                    && !desired.Mod.ContainsKey(ModRoot + "NFVU2.DriftPhysics.dll"))
+                    throw new IOException("Installer payload is missing NFVU2.DriftPhysics.dll required by the plugin.");
                 string state = Safe(stage, StateFile);
                 Directory.CreateDirectory(Path.GetDirectoryName(state));
                 File.WriteAllText(state, Json.Serialize(desired));

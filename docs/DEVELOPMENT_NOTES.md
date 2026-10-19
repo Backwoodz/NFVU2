@@ -196,7 +196,7 @@ Nitro wirkt bei Vorwärtsfahrt mit Gas und Bodenkontakt; im Stand entstehen
 Purge-Strahlen an Stoßstange und Haube. Ein voller Tank reicht sechs Sekunden,
 lädt zwei Sekunden nach dem Loslassen während der Fahrt in zehn Sekunden nach.
 F9 → Nitro schaltet die Funktion und optionale Flammen beim Gaswegnehmen.
-Letztere sind zunächst aus; ein eindeutig zugeordneter Knall-Sample fehlt noch.
+Letztere sind zunaechst aus; ein optionaler Knall folgt jetzt demselben Flammenereignis.
 Originale Feuer-/Rauchtexturen und Nitrobank-Aufnahmen sind importiert;
 Boost, Nachladung, Partikelbewegung und Purge-Düsenpositionen sind Mod-Anpassungen.
 Die beiden Nitrobank-Loops sind vorläufig Boost/Purge zugeordnet. Ob und ab
@@ -210,10 +210,29 @@ starten synchron. Beim Drehen der Kamera vor das Auto werden Motor und Turbo
 betont, von hinten der Auspuff; der Wechsel ist geglaettet. Die Aufnahmen
 enthalten bereits einen Gesamtklang, die Trennung ist eine NFVU2-Abstimmung.
 Blowoff wird beim deutlichen Schliessen des Gases aus gespeichertem Ladedruck
-ausgeloest, nicht bei kleinen Gaskorrekturen. Der Mix ist um rund 8 dB leiser,
+ausgeloest, nicht bei kleinen Gaskorrekturen. Nach der ersten Reduktion wurde
+der Mix auf Wunsch um 2.3 dB angehoben (weiterhin rund 5.7 dB unter Vollpegel),
 Schalt-Releases zusaetzlich reduziert; eine eigene Huellkurve blendet die lange
 Aufnahme innerhalb von 550 ms aus. Exakte NFS-Ausloese- und Kameralogik sind
 nicht rekonstruiert. Hummer-Sound und Fahrzeughandling bleiben unveraendert.
 
 Neon-Pulsverlauf, Lichtstärken, Kennzeichenposition und Turbo-Auslösung sind
 NFVU2-Anpassungen; eine vollständige originale Rachel-Rekonstruktion bleibt offen.
+
+Die optionalen Lastwechsel-Aufnahmen liegen separat unter audio/exhaust.
+Gemeinsam abgelegte, explizit benannte Backfire-Events wurden aus lokal
+vorhandenen Spieldaten offline gerendert, gekuerzt und als Mono-PCM vorbereitet.
+Die genaue Quelle ist im ignorierten Medienmanifest dokumentiert; eine
+350Z-spezifische Zuordnung ist nicht belegt. NFVU2 steuert Timing, Abklingen,
+Pitch und Lautstaerke selbst. Drei leise Pops beim deutlichen Gaswegnehmen,
+bei aktivem Flammenereignis ein staerkerer Knall und zwei versetzte leise Pops.
+Keine neuen Flammen oder Grafikressourcen und keine Aenderung am Handling.
+
+Die erste Spielabnahme bestaetigte den Flammenknall, aber keinen wahrnehmbaren
+Burble beim weiteren Ausrollen. Der reine Zwei-/Drei-Pop-Ansatz endete bereits
+nach weniger als einer halben Sekunde. Eine nun getrennt vorbereitete,
+fortlaufende Auspufftextur aus dem lokal installierten Online-2-Playtest bleibt
+waehrend der Schubphase hoerbar. Drehzahl steuert Pitch und Pegel; erneutes
+Gas beendet die Ebene, niedrige Drehzahl blendet sie aus. FMOD-Event und
+Parameter sind belegt; exakte interne Ausloeseschwellen sind nicht rekonstruiert.
+Flammenknall und Blowoff bleiben auf der bisherigen Abstimmung.

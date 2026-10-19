@@ -6,12 +6,14 @@ using UnityEngine;
 using UnityEngine.Audio;
 
 namespace Rachel350Z {
-// Short local NFS samples driven by NFVU2 effect states, not original NFS logic.
+// Optional local recordings driven by NFVU2 effect states.
 public sealed class VehicleEffectsAudio : IDisposable {
     readonly List<AudioClip> clips=new List<AudioClip>();
     readonly List<AudioSource> sources=new List<AudioSource>();
     GameObject root;
-    AudioSource nitro,purge,backfire;
+    AudioSource nitro,purge,backfire,overrunBed;
+    readonly AudioSource[] overrun=new AudioSource[2];
+    readonly ExhaustOverrunModel overrunModel=new ExhaustOverrunModel();
     bool paused,disposed,previousBackfire;
     public bool BackfireAvailable => !disposed&&backfire!=null;
     public bool NitroAvailable => !disposed&&nitro!=null;
@@ -41,7 +43,13 @@ public sealed class VehicleEffectsAudio : IDisposable {
             var folder=Path.Combine(Path.GetDirectoryName(typeof(VehicleEffectsAudio).Assembly.Location),"audio","effects");
             result.nitro=result.Load(folder,"nitro.wav",true,mixer,log,prepared);
             result.purge=result.Load(folder,"purge.wav",true,mixer,log,prepared);
-            result.backfire=result.Load(folder,"backfire.wav",false,mixer,log,prepared);
+            var exhaustFolder=Path.Combine(Path.GetDirectoryName(typeof(VehicleEffectsAudio).Assembly.Location),"audio","exhaust");
+            result.backfire=result.Load(exhaustFolder,"backfire.wav",false,mixer,log,prepared)
+                ??result.Load(folder,"backfire.wav",false,mixer,log,prepared);
+            result.overrun[0]=result.Load(exhaustFolder,"overrun_01.wav",false,mixer,log,prepared);
+            result.overrun[1]=result.Load(exhaustFolder,"overrun_02.wav",false,mixer,log,prepared);
+            result.overrunBed=result.Load(exhaustFolder,"overrun_loop.wav",true,mixer,log,prepared);
+            if(result.overrunBed!=null)result.overrunBed.priority=100;
             log?.Invoke("350Z effect audio: "+result.sources.Count+" optional local clips loaded.");
             return result;
         }catch(Exception e){result.Dispose();log?.Invoke("350Z effect audio unavailable: "+e.Message);return null;}
@@ -80,6 +88,24 @@ public sealed class VehicleEffectsAudio : IDisposable {
         }
         previousBackfire=backfire;
     }
+    public void TickExhaust(float dt,bool active,float rpm,float throttle,float speed,bool flame,bool blocked,float volume) {
+        if(disposed)return;
+        bool audible=active&&!blocked&&Finite(dt)&&dt>0&&Finite(rpm)&&Finite(throttle)&&Finite(speed)&&Finite(volume)&&volume>0;
+        overrunModel.Step(dt,audible,rpm,throttle,speed,flame);
+        if(overrunBed!=null) {
+            if(overrunModel.Level>0)overrunBed.pitch=overrunModel.LoopPitch;
+            if(!audible||speed<2) {overrunBed.Stop();overrunBed.volume=0;}
+            else Loop(overrunBed,overrunModel.Level>.0001f,Mathf.Clamp01(volume)*overrunModel.Level,Mathf.Min(Mathf.Max(0,dt),.1f));
+        }
+        if(!audible||throttle>=.18f||rpm<2400||speed<2) {
+            foreach(var source in overrun)if(source!=null&&source.isPlaying)source.Stop();
+        }
+        if(!overrunModel.Pop)return;
+        var voice=overrun[overrunModel.Variant]??overrun[1-overrunModel.Variant];
+        if(voice==null)return;
+        voice.Stop();voice.volume=Mathf.Clamp01(volume)*overrunModel.Gain;voice.pitch=overrunModel.Pitch;voice.Play();
+    }
+    static bool Finite(float value)=>!float.IsNaN(value)&&!float.IsInfinity(value);
     static void Loop(AudioSource source,bool active,float volume,float dt) {
         if(source==null)return;
         if(active&&!source.isPlaying)source.Play();

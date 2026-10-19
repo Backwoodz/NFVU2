@@ -57,12 +57,14 @@ class InstallTests(unittest.TestCase):
             (dest/'radio/old.wav').write_bytes(b'old song')
             (dest/'radio/personal.ogg').write_bytes(b'keep')
             (dest/install.MANIFEST).write_text(json.dumps(['radio/old.wav']))
-            self.assertEqual(install.install_payload(source,dest,backup,lambda:None),3)
+            self.assertEqual(install.install_payload(source,dest,backup,lambda:None),len(install.REQUIRED)+1)
             self.assertEqual((backup/'radio/old.wav').read_bytes(),b'old song')
             self.assertFalse((dest/'radio/old.wav').exists())
             self.assertEqual((dest/'radio/personal.ogg').read_bytes(),b'keep')
             for name in install.payload_files(source):
                 self.assertEqual(install.checksum(source/name),install.checksum(dest/name))
+            self.assertEqual((backup/'NFVU2.DriftPhysics.dll').read_bytes(),b'old')
+            self.assertIn('NFVU2.DriftPhysics.dll',json.loads((dest/install.MANIFEST).read_text()))
     def test_copy_failure_restores_old_and_removes_partial_new(self):
         with tempfile.TemporaryDirectory() as temp:
             source,dest,backup=self.fixture(Path(temp))
@@ -88,6 +90,19 @@ class InstallTests(unittest.TestCase):
             self.assertEqual((dest/'audio/effects/nitro.wav').read_bytes(),b'nitro')
             self.assertEqual((dest/'audio/effects/purge.wav').read_bytes(),b'purge')
             self.assertFalse((dest/'audio/effects/source.abk').exists())
+
+    def test_exhaust_media_is_installed_without_source_bank_or_runtime(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);source,dest,backup=self.fixture(root)
+            local=root/'local';exhaust=local/'audio-exhaust';exhaust.mkdir(parents=True)
+            (exhaust/'overrun_01.wav').write_bytes(b'pop');(exhaust/'backfire.wav').write_bytes(b'bang')
+            (exhaust/'manifest.json').write_text('{}')
+            (exhaust/'source.bank').write_bytes(b'private');(exhaust/'runtime.dll').write_bytes(b'private')
+            (dest/'audio/exhaust').mkdir(parents=True);(dest/'audio/exhaust/backfire.wav').write_bytes(b'old')
+            sync_optional_assets(local,source);install.install_payload(source,dest,backup,lambda:None)
+            self.assertEqual((backup/'audio/exhaust/backfire.wav').read_bytes(),b'old')
+            self.assertEqual((dest/'audio/exhaust/backfire.wav').read_bytes(),b'bang')
+            self.assertEqual({p.name for p in (dest/'audio/exhaust').iterdir()},{'overrun_01.wav','backfire.wav','manifest.json'})
     def test_reject_manifest_escape_before_mutation(self):
         with tempfile.TemporaryDirectory() as temp:
             source,dest,backup=self.fixture(Path(temp))

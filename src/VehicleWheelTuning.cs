@@ -52,7 +52,12 @@ public partial class Plugin {
         // No physics step has placed freshly loaded wheel visuals yet. Use
         // their authored hubs before a saved robot captures borrowed meshes.
         if(initialPose){pos=wheels[index].transform.TransformPoint(wheels[index].center);rot=wheels[index].transform.rotation;}
-        else if(Flying)current.flight.WheelPose(index,out pos,out rot);else wheels[index].GetWorldPose(out pos,out rot);
+        else if(Flying)current.flight.WheelPose(index,out pos,out rot);
+        else if(DriftPhysicsActive) {
+            if(!current.driftPhysics.TryGetWheelPose(index,out pos,out rot)) {
+                pos=wheels[index].transform.TransformPoint(wheels[index].center);rot=body.rotation;
+            }
+        } else wheels[index].GetWorldPose(out pos,out rot);
         float fold=Flying?current.flight.State.Blend:0;
         var vectoring=Flying?car.transform.rotation*Quaternion.Euler(current.flight.WheelPitch*fold,0,current.flight.WheelRoll*fold)*Quaternion.Inverse(car.transform.rotation):Quaternion.identity;
         if(!originalWheels) {
@@ -68,7 +73,8 @@ public partial class Plugin {
             +car.transform.right*(side*offset);
         pos+=car.transform.right*(side*.22f*fold);
         rot=Quaternion.Slerp(rot,car.transform.rotation,fold);
-        var steering=car.transform.rotation*Quaternion.Euler(0,wheels[index].steerAngle*(1-fold),0);
+        float steerAngle=DriftPhysicsActive?current.driftPhysics.VisualSteeringAngle(index):wheels[index].steerAngle;
+        var steering=car.transform.rotation*Quaternion.Euler(0,steerAngle*(1-fold),0);
         var tilt=Quaternion.AngleAxis(FlightState.WheelTilt(index,camber,fold),Vector3.forward);
         var mirror=Quaternion.Euler(0,index%2==0?180:0,0);
         visuals[index].SetPositionAndRotation(pos,vectoring*steering*tilt*Quaternion.Inverse(steering)*rot*mirror);

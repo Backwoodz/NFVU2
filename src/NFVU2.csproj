@@ -8,6 +8,7 @@
     <ManagedDir>$(ValheimDir)/valheim_Data/Managed</ManagedDir>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="../physics/NFVU2.DriftPhysics.csproj" />
     <Reference Include="Unity.TextMeshPro"><HintPath>$(ManagedDir)/Unity.TextMeshPro.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine.UI"><HintPath>$(ManagedDir)/UnityEngine.UI.dll</HintPath><Private>false</Private></Reference>
     <Reference Include="UnityEngine.UIModule"><HintPath>$(ManagedDir)/UnityEngine.UIModule.dll</HintPath><Private>false</Private></Reference>

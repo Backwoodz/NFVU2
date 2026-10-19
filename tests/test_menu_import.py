@@ -7,7 +7,7 @@ import unittest
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / 'tools'))
 from export_menu import language_table
-from mod_files import sync_optional_assets, payload_files
+from mod_files import sync_optional_assets, payload_files, REQUIRED
 from project import LOCAL
 
 
@@ -32,7 +32,7 @@ class MenuTests(unittest.TestCase):
             for name in ('menu.json', 'navigate.wav', 'accept.wav', 'back.wav', 'provenance.json', 'source.abk'):
                 (menu/name).write_bytes(b'fixture')
             output=root/'build';sync_optional_assets(local, output)
-            for name in ('Rachel350Z.dll', 'body.json'): (output/name).write_bytes(b'fixture')
+            for name in REQUIRED: (output/name).write_bytes(b'fixture')
             files={str(p).replace('\\', '/') for p in payload_files(output)}
             self.assertIn('menu/menu.json', files);self.assertIn('menu/accept.wav', files)
             self.assertNotIn('menu/source.abk', files)

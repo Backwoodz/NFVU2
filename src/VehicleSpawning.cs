@@ -151,7 +151,7 @@ public partial class Plugin {
         LoadStage("Effekte und Sound",.72f);
         vehicleImpact=car.AddComponent<VehicleImpact>();
         vehicleImpact.Initialize(body,box,message=>Logger.LogWarning(message));
-        burnoutEffects=VehicleBurnoutEffects.Create(car,model,wheels,visuals,message=>Logger.LogInfo(message));
+        burnoutEffects=CreateTyreSmoke(model);
         if(!IsHummer)vehicleNitro=new VehicleNitro(body,wheels);
         InitializeFlight(assets.Flames,assets.Audio);
         yield return 0;

@@ -54,6 +54,47 @@ Motorloops unter `.local/audio-hummer/`. Build und Installer übernehmen diese
 als `hummer/` und `audio/hummer/` neben der unverändert benannten DLL.
 `tools/render_hummer.py` erstellt mit Blender eine lokale Vorschau.
 
+### Optionale Lastwechsel- und Auspuffaufnahmen
+
+`tools/prepare_exhaust_audio.py` verarbeitet drei lokal bereitgestellte,
+offline gerenderte Event-WAVs. Beispiel mit Dateien unter `.local/`:
+
+```powershell
+python tools/prepare_exhaust_audio.py --overrun .local/exhaust-source/pop_a.wav .local/exhaust-source/pop_b.wav --backfire .local/exhaust-source/bang.wav --source-description "Originaltitel, Bank und genaue Eventnamen"
+```
+
+Ausgabe: `.local/audio-exhaust/{overrun_01.wav,overrun_02.wav,backfire.wav}`
+und ein Manifest mit Herkunft, Quell-/Ausgabehashes und Verarbeitungsschritten.
+Optional ergaenzen `--loop .local/exhaust-source/coast.wav` und
+`--loop-source-description "Originaltitel, Event und Renderparameter"`
+eine weitere Datei `overrun_loop.wav`. Die Schleife verwendet rund drei
+Sekunden ohne Event-Anlauf, eine 35-ms-Kreuzblende an der Naht und einen
+begrenzten Arbeitspegel (RMS-Ziel 0.085, Peak maximal 0.75). Die kurzen Pops
+werden weiterhin nicht hoch normalisiert. Ein reiner Pop-Reimport erhaelt
+eine vorhandene Schleife samt ihrer getrennten Herkunftsangabe.
+Der Build kopiert nur die vorbereiteten Medien nach `audio/exhaust/`.
+Originalbanken, Renderwerkzeuge und native Bibliotheken bleiben lokal und
+werden vom Mod nicht benoetigt. Die Dateien sind optional; fehlerhafte oder
+fehlende Clips duerfen den normalen Motorsound nicht abschalten.
+
+Der aktuelle lokale Import verwendet gemeinsam abgelegte, ausdruecklich als
+Backfire bezeichnete Events aus CarX Drift Racing Online. Eine spezifische
+350Z-Zuordnung und originales Burble-Timing sind nicht belegt. Mono-Downmix,
+Beschnitt auf 360/240 ms und kurze Fades entfernen Vorlauf und lange Halltails.
+Clipping in der Eingabe wird abgelehnt; leise Aufnahmen werden nicht pauschal
+hoch normalisiert. `ExhaustOverrunModel` erzeugt die kurze Knatterfolge selbst.
+Der zusaetzliche Dauerklang stammt aus dem lokal installierten Online-2-Playtest:
+FMOD-Bank `car_parts`, Event `car_system_antilag`. Es laesst sich offline als
+fortlaufender Klang rendern und deklariert unter anderem RPM, Load, HP,
+Motorart und Anti-Lag-Stufe. Metadaten enthalten Bedingungsbausteine fuer
+Gasstellung, Drehzahl, Geschwindigkeit und Timer. Die Original-Schwellwerte,
+Motorzuordnung und vollstaendige Steuerlogik sind damit nicht rekonstruiert.
+NFVU2 startet die Ebene nach Lastaufbau bei geschlossenem Gas, traegt sie
+waehrend des Ausrollens mit drehzahlabhaengiger Tonhoehe/Lautstaerke weiter
+und blendet bei erneutem Gas beziehungsweise niedriger Drehzahl aus.
+Die Originalaufnahmen bleiben Originalaufnahmen; neutrale Dateinamen aendern
+ihre Herkunft nicht. Alle Medien und Herkunftsmanifeste bleiben Git-ignoriert.
+
 ### Optionaler 350Z-Innenraum und Fahrer
 
 Die lokal bereitgestellte ZIP „Nissan 350Z FIX UKBEAMNG“ wird unter

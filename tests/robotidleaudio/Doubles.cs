@@ -51,6 +51,7 @@ namespace UnityEngine {
         // high-priority loops can therefore crowd out lower-priority effects.
         public bool isVirtual=>!Playing||!All.Where(s=>s.Playing).OrderBy(s=>s.priority).ThenByDescending(s=>s.volume).Take(32).Contains(this);
         public void Play(){Playing=true;Paused=false;Starts++;}
+        public bool isPlaying=>Playing;
         public double ScheduledAt;
         public void PlayScheduled(double time){ScheduledAt=time;Play();}
         public void Stop(){Playing=Paused=false;Stops++;}

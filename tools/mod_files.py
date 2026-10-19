@@ -3,11 +3,12 @@ from pathlib import Path
 import shutil
 import json
 
-REQUIRED=('Rachel350Z.dll','body.json')
+REQUIRED=('Rachel350Z.dll','NFVU2.DriftPhysics.dll','body.json')
 OPTIONAL=(('radio', 'radio', {'.wav','.ogg','.json'}),
           ('menu', 'menu', {'.wav','.json'}),
           ('audio-turbo', 'audio/turbo', {'.wav','.json'}),
           ('audio-effects', 'audio/effects', {'.wav','.json'}),
+          ('audio-exhaust', 'audio/exhaust', {'.wav','.json'}),
           ('audio-transformer', 'audio/transformer', {'.wav','.json'}),
           ('hud', 'hud', {'.json'}),
           ('hummer', 'hummer', {'.json'}),

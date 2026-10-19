@@ -3,6 +3,11 @@ using UnityEngine;
 using UnityEngine.Rendering;
 
 namespace Rachel350Z {
+public struct TyreSmokeContact {
+    public bool Grounded,Sliding;
+    public Vector3 Point,Hub;
+    public float Rpm;
+}
 // Original NFS smoke atlas; emitter behaviour is authored for this Unity mod.
 public sealed class VehicleBurnoutEffects : IDisposable {
     readonly ParticleSystem[] systems=new ParticleSystem[2];
@@ -51,15 +56,25 @@ public sealed class VehicleBurnoutEffects : IDisposable {
             renderer.shadowCastingMode=ShadowCastingMode.Off;renderer.receiveShadows=false;
         }
     }
-    public void Tick(bool burnout,bool blocked,bool drift=false) {
+    public void Tick(bool burnout,bool blocked,bool drift=false,Func<int,TyreSmokeContact> contactProvider=null) {
         if(disposed)return;
         for(int i=0;i<systems.Length;i++) {
             var ps=systems[i];if(ps==null)continue;
-            bool active=false;var wheel=wheels[i+2];
-            if(!blocked&&(burnout||drift)&&wheel.GetGroundHit(out var hit)&&
-                (burnout?Mathf.Abs(wheel.rpm)>40:Mathf.Abs(hit.sidewaysSlip)>.3f||Mathf.Abs(hit.forwardSlip)>.5f)) {
-                wheel.GetWorldPose(out var hub,out var rotation);
-                ps.transform.position=hit.point+(visuals[i+2].position-hub)+Vector3.up*.035f;
+            bool active=false;
+            var contact=new TyreSmokeContact();
+            if(!blocked&&(burnout||drift)) {
+                if(contactProvider!=null)contact=contactProvider(i+2);
+                else {
+                    var wheel=wheels[i+2];
+                    if(wheel.GetGroundHit(out var hit)) {
+                        wheel.GetWorldPose(out var hub,out var rotation);
+                        contact=new TyreSmokeContact {Grounded=true,Point=hit.point,Hub=hub,Rpm=wheel.rpm,
+                            Sliding=Mathf.Abs(hit.sidewaysSlip)>.3f||Mathf.Abs(hit.forwardSlip)>.5f};
+                    }
+                }
+            }
+            if(!blocked&&(burnout||drift)&&contact.Grounded&&(burnout?Mathf.Abs(contact.Rpm)>40:contact.Sliding)) {
+                ps.transform.position=contact.Point+(visuals[i+2].position-contact.Hub)+Vector3.up*.035f;
                 ps.transform.rotation=Quaternion.LookRotation(Vector3.up,Vector3.forward);active=true;
             }
             if(blocked){ps.Stop(false,ParticleSystemStopBehavior.StopEmittingAndClear);emitting[i]=false;}

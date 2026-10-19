@@ -29,6 +29,7 @@ class DrivingTests {
         for(int i=0;i<30;i++)slow.Step(1f/30,80,80,10,10,2.5f);
         for(int i=0;i<120;i++)fast.Step(1f/120,80,80,10,10,2.5f);
         Check(Near(slow.Yaw,fast.Yaw,.01f),"camera follow response is stable across frame rates");
+        DriftView();
         Check(Near(HudMath.Speed(10,false),36)&&Near(HudMath.Speed(10,true),22.369363f),"HUD converts actual speed to KM/H or MPH");
         Check(HudMath.Speed(-10,false)==36&&HudMath.Speed(float.NaN,false)==0,"HUD reverse and invalid speed stay readable");
         Check(HudMath.NeedleAngle(0)==180&&HudMath.NeedleAngle(7500)==420&&HudMath.NeedleAngle(9000)==420,"needle matches original 7500 RPM sweep and clamps overrev");
@@ -55,5 +56,37 @@ class DrivingTests {
             Check(rejected,"truncated HUD pixel data rejected before native upload");
         }finally{if(File.Exists(temp))File.Delete(temp);}
         Console.WriteLine(checks+" camera/HUD checks passed; Unity drawing and driving require a game test.");
+    }
+    static void DriftView() {
+        foreach(float direction in new[]{-1f,1f}){
+            var camera=new ChaseCameraState();camera.Reset(0);
+            for(int i=0;i<300;i++)camera.Step(.02f,0,direction*45,20,14,2.5f,true);
+            Check(direction*camera.Yaw>40&&direction*camera.Yaw<46,"sustained drift exposes the car's side while looking along travel, direction="+direction);
+            float previous=camera.Yaw,maxJump=0;
+            for(int i=0;i<300;i++){
+                camera.Step(.02f,0,-direction*45,20,14,2.5f,true);
+                maxJump=Math.Max(maxJump,Math.Abs(DrivingMath.WrapAngle(camera.Yaw-previous)));previous=camera.Yaw;
+            }
+            Check(-direction*camera.Yaw>40&&maxJump<3,"drift switch carries the camera smoothly onto the other flank, direction="+direction);
+            for(int i=0;i<300;i++)camera.Step(.02f,0,0,20,20,2.5f,true);
+            Check(Math.Abs(camera.Yaw)<.05f,"grip recovery smoothly returns the drift view behind straight travel");
+        }
+        var road=new ChaseCameraState();var drift=new ChaseCameraState();road.Reset(0);drift.Reset(0);
+        road.Step(.1f,60,60,20,20,2.5f);drift.Step(.1f,60,60,20,20,2.5f,true);
+        Check(drift.Yaw>0&&drift.Yaw<road.Yaw,"drift profile follows chassis rotation more softly than the normal dynamic view");
+        drift.Reset(0);for(int i=0;i<300;i++)drift.Step(.02f,0,88,20,2,2.5f,true);
+        Check(drift.Yaw>70&&drift.Yaw<=76.01f,"large slip remains bounded before a side-on camera flip");
+        drift.Reset(0);for(int i=0;i<300;i++)drift.Step(.02f,0,180,12,-12,2.5f,true);
+        Check(Near(drift.Yaw,0),"reverse never swings the drift camera to the front");
+        drift.Reset(0);drift.Orbit(80);for(int i=0;i<50;i++)drift.Step(.02f,20,50,20,14,2.5f,true);
+        Check(Near(drift.Yaw,80),"manual inspection holds its chosen world angle in drift mode");
+        for(int i=0;i<400;i++)drift.Step(.02f,20,50,20,14,2.5f,true);
+        Check(Math.Abs(DrivingMath.WrapAngle(drift.Yaw-48.5f))<.05f,"manual view returns to the drifting travel heading after its hold");
+        drift.Reset(0);drift.Orbit(80);for(int i=0;i<300;i++)drift.Step(.02f,20,50,0,0,2.5f,true);
+        Check(Near(drift.Yaw,80),"parked drift mode allows free inspection without automatic recentering");
+        var slow=new ChaseCameraState();var fast=new ChaseCameraState();slow.Reset(179);fast.Reset(179);
+        for(int i=0;i<60;i++)slow.Step(1f/30,-179,-145,20,15,2.5f,true);
+        for(int i=0;i<240;i++)fast.Step(1f/120,-179,-145,20,15,2.5f,true);
+        Check(Math.Abs(DrivingMath.WrapAngle(slow.Yaw-fast.Yaw))<.01f,"drift follow is stable across frame rates and the angle wrap");
     }
 }

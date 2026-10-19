@@ -19,6 +19,8 @@ internal sealed class VehicleRuntime {
     public float rearWheelVisualOffset;
     public PhysicsMaterial chassisMaterial;
     public VehicleHandling handling;
+    public DriftVehicleAdapter driftPhysics;
+    public bool driftPhysicsFailed;
     public VehicleFlight flight;
     public VehicleNitroEffects flightEffects;
     public VehicleEffectsAudio flightAudio;

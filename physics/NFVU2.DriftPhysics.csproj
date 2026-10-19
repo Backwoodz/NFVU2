@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>netstandard2.1</TargetFramework>
+    <AssemblyName>NFVU2.DriftPhysics</AssemblyName>
+    <LangVersion>latest</LangVersion>
+  </PropertyGroup>
+</Project>

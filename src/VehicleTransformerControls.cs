@@ -33,6 +33,7 @@ public partial class Plugin {
         if(showroom==null||Array.Exists(showroom.State.Progress,x=>x>.001f)){showroom?.State.CloseAll();ShowVehicleWarning("Zum Verwandeln zuerst Tueren, Haube und Kofferraum schliessen.");return;}
         if(current.transformerAsset==null){ShowVehicleWarning("Die passenden lokalen Transformer-Dateien fehlen.");return;}
         // Construct lazily, once per car. Asset parsing happened in spawn worker.
+        ReleaseDriftPhysics();
         if(current.transformer==null)current.transformer=new VehicleTransformer(current,current.transformerAsset);
         BlockDrivingInput();handling?.Step(false,0,0,1);vehicleImpact?.Step(null,false);ClearNitroVisuals();
         if(!current.transformer.Begin(player.transform,out string reason)){ShowVehicleWarning(reason);return;}

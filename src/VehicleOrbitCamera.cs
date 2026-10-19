@@ -87,10 +87,13 @@ public sealed partial class VehicleOrbitCamera {
         pitch=DrivingMath.Clamp(pitch-look.y*degreesPerSecond*dt*(invert?-1:1),-10,70);
         hadInput=false;
     }
-    public void LateFrame(Vector3 velocity,bool dynamicFollow,float followRate,bool blocked,bool turretAim=false) {
+    public void LateFrame(Vector3 velocity,bool dynamicFollow,float followRate,bool blocked,bool turretAim=false,bool driftFollow=false) {
         if(!active||vehicle==null)return;
         if(camera==null)camera=Camera.main;
         if(camera==null)return;
+        // Drift has a separately selectable chase view even if ordinary road
+        // driving uses the chassis-attached camera.
+        dynamicFollow|=driftFollow;
         if(dynamicMode!=dynamicFollow) {
             dynamicMode=dynamicFollow;
             if(deploymentShot.Active||deploymentShot.Releasing)InterruptTransformationShot();
@@ -98,9 +101,9 @@ public sealed partial class VehicleOrbitCamera {
         }
         float speed=velocity.magnitude;
         if(dynamicMode&&!blocked)chase.Step(Time.deltaTime,vehicle.eulerAngles.y,
-            Mathf.Atan2(velocity.x,velocity.z)*Mathf.Rad2Deg,speed,Vector3.Dot(velocity,vehicle.forward),followRate);
+            Mathf.Atan2(velocity.x,velocity.z)*Mathf.Rad2Deg,speed,Vector3.Dot(velocity,vehicle.forward),followRate,driftFollow);
         float blend=blocked&&(deploymentShot.Active||deploymentShot.Releasing)?0:1-Mathf.Exp(-14*Time.deltaTime);
-        var lookAhead=dynamicMode?Vector3.ClampMagnitude(new Vector3(velocity.x,0,velocity.z)*.08f,1.25f):Vector3.zero;
+        var lookAhead=dynamicMode?Vector3.ClampMagnitude(new Vector3(velocity.x,0,velocity.z)*(driftFollow?.12f:.08f),driftFollow?1.8f:1.25f):Vector3.zero;
         float robotPivot=turretAim?TransformerAimSettings.PivotHeight(pitch):3.2f;
         var pivot=vehicle.position+Vector3.up*Mathf.Lerp(turretAim?TurretAimSettings.PivotHeight(pitch):suv?1.5f:1.05f,robotPivot,RobotBlend)+lookAhead;
         float viewYaw=dynamicMode?chase.Yaw:vehicle.eulerAngles.y+yaw,viewPitch=pitch;

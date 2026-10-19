@@ -17,7 +17,7 @@ public sealed class TurboSoundModel {
     public const float HighSampleGain=16500f/32768f;
     // Our mix trim preserves the sample-bank ratios while keeping releases
     // below the engine. Shifts vent much less audibly than a complete lift.
-    public const float ReleaseMixGain=.4f;
+    public const float ReleaseMixGain=.52f;
     public const float ShiftReleaseGain=.35f;
     public const float ReleaseDuration=.55f;
     public static float ReleaseEnvelope(float age) {

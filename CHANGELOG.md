@@ -1,15 +1,25 @@
 # Changelog
 
-## Unreleased — 350Z audio and integrated drift build world
+## Unreleased - Drift build world and own drift physics
 
+- Keep exhaust burble audible during falling-RPM coasting, beyond the initial
+  short lift-off pops. Add a separate optional continuous exhaust texture,
+  with RPM-driven pitch/level, a quiet loop seam and fade-out on renewed gas.
+  Preserve the existing flame bang and the current blow-off mix.
+- Add optional short exhaust recordings: a decaying lift-off burble and a
+  stronger one-shot tied to the existing backfire flame request. Use NFVU2's
+  own trigger/timing model, rear emitters and normal vehicle sound volume;
+  stop on throttle return, menu/focus blocking, flight and exit. Prepare three
+  neutral-named PCM clips locally; no source-game library is shipped or loaded.
+  Raise blow-off by 2.3 dB relative to the previous softened mix.
 - Fix the 350Z front/rear engine loops crowding out tyre, turbo and release
   voices at Valheim's 32-real-voice limit. Let silent RPM bands yield to audible
   effects through normal loop priority; keep the global audio settings intact.
 - Fix the new front/rear sound emitters' initialization order: create each
   AudioSource before adding its native filter. The reversed order rejected
   the filter and aborted vehicle audio loading, silencing all vehicle sounds.
-- Refine 350Z audio using the existing NFSU2 recordings: lower blow-off mix by
-  about 8 dB, soften shift releases further, ignore throttle feathering, and
+- Refine 350Z audio using the existing NFSU2 recordings: soften blow-off and
+  shift releases, ignore throttle feathering, and
   fade long release tails to silence within 550 ms. Keep boost/RPM/handling
   controls separate from these acoustic changes.
 - Place filtered engine and exhaust voices at the front and rear, sharing the
@@ -17,6 +27,42 @@
   engine/turbo when listening from the front and exhaust from behind. This is
   NFVU2's own mix, not a recovered NFS/Forza implementation; Hummer stays on
   its existing audio path. Add an offline front/rear listening illustration.
+- Add `Effects.TyreSmokeEnabled` (default true) to skip rear-tyre smoke creation
+  entirely when disabled, allowing a controlled rendering comparison after
+  repeated GPU hangs. Restart required; this is not a confirmed crash fix.
+- Add a separately enabled 350Z drift chase camera: follow 95% of the bounded
+  travel angle with softer heading response and a little more road look-ahead.
+  Show more of the car's side through a slide while preserving mouse/right-stick
+  inspection and reverse protection. Enable through Camera.DriftFollow even when
+  ordinary DynamicFollow is disabled; expose the toggle in the driving display menu.
+- Fix jittering drift wheels by attaching their poses to the interpolated
+  rendered chassis. Blend suspension, steering and signed wheel rotation
+  between fixed ticks; keep brake calipers and cockpit steering synchronized.
+  Preserve full wheel revolutions at high RPM instead of interpolating backward
+  through the shortest quaternion path. Driving forces and tyre tuning are unchanged.
+- Replace the private native backend experiment with `NFVU2.DriftPhysics.dll`,
+  an independent C# library built from the repository's `physics/` sources.
+  Implement an own engine/clutch/automatic gearbox and combined-slip tyres;
+  require no original racing-game binary or external game installation.
+- Connect the library to Valheim through raycast suspension and an own steering
+  adapter. Let Unity integrate chassis forces and resolve collisions; disable
+  duplicate WheelCollider forces and per-body Unity gravity while active.
+  Use 9.81 m/s2 vehicle gravity without changing the world's gravity.
+- Restore previous physics state on mode changes, flight, transformation, exit
+  and cleanup. Keep other drive modes and Hummer handling on their existing path.
+- Feed own wheel poses, RPM, gear and contact telemetry into gauges, sound,
+  tyre smoke and NFVU2 nitro. Enable the new backend for 350Z drift mode through
+  `[DriftPhysics] Enabled`; retain the previous drift controller when disabled.
+- Build the portable library separately and include it in the regular payload.
+  Preserve the existing plugin ID and `Rachel350Z.dll` name. Validate the new
+  dependency in installer payloads while retaining older package compatibility.
+- Provide portable-library and adapter test suites plus an explicit menu-only
+  Unity/PhysX probe. Pass 52 core checks, 187 adapter checks and 134 actual Unity
+  checks with the separately installed physics library. Personal gameplay
+  acceptance remains open.
+- Retain the former CarX Playtest experiment and its provenance only in ignored
+  local archives. Its original native library is no longer a runtime dependency.
+
 - Add NFVU2's own world generation for the exact seed `drift` (case insensitive),
   built into the existing `Rachel350Z.dll`. FlatGrass is not required.
 - Generate flat Meadows at height 32 without native structures, vegetation or

@@ -15,13 +15,15 @@ static class Tests {
     static void Fails(Action action, string name) { try { action(); } catch (IOException) { checks++; return; } throw new Exception("Expected failure: " + name); }
     static void Put(string root, string name, string data) { string p = Path.Combine(root, name); Directory.CreateDirectory(Path.GetDirectoryName(p)); File.WriteAllText(p, data); }
     static string Read(string root, string name) { return File.ReadAllText(Path.Combine(root, name)); }
-    static MemoryStream Payload(string dll = "new", bool stale = false, bool corrupt = false, bool ogg = false, bool robot = false) {
+    static MemoryStream Payload(string dll = "new", bool stale = false, bool corrupt = false, bool ogg = false, bool robot = false,
+        bool ownPhysics = false, byte[] managedPlugin = null) {
         var stream = new MemoryStream();
         var files = new Dictionary<string, string> {
             {InstallerCore.ModRoot+"Rachel350Z.dll", dll}, {InstallerCore.ModRoot+"body.json", "model"},
             {InstallerCore.ModRoot+(ogg?"radio/song.ogg":"radio/song.wav"), "music"}, {"winhttp.dll", "loader"},
             {"BepInEx/core/BepInEx.dll", "test-loader"}, {"doorstop_config.ini", "config"}
         };
+        if (ownPhysics) files.Add(InstallerCore.ModRoot+"NFVU2.DriftPhysics.dll", "own physics");
         if (stale) files.Add(InstallerCore.ModRoot+"menu/old.json", "old");
         if (robot) {
             files.Add(InstallerCore.ModRoot+"transformer/transformer.json", "robot manifest");
@@ -35,7 +37,8 @@ static class Tests {
         using (var archive = new ZipArchive(stream, ZipArchiveMode.Create, true)) {
             var hashes = new Dictionary<string, string>();
             foreach (var file in files) {
-                byte[] bytes = Encoding.UTF8.GetBytes(file.Value);
+                byte[] bytes = managedPlugin != null && file.Key == InstallerCore.ModRoot+"Rachel350Z.dll"
+                    ? managedPlugin : Encoding.UTF8.GetBytes(file.Value);
                 using (var sha = System.Security.Cryptography.SHA256.Create()) hashes[file.Key] = BitConverter.ToString(sha.ComputeHash(bytes)).Replace("-", "").ToLowerInvariant();
                 using (var output = archive.CreateEntry(file.Key).Open()) output.Write(bytes, 0, bytes.Length);
             }
@@ -49,6 +52,20 @@ static class Tests {
         Put(root, "valheim.exe", "fake game"); Directory.CreateDirectory(Path.Combine(root, "valheim_Data")); return root;
     }
     static InstallerCore Core(string root, Action guard = null) { return new InstallerCore(Path.Combine(root, "valheim.exe"), guard ?? (() => {})); }
+    static byte[] PluginWithPhysicsDependency(string folder) {
+        var dependency = AppDomain.CurrentDomain.DefineDynamicAssembly(new System.Reflection.AssemblyName("NFVU2.DriftPhysics"),
+            System.Reflection.Emit.AssemblyBuilderAccess.Save, folder);
+        var module = dependency.DefineDynamicModule("physics", "NFVU2.DriftPhysics.dll");
+        var physicsType = module.DefineType("OwnPhysics", System.Reflection.TypeAttributes.Public).CreateType();
+        dependency.Save("NFVU2.DriftPhysics.dll");
+        var plugin = AppDomain.CurrentDomain.DefineDynamicAssembly(new System.Reflection.AssemblyName("DriftDependencyFixture"),
+            System.Reflection.Emit.AssemblyBuilderAccess.Save, folder);
+        var pluginModule = plugin.DefineDynamicModule("plugin", "DriftDependencyFixture.dll");
+        var pluginType = pluginModule.DefineType("Plugin", System.Reflection.TypeAttributes.Public);
+        pluginType.DefineField("Physics", physicsType, System.Reflection.FieldAttributes.Public);
+        pluginType.CreateType(); plugin.Save("DriftDependencyFixture.dll");
+        return File.ReadAllBytes(Path.Combine(folder, "DriftDependencyFixture.dll"));
+    }
     // A real BepInEx assembly is unnecessary: update tests exercise a legacy
     // manifest with fresh loader setup, and existing-loader preservation is
     // covered separately with a tiny version-5 managed test assembly.
@@ -99,12 +116,31 @@ static class Tests {
             Core(root).Uninstall(true);
             Check(!File.Exists(Path.Combine(root, "winhttp.dll")), "owned loader removed");
 
+            root = Fixture(parent, "own-physics");
+            byte[] dependencyPlugin = PluginWithPhysicsDependency(parent);
+            using (var zip = Payload(managedPlugin: dependencyPlugin))
+                Fails(() => Core(root).Install(zip), "new plugin without own physics is rejected");
+            Check(!Core(root).HasInstallation, "missing dependency rejected before installation writes");
+            using (var zip = Payload(ownPhysics: true, managedPlugin: dependencyPlugin)) Core(root).Install(zip);
+            Check(Read(root, InstallerCore.ModRoot+"NFVU2.DriftPhysics.dll") == "own physics", "own physics installed with dependent plugin");
+            CompleteLoader(root);
+            using (var zip = Payload(managedPlugin: File.ReadAllBytes(System.Reflection.Assembly.GetExecutingAssembly().Location))) Core(root).Install(zip);
+            Check(!File.Exists(Path.Combine(root, InstallerCore.ModRoot+"NFVU2.DriftPhysics.dll")), "legacy assembly remains supported and removes stale owned physics");
+            using (var zip = Payload(ownPhysics: true, managedPlugin: dependencyPlugin)) Core(root).Install(zip);
+            Core(root).Uninstall(true);
+            Check(!File.Exists(Path.Combine(root, InstallerCore.ModRoot+"NFVU2.DriftPhysics.dll")), "own physics removed during uninstall");
+
             Check(InstallerCore.ModName(InstallerCore.ModRoot+"audio/transformer/step_01.wav"), "robot impact path allowed");
+            Check(InstallerCore.ModName(InstallerCore.ModRoot+"audio/exhaust/overrun_01.wav"), "prepared exhaust audio allowed");
+            Check(!InstallerCore.ModName(InstallerCore.ModRoot+"audio/exhaust/source.bank"), "original exhaust bank excluded");
+            Check(!InstallerCore.ModName(InstallerCore.ModRoot+"audio/exhaust/runtime.dll"), "foreign sound runtime excluded");
             Check(InstallerCore.ModName(InstallerCore.ModRoot+"audio/transformer/manifest.json"), "robot provenance manifest allowed");
             Check(InstallerCore.ModName(InstallerCore.ModRoot+"minigun/minigun.json"), "shoulder minigun model allowed");
             Check(InstallerCore.ModName(InstallerCore.ModRoot+"minigun/motor_loop.wav"), "shoulder minigun prepared audio allowed");
             Check(InstallerCore.ModName(InstallerCore.ModRoot+"transformer/transformer.json"), "robot manifest allowed");
             Check(InstallerCore.ModName(InstallerCore.ModRoot+"transformer/transformer.bin"), "robot animation binary allowed");
+            Check(InstallerCore.ModName(InstallerCore.ModRoot+"NFVU2.DriftPhysics.dll"), "own physics assembly allowed");
+            Check(!InstallerCore.ModName(InstallerCore.ModRoot+"NFVU2.OtherPhysics.dll"), "unrelated physics assembly rejected");
             Check(!InstallerCore.ModName(InstallerCore.ModRoot+"transformer/private.bin"), "unrelated robot binary excluded");
             Check(!InstallerCore.ModName(InstallerCore.ModRoot+"minigun/private.bin"), "binary extension remains excluded elsewhere");
             Check(!InstallerCore.ModName(InstallerCore.ModRoot+"transformer/../private.dll"), "robot traversal rejected");
