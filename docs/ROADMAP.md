@@ -1,5 +1,89 @@
 # Nächste Aufgaben
 
+## Parkplatz und Parkade-Rennen (lokale Entwicklung)
+
+- Freigegebenes NFVU2-Ladebild mit Greydwarf und vorhandenem Logo beim
+  Streckenaufbau und bei der Rueckkehr eingebunden. Drei gruene Schraegsegmente
+  laufen mit Echtzeit; die Prozentanzeige bleibt an echte Bauschritte gebunden.
+  Fehlende optionale Bilddateien lassen das bisherige Lademenue verfuegbar.
+- Ereignismenue erhaelt eigene Stick-/Steuerkreuz-Auswahl und Bestaetigung
+  der markierten Aktion. Gehaltene Tasten loesen beim Bildschirmwechsel keine
+  weitere Aktion aus; B/Esc bricht ab, beim Ruecktransfer gibt es keine Aktion.
+- Multiplikator und Combo bleiben bei gueltigen Zwischenrunden eines Rennens
+  erhalten. Rundenpunkte werden weiterhin genau einmal verbucht. Wiederholung,
+  Wiese, Pause und Unterbrechung behalten ihre bisherigen Ruecksetzregeln;
+  das endlose Uebungsrunden-Verhalten ist separat.
+- Native Ladebildprobe bestanden: Bild, Vorschau, Countdown, Ergebnis und
+  Ruecktransfer gerendert; drei Segmente wechseln auch bei angehaltener
+  Spielzeit. Der echte Plugin-Eingabeleser wurde mit virtuellem InputSystem-
+  Gamepad fuer Start/Zurueck, Auswahl und Halteverhalten geprueft. 30.355
+  Runden-/Menue-/Animationspruefungen sowie 103 bisherige Wertungspruefungen
+  bestanden. Physischer Controller und laengere Weltfahrt bleiben offen.
+
+- Ereignismarker auf Nutzerwunsch als gruener Bodenkreis mit `PARKADE / DRIFT 1`
+  in nativer Valheim-Schrift umgesetzt; der Lichtkegel ist entfernt. Native
+  Darstellung gerendert und visuell geprueft.
+- Wertung fuer breite Driftlinien korrigiert: Knicke der Navigationslinie
+  koennen den naechsten projizierten Streckenpunkt springen lassen, obwohl der
+  Wagen kontinuierlich faehrt. Auf der Fahrbahn gilt dafuer eine begrenzte
+  geometrische Toleranz; Punkte bleiben durch echte Fahrmeter begrenzt.
+  Vier Linien mit 4/6 m Versatz absolvieren je drei gueltige Runden; bestehende
+  Rueckwaerts-, Wiesen-, Teleport- und Rekordpruefungen bleiben erhalten.
+- Augen-/Schleichanzeige und Ausdauerbalken werden waehrend der Fahrt zusammen
+  mit dem nativen Fadenkreuz ausgeblendet, mit Wiederherstellung beim Aussteigen.
+  In Drift-Einzelspielerwelten sind Bauauswahl, direktes Baumenue und der
+  Platzierungsmodus des lokalen Hammers gesperrt; andere Welten bleiben normal.
+- Reifenklang des 350Z: zwei unterschiedliche originale Drift-Aufnahmen statt
+  einer festen Asphalt-Schleife. Eigene NFVU2-Mischung nach Seitwaertstempo,
+  Hinterradschlupf und Bodenkontakt, variable Tonhoehe und weiche Uebergaenge.
+  Das ist keine rekonstruierte NFSU2-Steuerlogik. Hoerabnahme im Fahrbetrieb offen.
+- Native Pruefung bestanden: sieben absichtlich eingeblendete Fahrzeug-HUD-
+  Elemente ausgeblendet und wiederhergestellt; Bauauswahl, direktes Baumenue
+  und Hammer-Platzierung gesperrt. Beide unterschiedlichen Reifenaufnahmen
+  liefern PCM-Ausgabe ohne Virtualisierung; Tonhoehe/Mischung reagieren auf
+  zwei Schlupf-/Geschwindigkeitsstufen und gehen bei gerader Fahrt auf null.
+  Der isolierte Weltaufbau erreicht weiterhin den Countdown ohne Logfehler.
+- Ladehaenger am Streckenrand korrigiert: Der Aufbau verarbeitet benoetigte
+  native Bereiche nacheinander und behaelt gespeicherten Fortschritt auch nach
+  deren Entladen. Vor dem Countdown wird der gehaltene Wagen zur Startlinie
+  zurueckgesetzt; nur deren aktueller Ladezustand muss noch bereit sein.
+  Der Prozentwert umfasst von Anfang an den ganzen Plan. Ein Regressionstest
+  reproduziert den Stillstand bei festem Bezugspunkt und prueft vollstaendigen
+  Aufbau trotz kleiner geladener Bereiche. Native Probe in einer isolierten
+  neuen Driftwelt bestanden: sitzender Einstieg, 1080/1080 reale Bauschritte,
+  erhaltener Fahrer, Rueckkehr an den bereiten Start und Countdown. Keine
+  Fehler/Exceptions im Probelog; echte Rennen und bestehende Spielstaende
+  sind damit noch nicht abgenommen.
+- Beim Fernversetzen werden Fahrer-Rigidbody und eigener nativer Positions-
+  datensatz vor dem Wechsel des Ladebezugspunkts synchronisiert. So bleibt der
+  sitzende Fahrer im richtigen Weltsektor und wird nicht am alten Ort entladen.
+
+- Beim initialen Laden einer `drift`-Einzelspielerwelt wird der Parkplatz als
+  Einstieg vorbereitet und ein vorhandener 350Z mit seinem gespeicherten Inhalt
+  bevorzugt wiederverwendet; der Einstieg fuehrt in den sitzenden Fahrzustand.
+  Die alte 1.490,96-m-Strecke bleibt der unbegrenzte Uebungsplatz.
+- Ein gruener Ereignisbereich am Parkplatz oeffnet ein Menue mit Streckenplan
+  und eigenem Highscore. Parkade Drift 1 wird separat vorbereitet, startet nach
+  Lade-/Baupruefung und Countdown und endet nach drei vollstaendigen Runden.
+  Pause, Wiederholung und Rueckkehr zum Parkplatz sind implementiert.
+- Originaldaten vom konfigurierten USB-Datentraeger identifizieren Event 4301:
+  gemessene 503,381 m Navigationslinie und 7,10 m Hoehenvariation. Die Valheim-
+  Adaption verwendet 18 m Breite, einen wasserfreien Hoehenbereich von 32,90 bis
+  40 m und 724 native Bauteile. Originale Gebaeude-/Dachpositionen sind nicht
+  rekonstruiert; Steinbegrenzungen, Pfeiler und kleine Ueberdachungen sind eigene
+  Gestaltung. Siehe [Quellenanalyse](PARKADE_RESEARCH.md).
+- Separater Kartenplan, kollisionsfreie Startlinie, eventeigene Drei-Runden-
+  Punkte-/Zeitrekorde und getrennter Baufortschritt erhalten Uebungsplatzdaten.
+  7.166 Geometrie-/Baupruefungen bestanden; 724 native Colliderhuellen mit
+  mindestens 0,609 m Eckabstand zur Fahrbahnkante und konservativen Boden-
+  Kontaktpfaden offline geprueft. Das ist keine Laufzeit-Stuetzwertsimulation.
+- Offen: echte Weltfahrt ueber alle drei Runden, Terrain/Welt-Speichern und
+  Neuladen bestehender Spielstaende, Lichtwirkung und laengere Stabilitaet.
+  Native Menue-/Materialprobe bestanden: Vorschau, Laden, Countdown, Ergebnis,
+  native Button-Aktionen, Valheim-Schrift ohne Textueberlauf sowie Lichtkegel
+  und Startmarkierung wurden in Unity gerendert und visuell geprueft. Diese
+  Probe laedt keine gespeicherte Spielwelt. Kein neuer Release veroeffentlicht.
+
 ## Driftwelt: Rennbetrieb und Zuschauer (lokale Entwicklung)
 
 - Driftwelt beschraenkt Fahrzeugbetrieb auf den 350Z-Driftmodus, sperrt Flug,

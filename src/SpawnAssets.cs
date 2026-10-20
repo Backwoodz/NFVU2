@@ -71,7 +71,7 @@ public sealed class SpawnAudio {
         var assembly=typeof(SpawnAudio).Assembly;
         foreach(var name in assembly.GetManifestResourceNames())if(name.StartsWith("Rachel350Z.Audio.",StringComparison.Ordinal)&&name.EndsWith(".wav",StringComparison.Ordinal))
             Read(name,()=>cache.Load(assembly.Location,_=>WavPcm16.Read(assembly.GetManifestResourceStream(name)),token,name),token);
-        foreach(var subfolder in hummer?new[]{"audio/effects","audio/hummer"}:new[]{"audio/effects","audio/turbo","audio/exhaust","turret","minigun"}) {
+        foreach(var subfolder in hummer?new[]{"audio/effects","audio/hummer"}:new[]{"audio/effects","audio/turbo","audio/tyres","audio/exhaust","turret","minigun"}) {
             string path=Path.Combine(folder,subfolder);
             if(!Directory.Exists(path))continue;
             foreach(var file in Directory.GetFiles(path,"*.wav"))

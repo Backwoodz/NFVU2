@@ -4,7 +4,7 @@ namespace Rachel350Z {
 // Optional physical drivetrain/contact measurements. Ordinary WheelCollider
 // vehicles continue using the existing acoustic gearbox when this is absent.
 public struct VehiclePhysicsTelemetry {
-    public float EngineRpm,RearWheelRpm,Skid;
+    public float EngineRpm,RearWheelRpm,Skid,TyreSlipSpeed;
     public int Gear,Contacts;
 }
 // A gearbox for sound only. It never writes to the vehicle's physics.

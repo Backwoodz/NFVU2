@@ -12,10 +12,28 @@ internal struct DriftLapSample {
     }
 }
 
+internal sealed class DriftScoreRoute {
+    internal readonly float Length,StartX,StartZ,TangentX,TangentZ,HalfWidth;
+    internal readonly Func<float,float,DriftTrackProjection> Project;
+    internal static readonly DriftScoreRoute Practice=new DriftScoreRoute(DriftCircuitLayout.TotalLength,
+        DriftTrackLayout.StartX,DriftTrackLayout.StartZ,1,0,DriftTrackLayout.StraightWidth*.5f,DriftCircuitLayout.Project);
+    internal DriftScoreRoute(float length,float x,float z,float tx,float tz,float halfWidth,Func<float,float,DriftTrackProjection> project) {
+        if(project==null||float.IsNaN(length)||float.IsInfinity(length)||length<30||
+            float.IsNaN(x)||float.IsInfinity(x)||float.IsNaN(z)||float.IsInfinity(z)||
+            float.IsNaN(tx)||float.IsInfinity(tx)||float.IsNaN(tz)||float.IsInfinity(tz)||
+            float.IsNaN(halfWidth)||float.IsInfinity(halfWidth)||halfWidth<=0)throw new ArgumentException("Invalid drift route");
+        float magnitude=(float)Math.Sqrt(tx*tx+tz*tz);if(magnitude<.001f)throw new ArgumentException("Missing route heading");
+        Length=length;StartX=x;StartZ=z;TangentX=tx/magnitude;TangentZ=tz/magnitude;HalfWidth=halfWidth;Project=project;
+    }
+}
+
 // Scores newly covered forward course metres, never elapsed time or wheelspin.
 // The high-water mark survives reversing, so a previously scored bend cannot
 // pay twice. A lap is banked only at the physical start plane after all gates.
 internal sealed class DriftLapScore {
+    readonly DriftScoreRoute route;
+    readonly bool preserveChainAcrossLaps;
+    internal DriftLapScore(DriftScoreRoute route=null,bool preserveChainAcrossLaps=false){this.route=route??DriftScoreRoute.Practice;this.preserveChainAcrossLaps=preserveChainAcrossLaps;}
     const float GateSpacing=25,MaximumScore=1000000000;
     DriftLapSample previous;
     bool havePrevious,paused,previousOnCourse;
@@ -31,7 +49,7 @@ internal sealed class DriftLapScore {
     public int RecordRevision {get;private set;}
     public bool Active {get;private set;}
     public DriftLapStatus Status {get;private set;}=DriftLapStatus.WaitingForStart;
-    public float Progress=>Math.Max(0,Math.Min(1,furthest/DriftCircuitLayout.TotalLength));
+    public float Progress=>Math.Max(0,Math.Min(1,furthest/route.Length));
     public int Multiplier=>Math.Min(5,1+(int)(chainDistance/60));
 
     public void LoadRecord(int best,float fastest) {
@@ -50,7 +68,7 @@ internal sealed class DriftLapScore {
 
     public void Step(DriftLapSample value) {
         if(!Valid(value)){Interrupt();return;}
-        var projection=DriftCircuitLayout.Project(value.X,value.Z);
+        var projection=route.Project(value.X,value.Z);
         bool onCourse=projection.SignedEdgeDistance<=.75f;
         if(!havePrevious){Remember(value,projection.DistanceAlong,onCourse);return;}
         float dx=value.X-previous.X,dz=value.Z-previous.Z;
@@ -62,16 +80,23 @@ internal sealed class DriftLapScore {
         if(moved>Math.Max(3,speed*value.DeltaTime*1.75f+1)||Math.Abs(value.X)>11000||Math.Abs(value.Z)>11000) {
             Interrupt();Remember(value,projection.DistanceAlong,onCourse);return;
         }
-        float change=projection.DistanceAlong-previousAlong,length=DriftCircuitLayout.TotalLength;
+        float change=projection.DistanceAlong-previousAlong,length=route.Length;
         if(change>length*.5f)change-=length;
         if(change<-length*.5f)change+=length;
-        if(Math.Abs(change)>moved*1.75f+.75f) {
+        // A legal wide line crosses a polyline corner's projection bisector:
+        // the nearest authored point can jump by several metres while the car
+        // barely moves. Allow one road-width of this geometric discontinuity.
+        // World displacement, ordered gates, high-water tracking and the cap
+        // by actual travelled metres still reject teleports and double points.
+        float cornerAllowance=onCourse&&previousOnCourse?projection.HalfWidth*2:0;
+        if(Math.Abs(change)>moved*1.75f+.75f+cornerAllowance) {
             Interrupt();Remember(value,projection.DistanceAlong,onCourse);return;
         }
-        bool crossing=onCourse&&previousOnCourse&&CrossesStart(previous,value)&&change>0&&value.VelocityX>1;
+        bool crossing=onCourse&&previousOnCourse&&CrossesStart(previous,value)&&change>0&&value.VelocityX*route.TangentX+value.VelocityZ*route.TangentZ>1;
         if(crossing) {
-            if(Active&&furthest>=length-10&&nextGate>=length&&position>length-10)Complete();
-            Begin(projection.DistanceAlong<10?projection.DistanceAlong:0);
+            bool completed=Active&&furthest>=length-10&&nextGate>=length&&position>length-10;
+            if(completed)Complete();
+            Begin(projection.DistanceAlong<10?projection.DistanceAlong:0,preserveChainAcrossLaps&&completed);
             Remember(value,projection.DistanceAlong,onCourse);return;
         }
         if(!Active){Remember(value,projection.DistanceAlong,onCourse);return;}
@@ -106,9 +131,9 @@ internal sealed class DriftLapScore {
         }
         Remember(value,projection.DistanceAlong,onCourse);
     }
-    void Begin(float along) {
-        Active=true;points=combo=0;position=furthest=along;LapTime=0;nextGate=GateSpacing;
-        ResetChain();Status=DriftLapStatus.Running;
+    void Begin(float along,bool keepChain) {
+        Active=true;points=0;position=furthest=along;LapTime=0;nextGate=GateSpacing;
+        if(!keepChain)ResetChain();Status=DriftLapStatus.Running;
     }
     void Complete() {
         LastLapScore=Score;LapCount++;bool changed=false;
@@ -118,11 +143,12 @@ internal sealed class DriftLapScore {
     }
     void ResetChain(){combo=0;chainDistance=quietTime=0;}
     void Remember(DriftLapSample value,float along,bool onCourse){previous=value;previousAlong=along;previousOnCourse=onCourse;havePrevious=true;}
-    static bool CrossesStart(DriftLapSample a,DriftLapSample b) {
-        float ax=a.X-DriftTrackLayout.StartX,bx=b.X-DriftTrackLayout.StartX;
+    bool CrossesStart(DriftLapSample a,DriftLapSample b) {
+        float ax=(a.X-route.StartX)*route.TangentX+(a.Z-route.StartZ)*route.TangentZ;
+        float bx=(b.X-route.StartX)*route.TangentX+(b.Z-route.StartZ)*route.TangentZ;
         if(ax>=0||bx<0||bx-ax<.001f)return false;
-        float z=a.Z+(b.Z-a.Z)*(-ax)/(bx-ax);
-        return Math.Abs(z-DriftTrackLayout.StartZ)<=DriftTrackLayout.StraightWidth*.5f;
+        float t=-ax/(bx-ax),x=a.X+(b.X-a.X)*t-route.StartX,z=a.Z+(b.Z-a.Z)*t-route.StartZ;
+        return Math.Abs(-x*route.TangentZ+z*route.TangentX)<=route.HalfWidth;
     }
     static bool Valid(DriftLapSample s)=>Finite(s.X)&&Finite(s.Z)&&Finite(s.VelocityX)&&Finite(s.VelocityZ)
         &&Finite(s.ForwardX)&&Finite(s.ForwardZ)&&Finite(s.DeltaTime)&&s.DeltaTime>0&&s.DeltaTime<=.25f

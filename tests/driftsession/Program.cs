@@ -30,11 +30,13 @@ static class Program {
                 Check(!Prefix(type),"random spawning is blocked: "+type.Name);
             Check(!Prefix(typeof(DriftRandomRaids),new object[]{new RandomEvent()}),"new raid blocked");
             Check(Prefix(typeof(DriftRandomRaids),new object[]{null}),"native raid reset remains available");
+            Check(!Prefix(typeof(DriftBuildSelection))&&!Prefix(typeof(DriftBuildOpen)),"build menu keyboard/controller and direct-open paths are blocked");
         }
         foreach(var seed in new[]{"ordinary","flatgrass","drift2"," drift","drift "}) {
             World(seed);Check(!DriftSessionRules.Active,"nonmatching seed remains native: "+seed);
             Check(Prefix(typeof(DriftRandomSpawns))&&Prefix(typeof(DriftCreatureSpawns))&&Prefix(typeof(DriftAreaSpawns)),"native spawning preserved: "+seed);
             Check(Prefix(typeof(DriftRandomRaids),new object[]{new RandomEvent()}),"native raids preserved: "+seed);
+            Check(Prefix(typeof(DriftBuildSelection))&&Prefix(typeof(DriftBuildOpen)),"other worlds keep their native build menu");
         }
         World("drift",menu:true);Check(!DriftSessionRules.Active,"menu worlds excluded");
         World("drift",single:false);Check(!DriftSessionRules.Active,"network world excluded");
@@ -45,6 +47,11 @@ static class Program {
         }
         Check(DriftSessionRules.AllowsVehicle(true,false)&&!DriftSessionRules.AllowsVehicle(true,true),"drift world only permits compatible 350Z");
         Check(DriftSessionRules.AllowsVehicle(false,true),"H2 remains available in ordinary worlds");
+        var local=Player.m_localPlayer=new Player();var table=new PieceTable();
+        var placement=typeof(DriftBuildPlacement).GetMethod("Prefix",BindingFlags.Static|BindingFlags.NonPublic);
+        World("drift");object[] data={local,table};placement.Invoke(null,data);Check(data[1]==null,"drift-world local hammer cannot enter placement mode");
+        data=new object[]{new Player(),table};placement.Invoke(null,data);Check(data[1]==table,"placement policy only owns the local player");
+        World("ordinary");data=new object[]{local,table};placement.Invoke(null,data);Check(data[1]==table,"normal-world placement is unchanged");
     }
     static void Environment() {
         var world=ZDOMan.instance=new ZDOMan();
@@ -93,6 +100,9 @@ static class Program {
             Check(native.MainModule.Types.Single(t=>t.Name=="ItemDrop").Fields.Any(f=>f.Name=="s_instances"&&f.IsStatic&&f.FieldType.FullName.Contains("ItemDrop")),"native loaded-item registry exists");
             var env=native.MainModule.Types.Single(t=>t.Name=="EnvMan");
             foreach(var name in new[]{"m_debugTimeOfDay","m_debugTime","m_debugEnv"})Check(env.Fields.Any(f=>f.Name==name&&f.IsPublic),"native environment field available: "+name);
+            foreach(var target in new[]{new[]{"Hud","TogglePieceSelection"},new[]{"BuildUi","OpenBuildMenu"}})
+                Check(native.MainModule.Types.Single(t=>t.Name==target[0]).Methods.Any(m=>m.Name==target[1]&&m.Parameters.Count==0),"native build-menu binding exists: "+string.Join(".",target));
+            Check(native.MainModule.Types.Single(t=>t.Name=="Player").Methods.Any(m=>m.Name=="SetPlaceMode"&&m.Parameters.Single().Name=="buildPieces"&&m.Parameters.Single().ParameterType.Name=="PieceTable"),"native placement prefix binds by actual parameter name and type");
         }
         using(var built=AssemblyDefinition.ReadAssembly(plugin)) {
             var type=built.MainModule.Types.Single(t=>t.Name=="Plugin");

@@ -5,8 +5,10 @@ import json
 
 REQUIRED=('Rachel350Z.dll','NFVU2.DriftPhysics.dll','body.json')
 OPTIONAL=(('radio', 'radio', {'.wav','.ogg','.json'}),
+          ('loading-screen', 'loading', {'.png','.json'}),
           ('menu', 'menu', {'.wav','.json'}),
           ('audio-turbo', 'audio/turbo', {'.wav','.json'}),
+          ('audio-tyres', 'audio/tyres', {'.wav','.json'}),
           ('audio-effects', 'audio/effects', {'.wav','.json'}),
           ('audio-exhaust', 'audio/exhaust', {'.wav','.json'}),
           ('audio-transformer', 'audio/transformer', {'.wav','.json'}),

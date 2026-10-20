@@ -35,6 +35,8 @@ static class Program {
             Check(!plugin.CustomAttributes.Any(a=>a.AttributeType.Name=="BepInDependency"),"NFVU2 needs no FlatGrass dependency");
             Check(plugin.CustomAttributes.Any(a=>a.AttributeType.Name=="BepInPlugin"&&(string)a.ConstructorArguments[0].Value=="local.rachel350z.prototype"),"existing NFVU2 plugin identity is preserved");
             Check(assembly.MainModule.Types.Any(t=>t.FullName=="Rachel350Z.DriftWorldRules")&&assembly.MainModule.Types.Any(t=>t.FullName=="Rachel350Z.DriftHeight"),"world generator is compiled into the vehicle DLL");
+            Check(assembly.MainModule.Types.Single(t=>t.Name=="DriftHeight").Methods.Single(m=>m.Name=="Prefix").Body.Instructions
+                .Any(i=>i.Operand is MethodReference called&&called.DeclaringType.Name=="ParkadeLayout"&&called.Name=="TerrainHeightAt"),"built world height patch uses the measured Parkade terrain field");
             Check(plugin.Methods.Single(m=>m.Name=="InitializeControls").Body.Instructions.Any(i=>i.Operand is MethodReference called&&called.Name=="InitializeDriftWorld"),"NFVU2 initializes drift world patches at startup");
             Check(plugin.Methods.Single(m=>m.Name=="LateUpdate").Body.Instructions.Any(i=>i.Operand is MethodReference called&&called.Name=="UpdateDriftSeedFeedback"),"seed feedback runs after menu input each frame");
             Check(plugin.Methods.Single(m=>m.Name=="OnDestroy").Body.Instructions.Any(i=>i.Operand is MethodReference called&&called.DeclaringType.Name=="DriftSeedFeedback"&&called.Name=="Clear"),"plugin unload restores owned seed feedback");
@@ -87,6 +89,13 @@ static class Program {
                 }
                 Check(generator.HeightCalls==0&&generator.BiomeCalls==0,"drift bypasses original terrain/biome calculations");
                 Check(generator.GetBiomeHeight(Heightmap.Biome.Ocean,0,0,out _,true,false)==32,"pregeneration uses same height as live chunks");
+                Check(Math.Abs(generator.GetBiomeHeight(Heightmap.Biome.Meadows,ParkadeLayout.StartX,ParkadeLayout.StartZ,out var startMask)-40)<.001f
+                    &&startMask.r==0&&startMask.a==1,"real Harmony height patch raises Parkade start to water-safe 40m");
+                var lowest=ParkadeLayout.Samples.OrderBy(p=>ParkadeLayout.HeightAtDistance(p.DistanceAlong)).First();
+                float low=generator.GetBiomeHeight(Heightmap.Biome.Meadows,lowest.X,lowest.Z,out _);
+                Check(Math.Abs(low-32.8996f)<.01f&&40-low>7,"real Harmony patch retains measured seven-metre Parkade descent above native water");
+                Check(Math.Abs(generator.GetBiomeHeight(Heightmap.Biome.Ocean,lowest.X,lowest.Z,out _,true,false)-low)<.001f,"Parkade pregeneration and live terrain share the same grade");
+                Check(generator.GetBiomeHeight(Heightmap.Biome.Meadows,ParkadeLayout.Bounds.MaxX+40,ParkadeLayout.StartZ,out _)==32,"terrain outside Parkade returns to unchanged flat 32m base");
                 Check(generator.GetBiome(10501,0)==Heightmap.Biome.Mountain&&generator.GetBiomeHeight(Heightmap.Biome.Ocean,10501,0,out _)==123,"native world edge remains outside interior override");
                 var zone=new ZoneSystem();var definition=new ZoneSystem.ZoneLocation();
                 zone.SavedPlayerBuildings.Add("player wall");
@@ -105,6 +114,7 @@ static class Program {
             foreach(var seed in new[]{null,"","flatgrass","normal","adrift","drift2","my-drift"," drift","drift "}) {
                 var generator=Generator(seed);WorldGenerator.instance=generator;
                 Check(!DriftWorldRules.Current&&generator.GetBiome(0,0)==Heightmap.Biome.Mountain&&generator.GetBiomeHeight(Heightmap.Biome.Meadows,0,0,out _)==123,"other seed retains native generation: "+(seed??"null"));
+                Check(generator.GetBiomeHeight(Heightmap.Biome.Meadows,ParkadeLayout.StartX,ParkadeLayout.StartZ,out _)==123,"other seed retains native height even at Parkade coordinates: "+(seed??"null"));
                 var zone=new ZoneSystem();
                 Check(zone.GenerateOne(new ZoneSystem.ZoneLocation())==17&&zone.NativeAttempts==1,"normal-world location worker runs");
                 zone.PlaceVegetation();zone.PlaceLocations();
@@ -112,12 +122,15 @@ static class Program {
             }
             var menu=Generator("drift",true);WorldGenerator.instance=menu;
             Check(!DriftWorldRules.Current&&menu.GetBiome(0,0)==Heightmap.Biome.Mountain&&menu.GetBiomeHeight(Heightmap.Biome.Meadows,0,0,out _)==123,"menu world never flattened");
+            Check(menu.GetBiomeHeight(Heightmap.Biome.Meadows,ParkadeLayout.StartX,ParkadeLayout.StartZ,out _)==123,"menu world never receives the Parkade hill");
             WorldGenerator.instance=null;
             Check(!DriftWorldRules.Current&&!DriftWorldRules.Applies(null)&&!DriftWorldRules.Interior(null,0,0),"missing world/generator is a no-op");
             WorldGenerator.instance=Generator("normal");
             Check(Generator("drift").GetBiome(0,0)==Heightmap.Biome.Meadows,"terrain workers use their own world rather than global current world");
+            Check(Generator("drift").GetBiomeHeight(Heightmap.Biome.Meadows,ParkadeLayout.StartX,ParkadeLayout.StartZ,out _)==40,"parallel drift terrain worker uses Parkade grade despite global normal world");
             WorldGenerator.instance=Generator("drift");
             Check(Generator("normal").GetBiome(0,0)==Heightmap.Biome.Mountain,"parallel normal generator does not inherit drift terrain");
+            Check(Generator("normal").GetBiomeHeight(Heightmap.Biome.Meadows,ParkadeLayout.StartX,ParkadeLayout.StartZ,out _)==123,"parallel normal terrain worker never inherits Parkade grade");
             foreach(var seed in new[]{"drift","flatgrass","drift","normal"}) {
                 WorldGenerator.instance=Generator(seed);var zone=new ZoneSystem();zone.PlaceVegetation();
                 Check(zone.NativeVegetation==(seed=="drift"?0:1),"world switching cannot leak content suppression: "+seed);

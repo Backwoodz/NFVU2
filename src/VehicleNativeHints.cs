@@ -74,6 +74,7 @@ public partial class Plugin {
             }
             // Native KeyHints.Update runs first and may re-enable these each frame.
             foreach(var group in originalHintGroups)if(group!=null)group.SetActive(false);
+            if(driftRaceUi){if(vehicleHintPanel!=null)vehicleHintPanel.gameObject.SetActive(false);return;}
             if(vehicleHintFailed)return;
             if(vehicleHintPanel==null)CreateVehicleHints(owner);
             if(vehicleHintPanel==null)return;

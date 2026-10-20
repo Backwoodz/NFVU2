@@ -1,7 +1,8 @@
 # Drift-Bauwelt in NFVU2 (lokale Entwicklung)
 
-NFVU2 erzeugt beim exakten Seed **`drift`** eine ebene Wiesenwelt als Grundlage
-mit einem 1.491 m langen Drift-Rundkurs. Die Funktion steckt direkt in der vorhandenen
+NFVU2 erzeugt beim exakten Seed **`drift`** eine weitgehend ebene Wiesenwelt mit
+einem 1.491 m langen Uebungs-Rundkurs und einem separaten, geneigten Parkade-Kurs.
+Die Funktion steckt direkt in der vorhandenen
 **Rachel350Z.dll**. FlatGrass oder ein zusaetzliches Weltplugin sind nicht erforderlich.
 Die eigene Fahrzeugphysik wird als `NFVU2.DriftPhysics.dll` mitgeliefert; siehe unten.
 
@@ -10,9 +11,10 @@ Die eigene Fahrzeugphysik wird als `NFVU2.DriftPhysics.dll` mitgeliefert; siehe 
 1. Den aktuellen lokalen NFVU2-Build installieren und Valheim starten.
 2. Eine neue Einzelspielerwelt anlegen. Der Weltname ist frei waehlbar.
 3. Im Feld **Seed** exakt `drift` eingeben. `DRIFT` funktioniert ebenfalls.
-4. Start und Ziel liegen etwa 100 m oestlich vom Weltstart.
-   Folge dem Schild oder der Kartenmarkierung **NFVU2 Drift**. Beim ersten
-   Besuch einige Sekunden fuer den Aufbau der nahen Abschnitte einplanen.
+4. Beim initialen Laden steigst du am Parkplatz bereits im 350Z ein. Ein
+   vorhandener geeigneter Wagen wird bevorzugt wiederverwendet; gespeicherter
+   Inhalt und Anpassungen bleiben erhalten. Der Uebungsplatz liegt direkt daneben.
+   Beim ersten Besuch einige Sekunden fuer den Aufbau der nahen Abschnitte einplanen.
 
 Auch die bestehende `drift`-Welt erhaelt die Erweiterung beim naechsten Laden.
 Der Bau arbeitet an gerade geladenen Bereichen weiter, waehrend du dich naeherst.
@@ -25,17 +27,20 @@ installiert bleiben; die Drift-Welt liest keine seiner Einstellungen.
 
 ## Umfang
 
-- Flaches Wiesenbiom im Weltinneren, Hoehe 32, zwei Meter ueber dem Meeresspiegel.
+- Wiesenbiom im Weltinneren, sonst Hoehe 32, zwei Meter ueber dem Meeresspiegel.
+  Nur der separate Parkade-Bereich erhaelt sein gemessenes Hoehenprofil.
   Valheims urspruengliches Verhalten am aeusseren Weltrand bleibt erhalten.
 - Keine zufaelligen Vanilla-Gebaeude, Startsteine, Baeume, Felsen oder Erzlager.
-  Gezielt platzierte Streckenbauteile sind davon getrennt. Gras und normale
-  Wiesen-Kreaturen bleiben ausserhalb der Pflasterung.
-- Standardstart im Weltzentrum bei `(0,32,0)`. Native Ladepruefungen, Betten und
-  gespeicherte Logoutpositionen bleiben zustaendig.
+  Gezielt platzierte Streckenbauteile sind davon getrennt. Gras bleibt ausserhalb
+  der Pflasterung; zufaellige Kreaturen sind in der Driftwelt gesperrt.
+- Initialer Einstieg am Parkplatz bei `(148,32,-8)`, im nach Osten ausgerichteten
+  350Z. Der Wagen wird erst nach nativer Lade-/Bodenkontrolle uebernommen.
+  Dieser Driftwelt-Einstieg ersetzt beim Weltladen auch eine fruehere Logout-
+  Position. Andere Welten behalten ihre Start-, Bett- und Logoutregeln.
 - Selbst gebaute Elemente und Terrainbearbeitungen verwenden die normale
   Weltspeicherung. NFVU2 setzt sie beim Betreten nicht zurueck.
 
-Der geschlossene Rundkurs ist **1.490,96 m** lang und 16 bis 20 m breit.
+Der geschlossene Uebungs-Rundkurs ist **1.490,96 m** lang und 16 bis 20 m breit.
 Der vorhandene U-Abschnitt bleibt an seiner bisherigen Position: 108 m Gerade,
 38-m-Kehre und Rueckgerade. Neue 32-m-Kurven, eine doppelte S-Kombination,
 eine lange Aussenpassage und 48-/40-m-Boegen schliessen die Runde.
@@ -78,6 +83,73 @@ passende Rundkursbeschriftungen. Spielfremde Bauten werden nicht entfernt.
 NFVU2 fuer eine bebaute `drift`-Welt aktiv lassen, damit deren Grundgelaende
 beim erneuten Laden gleich bleibt.
 
+## Parkplatz und Parkade Drift 1
+
+Der bisherige Rundkurs bleibt ein unbegrenzter Uebungsplatz: beliebig viele
+Runden, mit der vorhandenen Rundenwertung und deren bisherigen Rekorden.
+Die neuen Rennen sind davon getrennt und enden nach **drei vollstaendigen Runden**.
+
+Fahre auf den gruen leuchtenden Bodenkreis mit Streckenname am Parkplatz, etwa 30 m oestlich vom
+Einstiegswagen. Er oeffnet ein Menue mit dem Parkade-Streckenlayout und deinem
+bisherigen Highscore fuer dieses Rennen, in Valheims nativer Schrift. Nach
+**Rennen starten** wird der Wagen an den separaten Kurs versetzt und waehrend
+der nativen Lade-/Bauvorbereitung gehalten. Erst wenn die Strecke bereit ist,
+beginnt der Countdown. Die Punkte aller drei Runden ergeben das Rennergebnis.
+Die Vorbereitung laedt entfernte Streckenteile nacheinander. Der Wagen bleibt
+dabei gehalten und steht vor dem Countdown wieder an der Startlinie. Die
+Fortschrittsanzeige beruecksichtigt die gesamte Strecke; fertig gebaute Bereiche
+behalten ihren gespeicherten Fortschritt auch nach dem normalen Entladen.
+
+Beim Streckenaufbau und bei der Rueckkehr zum Parkplatz erscheint das
+freigegebene NFVU2-Ladebild. Drei gruene Schraegbalken laufen unabhaengig von
+der Spielzeit weiter; die gesonderte Prozentanzeige zeigt echte Bauschritte.
+Das Bild liegt optional unter `loading/background.png`; fehlt es, bleibt
+die bisherige Ladeanzeige verfuegbar. Der Bildschirm verkuerzt die Bauzeit nicht.
+Stick oder Steuerkreuz markieren Start/Fortsetzen/Wiederholen oder Zurueck;
+A/Kreuz bestaetigt die markierte Aktion, B/Kreis oder Esc bricht ab. Beim Laden
+steht nur Abbrechen zur Auswahl; der laufende Ruecktransfer ist nicht abbrechbar.
+Der Multiplikator und die laufende Driftkette bleiben an den beiden gueltigen
+Zwischenrunden erhalten. Eine neue Rennwiederholung beginnt wieder bei x1.
+
+In der Driftwelt laesst sich das native Baumenue auch mit Hammer und Controller
+nicht oeffnen. Im Auto bleiben Valheims Augen-/Schleichanzeige und Ausdauerbalken
+ausgeblendet; beim Aussteigen wird der vorherige HUD-Zustand wieder freigegeben.
+Danach kannst du wiederholen oder zum Parkplatz zurueckkehren. Die Rennpause
+erlaubt Fortsetzen oder Abbrechen; reine Menue-/Ladezeit verdient keine Punkte.
+
+Parkade Drift 1 ist ein **503,381 m** langer Kurs um `(1100,40,80)`, mit 18 m
+breiter Fahrbahn, enger innerer Kehre und einer langen Aussenpassage. Die
+Navigationslinie und etwa **7,10 m Hoehenunterschied** wurden aus den lokal
+vorhandenen Originaldaten des konfigurierten USB-Datentraegers gemessen.
+Der obere Startbereich liegt auf Hoehe 40, der tiefste Streckenabschnitt bei
+etwa 32,90, damit die gesamte Strasse oberhalb von Valheims Wasser liegt.
+Ausserhalb des Rennplatzes geht das Gelaende wieder in die bisherige Hoehe 32
+ueber. Die Breite von 18 m ist eine eigene Adaption; die Originaldaten belegen
+keine vollstaendigen physischen Strassenrand- oder Gebaeudegrenzen.
+
+**724 native Valheim-Bauteile** formen den Rennplatz: Steinbegrenzungen,
+gestapelte Stuetzpfeiler, kleine steinerne Ueberdachungen, Banner, elf normal
+befeuerte Fackeln und ein Schild. Eine lokale Schachbrettmarkierung zeigt
+Start/Ziel ohne Kollision. Originale Strassen-, Gebaeude- und Dachmeshes werden
+nicht verwendet; die Gestaltung ist eine Valheim-Interpretation des gemessenen
+Kurses. Details und Grenzen stehen in der [Quellenanalyse](PARKADE_RESEARCH.md).
+
+Mini- und Weltkarte erhalten eine eigene Parkade-Ebene. Das Veranstaltungsmenue
+zeigt denselben implementierten Kurs. Rennpunkte und beste Zeit fuer das
+vollstaendige Drei-Runden-Rennen werden unabhaengig von den Uebungsrekorden im
+nativen Weltspeicher gesichert (`nfvu2_drift_parkade1_best_v1`). Eigene gespeicherte
+Baufortschritte verhindern einen Neuaufbau abgeschlossener Abschnitte und
+erhalten absichtlich abgebaute Teile; die alten v1/v2-Uebungsplatzmarker bleiben.
+
+Die Regel-/Baupruefungen ersetzen keine echte Weltfahrt. Eine isolierte native
+Testwelt bestaetigt sitzenden Parkplatz-Einstieg, 1080/1080 reale Bauschritte,
+Fahrertransfer und die Rueckkehr zur Startlinie bis zum Countdown. Drei-Runden-
+Fahrbetrieb, Materialstuetzung, bestehende Spielstaende und Speichern/Neuladen
+sowie laengere Stabilitaet muessen noch im Spiel abgenommen werden.
+Die native Menue-/Materialprobe hat Vorschau, Ladeanzeige, Countdown,
+Ergebnis, Button-Aktionen, Schrift ohne Textueberlauf, Lichtkegel und Startlinie
+in Unity gerendert und visuell bestaetigt; sie laedt keine gespeicherte Spielwelt.
+
 ## Rennbetrieb in der Driftwelt
 
 In der `drift`-Einzelspielerwelt gilt ausschliesslich der Driftmodus des 350Z.
@@ -112,6 +184,10 @@ keine Punkte und die Combo endet. Auf der Strecke zaehlen neue Driftmeter wieder
 ohne erneutes Ueberqueren der Startlinie. Auch auf der Wiese bleibt der bereits
 gefahrene Fortschritt gespeichert, damit Zurueckfahren und erneutes Driften keine
 doppelten Punkte bringen. Die Rundenzeit laeuft waehrend des Ausflugs weiter.
+
+Breite Linien durch die Knicke des Parkade-Navigationspolygons unterbrechen die
+Wertung nicht mehr wegen kleiner Projektionsspruenge. Punkte entstehen weiterhin
+nur fuer tatsaechlich gefahrene neue Meter; Rundenkontrollen bleiben geordnet.
 Teleport, Tod oder Fahrzeugwechsel unterbrechen weiterhin die Runde;
 stehende Menuepausen bringen keine Punkte.
 
@@ -130,6 +206,23 @@ Die HUD-Probe bestaetigt Norsebold und Texte ohne Ueberlauf. Diese Proben laden
 keine gespeicherte Welt; Rundenfahren, Welt-Speichern/Neuladen, Nachtwirkung und
 Bildrate auf dem gesamten befahrenen Kurs bleiben als Spielabnahme offen.
 
+## Reifenklang
+
+Der 350Z mischt zwei unterschiedliche Originalaufnahmen aus den NFSU2-Baenken
+`SKIDS_DRIFT2_MB` (Substream 3) und `SKIDS_DRIFT_MB` (Substream 4).
+Beide Baenke enthalten fuenf Aufnahmen; ihr erster Substream ist identisch und
+wird deshalb nicht als zwei vermeintlich unterschiedliche Klangschichten benutzt.
+`python tools/prepare_tyre_audio.py` liest die lokalen USB-Archive mit CRC-Pruefung,
+prueft native Loopgrenzen und erzeugt optionale Dateien in `.local/audio-tyres/`.
+Originale, Decodergebnisse und Herkunfts-/Pruefsummendaten bleiben ignoriert.
+
+Die NFVU2-Mischung reagiert auf Seitwaertstempo, Hinterrad-Schlupfgeschwindigkeit,
+Bodenkontakt und Burnout. Klangfarbe, Lautstaerke und Tonhoehe veraendern sich mit
+diesen Werten und blenden weich ab, sobald wieder Grip vorhanden ist. Es gibt
+keinen zufaelligen Drift-an/aus-Klangschalter und keine Aenderung der Fahrphysik.
+Fehlen die optionalen Dateien, bleibt die eingebettete Reifenaufnahme verwendbar.
+Die originale NFSU2-Mischsteuerung ist daraus nicht rekonstruiert.
+
 ## Entwicklung und Installation
 
 ```powershell
@@ -138,6 +231,7 @@ python tools/test.py --skip-build --suite driftworld
 python tools/test.py --skip-build --suite drifttrack --suite driftbuild
 python tools/test.py --skip-build --suite driftmap --suite vehiclemap
 python tools/test.py --skip-build --suite driftsession --suite driftscore --suite driftatmosphere
+python tools/test.py --skip-build --suite parkade --suite driftrace --suite driftarrival
 python tools/install.py
 ```
 

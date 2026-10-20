@@ -17,6 +17,11 @@ public partial class Plugin {
         var physics=current.driftPhysics;
         var sample=new VehiclePhysicsTelemetry {EngineRpm=physics.Rpm,Gear=physics.Gear,RearWheelRpm=(Mathf.Abs(physics.WheelRpm(2))+Mathf.Abs(physics.WheelRpm(3)))*.5f};
         for(int i=0;i<4;i++)if(physics.Grounded(i)){sample.Contacts++;sample.Skid=Mathf.Max(sample.Skid,physics.SkidVolume(i));}
+        int rearContacts=0;float forward=Vector3.Dot(body.linearVelocity,body.transform.forward);
+        for(int i=2;i<4;i++)if(physics.Grounded(i)) {
+            sample.TyreSlipSpeed+=Mathf.Abs(physics.WheelRpm(i)*(2*Mathf.PI/60)*wheels[i].radius-forward);rearContacts++;
+        }
+        if(rearContacts>0)sample.TyreSlipSpeed/=rearContacts;
         return sample;
     }
     TyreSmokeContact DriftSmokeContact(int index) {

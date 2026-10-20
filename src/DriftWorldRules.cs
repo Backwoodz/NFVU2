@@ -2,7 +2,7 @@ using System;
 
 namespace Rachel350Z {
 // Fixed generation constants keep a saved world's terrain stable across loads.
-// Future track content is separate from this base height field.
+// The separate Parkade profile is applied by DriftHeight; practice stays flat.
 internal static class DriftWorldRules {
     public const float GroundHeight=32f;
     const double WorldRadiusSquared=10500d*10500d;

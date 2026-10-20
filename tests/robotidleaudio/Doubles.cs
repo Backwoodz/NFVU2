@@ -32,6 +32,7 @@ namespace UnityEngine {
     public class Rigidbody:Component {public Vector3 linearVelocity;}
     public struct WheelHit {public float sidewaysSlip,forwardSlip;}
     public class WheelCollider:Component {
+        public float radius=.335f;
         public bool enabled=true,Grounded=true;public float rpm;public WheelHit Hit;
         public bool GetGroundHit(out WheelHit hit){hit=Hit;return Grounded;}
     }
@@ -62,6 +63,7 @@ namespace UnityEngine {
     public static class Time {public static float unscaledDeltaTime=.02f;}
     public static class AudioSettings {public static double dspTime=100;}
     public static class Mathf {
+        public const float PI=(float)Math.PI;
         public static float Clamp(float value,float min,float max)=>Math.Max(min,Math.Min(max,value));
         public static float Clamp01(float value)=>Clamp(value,0,1);
         public static float Min(float a,float b)=>Math.Min(a,b);

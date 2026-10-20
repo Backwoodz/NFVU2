@@ -28,6 +28,7 @@ public partial class Plugin {
         // opens a menu. Retry before any driving/UI early return; never before
         // the world identity above has been checked.
         SavePendingDriftCircuitRecord();
+        if(DriftRaceOwnsVehicle){driftLapScore.Interrupt();driftScoreVehicle=null;return;}
         if(!DriftCircuitScoreVisible||body==null||!EffectiveDrift||local.IsDead()||local.IsTeleporting()) {
             driftLapScore.Interrupt();driftScoreVehicle=null;return;
         }

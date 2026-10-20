@@ -78,6 +78,7 @@ public partial class Plugin : BaseUnityPlugin {
         TickHordeWeather(local);
         CheckHordeContext(local);
         if(local==null) {
+            TickDriftArrival(null);ClearDriftEvents();
             if(vehicleLoadGame!=null&&vehicleLoadGame==Game.instance&&!Multiplayer()&&!Game.instance.IsShuttingDown()) {
                 if(Application.isFocused&&Input.GetKeyDown(KeyCode.F8))CancelSpawn("Laden abgebrochen.");
                 TickSpawn(vehicleLoadGame);
@@ -89,9 +90,11 @@ public partial class Plugin : BaseUnityPlugin {
         if(SpawnBusy&&Application.isFocused&&!UIVisible()&&!menuOpen&&(Input.GetKeyDown(KeyCode.F8)||PadDown("back"))){CancelSpawn("Laden abgebrochen.");return;}
         TickVehicleRestore(local);
         TickSpawn(local);
+        TickDriftArrival(local);
         if(driving&&local is Player livePlayer&&livePlayer.IsDead()){Exit();return;}
         if(!driving&&!menuOpen)SelectNearest(local);
         audioBlocked=UIVisible()||!Application.isFocused||Time.timeScale<=0;
+        if(TickDriftEvents(local)){BlockDrivingInput();return;}
         if(audioBlocked){CloseVehicleMenu();BlockDrivingInput();return;}
         try {
             if(menuOpen && !CanUseVehicleMenu(local))CloseVehicleMenu();
@@ -170,6 +173,7 @@ public partial class Plugin : BaseUnityPlugin {
     void FixedUpdate() {ForEachVehicle(StepVehicle);}
     void StepVehicle() {
         if(body==null||wheels==null)return;
+        if(DriftRaceHoldsCurrent)return;
         if(!driving) {
             if(current.parkedStreaming==null)current.parkedStreaming=new VehicleWorldStreaming(body);
             if(!current.parkedStreaming.Step(false))return;
@@ -426,6 +430,6 @@ public partial class Plugin : BaseUnityPlugin {
         status=message;
         if(MessageHud.instance!=null)MessageHud.instance.ShowMessage(MessageHud.MessageType.Center,Tr(message),log:false);
     }
-    void OnDestroy(){ClearDriftCircuitHud();ClearDriftCircuitScore();ClearDriftSession();driftCircuitAtmosphere?.Clear();driftCircuitMap?.Clear();driftTrack?.Clear();DriftSeedFeedback.Clear();ReleaseCameraRumble(gameCamera);ReleaseCameraRumble(menuCamera);controlsHarmony?.UnpatchSelf();TransformerFootstepGrass.Shutdown();if(ControlsOwner==this)ControlsOwner=null;ClearNitroVisuals();CleanupAll();DisposeVehicleMap();hordeWeather?.Dispose();hordeWeather=null;DisposeVehicleHints();fleetMusic?.Dispose();DisposeMenu();}
+    void OnDestroy(){ClearDriftEvents();ClearDriftCircuitHud();ClearDriftCircuitScore();ClearDriftSession();driftCircuitAtmosphere?.Clear();driftCircuitMap?.Clear();driftTrack?.Clear();DriftSeedFeedback.Clear();ReleaseCameraRumble(gameCamera);ReleaseCameraRumble(menuCamera);controlsHarmony?.UnpatchSelf();TransformerFootstepGrass.Shutdown();if(ControlsOwner==this)ControlsOwner=null;ClearNitroVisuals();CleanupAll();DisposeVehicleMap();hordeWeather?.Dispose();hordeWeather=null;DisposeVehicleHints();fleetMusic?.Dispose();DisposeMenu();}
 }
 }

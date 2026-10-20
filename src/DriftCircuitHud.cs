@@ -20,7 +20,7 @@ internal sealed class DriftCircuitHud {
     readonly Action<string> log;
     static readonly Color Gold=new Color(1,.84f,.43f),White=new Color(.96f,.95f,.89f),Teal=new Color(.38f,.91f,.85f);
     internal DriftCircuitHud(string directory,Action<string> log){this.directory=directory;this.log=log;}
-    internal void Tick(Hud hud,DriftLapScore score,bool visible,bool german) {
+    internal void Tick(Hud hud,DriftLapScore score,bool visible,bool german,string eventTitle=null,int completedPoints=0,int eventBest=-1,int lapLimit=0) {
         if(hud==null||owner!=hud){Clear();owner=hud;}
         if(!visible||hud==null){if(root!=null)root.gameObject.SetActive(false);return;}
         if(root==null&&!Create(hud))return;
@@ -32,8 +32,8 @@ internal sealed class DriftCircuitHud {
         progress.sizeDelta=new Vector2(532*Mathf.Clamp01(score.Progress),3);
         if(Time.unscaledTime<nextRefresh)return;nextRefresh=Time.unscaledTime+.08f;
         var culture=CultureInfo.GetCultureInfo(german?"de-DE":"en-US");
-        title.text="DRIFT";lap.text=(german?"RUNDE ":"LAP ")+(score.LapCount+1);
-        points.text=score.Score.ToString("N0",culture);multiplier.text="x"+score.Multiplier;
+        title.text=eventTitle??"DRIFT";lap.text=(german?"RUNDE ":"LAP ")+(lapLimit>0?Math.Min(lapLimit,score.LapCount+1):score.LapCount+1)+(lapLimit>0?" / "+lapLimit:"");
+        points.text=Math.Min(1000000000L,(long)score.Score+completedPoints).ToString("N0",culture);multiplier.text="x"+score.Multiplier;
         multiplier.color=score.Multiplier>1?Gold:White;
         string status;
         switch(score.Status) {
@@ -44,7 +44,7 @@ internal sealed class DriftCircuitHud {
             default:status=german?"STARTLINIE ÜBERQUEREN":"CROSS THE START LINE";break;
         }
         detail.text=status;detail.color=score.Status==DriftLapStatus.WrongWay?new Color(1,.43f,.3f):Teal;
-        best.text=(german?"BESTE RUNDE  ":"BEST LAP  ")+score.BestScore.ToString("N0",culture);
+        best.text=(eventBest>=0?(german?"REKORD  ":"HIGH SCORE  "):(german?"BESTE RUNDE  ":"BEST LAP  "))+(eventBest>=0?eventBest:score.BestScore).ToString("N0",culture);
         clock.text=TimeText(score.LapTime)+"  /  "+(score.BestLapTime>0?TimeText(score.BestLapTime):"–:––.–");
     }
     static string TimeText(float time) {

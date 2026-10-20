@@ -47,13 +47,13 @@ internal static class DriftCircuitMapDrawing {
             int index=z*Size+x;pixels[index]=Math.Max(pixels[index],coverage);
         }
     }
-    internal static DriftMapPlacement Project(int size,float metres,float uvX,float uvY,float uvWidth,float uvHeight,float width,float height) {
+    internal static DriftMapPlacement Project(int size,float metres,float uvX,float uvY,float uvWidth,float uvHeight,float width,float height,float minX=MinX,float minZ=MinZ,float worldSize=WorldSize) {
         if(size<=0||!Positive(metres)||!Positive(uvWidth)||!Positive(uvHeight)||!Positive(width)||!Positive(height)||!Finite(uvX)||!Finite(uvY))return default;
         // Match native WorldToMapPoint, including integer division for odd sizes.
         double span=(double)size*metres,origin=(double)(size/2)/size;
-        float x=(float)((origin+MinX/span-uvX)/uvWidth*width);
-        float y=(float)((origin+MinZ/span-uvY)/uvHeight*height);
-        float w=(float)(WorldSize/span/uvWidth*width),h=(float)(WorldSize/span/uvHeight*height);
+        float x=(float)((origin+minX/span-uvX)/uvWidth*width);
+        float y=(float)((origin+minZ/span-uvY)/uvHeight*height);
+        float w=(float)(worldSize/span/uvWidth*width),h=(float)(worldSize/span/uvHeight*height);
         if(!Finite(x)||!Finite(y)||!Positive(w)||!Positive(h))return default;
         return new DriftMapPlacement(x,y,w,h,x<width&&y<height&&x+w>0&&y+h>0);
     }

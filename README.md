@@ -74,4 +74,12 @@ Unity/PhysX checks, including separate-library loading; personal in-game
 handling acceptance remains open. See [local drift development](docs/DRIFT_WORLD.md).
 The download above remains the published release.
 
+Local drift-world development also adds parking arrival in a seated 350Z, endless
+practice on the existing circuit, and a glowing event area for a separate
+three-lap **Parkade Drift 1** race. Its 503 m route and gradual 7.1 m elevation
+change were measured from the locally available original game data; the venue
+uses Valheim terrain and building pieces. The event menu shows the route and its
+separate high score. In-game driving, saved-world terrain, seated arrival and
+stability acceptance are still pending; see [drift-world development](docs/DRIFT_WORLD.md).
+
 [Releases](https://github.com/Backwoodz/NFVU2/releases) · [Changelog](CHANGELOG.md) · [Contributing](CONTRIBUTING.md) · [Known limitations](docs/ROADMAP.md)

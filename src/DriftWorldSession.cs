@@ -7,7 +7,7 @@ public partial class Plugin {
     DriftSessionCleanup driftCleanup;
     float driftCleanupAt;
     void InitializeDriftSession() {
-        foreach(var patch in new[]{typeof(DriftRandomSpawns),typeof(DriftCreatureSpawns),typeof(DriftAreaSpawns),typeof(DriftRandomRaids)})
+        foreach(var patch in new[]{typeof(DriftRandomSpawns),typeof(DriftCreatureSpawns),typeof(DriftAreaSpawns),typeof(DriftRandomRaids),typeof(DriftBuildSelection),typeof(DriftBuildOpen),typeof(DriftBuildPlacement)})
             controlsHarmony.PatchAll(patch);
     }
     void TickDriftSession(MonoBehaviour local) {
@@ -15,6 +15,7 @@ public partial class Plugin {
             ClearDriftSession();return;
         }
         if(driftEnvironment!=null&&!driftEnvironment.IsCurrent){driftEnvironment.Dispose();driftEnvironment=null;}
+        if(Hud.IsPieceSelectionVisible())Hud.HidePieceSelection();
         if(EnvMan.instance!=null&&driftEnvironment==null) {
             // End any earlier horde override before capturing the normal environment.
             if(hordeWave.Active||horde.Count>0)ClearHorde();

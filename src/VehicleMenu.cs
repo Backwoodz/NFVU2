@@ -91,6 +91,7 @@ public partial class Plugin {
     void OnGUI() {
         if(!menuOpen||audioBlocked||!Application.isFocused)StopMenuDrag();
         if(!ready)return;
+        if(driftRaceUi)return;
         if(LocalPlayer()==null){if(vehicleLoadGame!=null)DrawSpawnProgress();return;}
         DrawControlHints();
         DrawSpawnProgress();

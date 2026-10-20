@@ -18,7 +18,7 @@ internal static class DriftBiome {
 internal static class DriftHeight {
     static bool Prefix(WorldGenerator __instance,float wx,float wy,ref Color mask,ref float __result) {
         if(!DriftWorldRules.Interior(__instance,wx,wy))return true;
-        mask=Color.black;__result=DriftWorldRules.GroundHeight;return false;
+        mask=Color.black;__result=ParkadeLayout.TerrainHeightAt(wx,wy);return false;
     }
 }
 // Keep the native outer coroutine's loading/progress/completion/save lifecycle.

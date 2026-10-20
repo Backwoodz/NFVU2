@@ -16,6 +16,7 @@ public sealed class VehicleAudio : IDisposable {
     public VehicleAudio(bool hummer=false){suv=hummer;model=new EngineSoundModel(hummer);bands=hummer?EngineSoundModel.HummerBands:EngineSoundModel.Bands;}
     readonly TurboSoundModel turboModel=new TurboSoundModel();
     readonly VehicleSoundPerspective perspective=new VehicleSoundPerspective();
+    readonly TyreSoundModel tyreSound=new TyreSoundModel();
     public float Rpm => model.Rpm;
     public float Load => model.Load;
     public bool IsShifting => model.IsShifting;
@@ -26,7 +27,7 @@ public sealed class VehicleAudio : IDisposable {
     AudioSource[] power,coast;
     AudioSource[] exhaustPower,exhaustCoast;
     GameObject engineEmitter,exhaustEmitter;
-    AudioSource road,skid,horn,reverseWhine;
+    AudioSource road,skid,skidHard,horn,reverseWhine;
     AudioSource turboCharge,turboLow,turboHigh;
     GameObject root;
     Rigidbody body;
@@ -75,11 +76,28 @@ public sealed class VehicleAudio : IDisposable {
             }
             yield return 0;
         }
-        road=CreateSource("road.wav",suv?160:DrivingLoopPriority);yield return 0;skid=CreateSource("skid.wav",120);yield return 0;horn=CreateSource("horn.wav",60);yield return 0;
+        road=CreateSource("road.wav",suv?160:DrivingLoopPriority);yield return 0;
+        if(suv||!LoadTyres(log))skid=CreateSource("skid.wav",120);yield return 0;horn=CreateSource("horn.wav",60);yield return 0;
         reverseWhine=CreateSource("reverse_whine_synth",110,prepared.Reverse);reverseWhine.dopplerLevel=0;
         if(!suv)LoadTurbo(log);
         prepared=null;
         log((suv?"H2 original GIN_Hummer engine; ":"350Z original engine; ")+"audio ready: "+clips.Count+" clips; original engine and tyre recordings; synthesized horn and reverse-gear whine. Mixer: "+(mixer!=null?mixer.name:"AudioListener master"));
+    }
+    bool LoadTyres(Action<string> log) {
+        var folder=Path.Combine(Path.GetDirectoryName(typeof(VehicleAudio).Assembly.Location),"audio","tyres");
+        var names=new[]{"scrub.wav","slide.wav"};
+        if(!names.All(name=>File.Exists(Path.Combine(folder,name))))return false;
+        int firstSource=sources.Count,firstClip=clips.Count;
+        try {
+            var data=names.Select(name=>prepared.FileData(Path.Combine(folder,name))).ToArray();
+            skid=CreateSource(names[0],120,data[0]);skidHard=CreateSource(names[1],120,data[1]);
+            log("350Z tyres: original NFS drift banks; NFVU2 speed/slip-dependent blend, pitch and attack/release.");return true;
+        } catch(Exception error) {
+            for(int i=firstSource;i<sources.Count;i++)if(sources[i]!=null)UnityEngine.Object.Destroy(sources[i]);
+            for(int i=firstClip;i<clips.Count;i++)if(clips[i]!=null)UnityEngine.Object.Destroy(clips[i]);
+            sources.RemoveRange(firstSource,sources.Count-firstSource);clips.RemoveRange(firstClip,clips.Count-firstClip);skid=skidHard=null;
+            log("Optional drift tyre layers unavailable; using embedded tyre recording: "+error.GetBaseException().Message);return false;
+        }
     }
     void LoadTurbo(Action<string> log) {
         var folder=Path.Combine(Path.GetDirectoryName(typeof(VehicleAudio).Assembly.Location),"audio","turbo");
@@ -139,7 +157,7 @@ public sealed class VehicleAudio : IDisposable {
         bool audioOccupied=robotIdle?robotOccupied:driving;
         if(robotIdle) {
             driving=false;throttle=0;braking=honking=burnout=flying=turboInputAllowed=false;
-            roadLevel=skidLevel=hornLevel=0;
+            roadLevel=skidLevel=hornLevel=0;tyreSound.Reset();
         }
         if(blocked) {
             if(!paused){foreach(var source in sources)source.Pause();paused=true;}
@@ -211,7 +229,15 @@ public sealed class VehicleAudio : IDisposable {
         skidLevel=Mathf.MoveTowards(skidLevel,skidTarget,dt*5);
         hornLevel=Mathf.MoveTowards(hornLevel,driving&&honking?1:0,dt*18);
         road.volume=volume*model.Level*roadLevel*.24f;road.pitch=Mathf.Lerp(.8f,1.4f,Mathf.Clamp01(speed/25));
-        skid.volume=volume*model.Level*skidLevel*(burnout?.5f:terrain?.18f:.48f);skid.pitch=1;
+        if(suv){skid.volume=volume*model.Level*skidLevel*(burnout?.5f:terrain?.18f:.48f);skid.pitch=1;}
+        else {
+            float sideways=Mathf.Sqrt(Mathf.Max(0,speed*speed-forward*forward));
+            float spin=native?physics.Value.TyreSlipSpeed:Mathf.Abs(wheelRpm*(2*Mathf.PI/60)*wheels[2].radius-Mathf.Abs(forward));
+            tyreSound.Step(dt,driving&&!flying&&!robotIdle,speed,sideways,spin,native?physics.Value.Skid:Mathf.Clamp01((slip-.35f)/1.1f),grounded,burnout);
+            float gain=volume*model.Level*(burnout?.43f:terrain?.18f:.43f);
+            skid.volume=gain*(skidHard!=null?tyreSound.SoftGain:tyreSound.Level);skid.pitch=tyreSound.Pitch;
+            if(skidHard!=null){skidHard.volume=gain*tyreSound.HardGain;skidHard.pitch=tyreSound.Pitch*.96f;}
+        }
         reverseWhine.volume=volume*model.Level*ReverseGearSound.Level(driving,model.Gear<0&&!burnout,forward)*.22f;
         reverseWhine.pitch=ReverseGearSound.Pitch(forward);
         horn.volume=volume*model.Level*hornLevel*.8f;

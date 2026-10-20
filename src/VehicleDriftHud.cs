@@ -10,8 +10,10 @@ public partial class Plugin {
         if(driftCircuitHudFailed)return;
         try {
             if(driftCircuitHud==null)driftCircuitHud=new DriftCircuitHud(Path.GetDirectoryName(Info.Location),message=>Logger.LogWarning(message));
-            driftCircuitHud.Tick(Hud.instance,driftLapScore,
-                DriftCircuitScoreVisible&&!menuOpen&&!UIVisible()&&!Hud.IsUserHidden()&&!Minimap.IsOpen(),uiLanguage.Value=="DE");
+            bool race=driftRace.Phase==DriftRacePhase.Racing;
+            driftCircuitHud.Tick(Hud.instance,race?driftRace.Score:driftLapScore,
+                DriftCircuitScoreVisible&&!menuOpen&&!UIVisible()&&!Hud.IsUserHidden()&&!Minimap.IsOpen(),uiLanguage.Value=="DE",
+                race?"PARKADE 1":null,race?driftRace.BankedScore:0,race?driftRace.BestScore:-1,race?3:0);
         } catch(System.Exception error) {
             ClearDriftCircuitHud();driftCircuitHudFailed=true;
             Logger.LogWarning("Drift score display unavailable: "+error.GetBaseException().Message);

@@ -16,7 +16,7 @@ public partial class Plugin {
     Hud crosshairHud;
     GameObject[] savedCrosshairs;
     bool[] savedCrosshairActive;
-    static readonly FieldInfo[] CrosshairFields={typeof(Hud).GetField("m_crosshair"),typeof(Hud).GetField("m_crosshairBow")};
+    static readonly FieldInfo[] CrosshairFields=Array.ConvertAll(new[]{"m_crosshair","m_crosshairBow","m_hidden","m_targeted","m_targetedAlert","m_stealthBar","m_staminaBar2Root"},name=>typeof(Hud).GetField(name));
     void RestoreGameCrosshair() {
         if(savedCrosshairs!=null)for(int i=0;i<savedCrosshairs.Length;i++)
             if(savedCrosshairs[i]!=null)savedCrosshairs[i].SetActive(savedCrosshairActive[i]);
@@ -30,9 +30,10 @@ public partial class Plugin {
             RestoreGameCrosshair();crosshairHud=hud;
             savedCrosshairs=new GameObject[CrosshairFields.Length];savedCrosshairActive=new bool[CrosshairFields.Length];
             for(int i=0;i<CrosshairFields.Length;i++) {
-                var component=CrosshairFields[i]?.GetValue(hud) as Component;
-                if(component==null)continue;
-                savedCrosshairs[i]=component.gameObject;savedCrosshairActive[i]=component.gameObject.activeSelf;
+                var value=CrosshairFields[i]?.GetValue(hud);
+                var obj=value as GameObject??(value as Component)?.gameObject;
+                if(obj==null)continue;
+                savedCrosshairs[i]=obj;savedCrosshairActive[i]=obj.activeSelf;
             }
         }
         // Hud.UpdateCrosshair can re-enable these every Update; suppress after it in LateUpdate.

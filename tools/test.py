@@ -11,6 +11,7 @@ def main():
     suites.append('driftbuild')
     suites.append('driftmap')
     suites.extend(('driftscore','driftatmosphere','driftsession'))
+    suites.extend(('driftrace','driftarrival','parkade','tyresound'))
     suites.extend(('driftphysics','driftadapter'))
     parser=argparse.ArgumentParser();parser.add_argument('--skip-build',action='store_true');parser.add_argument('--handling-only',action='store_true')
     parser.add_argument('--suite',action='append',choices=suites,help='Run only these C# suites; repeat to combine.')
@@ -30,6 +31,13 @@ def main():
         elif suite=='driftbuild':sources.extend(BASE/'src'/name for name in ('DriftTrackLayout.cs','DriftTrackConstructionPlan.cs','DriftTrackPieces.cs','DriftTrackSignCorrection.cs','DriftTrackBuilder.cs','DriftCircuitLayout.cs','DriftCircuitPlan.cs','DriftCircuitPieces.cs','DriftCircuitLabels.cs'))
         elif suite=='driftmap':sources.extend(BASE/'src'/name for name in ('DriftCircuitMapDrawing.cs','DriftTrackLayout.cs','DriftTrackConstructionPlan.cs','DriftCircuitLayout.cs','DriftCircuitPlan.cs'))
         elif suite=='driftscore':sources.extend(BASE/'src'/name for name in ('DriftLapScore.cs','DriftCircuitScore.cs','DriftTrackLayout.cs','DriftCircuitLayout.cs'))
+        elif suite=='driftrace':sources.extend(BASE/'src'/name for name in ('DriftRaceRun.cs','DriftLapScore.cs','DriftTrackLayout.cs','DriftCircuitLayout.cs','ParkadeLayout.cs','DriftEventMenuNavigation.cs'))
+        elif suite=='driftarrival':
+            sources.append(BASE/'src/DriftArrivalState.cs')
+            dependency=out/'Mono.Cecil.dll';shutil.copy2(valheim_dir()/'BepInEx/core/Mono.Cecil.dll',dependency);refs.append(dependency)
+            arguments=[str(valheim_dir()),str(OUTPUT/'mod/Rachel350Z.dll')]
+        elif suite=='tyresound':sources.append(BASE/'src/TyreSoundModel.cs')
+        elif suite=='parkade':sources.extend(BASE/'src'/name for name in ('DriftTrackLayout.cs','DriftTrackConstructionPlan.cs','DriftTrackPieces.cs','ParkadeLayout.cs','ParkadePlan.cs','ParkadeVenue.cs'))
         elif suite=='driftatmosphere':sources.extend(BASE/'src'/name for name in ('DriftTrackLayout.cs','DriftTrackConstructionPlan.cs','DriftCircuitLayout.cs','DriftCircuitPlan.cs','DriftCircuitAtmospherePlan.cs'))
         elif suite=='driftsession':
             sources.extend(BASE/'src'/name for name in ('DriftWorldRules.cs','DriftSessionRules.cs','DriftSessionEnvironment.cs','DriftSessionCleanup.cs','DriftSessionPatches.cs'))
@@ -71,7 +79,7 @@ def main():
         elif suite=='transformerdeployaudio':sources.extend(BASE/'src'/name for name in ('TransformerDeploySoundModel.cs','TransformerDeployAudio.cs','WavPcm16.cs'))
         elif suite=='transformerreturnaudio':sources.extend(BASE/'src'/name for name in ('TransformerReturnSoundModel.cs','TransformerReturnAudio.cs','WavPcm16.cs'))
         elif suite=='transformerreactoraudio':sources.extend(BASE/'src'/name for name in ('TransformerReactorAudio.cs','WavPcm16.cs'))
-        elif suite=='robotidleaudio':sources.extend(BASE/'src'/name for name in ('VehicleAudio.cs','VehicleEffectsAudio.cs','ExhaustOverrunModel.cs','VehicleSoundPerspective.cs','EngineSoundModel.cs','TurboSoundModel.cs','ReverseGearSound.cs','ExhaustSoundProfile.cs','DrivingMath.cs','WavPcm16.cs'))
+        elif suite=='robotidleaudio':sources.extend(BASE/'src'/name for name in ('VehicleAudio.cs','TyreSoundModel.cs','VehicleEffectsAudio.cs','ExhaustOverrunModel.cs','VehicleSoundPerspective.cs','EngineSoundModel.cs','TurboSoundModel.cs','ReverseGearSound.cs','ExhaustSoundProfile.cs','DrivingMath.cs','WavPcm16.cs'))
         elif suite=='transformermount':sources.extend(BASE/'src'/name for name in ('TransformerMountMotion.cs','TransformerFlipShape.cs','TransformerDismountArc.cs','TransformerClimbLeg.cs'))
         elif suite=='horde':sources.extend(BASE/'src'/name for name in ('HordeWave.cs','HordeRun.cs','HordePact.cs','HordeBonus.cs','HordeElementRules.cs'))
         elif suite=='hordeweather':sources.append(BASE/'src/HordeWeather.cs')
@@ -81,7 +89,7 @@ def main():
         elif suite=='targeting':sources.extend(BASE/'src'/name for name in ('TurretTargeting.cs','TurretState.cs'))
         elif suite=='blast':sources.extend(BASE/'src'/name for name in ('TurretDamage.cs','TurretState.cs'))
         elif suite in ('hotbar','rumble','hordehull','hordecorpses','hordeelements','driftworld','drifttrack'):
-            if suite=='driftworld':sources.extend(BASE/'src'/name for name in ('DriftWorldRules.cs','DriftWorldPatches.cs','DriftSeedFeedback.cs'))
+            if suite=='driftworld':sources.extend(BASE/'src'/name for name in ('DriftWorldRules.cs','DriftWorldPatches.cs','DriftSeedFeedback.cs','DriftTrackLayout.cs','ParkadeLayout.cs'))
             elif suite=='drifttrack':sources.extend(BASE/'src'/name for name in ('DriftTrackLayout.cs','DriftTrackConstructionPlan.cs','DriftTrackPieces.cs','DriftTrackSignCorrection.cs','DriftCircuitLayout.cs','DriftCircuitPlan.cs','DriftCircuitPieces.cs','DriftCircuitLabels.cs'))
             elif suite=='hordeelements':sources.extend(BASE/'src'/name for name in ('HordeElementCombat.cs','HordeElementStatus.cs','HordeElementRules.cs','HordePact.cs'))
             elif suite=='hordehull':sources.extend(BASE/'src'/name for name in ('VehicleHordeHull.cs','VehicleImpactRules.cs'))

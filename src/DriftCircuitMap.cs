@@ -13,7 +13,10 @@ internal sealed class DriftCircuitMap {
     DriftCircuitMapView small,large;
     bool failed;
     readonly Action<string> log;
-    internal DriftCircuitMap(Action<string> log){this.log=log;}
+    readonly Func<Color32[]> draw;
+    readonly int size;
+    readonly float minX,minZ,span;
+    internal DriftCircuitMap(Action<string> log,Func<Color32[]> draw=null,int size=512,float minX=DriftCircuitMapDrawing.MinX,float minZ=DriftCircuitMapDrawing.MinZ,float span=DriftCircuitMapDrawing.WorldSize){this.log=log;this.draw=draw??DriftCircuitMapDrawing.Pixels;this.size=size;this.minX=minX;this.minZ=minZ;this.span=span;}
     internal void Tick(Minimap current,object currentWorld,bool enabled) {
         if(!enabled||current==null||currentWorld==null){Clear();return;}
         if(map!=current||world!=currentWorld){Clear();map=current;world=currentWorld;}
@@ -22,10 +25,10 @@ internal sealed class DriftCircuitMap {
             if(current.m_mapImageSmall==null||current.m_mapImageLarge==null)return;
             if(current.m_textureSize<=0||current.m_pixelSize<=0)return;
             if(texture==null) {
-                texture=new Texture2D(DriftCircuitMapDrawing.Size,DriftCircuitMapDrawing.Size,TextureFormat.RGBA32,false);
+                texture=new Texture2D(size,size,TextureFormat.RGBA32,false);
                 texture.name="NFVU2 drift course map";
                 texture.wrapMode=TextureWrapMode.Clamp;texture.filterMode=FilterMode.Bilinear;
-                texture.SetPixels32(DriftCircuitMapDrawing.Pixels());texture.Apply(false,true);
+                texture.SetPixels32(draw());texture.Apply(false,true);
             }
             if(small==null)small=Create(current.m_mapImageSmall);
             if(large==null)large=Create(current.m_mapImageLarge);
@@ -44,6 +47,7 @@ internal sealed class DriftCircuitMap {
         var image=imageObject.GetComponent<RawImage>();image.texture=texture;image.raycastTarget=false;
         image.rectTransform.anchorMin=image.rectTransform.anchorMax=Vector2.zero;image.rectTransform.pivot=Vector2.zero;
         var view=root.AddComponent<DriftCircuitMapView>();view.Map=map;view.Target=target;view.Image=image;
+        view.MinX=minX;view.MinZ=minZ;view.Span=span;
         view.Refresh();return view;
     }
     void ReleaseViews() {
@@ -58,12 +62,13 @@ internal sealed class DriftCircuitMap {
 internal sealed class DriftCircuitMapView : MonoBehaviour {
     internal Minimap Map;
     internal RawImage Target,Image;
+    internal float MinX=DriftCircuitMapDrawing.MinX,MinZ=DriftCircuitMapDrawing.MinZ,Span=DriftCircuitMapDrawing.WorldSize;
     // Native Minimap.Update has already centered/zoomed its RawImage UVs.
     void LateUpdate(){Refresh();}
     internal void Refresh() {
         if(Map==null||Target==null||Image==null)return;
         var uv=Target.uvRect;var rect=Target.rectTransform.rect;
-        var placement=DriftCircuitMapDrawing.Project(Map.m_textureSize,Map.m_pixelSize,uv.x,uv.y,uv.width,uv.height,rect.width,rect.height);
+        var placement=DriftCircuitMapDrawing.Project(Map.m_textureSize,Map.m_pixelSize,uv.x,uv.y,uv.width,uv.height,rect.width,rect.height,MinX,MinZ,Span);
         Image.enabled=placement.Visible;
         if(!placement.Visible)return;
         Image.rectTransform.anchoredPosition=new Vector2(placement.X,placement.Y);

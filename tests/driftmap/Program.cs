@@ -51,6 +51,19 @@ static class Program {
         }
         Check(!DriftCircuitMapDrawing.Project(2048,12,float.NaN,.5f,.01f,.01f,240,240).Visible,"invalid UV origin");
         Check(!DriftCircuitMapDrawing.Project(0,12,.5f,.5f,.01f,.01f,240,240).Visible,"uninitialised map");
+        // Separate venue overlays use the same native projection at other bounds.
+        foreach(int size in new[]{2048,2049})foreach(float zoom in new[]{.002f,.01f,.1f}) {
+            const float minX=1064,minZ=-27,worldSize=150;
+            double origin=(double)(size/2)/size,span=(double)size*12;
+            float uvX=(float)(origin+1100/span-zoom/2),uvY=(float)(origin+80/span-zoom/2);
+            var placed=DriftCircuitMapDrawing.Project(size,12,uvX,uvY,zoom,zoom,240,240,minX,minZ,worldSize);
+            Check(placed.Visible,"separate venue remains visible at native odd/even texture sizes");
+            foreach(var point in new[]{new[]{1100f,80f},new[]{1189f,40f},new[]{1073f,-17f}}) {
+                double x=placed.X+(point[0]-minX)/worldSize*placed.Width;
+                double y=placed.Y+(point[1]-minZ)/worldSize*placed.Height;
+                Check(Math.Abs(x-(origin+point[0]/span-uvX)/zoom*240)<.03&&Math.Abs(y-(origin+point[1]/span-uvY)/zoom*240)<.03,"separate course bounds preserve native world coordinates");
+            }
+        }
         Console.WriteLine(checks+" drift map geometry, raster and native-projection checks passed.");
     }
 }

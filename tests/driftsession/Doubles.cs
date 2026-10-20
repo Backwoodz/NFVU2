@@ -56,6 +56,10 @@ public class ZNetScene {
 public class SpawnSystem { [MethodImpl(MethodImplOptions.NoInlining)] void UpdateSpawning(){} }
 public class CreatureSpawner { [MethodImpl(MethodImplOptions.NoInlining)] void UpdateSpawner(){} }
 public class SpawnArea { [MethodImpl(MethodImplOptions.NoInlining)] void UpdateSpawn(){} }
+public class Hud {public void TogglePieceSelection(){}}
+public class BuildUi {public void OpenBuildMenu(){}}
+public class PieceTable {}
+public class Player:Character {public static Player m_localPlayer;void SetPlaceMode(PieceTable buildPieces){}}
 public class RandomEvent {}
 public class RandEventSystem { [MethodImpl(MethodImplOptions.NoInlining)] void SetRandomEvent(RandomEvent ev,UnityEngineDummy.Vector3 pos){} }
 namespace UnityEngineDummy {public struct Vector3 {}}

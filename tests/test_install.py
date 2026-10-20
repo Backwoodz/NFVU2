@@ -9,6 +9,20 @@ import install
 from mod_files import sync_optional_assets
 
 class InstallTests(unittest.TestCase):
+    def test_optional_loading_image_is_packaged_and_checksum_verified(self):
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);source,dest,backup=self.fixture(root)
+            local=root/'local';art=local/'loading-screen';art.mkdir(parents=True)
+            (art/'background.png').write_bytes(b'approved image')
+            (art/'manifest.json').write_text('{"schema_version":1}')
+            (art/'original-source.zip').write_bytes(b'private source')
+            sync_optional_assets(local,source)
+            self.assertFalse((source/'loading/original-source.zip').exists())
+            install.install_payload(source,dest,backup,lambda:None)
+            self.assertEqual((dest/'loading/background.png').read_bytes(),b'approved image')
+            self.assertTrue(install.allowed_name('loading/background.png'))
+            self.assertIn('loading/background.png',json.loads((dest/install.MANIFEST).read_text()))
+
     def test_successful_install_retains_two_newest_backups_and_named_backup(self):
         with tempfile.TemporaryDirectory() as temp:
             root=Path(temp);source,dest,_=self.fixture(root)

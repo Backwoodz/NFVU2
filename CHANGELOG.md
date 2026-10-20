@@ -2,6 +2,45 @@
 
 ## Unreleased - Drift build world and own drift physics
 
+- Show the approved NFVU2 loading artwork during course preparation and return,
+  with three animated green segments and separate real construction progress.
+- Navigate the event menu with stick/D-pad and confirm the selected action;
+  reject held-button repeats across screen transitions.
+- Preserve the drift chain and multiplier across intermediate race laps while
+  banking each lap once. New races and normal chain breaks still reset them.
+
+- Keep wide drift lines scoring through Parkade navigation corners without
+  treating projection jumps as teleports. Preserve physical-distance scoring,
+  ordered gates and reverse protection.
+- Replace the event cone with a labelled native-font ground ring; hide native
+  eye/stealth and stamina widgets while seated and restore them on exit.
+  Block build selection, direct menu opening and local hammer placement only
+  in drift single-player worlds.
+- Add two distinct original NFS drift tyre recordings, with NFVU2's own
+  slip/speed/contact-dependent timbre blend, pitch and smooth attack/release.
+  Keep the embedded tyre sample as fallback and leave vehicle forces unchanged.
+
+- Enter drift worlds at the parking area in a seated 350Z, reusing an existing
+  saved car and retaining its cargo/customization where possible. Keep the
+  existing 1,491 m circuit as unlimited practice.
+- Fix venue preparation waiting indefinitely for distant native areas: prepare
+  pending tiles in sequence, retain their saved progress through unloading and
+  return the held car to the ready start before countdown. Synchronize the
+  driver's native sector and rigidbody before remote streaming transfers.
+- Add a glowing parking event area with a native-font course-preview menu and
+  separate event high score. Stage the car at a separate Parkade Drift 1 venue,
+  wait for native area/terrain construction readiness, count down, then score
+  exactly three complete laps. Support pause, retry and return to parking.
+- Reconstruct the measured 503.381 m navigation route and approximately 7.10 m
+  road grade from the locally configured original disc data. Adapt the width
+  to 18 m, raise the venue above Valheim water, and build 724 native stone,
+  banner, torch and sign pieces with independent saved construction markers.
+  Add a collision-free checker start line and a separate mini-/world-map layer.
+  No original road/building meshes or source-game controller are required at
+  runtime. A disposable native world passed seated arrival, complete 1080/1080
+  construction, driver transfer and countdown readiness. Actual race driving,
+  existing-world reload, terrain persistence and long-run stability remain pending.
+
 - Resume drift scoring after returning from grass. Off-road driving breaks
   the combo and earns no points while retaining the lap, total score and
   anti-farming progress. Lap time continues; teleport checks remain active.

@@ -25,8 +25,9 @@ public partial class Plugin {
         foreach(var patch in new[]{typeof(DriftBiome),typeof(DriftHeight),typeof(DriftLocationGeneration),
             typeof(DriftVegetation),typeof(DriftLocations),typeof(DriftStartPoint)})
             controlsHarmony.PatchAll(patch);
-        Logger.LogInfo("NFVU2 drift world ready: seed 'drift', flat Meadows at height 32; a 1.49 km drift circuit with paddock and grandstand builds nearby. No FlatGrass required.");
+        Logger.LogInfo("NFVU2 drift world ready: seed 'drift'; parking arrival, unlimited 1.49 km practice and separate graded 503 m Parkade event with three laps. No FlatGrass required.");
         InitializeDriftSession();
+        InitializeDriftArrival();
     }
 }
 }

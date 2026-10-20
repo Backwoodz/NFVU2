@@ -218,8 +218,12 @@ public partial class Plugin {
             current.storage=new VehicleStorage(car,restoringVehicle);
             hasBeenDriven=VehiclePersistence.WasDriven(restoringVehicle);
         } else {
-            if(!FindSpawnPoint(local,IsHummer,out var origin))throw new InvalidOperationException("Kein freier Spawnplatz mehr vorhanden.");
-            car.transform.SetPositionAndRotation(origin,Quaternion.Euler(0,local.transform.eulerAngles.y,0));
+            Quaternion rotation;
+            if(!DriftArrivalSpawnPoint(out var origin,out rotation)) {
+                if(!FindSpawnPoint(local,IsHummer,out origin))throw new InvalidOperationException("Kein freier Spawnplatz mehr vorhanden.");
+                rotation=Quaternion.Euler(0,local.transform.eulerAngles.y,0);
+            }
+            car.transform.SetPositionAndRotation(origin,rotation);
             current.storage=new VehicleStorage(car,IsHummer,trunkLayout.Value);
             VehiclePersistence.Mark(current.storage.Data,IsHummer);
             current.storage.SaveVehicle(false,false);

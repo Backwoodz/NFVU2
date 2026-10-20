@@ -43,6 +43,7 @@ namespace Rachel350Z {
     internal class DriftVehicleAdapter {public bool Grounded(int i)=>true;}
     internal class VehicleRuntime {public DriftVehicleAdapter driftPhysics;}
     public partial class Plugin {
+        bool DriftRaceOwnsVehicle=>false;
         bool driving=true,IsHummer,Flying,Transforming,EffectiveDrift=true,DriverInputReady=true,audioBlocked,menuOpen,multiplayer,ui;
         object car=new object();
         UnityEngine.Rigidbody body=new UnityEngine.Rigidbody();
