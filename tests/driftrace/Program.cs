@@ -21,6 +21,7 @@ static class Program {
         return race;
     }
     static void Main() {
+        FreeDrivePause();
         var race=Begin();int end=(int)Math.Ceiling(3*ParkadeLayout.TotalLength);
         int previousCount=0,expected=0;
         for(int i=1;i<=end;i++) {
@@ -84,6 +85,30 @@ static class Program {
         Check(input(0,0,false,true)==DriftEventMenuAction.Accept,"Paused Back/Escape resumes instead of abandoning the race");
         nav.Reset();Check(input(0,0,false,true)==DriftEventMenuAction.None,"Escape that opens the same pause phase cannot instantly close it");
         input(0,0,false,false);Check(input(0,0,false,true)==DriftEventMenuAction.Accept,"A new Escape press after reopening resumes normally");
+    }
+    static void FreeDrivePause() {
+        Check(!ParkadeLayout.InVenueArea(148,-8),"parking retains the native pause menu");
+        foreach(var p in DriftCircuitLayout.Samples)Check(!ParkadeLayout.InVenueArea(p.X,p.Z),"entire practice course retains native pause");
+        foreach(var p in ParkadeLayout.Samples)Check(ParkadeLayout.InVenueArea(p.X,p.Z),"entire Parkade route offers custom pause even without an active race");
+        Check(!ParkadeLayout.InVenueArea(float.NaN,80),"invalid vehicle position cannot capture native pause");
+        var run=new DriftRaceRun();run.LoadRecord(456,77);
+        run.Pause();
+        Check(run.Phase==DriftRacePhase.PracticePaused&&run.BlocksDriving&&!run.UsesRaceTrack,"Free driving can pause without becoming a timed race");
+        Check(run.Score==null&&run.RecordRevision==0&&run.BestScore==456,"Practice pause creates no event score or record");
+        run.Resume();Check(run.Phase==DriftRacePhase.Practice&&!run.BlocksDriving,"Resume returns to endless free driving");
+        run.Pause();run.Start(Route());
+        Check(run.Phase==DriftRacePhase.Loading&&run.UsesRaceTrack&&run.Score!=null,"Parkade can start directly from free-drive pause");
+        run.Practice();run.Pause();run.Return();
+        Check(run.Phase==DriftRacePhase.Returning&&run.BlocksDriving,"Parking return holds the free-drive car during streaming");
+        run.Practice();Check(run.BestScore==456&&run.BestTime==77&&run.RecordRevision==0,"Free-drive return preserves race records");
+        var nav=new DriftEventMenuNavigation();double now=0;
+        Func<float,bool,bool,DriftEventMenuAction> input=(x,a,b)=>nav.Step(DriftRacePhase.PracticePaused,x,0,a,b,now+=.05);
+        Check(input(0,false,true)==DriftEventMenuAction.None,"Opening Escape cannot immediately resume free drive");
+        input(0,false,false);Check(input(0,false,true)==DriftEventMenuAction.Accept,"Fresh Back resumes free drive");
+        input(0,false,false);input(1,false,false);
+        Check(nav.Selected==1&&input(0,true,false)==DriftEventMenuAction.Restart,"Free-drive second action starts Parkade");
+        input(0,false,false);input(1,false,false);
+        Check(nav.Selected==2&&input(0,true,false)==DriftEventMenuAction.Cancel,"Free-drive third action returns to parking");
     }
     static void LaunchTiming() {
         var run=new DriftRaceRun();run.Preview();run.Start(Route());

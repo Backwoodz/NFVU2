@@ -30,7 +30,7 @@ internal sealed class DriftEventPanel {
         if(hud==null){Clear();return;}
         if(owner!=hud){Clear();owner=hud;}
         if(root==null&&!Create(hud))return;
-        paused=run.Phase==DriftRacePhase.Paused;
+        paused=DriftEventMenuNavigation.IsPause(run.Phase);
         restart.gameObject.SetActive(paused);
         Place(primary.GetComponent<RectTransform>(),28,477,paused?238:358,45);
         Place(secondary.GetComponent<RectTransform>(),paused?534:414,477,paused?238:358,45);
@@ -44,8 +44,10 @@ internal sealed class DriftEventPanel {
         if(!run.BlocksDriving)return;
         float scale=Mathf.Min((Screen.width-40)/800f,(Screen.height-60)/540f)/Mathf.Max(.01f,canvas.scaleFactor);
         root.localScale=Vector3.one*Mathf.Min(1.35f,scale);
-        title.text="PARKADE DRIFT 1";
+        title.text=run.Phase==DriftRacePhase.PracticePaused?(german?"DRIFT-WELT":"DRIFT WORLD"):"PARKADE DRIFT 1";
         info.text=(german?"3 RUNDEN":"3 LAPS")+"\n503 m / "+(german?"RUNDE":"LAP")+"\n\n"+(german?"NFSU2-KURS\nVALHEIM-NACHBAU":"NFSU2 COURSE\nVALHEIM ADAPTATION");
+        if(run.Phase==DriftRacePhase.PracticePaused)
+            info.text=german?"FREIE FAHRT\nOHNE RUNDENLIMIT\n\nPARKADE DRIFT 1\n3 RUNDEN / 503 m":"FREE DRIVE\nUNLIMITED LAPS\n\nPARKADE DRIFT 1\n3 LAPS / 503 m";
         record.text=(german?"REKORD":"HIGH SCORE")+"\n"+run.BestScore.ToString("N0",CultureInfo.GetCultureInfo(german?"de-DE":"en-US"));
         primary.interactable=true;secondary.interactable=true;
         primaryText.text=german?"RENNEN STARTEN":"START RACE";secondaryText.text=german?"ZURÜCK":"BACK";
@@ -60,11 +62,13 @@ internal sealed class DriftEventPanel {
                 message.text=Mathf.CeilToInt(run.Countdown).ToString();primary.interactable=false;primaryText.text=german?"BEREIT MACHEN":"GET READY";secondaryText.text=german?"ABBRECHEN":"CANCEL";break;
             case DriftRacePhase.Paused:
                 message.text=(german?"RENNEN PAUSIERT":"RACE PAUSED")+"  "+run.TotalScore.ToString("N0");primaryText.text=german?"WEITERFAHREN":"RESUME";secondaryText.text=german?"ZUM ÜBUNGSPLATZ":"TO PRACTICE";break;
+            case DriftRacePhase.PracticePaused:
+                message.text=german?"FREIE FAHRT PAUSIERT":"FREE DRIVE PAUSED";primaryText.text=german?"WEITERFAHREN":"RESUME";secondaryText.text=german?"ZUM PARKPLATZ":"TO PARKING";break;
             case DriftRacePhase.Finished:
                 message.text=(run.NewRecord?(german?"NEUER REKORD!  ":"NEW RECORD!  "):(german?"ZIEL!  ":"FINISH!  "))+run.FinalScore.ToString("N0")+" "+(german?"PUNKTE":"POINTS");
                 primaryText.text=german?"NOCH EIN RENNEN":"RACE AGAIN";secondaryText.text=german?"ZUM PARKPLATZ":"TO PARKING";break;
         }
-        restartText.text=german?"NEU STARTEN":"RESTART RACE";restart.interactable=restartRace!=null;
+        restartText.text=run.Phase==DriftRacePhase.PracticePaused?(german?"PARKADE STARTEN":"START PARKADE"):(german?"NEU STARTEN":"RESTART RACE");restart.interactable=restartRace!=null;
         ApplyFocus();
     }
     internal void HandleInput(DriftRaceRun run,float x,float y,bool confirm,bool back,double now) {

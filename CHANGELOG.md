@@ -2,7 +2,21 @@
 
 ## Unreleased - Drift build world and own drift physics
 
-- Open the race pause menu with Escape, F9, L3 or the controller menu button.
+- Dress Parkade as a night drift festival: 108 animated Greydwarfs on the
+  36 existing roof terraces, illuminated iron railings, two cheering Trolls
+  on supported timber stages, nine sponsor billboards and 23 course lanterns.
+  Use six original locally imported sponsor marks; fall back to native text
+  when the optional images are absent. Limit additional lights to four nearby
+  shadowless sources, combine static decoration and cull distant crowds.
+
+- Fix both Troll fans facing away from the road and crossing their arms:
+  calibrate the native face toward the track and raise each arm on its own
+  shoulder side. Suppress story ravens only in drift worlds without marking
+  tutorials read or changing the player's global tutorial setting.
+- Use custom Escape/Start/Options pause at Parkade, including free drive there.
+  Preserve native pause on the practice course and parking; active races retain
+  custom pause even when off track. Keep F9/L3 assigned to the garage.
+- Open the race pause menu with Escape or the controller menu button.
   Resume, restart the three-lap event or return to the practice parking area
   in the same car. Back/Escape resumes a paused race; restarting discards only
   the unfinished attempt and retains saved records.

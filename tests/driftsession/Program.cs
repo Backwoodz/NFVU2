@@ -69,6 +69,20 @@ static class Program {
         second.m_debugTimeOfDay=true;var debug=new DriftSessionEnvironment(second,ZDOMan.instance);debug.Tick();debug.Dispose();
         Check(second.m_debugTimeOfDay&&second.m_debugTime==.75f,"existing debug-time override restored");
     }
+    static void Ravens() {
+        var chat=Chat.instance=new Chat();World("ordinary");
+        var raven=new GameObject().Add(new Raven());
+        Check(Prefix(typeof(DriftTutorialRaven)),"ordinary worlds retain tutorial raven spawning");
+        Check(Prefix(typeof(DriftRavenUpdate),raven)&&raven.gameObject.Active&&!raven.Cancelled&&!raven.gameObject.Destroyed,"ordinary raven update and visibility stay native");
+        World("drift");Check(!Prefix(typeof(DriftTutorialRaven)),"drift tutorial requests cannot instantiate or queue a story raven");
+        Check(!Prefix(typeof(DriftRavenUpdate),raven)&&raven.Cancelled&&!raven.gameObject.Active&&raven.gameObject.Destroyed,"already present story raven disappears and stops pending effects");
+        Check(chat.Cleared==1,"existing raven dialogue is removed");
+        var fresh=new GameObject().Add(new Raven());
+        typeof(DriftRavenAwake).GetMethod("Postfix",BindingFlags.Static|BindingFlags.NonPublic).Invoke(null,new object[]{fresh});
+        Check(fresh.gameObject.Destroyed&&!fresh.gameObject.Active,"directly spawned raven is removed after native initialization");
+        World("drift",single:false);Check(Prefix(typeof(DriftTutorialRaven)),"network games keep native tutorials");
+        World("drift",menu:true);Check(Prefix(typeof(DriftTutorialRaven)),"menu scenes keep native tutorials");
+    }
     static void Cleanup() {
         Character.All.Clear();ItemDrop.All.Clear();World("drift");ZNetScene.instance=new ZNetScene();
         var player=Creature(player:true);var pet=Creature(tame:true);var crowd=Creature(spectator:true);var remote=Creature(owner:false);
@@ -91,6 +105,8 @@ static class Program {
     }
     static void NativeContracts(string game,string plugin) {
         using(var native=AssemblyDefinition.ReadAssembly(Path.Combine(game,"valheim_Data/Managed/assembly_valheim.dll"))) {
+            foreach(var target in new[]{new[]{"Tutorial","SpawnRaven"},new[]{"Raven","Awake"},new[]{"Raven","Update"}})
+                Check(native.MainModule.Types.Single(t=>t.Name==target[0]).Methods.Count(m=>m.Name==target[1])==1,"installed native story-raven binding: "+string.Join(".",target));
             foreach(var target in new[]{new[]{"SpawnSystem","UpdateSpawning"},new[]{"CreatureSpawner","UpdateSpawner"},new[]{"SpawnArea","UpdateSpawn"}}) {
                 var type=native.MainModule.Types.Single(t=>t.Name==target[0]);
                 Check(type.Methods.Count(m=>m.Name==target[1]&&m.Parameters.Count==0&&m.ReturnType.FullName=="System.Void")==1,"installed native spawn patch contract: "+string.Join(".",target));
@@ -119,7 +135,7 @@ static class Program {
         }
     }
     static void Main(string[] args) {
-        RulesAndSpawns();Environment();Cleanup();
+        RulesAndSpawns();Environment();Cleanup();Ravens();
         if(args.Length>=2)NativeContracts(args[0],args[1]);
         Console.WriteLine(checks+" drift session checks passed.");
     }

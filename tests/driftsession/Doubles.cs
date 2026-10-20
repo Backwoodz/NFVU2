@@ -4,11 +4,13 @@ using System.Runtime.CompilerServices;
 namespace UnityEngine {
     public class GameObject {
         readonly Dictionary<Type,object> parts=new Dictionary<Type,object>();
-        public bool Destroyed;
+        public bool Destroyed,Active=true;
+        public void SetActive(bool active){Active=active;}
         public T GetComponent<T>() where T:class=>parts.TryGetValue(typeof(T),out var value)?value as T:null;
         public T Add<T>(T part) where T:Component {parts[typeof(T)]=part;part.gameObject=this;return part;}
     }
     public class Component {public GameObject gameObject;public T GetComponent<T>()where T:class=>gameObject.GetComponent<T>();}
+    public static class Object {public static void Destroy(GameObject obj){obj.Destroyed=true;}}
 }
 public class World {public string m_seedName;public bool m_menu;}
 public class WorldGenerator {public static WorldGenerator instance;public World m_world;}
@@ -59,6 +61,9 @@ public class SpawnArea { [MethodImpl(MethodImplOptions.NoInlining)] void UpdateS
 public class Hud {public void TogglePieceSelection(){}}
 public class BuildUi {public void OpenBuildMenu(){}}
 public class PieceTable {}
+public class Tutorial {void SpawnRaven(string key,string topic,string text,string label,bool munin){}}
+public class Raven:UnityEngine.Component {public bool Cancelled;public void CancelInvoke(){Cancelled=true;}void Awake(){}void Update(){}}
+public class Chat {public static Chat instance;public int Cleared;public void ClearNpcText(UnityEngine.GameObject root){Cleared++;}}
 public class Player:Character {public static Player m_localPlayer;void SetPlaceMode(PieceTable buildPieces){}}
 public class RandomEvent {}
 public class RandEventSystem { [MethodImpl(MethodImplOptions.NoInlining)] void SetRandomEvent(RandomEvent ev,UnityEngineDummy.Vector3 pos){} }

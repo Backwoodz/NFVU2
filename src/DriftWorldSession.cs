@@ -7,7 +7,7 @@ public partial class Plugin {
     DriftSessionCleanup driftCleanup;
     float driftCleanupAt;
     void InitializeDriftSession() {
-        foreach(var patch in new[]{typeof(DriftRandomSpawns),typeof(DriftCreatureSpawns),typeof(DriftAreaSpawns),typeof(DriftRandomRaids),typeof(DriftBuildSelection),typeof(DriftBuildOpen),typeof(DriftBuildPlacement)})
+        foreach(var patch in new[]{typeof(DriftRandomSpawns),typeof(DriftCreatureSpawns),typeof(DriftAreaSpawns),typeof(DriftRandomRaids),typeof(DriftBuildSelection),typeof(DriftBuildOpen),typeof(DriftBuildPlacement),typeof(DriftTutorialRaven),typeof(DriftRavenAwake),typeof(DriftRavenUpdate)})
             controlsHarmony.PatchAll(patch);
     }
     void TickDriftSession(MonoBehaviour local) {

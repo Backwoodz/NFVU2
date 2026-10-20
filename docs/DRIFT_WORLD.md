@@ -6,6 +6,34 @@ Die Funktion steckt direkt in der vorhandenen
 **Rachel350Z.dll**. FlatGrass oder ein zusaetzliches Weltplugin sind nicht erforderlich.
 Die eigene Fahrzeugphysik wird als `NFVU2.DriftPhysics.dll` mitgeliefert; siehe unten.
 
+## Parkade bei Nacht
+
+Die 36 bereits vorhandenen rechteckigen Steindaecher dienen als kleine
+Zuschauerterrassen: je drei Greydwarfs, mit unterschiedlichen Idle-/Tanzphasen,
+Eisengelaendern und tuerkisen, violetten, gruenen oder orangefarbenen Leuchtkanten.
+Zwei Trolle jubeln mit erhobenen, schwenkenden Armen auf unterstuetzten
+Holzbuehnen am aeusseren Streckenrand. Ihre gesamte Standflaeche haelt Abstand
+zu allen Fahrbahnabschnitten. Die acht Zuschauer an der Startlinie bleiben.
+Die Blickrichtung wird am nativen Gesichts-Rig zur Strecke ausgerichtet;
+jeder Arm bleibt auf der Seite seiner eigenen Schulter, ohne Ueberkreuzen.
+
+Neun beleuchtete Werbetafeln zeigen HKS, A'PEXi, Injen, Falken, BBS und NFSU2.
+Die Originalgrafiken stammen aus dem lokal vorhandenen `FRONTEND/FrontB.lzc`;
+`python tools/export_venue_branding.py` erzeugt die sechs optionalen PNGs samt
+Quellnachweis unter `.local/venue-branding`. Der normale Build uebernimmt sie
+nach `venue/` im Mod. Ohne diese Bilder erscheinen native Schriftzuege.
+Originaldateien und generierte Grafiken gehoeren nicht in Git.
+
+23 neue Laternen kombinieren warme Lichtkoerper mit dezenten farbigen Akzenten.
+Nur die vier naechsten Lichtquellen im Umkreis von 65 m sind eingeschaltet,
+ohne Echtzeitschatten. Statische Details teilen Materialien und werden pro
+Oberflaeche zusammengefasst; je Frame entsteht hoechstens eine Kulisse oder
+ein Render-Rig. Zuschauer werden ab 115 m, Dekoration ab 185 m ausgeblendet.
+Die Figuren besitzen keine KI, Kollisionskoerper, Beute, Netzwerkobjekte oder
+Animationsereignisse. Alles wird beim Weltwechsel entfernt und beim naechsten
+Besuch neu aufgebaut. Gespeicherte Baufolgen, Strecke und Fahrzeugphysik bleiben
+unveraendert; auch bestehende Driftwelten erhalten diese lokale Dekoration.
+
 ## Welt erstellen
 
 1. Den aktuellen lokalen NFVU2-Build installieren und Valheim starten.
@@ -33,6 +61,10 @@ installiert bleiben; die Drift-Welt liest keine seiner Einstellungen.
 - Keine zufaelligen Vanilla-Gebaeude, Startsteine, Baeume, Felsen oder Erzlager.
   Gezielt platzierte Streckenbauteile sind davon getrennt. Gras bleibt ausserhalb
   der Pflasterung; zufaellige Kreaturen sind in der Driftwelt gesperrt.
+- Story-Raben (Hugin/Munin) sind nur in dieser Einzelspielerwelt unterdrueckt.
+  Auch direkt erzeugte oder bereits vorhandene Raben werden samt Dialog und
+  geplanten Effektaufrufen entfernt. Ungelesene Tutorials und die globale
+  Tutorial-Einstellung des Spielers werden nicht veraendert.
 - Initialer Einstieg am Parkplatz bei `(148,32,-8)`, im nach Osten ausgerichteten
   350Z. Der Wagen wird erst nach nativer Lade-/Bodenkontrolle uebernommen.
   Dieser Driftwelt-Einstieg ersetzt beim Weltladen auch eine fruehere Logout-
@@ -89,7 +121,13 @@ Der bisherige Rundkurs bleibt ein unbegrenzter Uebungsplatz: beliebig viele
 Runden, mit der vorhandenen Rundenwertung und deren bisherigen Rekorden.
 Die neuen Rennen sind davon getrennt und enden nach **drei vollstaendigen Runden**.
 
-Ein laufendes Rennen laesst sich mit **Esc**, **F9**, **L3** oder der Menue-/
+Beim Fahren im **Parkade-Bereich** oeffnen **Esc** oder **Start/Options** am
+Controller das eigene Pausenmenue, auch bei freier Fahrt dort. Es bietet
+**Weiterfahren**, **Parkade starten** und **Zum Parkplatz**. Am urspruenglichen
+**Uebungsplatz und Parkplatz bleibt das normale Valheim-Pausenmenue**.
+**F9/L3** bleiben dem normalen Garagen-/Modmenue zugeordnet.
+
+Ein laufendes Rennen laesst sich ebenfalls mit **Esc** oder der Menue-/
 Starttaste des Controllers pausieren. Das Rennmenue bietet **Weiterfahren**,
 **Neu starten** und **Zum Uebungsplatz**. Stick/Steuerkreuz oder Pfeiltasten
 waehlen, A/Kreuz oder Enter bestaetigt; B/Kreis oder Esc setzt die Fahrt fort.

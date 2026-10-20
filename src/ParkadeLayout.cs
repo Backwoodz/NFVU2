@@ -110,6 +110,9 @@ public static class ParkadeLayout {
         return new DriftTrackProjection((float)px,(float)pz,p.TangentX,p.TangentZ,(float)progress,p.HalfWidth,(float)Math.Sqrt(best));
     }
     public static bool Contains(float x,float z,float margin=0){Finite(margin);return Project(x,z).SignedEdgeDistance<=margin;}
+    // Pause belongs to this separate venue, including its narrow shoulders.
+    // The original practice course and parking retain Valheim's native menu.
+    public static bool InVenueArea(float x,float z)=>x>=Bounds.MinX-24&&x<=Bounds.MaxX+24&&z>=Bounds.MinZ-24&&z<=Bounds.MaxZ+24;
     // Generator-safe pure height field; the practice course and all surrounding
     // world terrain retain the previous 32 m base. No mutable Unity state used.
     public static float TerrainHeightAt(float x,float z) {

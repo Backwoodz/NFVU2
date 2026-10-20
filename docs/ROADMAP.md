@@ -2,7 +2,41 @@
 
 ## Parkplatz und Parkade-Rennen (lokale Entwicklung)
 
-- Rennpause ueber Esc, F9, L3 oder Controller-Menue: Weiterfahren, neu starten
+- Parkade-Nachtkulisse: 108 Greydwarfs auf 36 vorhandenen Steindaechern,
+  Gelaender/Leuchtkanten, zwei jubelnde Trolle auf Holzpodesten, neun Werbetafeln
+  mit sechs optionalen Original-Sponsormarken und 23 Laternen. Maximal vier
+  nahe schattenlose Zusatzlichter; zusammengefasste statische Meshes,
+  begrenzter Aufbau und Sichtweiten. Keine KI/Kollision/ZDOs fuer die Kulisse;
+  gespeicherte Baufolge und Handling bleiben erhalten. Fahrabnahme und
+  laengere Stabilitaet mit dem zusaetzlichen Publikum bleiben offen.
+- 3.045 Geometrie-/Lichtbudgetpruefungen und 129 native Kulissenpruefungen
+  bestanden. Eine getrennte frische Spielwelt erreicht 1080/1080 Bauschritte
+  und GO mit 110 neuen Render-Rigs, 183 statischen Dekorations-Renderern und
+  vier aktiven Zusatzlichtern. Auch die Schriftalternative ohne Sponsor-PNGs
+  wurde dort nativ aufgebaut. Keine bestehenden Spielstaende veraendert.
+- Troll-Rueckmeldung korrigiert: native Gesichtsachse wird zur Strecke
+  ausgerichtet; Haende und Ellenbogen bleiben beim Jubeln auf ihrer eigenen
+  Schulterseite. Native Sichtpruefung und 1.263 Kulissen-/Posenpruefungen
+  einschliesslich vollstaendigem Jubelzyklus beider Trolle bestanden.
+- Story-Raben nur in Drift-Einzelspielerwelten unterdrueckt: Tutorial-Spawns
+  blockiert, direkte/vorhandene Raben samt Dialog/Invokes entfernt. Keine
+  Aenderung an Profil-Tutorialfortschritt oder globaler Tutorial-Einstellung.
+  Native Weltprobe bestanden: Story-Aufruf erzeugt keinen Vogel, direkt
+  erzeugte Hugin-/Munin-Komponenten sind inaktiv und ohne geplante Effekte;
+  das Tutorial bleibt ungelesen. Native Pause am Parkplatz sowie eigene Pause
+  bei Parkade, Neustart und Rueckkehr mit anschliessender nativer Pause geprueft.
+
+- Eigene Driftpause ueber Esc oder Start/Options gilt im Parkade-Bereich auch
+  bei freier Fahrt vor dem ersten Rennen: Weiterfahren, Parkade starten oder
+  zum Parkplatz. Uebungsplatz/Parkplatz behalten native Pause, laufende Rennen
+  behalten die eigene Pause auch abseits der Strecke. F9/L3 bleiben Garage.
+  Freie Pause besitzt keinen Rennscore
+  und setzt beim Fortsetzen wieder die unbegrenzte Fahrt fort.
+  26 native Menue-/Gamepadpruefungen bestanden, einschliesslich Start/L3-
+  Trennung und freier Pause. Isolierte Spielwelt prueft den nativen Pauseaufruf
+  vor jedem Rennen, Fortsetzen, Parkade-Start daraus, Rennpause, Neustart und
+  Rueckkehr im selben Auto. Physischer Controller bleibt offen.
+- Rennpause ueber Esc oder Controller-Menue: Weiterfahren, neu starten
   oder zum Uebungsplatz/Parkplatz zurueckkehren. Drei direkt bedienbare Tasten
   mit Maus sowie Stick/Steuerkreuz und Bestaetigung. B/Esc setzt fort; der
   Oeffnungsdruck kann das Menue nicht sofort wieder schliessen. Native

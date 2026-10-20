@@ -3,7 +3,9 @@ using UnityEngine;
 
 namespace Rachel350Z {
 public partial class Plugin {
-    bool DriftRaceMenuShortcutDown()=>menuKey.Value.IsDown()||PadDown("menu")||(pad!=null&&pad.startButton.wasPressedThisFrame);
+    bool DriftRaceMenuShortcutDown()=>Input.GetKeyDown(KeyCode.Escape)||(pad!=null&&pad.startButton.wasPressedThisFrame);
+    bool DriftPauseArea=>driftRace.UsesRaceTrack||driftRace.Phase==DriftRacePhase.PracticePaused
+        ||body!=null&&ParkadeLayout.InVenueArea(body.position.x,body.position.z);
     void TickDriftEventInput() {
         Vector2 direction=Vector2.zero;
         if(padActive&&pad!=null) {
@@ -17,18 +19,19 @@ public partial class Plugin {
             Input.GetKey(KeyCode.Escape)||(pad!=null&&pad.buttonEast.isPressed),Time.unscaledTime);
     }
     // Native Menu.Update can run before this plugin and consumes Escape. Queue
-    // a race pause instead of opening the overlapping native pause menu;
-    // normal pause, garage, other worlds and teardown retain native behavior.
+    // our pause at Parkade, including free driving there. The practice course
+    // and parking retain native pause; garage remains on F9/L3.
     internal bool CaptureDriftEventMenu() {
         var local=Player.m_localPlayer;
         bool valid=DriftSessionRules.Active&&!Multiplayer()
             &&Game.instance!=null&&!Game.instance.IsShuttingDown()
             &&driftEventGame==Game.instance&&ZDOMan.instance!=null&&driftEventWorld==ZDOMan.instance
             &&local!=null&&!local.IsDead()&&!local.IsTeleporting()
-            &&driving&&car!=null&&body!=null&&current==driftEventVehicle;
+            &&driving&&car!=null&&body!=null&&current!=null&&!IsHummer&&!Flying&&!Transforming
+            &&(driftRace.Phase==DriftRacePhase.Practice||current==driftEventVehicle);
         if(!valid)return false;
         if(driftRaceUi)return true;
-        if(driftRace.Phase!=DriftRacePhase.Racing)return false;
+        if(!DriftPauseArea||driftRace.Phase!=DriftRacePhase.Racing&&driftRace.Phase!=DriftRacePhase.Practice)return false;
         driftPauseRequested=true;return true;
     }
 }

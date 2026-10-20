@@ -11,7 +11,8 @@ internal sealed class DriftEventMenuNavigation {
     int lastDirection;
     double repeatAt;
     DriftRacePhase phase;
-    internal static bool PrimaryEnabled(DriftRacePhase phase)=>phase==DriftRacePhase.Preview||phase==DriftRacePhase.Paused||phase==DriftRacePhase.Finished;
+    internal static bool IsPause(DriftRacePhase phase)=>phase==DriftRacePhase.Paused||phase==DriftRacePhase.PracticePaused;
+    internal static bool PrimaryEnabled(DriftRacePhase phase)=>phase==DriftRacePhase.Preview||IsPause(phase)||phase==DriftRacePhase.Finished;
     internal static bool SecondaryEnabled(DriftRacePhase phase)=>PrimaryEnabled(phase)||phase==DriftRacePhase.Loading||phase==DriftRacePhase.Countdown;
     internal void Reset(){initialized=false;Selected=0;}
     internal DriftEventMenuAction Step(DriftRacePhase current,float x,float y,bool confirm,bool back,double now) {
@@ -31,12 +32,12 @@ internal sealed class DriftEventMenuNavigation {
         if(direction==0){lastDirection=0;waitNeutral=false;}
         else if(!waitNeutral&&(direction!=lastDirection||now>=repeatAt)) {
             bool first=direction!=lastDirection;lastDirection=direction;repeatAt=now+(first?.35:.14);
-            int count=current==DriftRacePhase.Paused?3:2;
+            int count=IsPause(current)?3:2;
             Selected=primary&&secondary?(Selected+direction+count)%count:primary?0:1;
         }
-        if(cancel&&secondary)return current==DriftRacePhase.Paused?DriftEventMenuAction.Accept:DriftEventMenuAction.Cancel;
+        if(cancel&&secondary)return IsPause(current)?DriftEventMenuAction.Accept:DriftEventMenuAction.Cancel;
         if(submit) {
-            if(current==DriftRacePhase.Paused)return Selected==0?DriftEventMenuAction.Accept:Selected==1?DriftEventMenuAction.Restart:DriftEventMenuAction.Cancel;
+            if(IsPause(current))return Selected==0?DriftEventMenuAction.Accept:Selected==1?DriftEventMenuAction.Restart:DriftEventMenuAction.Cancel;
             return Selected==0&&primary?DriftEventMenuAction.Accept:Selected==1&&secondary?DriftEventMenuAction.Cancel:DriftEventMenuAction.None;
         }
         return DriftEventMenuAction.None;

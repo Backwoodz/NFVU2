@@ -1,7 +1,7 @@
 using System;
 
 namespace Rachel350Z {
-internal enum DriftRacePhase {Practice,Preview,Loading,Countdown,Racing,Paused,Finished,Returning}
+internal enum DriftRacePhase {Practice,Preview,Loading,Countdown,Racing,Paused,Finished,Returning,PracticePaused}
 
 // Event scoring is isolated from endless practice and from other race records.
 internal sealed class DriftRaceRun {
@@ -24,7 +24,7 @@ internal sealed class DriftRaceRun {
     internal void LoadRecord(int best,float time) {Reset();BestScore=Math.Max(0,Math.Min(1000000000,best));BestTime=Finite(time)&&time>0?time:0;}
     internal void Preview(){if(Phase==DriftRacePhase.Practice)Phase=DriftRacePhase.Preview;}
     internal void Start(DriftScoreRoute route) {
-        if(Phase!=DriftRacePhase.Preview&&Phase!=DriftRacePhase.Finished&&Phase!=DriftRacePhase.Paused)return;
+        if(Phase!=DriftRacePhase.Preview&&Phase!=DriftRacePhase.Finished&&Phase!=DriftRacePhase.Paused&&Phase!=DriftRacePhase.PracticePaused)return;
         Score=new DriftLapScore(route,preserveChainAcrossLaps:true);BankedScore=FinalScore=observedLaps=0;Elapsed=Countdown=LaunchElapsed=0;NewRecord=false;Phase=DriftRacePhase.Loading;
     }
     internal void Ready(){if(Phase==DriftRacePhase.Loading){Countdown=3;Phase=DriftRacePhase.Countdown;}}
@@ -48,8 +48,8 @@ internal sealed class DriftRaceRun {
         if(Elapsed>0&&(BestTime<=0||Elapsed<BestTime)){BestTime=Elapsed;changed=true;}
         if(changed)RecordRevision++;
     }
-    internal void Pause(){if(Phase==DriftRacePhase.Racing){Score.Pause();Phase=DriftRacePhase.Paused;}}
-    internal void Resume(){if(Phase==DriftRacePhase.Paused)Phase=DriftRacePhase.Racing;}
+    internal void Pause(){if(Phase==DriftRacePhase.Practice)Phase=DriftRacePhase.PracticePaused;else if(Phase==DriftRacePhase.Racing){Score.Pause();Phase=DriftRacePhase.Paused;}}
+    internal void Resume(){if(Phase==DriftRacePhase.PracticePaused)Phase=DriftRacePhase.Practice;else if(Phase==DriftRacePhase.Paused)Phase=DriftRacePhase.Racing;}
     internal void Return(){Score?.Interrupt();Phase=DriftRacePhase.Returning;}
     internal void Practice(){Score=null;BankedScore=FinalScore=observedLaps=0;Countdown=Elapsed=LaunchElapsed=0;NewRecord=false;Phase=DriftRacePhase.Practice;}
     internal void Reset(){Practice();BestScore=RecordRevision=0;BestTime=0;}

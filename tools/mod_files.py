@@ -5,6 +5,7 @@ import json
 
 REQUIRED=('Rachel350Z.dll','NFVU2.DriftPhysics.dll','body.json')
 OPTIONAL=(('radio', 'radio', {'.wav','.ogg','.json'}),
+          ('venue-branding', 'venue', {'.png','.json'}),
           ('loading-screen', 'loading', {'.png','.json'}),
           ('menu', 'menu', {'.wav','.json'}),
           ('audio-turbo', 'audio/turbo', {'.wav','.json'}),
