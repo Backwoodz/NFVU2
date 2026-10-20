@@ -10,6 +10,9 @@ public partial class Plugin {
     DriftEventPanel driftEventPanel;
     DriftCircuitMap parkadeMiniMap;
     ParkadeStartLine parkadeStartLine;
+    ParkadeRaceStarter parkadeRaceStarter;
+    ParkadeStartSpectators parkadeStartSpectators;
+    ParkadeNeonSign parkadeNeonSign;
     Minimap driftEventMap;
     Minimap.PinData eventPadPin,parkadePin;
     ZDOMan driftEventWorld;
@@ -21,6 +24,8 @@ public partial class Plugin {
     bool driftPreparationAtStart;
     int driftPreparationProgress;
     float driftPreparationLog;
+    bool driftPauseRequested;
+    int driftRaceUiOpenedFrame=-1;
     bool DriftRaceOwnsVehicle=>driftRace.UsesRaceTrack;
     bool DriftRaceHoldsCurrent=>driftRaceHeld&&current==driftEventVehicle;
     static DriftScoreRoute ParkadeScoreRoute=>new DriftScoreRoute(ParkadeLayout.TotalLength,ParkadeLayout.StartX,ParkadeLayout.StartZ,
@@ -44,6 +49,11 @@ public partial class Plugin {
             parkadeMiniMap.Tick(Minimap.instance,driftEventWorld,true);
             if(parkadeStartLine==null)parkadeStartLine=new ParkadeStartLine(message=>Logger.LogWarning(message));
             parkadeStartLine.Tick();UpdateDriftEventPins();
+            var viewer=body!=null?body.position:local.transform.position;
+            if(parkadeStartSpectators==null)parkadeStartSpectators=new ParkadeStartSpectators(message=>Logger.LogWarning(message));
+            parkadeStartSpectators.Tick(viewer,driftEventWorld);
+            if(parkadeNeonSign==null)parkadeNeonSign=new ParkadeNeonSign(message=>Logger.LogWarning(message));
+            parkadeNeonSign.Tick(viewer,driftEventWorld);
             if(driftEventPad==null)driftEventPad=new DriftEventPad();
             driftEventPad.Tick(driftRace.Phase==DriftRacePhase.Practice||driftRace.Phase==DriftRacePhase.Preview);
             bool validCar=driving&&car!=null&&body!=null&&!IsHummer&&!Flying&&!Transforming&&current!=null;
@@ -69,11 +79,15 @@ public partial class Plugin {
                     if(!MoveDriftCarTo(preparation,body.rotation,false))throw new InvalidOperationException("Parkade preparation requires a held car");
                     driftPreparationAtStart=false;
                 }
-                if(driftPreparationAtStart&&parkadeVenue.RaceReady&&DriftTransferGroundReady())driftRace.Ready();
-                else if(Time.unscaledTime-driftTransferStarted>120) {
+                if(driftPreparationAtStart&&parkadeVenue.RaceReady&&DriftTransferGroundReady()) {
+                    if(parkadeRaceStarter==null)parkadeRaceStarter=new ParkadeRaceStarter(message=>Logger.LogWarning(message));
+                    if(parkadeRaceStarter.EnsureReady(driftEventWorld))driftRace.Ready();
+                    else if(parkadeRaceStarter.Failed)throw new InvalidOperationException("Greydwarf race starter could not be prepared");
+                }
+                if(driftRace.Phase==DriftRacePhase.Loading&&Time.unscaledTime-driftTransferStarted>120) {
                     Logger.LogWarning("Parkade preparation stalled: "+parkadeVenue.PendingStatus());
                     ShowVehicleWarning("Parkade wird noch nicht bereit. Rueckkehr zum Parkplatz.");ReturnFromDriftRace();
-                } else if(Time.unscaledTime>=driftPreparationLog) {
+                } else if(driftRace.Phase==DriftRacePhase.Loading&&Time.unscaledTime>=driftPreparationLog) {
                     driftPreparationLog=Time.unscaledTime+10;
                     Logger.LogInfo("Parkade preparation "+progress+"/"+parkadeVenue.PlannedOperations+": "+parkadeVenue.PendingStatus());
                 }
@@ -81,12 +95,12 @@ public partial class Plugin {
                 if(ZNet.instance!=null&&body!=null)ZNet.instance.SetReferencePosition(body.position);
                 if(DriftTransferGroundReady()){ReleaseDriftRaceHold();driftRace.Practice();CloseDriftEventUI();}
             } else if(driftRace.Phase==DriftRacePhase.Countdown) {
-                if(!audioBlocked&&Application.isFocused)driftRace.TickCountdown(Time.deltaTime);
-                if(driftRace.Phase==DriftRacePhase.Racing){ReleaseDriftRaceHold();CloseDriftEventUI();}
+                TickDriftRaceCountdown(!audioBlocked&&Application.isFocused,Time.deltaTime);
             } else if(driftRace.Phase==DriftRacePhase.Racing) {
-                if(menuKey.Value.IsDown()||PadDown("menu")){driftRace.Pause();HoldDriftRaceCar();OpenDriftEventUI();}
+                if(driftPauseRequested||DriftRaceMenuShortcutDown()||Input.GetKeyDown(KeyCode.Escape))PauseDriftEvent();
                 else if(audioBlocked||menuOpen||!DriverInputReady||!Application.isFocused||Time.timeScale<=0)driftRace.Score.Pause();
                 else {
+                    driftRace.TickLaunch(Time.deltaTime);
                     int contacts=0;
                     if(DriftPhysicsActive)for(int i=0;i<4;i++){if(current.driftPhysics.Grounded(i))contacts++;}
                     else if(wheels!=null)foreach(var wheel in wheels)if(wheel!=null&&wheel.isGrounded)contacts++;
@@ -96,24 +110,41 @@ public partial class Plugin {
                     if(driftRace.Phase==DriftRacePhase.Finished){SaveParkadeRecord();HoldDriftRaceCar();OpenDriftEventUI();}
                 }
             }
+            if(parkadeRaceStarter!=null) {
+                if(driftRace.Phase==DriftRacePhase.Countdown||driftRace.Phase==DriftRacePhase.Racing||driftRace.Phase==DriftRacePhase.Paused||driftRace.Phase==DriftRacePhase.Finished)
+                    parkadeRaceStarter.Tick(driftRace.Countdown,driftRace.LaunchElapsed,driftRace.Phase!=DriftRacePhase.Countdown);
+                else parkadeRaceStarter.Clear();
+            }
             if(driftRaceUi) {
                 if(!menuOpen)SetVehicleMenu(true);
                 Cursor.lockState=CursorLockMode.None;Cursor.visible=true;
             }
             if(driftEventPanel==null)driftEventPanel=new DriftEventPanel(()=>RunDriftEventAction(AcceptDriftEvent),()=>RunDriftEventAction(CancelDriftEvent),
-                System.IO.Path.GetDirectoryName(Info.Location),message=>Logger.LogWarning(message));
+                System.IO.Path.GetDirectoryName(Info.Location),message=>Logger.LogWarning(message),()=>RunDriftEventAction(RestartDriftEvent));
             driftEventPanel.Tick(Hud.instance,driftRace,parkadeVenue.CompletedOperations,parkadeVenue.PlannedOperations,uiLanguage.Value=="DE");
-            if(driftRaceUi&&!audioBlocked&&Application.isFocused)TickDriftEventInput();
+            if(driftRaceUi&&!audioBlocked&&Application.isFocused) {
+                if(driftRace.Phase==DriftRacePhase.Paused&&Time.frameCount>driftRaceUiOpenedFrame&&DriftRaceMenuShortcutDown())AcceptDriftEvent();
+                else TickDriftEventInput();
+            }
             return driftRaceUi||driftRaceHeld;
         } catch(Exception error) {
             FailDriftEvent(error);return false;
         }
     }
     // Native button callbacks run outside Update's exception boundary.
+    void TickDriftRaceCountdown(bool advance,float deltaTime) {
+        if(driftRace.Phase!=DriftRacePhase.Countdown)return;
+        if(advance)driftRace.TickCountdown(deltaTime);
+        if(driftRace.Phase!=DriftRacePhase.Racing)return;
+        // Commit the low start pose before releasing the actual car body.
+        parkadeRaceStarter?.Tick(0,0,true);
+        ReleaseDriftRaceHold();CloseDriftEventUI();controlsGate.Allow(false);
+    }
     void RunDriftEventAction(Action action){try{action();}catch(Exception error){FailDriftEvent(error);}}
     void FailDriftEvent(Exception error) {
         ReleaseDriftRaceHold();CloseDriftEventUI();driftRace.Practice();driftEventFailed=true;
         driftEventPanel?.Clear();driftEventPanel=null;
+        parkadeRaceStarter?.Clear();
         Logger.LogWarning("Drift event stopped: "+error.GetBaseException().Message);
         ShowVehicleWarning("Rennen konnte nicht gestartet werden. Siehe BepInEx-Log.");
     }
@@ -121,7 +152,20 @@ public partial class Plugin {
         if(!driftRaceUi||audioBlocked||!Application.isFocused)return;
         if(driftRace.Phase==DriftRacePhase.Paused){ReleaseDriftRaceHold();driftRace.Resume();CloseDriftEventUI();return;}
         if(driftRace.Phase!=DriftRacePhase.Preview&&driftRace.Phase!=DriftRacePhase.Finished)return;
+        StartDriftEventRace();
+    }
+    void PauseDriftEvent() {
+        driftPauseRequested=false;
+        if(driftRace.Phase!=DriftRacePhase.Racing)return;
+        driftRace.Pause();HoldDriftRaceCar();OpenDriftEventUI();
+    }
+    void RestartDriftEvent() {
+        if(!driftRaceUi||driftRace.Phase!=DriftRacePhase.Paused||audioBlocked||!Application.isFocused)return;
+        StartDriftEventRace();
+    }
+    void StartDriftEventRace() {
         driftEventVehicle=current;driftRace.Start(ParkadeScoreRoute);HoldDriftRaceCar();
+        parkadeRaceStarter?.Clear();
         MoveToParkadeStart();driftPreparationAtStart=true;driftPreparationProgress=0;driftPreparationLog=Time.unscaledTime+10;
         driftTransferStarted=Time.unscaledTime;ClearDriftCircuitHud();
     }
@@ -137,6 +181,7 @@ public partial class Plugin {
         if(driftRace.Phase!=DriftRacePhase.Returning)ReturnFromDriftRace();
     }
     void ReturnFromDriftRace() {
+        parkadeRaceStarter?.Clear();
         driftRace.Return();HoldDriftRaceCar();
         if(body!=null&&car!=null&&MoveDriftCarTo(DriftParkingPosition,DriftParkingRotation,false)) {
             driftTransferStarted=Time.unscaledTime;OpenDriftEventUI();ClearDriftCircuitHud();
@@ -163,8 +208,8 @@ public partial class Plugin {
         if(body==null||ZNetScene.instance==null||ZoneSystem.instance==null||!ZNetScene.instance.IsAreaReady(body.position))return false;
         return ZoneSystem.instance.GetGroundHeight(body.position,out var y)&&Math.Abs(y-body.position.y)<2;
     }
-    void OpenDriftEventUI(){CloseVehicleMenu();SetVehicleMenu(true);driftRaceUi=true;}
-    void CloseDriftEventUI(){driftRaceUi=false;CloseVehicleMenu();}
+    void OpenDriftEventUI(){CloseVehicleMenu();SetVehicleMenu(true);driftRaceUi=true;driftRaceUiOpenedFrame=Time.frameCount;driftEventPanel?.ResetNavigation();}
+    void CloseDriftEventUI(){driftRaceUi=false;driftPauseRequested=false;CloseVehicleMenu();}
     void SaveParkadeRecord() {
         if(driftRace.RecordRevision==driftRecordSaved||Time.unscaledTime<driftRecordRetry||ZoneSystem.instance==null||ZRoutedRpc.instance==null)return;
         try{ZoneSystem.instance.SetGlobalKey(ParkadeRecordKey+" "+DriftLapRecord.Encode(driftRace.BestScore,driftRace.BestTime));driftRecordSaved=driftRace.RecordRevision;}
@@ -184,9 +229,12 @@ public partial class Plugin {
     void ClearDriftEvents() {
         ReleaseDriftRaceHold();if(driftRaceUi)CloseDriftEventUI();
         driftEventPanel?.Clear();driftEventPanel=null;driftEventPad?.Clear();driftEventPad=null;
+        parkadeRaceStarter?.Clear();parkadeRaceStarter=null;
+        parkadeStartSpectators?.Clear();parkadeStartSpectators=null;parkadeNeonSign?.Clear();parkadeNeonSign=null;
         parkadeMiniMap?.Clear();parkadeMiniMap=null;parkadeStartLine?.Clear();parkadeStartLine=null;RemoveDriftEventPins();
         parkadeVenue?.Clear();parkadeVenue=null;driftRace.Reset();driftEventWorld=null;driftEventGame=null;driftEventVehicle=null;
         driftPadLatched=driftEventFailed=false;driftRecordSaved=0;driftRecordRetry=0;
+        driftPauseRequested=false;driftRaceUiOpenedFrame=-1;
         driftPreparationAtStart=false;driftPreparationProgress=0;driftPreparationLog=0;
     }
 }

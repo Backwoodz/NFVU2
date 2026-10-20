@@ -1,7 +1,7 @@
 using System;
 
 namespace Rachel350Z {
-internal enum DriftEventMenuAction {None,Accept,Cancel}
+internal enum DriftEventMenuAction {None,Accept,Cancel,Restart}
 
 // The event's native buttons use our existing gamepad input, rather than
 // depending on Valheim's currently selected EventSystem object.
@@ -24,14 +24,21 @@ internal sealed class DriftEventMenuNavigation {
         bool submit=confirm&&!confirmHeld,cancel=back&&!backHeld;
         confirmHeld=confirm;backHeld=back;
         if(!primary&&!secondary)return DriftEventMenuAction.None;
+        // The countdown has no visible menu selection. A is also the driving
+        // handbrake, so only the explicit Back/Escape action may cancel here.
+        if(current==DriftRacePhase.Countdown)return cancel?DriftEventMenuAction.Cancel:DriftEventMenuAction.None;
         int direction=Math.Abs(y)>.55f?(y>0?-1:1):Math.Abs(x)>.55f?(x>0?1:-1):0;
         if(direction==0){lastDirection=0;waitNeutral=false;}
         else if(!waitNeutral&&(direction!=lastDirection||now>=repeatAt)) {
             bool first=direction!=lastDirection;lastDirection=direction;repeatAt=now+(first?.35:.14);
-            Selected=primary&&secondary?1-Selected:primary?0:1;
+            int count=current==DriftRacePhase.Paused?3:2;
+            Selected=primary&&secondary?(Selected+direction+count)%count:primary?0:1;
         }
-        if(cancel&&secondary)return DriftEventMenuAction.Cancel;
-        if(submit)return Selected==0&&primary?DriftEventMenuAction.Accept:Selected==1&&secondary?DriftEventMenuAction.Cancel:DriftEventMenuAction.None;
+        if(cancel&&secondary)return current==DriftRacePhase.Paused?DriftEventMenuAction.Accept:DriftEventMenuAction.Cancel;
+        if(submit) {
+            if(current==DriftRacePhase.Paused)return Selected==0?DriftEventMenuAction.Accept:Selected==1?DriftEventMenuAction.Restart:DriftEventMenuAction.Cancel;
+            return Selected==0&&primary?DriftEventMenuAction.Accept:Selected==1&&secondary?DriftEventMenuAction.Cancel:DriftEventMenuAction.None;
+        }
         return DriftEventMenuAction.None;
     }
 }

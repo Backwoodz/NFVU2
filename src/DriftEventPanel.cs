@@ -12,23 +12,35 @@ internal sealed class DriftEventPanel {
     Canvas canvas;
     Hud owner;
     TextMeshProUGUI title,info,record,message;
-    TextMeshProUGUI primaryText,secondaryText;
-    Button primary,secondary;
+    TextMeshProUGUI primaryText,secondaryText,restartText;
+    Button primary,secondary,restart;
     Texture2D preview;
     readonly Action accept,cancel;
+    readonly Action restartRace;
+    bool paused;
     readonly DriftEventMenuNavigation navigation=new DriftEventMenuNavigation();
     readonly DriftLoadingScreen loading;
-    internal DriftEventPanel(Action accept,Action cancel,string directory=null,Action<string> log=null){
-        this.accept=accept;this.cancel=cancel;
+    readonly DriftStartCue startCue=new DriftStartCue();
+    internal DriftEventPanel(Action accept,Action cancel,string directory=null,Action<string> log=null):this(accept,cancel,directory,log,null){}
+    internal DriftEventPanel(Action accept,Action cancel,string directory,Action<string> log,Action restartRace){
+        this.accept=accept;this.cancel=cancel;this.restartRace=restartRace;
         loading=new DriftLoadingScreen(directory??Path.GetDirectoryName(typeof(Plugin).Assembly.Location),cancel,log);
     }
     internal void Tick(Hud hud,DriftRaceRun run,int done,int planned,bool german) {
         if(hud==null){Clear();return;}
         if(owner!=hud){Clear();owner=hud;}
         if(root==null&&!Create(hud))return;
+        paused=run.Phase==DriftRacePhase.Paused;
+        restart.gameObject.SetActive(paused);
+        Place(primary.GetComponent<RectTransform>(),28,477,paused?238:358,45);
+        Place(secondary.GetComponent<RectTransform>(),paused?534:414,477,paused?238:358,45);
+        Place(primaryText.rectTransform,12,5,paused?214:334,38);
+        Place(secondaryText.rectTransform,12,5,paused?214:334,38);
+        primaryText.fontSize=secondaryText.fontSize=paused?20:23;
         bool fullscreen=loading.Tick(hud,run.Phase==DriftRacePhase.Loading||run.Phase==DriftRacePhase.Returning,
             run.Phase==DriftRacePhase.Returning,done,planned,german,navigation.Selected==1);
-        root.gameObject.SetActive(run.BlocksDriving&&!fullscreen);
+        startCue.Tick(hud,run,german);
+        root.gameObject.SetActive(run.BlocksDriving&&!fullscreen&&run.Phase!=DriftRacePhase.Countdown);
         if(!run.BlocksDriving)return;
         float scale=Mathf.Min((Screen.width-40)/800f,(Screen.height-60)/540f)/Mathf.Max(.01f,canvas.scaleFactor);
         root.localScale=Vector3.one*Mathf.Min(1.35f,scale);
@@ -47,21 +59,24 @@ internal sealed class DriftEventPanel {
             case DriftRacePhase.Countdown:
                 message.text=Mathf.CeilToInt(run.Countdown).ToString();primary.interactable=false;primaryText.text=german?"BEREIT MACHEN":"GET READY";secondaryText.text=german?"ABBRECHEN":"CANCEL";break;
             case DriftRacePhase.Paused:
-                message.text=(german?"RENNEN PAUSIERT":"RACE PAUSED")+"  "+run.TotalScore.ToString("N0");primaryText.text=german?"WEITERFAHREN":"RESUME";secondaryText.text=german?"RENNEN ABBRECHEN":"ABANDON RACE";break;
+                message.text=(german?"RENNEN PAUSIERT":"RACE PAUSED")+"  "+run.TotalScore.ToString("N0");primaryText.text=german?"WEITERFAHREN":"RESUME";secondaryText.text=german?"ZUM ÜBUNGSPLATZ":"TO PRACTICE";break;
             case DriftRacePhase.Finished:
                 message.text=(run.NewRecord?(german?"NEUER REKORD!  ":"NEW RECORD!  "):(german?"ZIEL!  ":"FINISH!  "))+run.FinalScore.ToString("N0")+" "+(german?"PUNKTE":"POINTS");
                 primaryText.text=german?"NOCH EIN RENNEN":"RACE AGAIN";secondaryText.text=german?"ZUM PARKPLATZ":"TO PARKING";break;
         }
+        restartText.text=german?"NEU STARTEN":"RESTART RACE";restart.interactable=restartRace!=null;
         ApplyFocus();
     }
     internal void HandleInput(DriftRaceRun run,float x,float y,bool confirm,bool back,double now) {
         var action=navigation.Step(run.Phase,x,y,confirm,back,now);ApplyFocus();
-        if(action==DriftEventMenuAction.Accept)accept();else if(action==DriftEventMenuAction.Cancel)cancel();
+        if(action==DriftEventMenuAction.Accept)accept();else if(action==DriftEventMenuAction.Cancel)cancel();else if(action==DriftEventMenuAction.Restart)restartRace?.Invoke();
     }
+    internal void ResetNavigation()=>navigation.Reset();
     void ApplyFocus() {
         if(primary==null)return;
         primary.targetGraphic.color=navigation.Selected==0&&primary.interactable?new Color(.32f,.46f,.19f,1):new Color(.22f,.27f,.22f,1);
-        secondary.targetGraphic.color=navigation.Selected==1&&secondary.interactable?new Color(.32f,.46f,.19f,1):new Color(.22f,.27f,.22f,1);
+        secondary.targetGraphic.color=navigation.Selected==(paused?2:1)&&secondary.interactable?new Color(.32f,.46f,.19f,1):new Color(.22f,.27f,.22f,1);
+        restart.targetGraphic.color=navigation.Selected==1&&paused?new Color(.32f,.46f,.19f,1):new Color(.22f,.27f,.22f,1);
     }
     bool Create(Hud hud) {
         var source=hud.m_buildSelection??hud.m_hoverName;canvas=hud.GetComponentInParent<Canvas>()?.rootCanvas;
@@ -79,6 +94,7 @@ internal sealed class DriftEventPanel {
         message=Label("State",font,24,new Color(1,.84f,.43f),28,414,744,48);
         primary=ActionButton("Start",font,28,477,358,45,accept,out primaryText);
         secondary=ActionButton("Back",font,414,477,358,45,cancel,out secondaryText);
+        restart=ActionButton("Restart",font,281,477,238,45,()=>restartRace?.Invoke(),out restartText);restartText.fontSize=20;
         return true;
     }
     TextMeshProUGUI Label(string name,TMP_FontAsset font,float size,Color color,float x,float y,float w,float h) {
@@ -91,9 +107,10 @@ internal sealed class DriftEventPanel {
         var image=go.GetComponent<Image>();image.color=new Color(.22f,.27f,.22f,1);Place(image.rectTransform,x,y,w,h);
         var button=go.GetComponent<Button>();button.targetGraphic=image;button.navigation=new Navigation{mode=Navigation.Mode.None};button.onClick.AddListener(()=>action());
         label=Label(name+" text",font,23,Color.white,x+12,y+5,w-24,h-7);label.alignment=TextAlignmentOptions.Center;
+        label.transform.SetParent(go.transform,false);Place(label.rectTransform,12,5,w-24,h-7);
         return button;
     }
     static void Place(RectTransform r,float x,float y,float w,float h){r.anchorMin=r.anchorMax=r.pivot=new Vector2(0,1);r.anchoredPosition=new Vector2(x,-y);r.sizeDelta=new Vector2(w,h);}
-    internal void Clear(){loading.Clear();navigation.Reset();if(root!=null)UnityEngine.Object.Destroy(root.gameObject);if(preview!=null)UnityEngine.Object.Destroy(preview);root=null;preview=null;owner=null;canvas=null;}
+    internal void Clear(){loading.Clear();startCue.Clear();navigation.Reset();if(root!=null)UnityEngine.Object.Destroy(root.gameObject);if(preview!=null)UnityEngine.Object.Destroy(preview);root=null;preview=null;owner=null;canvas=null;}
 }
 }

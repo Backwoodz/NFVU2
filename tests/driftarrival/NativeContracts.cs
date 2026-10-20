@@ -87,8 +87,8 @@ static class ArrivalNativeContracts {
                 check(Calls(Method(plugin,"ClearDriftEvents"),target[0],target[1]),"event teardown clears owned resource: "+target[0]);
             var callbacks=events.Body.Instructions.Where(i=>i.OpCode.Code==Mono.Cecil.Cil.Code.Ldftn&&i.Operand is MethodReference callback&&callback.Name.StartsWith("<TickDriftEvents>")&&callback.Parameters.Count==0)
                 .Select(i=>plugin.Methods.Single(m=>m.Name==((MethodReference)i.Operand).Name)).ToArray();
-            check(callbacks.Length==2,"production event panel receives two actual generated button callbacks");
-            foreach(string actionName in new[]{"AcceptDriftEvent","CancelDriftEvent"}) {
+            check(callbacks.Length==3,"production event panel receives resume/start, return and restart callbacks");
+            foreach(string actionName in new[]{"AcceptDriftEvent","CancelDriftEvent","RestartDriftEvent"}) {
                 var callback=callbacks.Single(m=>m.Body.Instructions.Any(i=>i.OpCode.Code==Mono.Cecil.Cil.Code.Ldftn&&i.Operand is MethodReference action&&action.Name==actionName));
                 check(Calls(callback,"Plugin","RunDriftEventAction"),"native button routes through exception boundary: "+actionName);
             }
@@ -120,7 +120,10 @@ static class ArrivalNativeContracts {
             var iterator=plugin.NestedTypes.Single(t=>t.Name.StartsWith("<BuildVehicle>"));var build=Method(iterator,"MoveNext");
             check(CallIndex(build,"Plugin","DriftArrivalSpawnPoint")>=0&&CallIndex(build,"Plugin","DriftArrivalSpawnPoint")<CallIndex(build,"Plugin","FindSpawnPoint"),"real staged builder honors parking origin before generic player-relative spawn search");
             var accept=Method(plugin,"AcceptDriftEvent");
-            check(CallIndex(accept,"Plugin","HoldDriftRaceCar")>=0&&CallIndex(accept,"Plugin","MoveToParkadeStart")>CallIndex(accept,"Plugin","HoldDriftRaceCar"),"event controller holds car before moving it into unloaded venue");
+            check(Calls(accept,"Plugin","StartDriftEventRace")&&Calls(Method(plugin,"RestartDriftEvent"),"Plugin","StartDriftEventRace"),"initial start and paused restart share the actual held-transfer coordinator");
+            var startEvent=Method(plugin,"StartDriftEventRace");
+            check(CallIndex(startEvent,"Plugin","HoldDriftRaceCar")>=0&&CallIndex(startEvent,"Plugin","MoveToParkadeStart")>CallIndex(startEvent,"Plugin","HoldDriftRaceCar"),"event controller holds car before moving it into unloaded venue");
+            check(Calls(Method(plugin,"OpenDriftEventUI"),"DriftEventPanel","ResetNavigation"),"reopening the same pause phase release-gates its own opening press");
             var raceStart=Method(plugin,"MoveToParkadeStart");
             check(Calls(raceStart,"ParkadeLayout","GroundHeightAt")&&Calls(raceStart,"Plugin","MoveDriftCarTo"),"race arrival uses measured venue grade and common held transfer");
             check(Calls(events,"ParkadeVenue","TryPreparationPoint")&&Calls(events,"ParkadeVenue","get_ConstructionComplete")&&Calls(events,"Plugin","MoveToParkadeStart"),"loading stages native streaming and returns to start only after the whole construction completes");

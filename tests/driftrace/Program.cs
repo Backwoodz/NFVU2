@@ -56,8 +56,49 @@ static class Program {
         Check(practice.LapCount==4&&practice.Active,"Original practice remains unlimited beyond three laps");
         RotatedRoute();
         MenuAndLoading();
+        LaunchTiming();
+        PauseRestartAndReturn();
         foreach(float offset in new[]{-6f,-4f,4f,6f})WideLine(offset);
         Console.WriteLine(checks+" measured Parkade three-lap, practice-isolation and event-state checks passed.");
+    }
+    static void PauseRestartAndReturn() {
+        var race=Begin();for(int i=1;i<100;i++)race.Step(At(i));race.TickLaunch(.4f);
+        Check(race.TotalScore>0&&race.Score.Multiplier>1,"Partial race has points and a multiplier before restart");
+        race.Pause();race.Start(Route());
+        Check(race.Phase==DriftRacePhase.Loading&&race.BlocksDriving,"Restart from pause returns to held course preparation");
+        Check(race.TotalScore==0&&race.Score.LapCount==0&&race.Score.Combo==0&&race.Score.Multiplier==1,"Restart clears points, laps, combo and multiplier");
+        Check(race.Elapsed==0&&race.LaunchElapsed==0&&race.Countdown==0,"Restart resets race, starter and countdown clocks");
+        Check(race.BestScore==123&&race.RecordRevision==0,"Abandoned partial run never replaces saved highscore");
+        race.Ready();Check(race.Countdown==3,"Restart prepares a fresh full start sequence");
+        for(int i=0;i<31;i++)race.TickCountdown(.1f);
+        race.Pause();race.Return();Check(race.Phase==DriftRacePhase.Returning&&race.BlocksDriving,"Return holds car while parking streams");
+        race.Practice();Check(race.Phase==DriftRacePhase.Practice&&!race.BlocksDriving&&race.TotalScore==0&&race.BestScore==123,"Practice return drops partial race and retains record");
+        var nav=new DriftEventMenuNavigation();double time=0;
+        Func<float,float,bool,bool,DriftEventMenuAction> input=(x,y,a,b)=>nav.Step(DriftRacePhase.Paused,x,y,a,b,time+=.05);
+        input(0,0,false,false);input(0,0,false,false);input(1,0,false,false);
+        Check(nav.Selected==1&&input(0,0,true,false)==DriftEventMenuAction.Restart,"Paused controller selects and confirms Restart");
+        Check(input(0,0,true,false)==DriftEventMenuAction.None,"Holding restart confirm never starts twice");
+        input(0,0,false,false);input(1,0,false,false);
+        Check(nav.Selected==2&&input(0,0,true,false)==DriftEventMenuAction.Cancel,"Paused controller selects and confirms return to practice");
+        input(0,0,false,false);
+        Check(input(0,0,false,true)==DriftEventMenuAction.Accept,"Paused Back/Escape resumes instead of abandoning the race");
+        nav.Reset();Check(input(0,0,false,true)==DriftEventMenuAction.None,"Escape that opens the same pause phase cannot instantly close it");
+        input(0,0,false,false);Check(input(0,0,false,true)==DriftEventMenuAction.Accept,"A new Escape press after reopening resumes normally");
+    }
+    static void LaunchTiming() {
+        var run=new DriftRaceRun();run.Preview();run.Start(Route());
+        run.TickLaunch(1);Check(run.LaunchElapsed==0,"Starter cannot leave before the loaded countdown");
+        run.Ready();
+        for(int i=0;i<29;i++)run.TickCountdown(.1f);
+        Check(run.BlocksDriving&&run.Phase==DriftRacePhase.Countdown&&run.Countdown>0,"Car stays held until the final start gesture");
+        run.TickLaunch(.1f);Check(run.LaunchElapsed==0,"Escape clock stays frozen while arms are lowering");
+        run.TickCountdown(.2f);Check(!run.BlocksDriving&&run.Phase==DriftRacePhase.Racing&&run.LaunchElapsed==0,"Go releases driving precisely at the knee/drop cue");
+        run.TickLaunch(.2f);Check(run.LaunchElapsed==.2f,"Escape advances even before the car reaches the timing line");
+        run.Pause();run.TickLaunch(.2f);Check(run.LaunchElapsed==.2f,"Paused race freezes the starter escape");
+        run.Resume();run.TickLaunch(.2f);Check(run.LaunchElapsed==.4f,"Escape resumes without jumping after pause");
+        run.TickLaunch(float.NaN);run.TickLaunch(4);Check(run.LaunchElapsed==.4f,"Frame gaps and invalid deltas cannot teleport the starter");
+        run.Return();run.TickLaunch(.2f);Check(run.LaunchElapsed==.4f,"Return never advances the start sequence");
+        run.Practice();run.Preview();run.Start(Route());Check(run.LaunchElapsed==0,"A retry restages the starter at zero escape time");
     }
     static void MenuAndLoading() {
         var nav=new DriftEventMenuNavigation();double time=0;
@@ -82,6 +123,10 @@ static class Program {
         Check(nav.Selected==1,"Loading selects the only enabled Cancel action");
         step(loading,0,0,false,false);
         Check(step(loading,0,0,true,false)==DriftEventMenuAction.Cancel,"Loading confirm activates Cancel, never Start");
+        step(DriftRacePhase.Countdown,0,0,false,false);
+        Check(step(DriftRacePhase.Countdown,0,0,true,false)==DriftEventMenuAction.None,"Countdown handbrake/confirm cannot activate a hidden cancel button");
+        step(DriftRacePhase.Countdown,0,0,false,false);
+        Check(step(DriftRacePhase.Countdown,0,0,false,true)==DriftEventMenuAction.Cancel,"Countdown still permits explicit Back/Escape cancellation");
         step(DriftRacePhase.Returning,0,0,false,false);
         Check(step(DriftRacePhase.Returning,0,0,true,true)==DriftEventMenuAction.None,"Returning has no actionable Start or Cancel");
         foreach(var phase in new[]{DriftRacePhase.Paused,DriftRacePhase.Finished}) {

@@ -2,6 +2,17 @@
 
 ## Unreleased - Drift build world and own drift physics
 
+- Open the race pause menu with Escape, F9, L3 or the controller menu button.
+  Resume, restart the three-lap event or return to the practice parking area
+  in the same car. Back/Escape resumes a paused race; restarting discards only
+  the unfinished attempt and retains saved records.
+
+- Add a native Greydwarf race starter: raised arms, a crouch/drop start signal,
+  then a lateral run to the verge. Hold the car until the signal and keep the
+  start view clear with a small countdown instead of the modal event panel.
+- Flank the Parkade start with eight animated Greydwarf spectators on raised
+  grey viewing plinths. Add a continuously scrolling green RIP McRib marquee.
+
 - Show the approved NFVU2 loading artwork during course preparation and return,
   with three animated green segments and separate real construction progress.
 - Navigate the event menu with stick/D-pad and confirm the selected action;

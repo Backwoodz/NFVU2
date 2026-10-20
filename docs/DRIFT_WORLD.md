@@ -89,12 +89,36 @@ Der bisherige Rundkurs bleibt ein unbegrenzter Uebungsplatz: beliebig viele
 Runden, mit der vorhandenen Rundenwertung und deren bisherigen Rekorden.
 Die neuen Rennen sind davon getrennt und enden nach **drei vollstaendigen Runden**.
 
+Ein laufendes Rennen laesst sich mit **Esc**, **F9**, **L3** oder der Menue-/
+Starttaste des Controllers pausieren. Das Rennmenue bietet **Weiterfahren**,
+**Neu starten** und **Zum Uebungsplatz**. Stick/Steuerkreuz oder Pfeiltasten
+waehlen, A/Kreuz oder Enter bestaetigt; B/Kreis oder Esc setzt die Fahrt fort.
+Ein Neustart verwirft Punkte, Runden und Multiplikator des aktuellen Versuchs
+und beginnt mit demselben Auto wieder an der Startlinie samt Startzeremonie.
+Der gespeicherte Rekord bleibt erhalten. Zum Uebungsplatz geht es im selben
+Auto zurueck an den urspruenglichen Parkplatz; dort kannst du wieder frei fahren.
+
 Fahre auf den gruen leuchtenden Bodenkreis mit Streckenname am Parkplatz, etwa 30 m oestlich vom
 Einstiegswagen. Er oeffnet ein Menue mit dem Parkade-Streckenlayout und deinem
 bisherigen Highscore fuer dieses Rennen, in Valheims nativer Schrift. Nach
 **Rennen starten** wird der Wagen an den separaten Kurs versetzt und waehrend
 der nativen Lade-/Bauvorbereitung gehalten. Erst wenn die Strecke bereit ist,
 beginnt der Countdown. Die Punkte aller drei Runden ergeben das Rennergebnis.
+Vor dem Wagen steht dazu ein nativer Greydwarf als Starter. Er hebt beide Arme,
+senkt sie am Ende mit einer Kniebeuge und gibt damit den Start frei. Der Wagen
+bleibt bis zu diesem Signal gehalten; gehaltenes Gas darf danach direkt wirken.
+Anschliessend laeuft der Starter auf den Randstreifen vor der Steinbegrenzung.
+Die Bewegung ist eine eigene zeitgesteuerte Geste auf dem nativen Greydwarf-Rig,
+keine uebernommene NFS-Animationsdatei. Bei Pause oder Fokusverlust haelt der
+Ablauf an; Abbruch, Wiederholung und Weltwechsel raeumen die Figur auf.
+Waehrenddessen bleibt die Sicht frei: Das grosse Ereignismenue verschwindet,
+nur eine kleine Startzahl und kurz `LOS!` bleiben oben im HUD.
+
+Je vier Greydwarfs stehen seitlich am Start auf kleinen grauen Podesten und
+schauen zum wartenden Wagen. Daneben laeuft die gruene Leuchtreklame `RIP McRib`
+mit umlaufenden Lichtsegmenten. Zuschauer und Starter besitzen keine KI,
+Kollisionen oder Netzwerkobjekte; die Reklame benoetigt keine Echtzeitlichter.
+
 Die Vorbereitung laedt entfernte Streckenteile nacheinander. Der Wagen bleibt
 dabei gehalten und steht vor dem Countdown wieder an der Startlinie. Die
 Fortschrittsanzeige beruecksichtigt die gesamte Strecke; fertig gebaute Bereiche

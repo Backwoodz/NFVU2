@@ -2,6 +2,39 @@
 
 ## Parkplatz und Parkade-Rennen (lokale Entwicklung)
 
+- Rennpause ueber Esc, F9, L3 oder Controller-Menue: Weiterfahren, neu starten
+  oder zum Uebungsplatz/Parkplatz zurueckkehren. Drei direkt bedienbare Tasten
+  mit Maus sowie Stick/Steuerkreuz und Bestaetigung. B/Esc setzt fort; der
+  Oeffnungsdruck kann das Menue nicht sofort wieder schliessen. Native
+  Valheim-Pause wird nur waehrend dieses laufenden eigenen Rennens abgefangen.
+- Neustart nutzt denselben Wagen und den vorhandenen Streckenaufbau, setzt
+  den abgebrochenen Versuch zurueck und zeigt wieder die volle Startsequenz.
+  Teilpunkte ersetzen keinen Rekord. Rueckkehr behaelt Fahrer und Wagen und
+  gibt sie erst nach bereitgestelltem Parkplatzboden frei.
+- Native Pruefung bestanden: drei passende Norse-Schaltflaechen, Mausaktionen
+  und echter Plugin-Eingabeleser mit virtuellem Gamepad. Eine getrennte frische
+  Welt prueft den nativen Pauseaufruf, gehaltene Rennpause, Neustart mit zweitem
+  Countdown/Start sowie die Rueckkehrtaste bis zur freigegebenen Fahrt am
+  Parkplatz mit demselben Wagen/Fahrer. Physischer Controller bleibt offen.
+
+- Greydwarf-Startzeremonie: Figur steht zwei Meter vor der Startlinie, hebt
+  beide Arme, senkt sie mit einer Kniebeuge zum Startsignal und laeuft seitlich
+  auf den Randstreifen. Erst das Signal gibt den gehaltenen Wagen frei; bereits
+  gehaltenes Gas ist danach erlaubt. Kleine 3/2/1/Los-Anzeige statt des grossen
+  Rennmenues. Start- und Fluchtzeiten halten bei Rennpause/Fokusverlust an.
+- Acht weitere Greydwarfs flankieren den Start auf kleinen mattgrauen Podesten.
+  Nur Render-Rigs mit nativer Idle-/Tanzanimation, ohne KI,
+  Collider, ZDOs oder Animationsevents; begrenzter Aufbau und Sichtweite.
+- Gruene Laufreklame mit dem gewuenschten Text `RIP McRib`, Holz-/Eisenrahmen
+  und umlaufenden Leuchtsegmenten. Native Schrift und drei wiederverwendete
+  Glyph-Meshes; keine zusaetzlichen Echtzeitlichter oder Textur-Uploads.
+- Native Sichtpruefung bestanden: Armheben, Absenken/Kniebeuge und Seitenlauf
+  ueber echte Renderframes, acht Zuschauer, Lauftext/Leuchtrand, Sichtweiten
+  und Bereinigung. Isolierte frische Driftwelt baut 1080/1080 Schritte, bereitet
+  den Starter vor und haelt den echten Wagen bis zum Signal; dann werden
+  Rigidbody, Menue und Gaseingabe freigegeben. Bestehende Welten und laengere
+  Rennen sind durch diese Startprobe noch nicht abgenommen.
+
 - Freigegebenes NFVU2-Ladebild mit Greydwarf und vorhandenem Logo beim
   Streckenaufbau und bei der Rueckkehr eingebunden. Drei gruene Schraegsegmente
   laufen mit Echtzeit; die Prozentanzeige bleibt an echte Bauschritte gebunden.

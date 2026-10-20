@@ -11,7 +11,7 @@ def main():
     suites.append('driftbuild')
     suites.append('driftmap')
     suites.extend(('driftscore','driftatmosphere','driftsession'))
-    suites.extend(('driftrace','driftarrival','parkade','tyresound'))
+    suites.extend(('driftrace','driftarrival','parkade','tyresound','parkadestarter','parkadestartspectators'))
     suites.extend(('driftphysics','driftadapter'))
     parser=argparse.ArgumentParser();parser.add_argument('--skip-build',action='store_true');parser.add_argument('--handling-only',action='store_true')
     parser.add_argument('--suite',action='append',choices=suites,help='Run only these C# suites; repeat to combine.')
@@ -37,6 +37,8 @@ def main():
             dependency=out/'Mono.Cecil.dll';shutil.copy2(valheim_dir()/'BepInEx/core/Mono.Cecil.dll',dependency);refs.append(dependency)
             arguments=[str(valheim_dir()),str(OUTPUT/'mod/Rachel350Z.dll')]
         elif suite=='tyresound':sources.append(BASE/'src/TyreSoundModel.cs')
+        elif suite=='parkadestarter':sources.extend(BASE/'src'/name for name in ('ParkadeStarterPose.cs','DriftTrackLayout.cs','DriftTrackConstructionPlan.cs','DriftTrackPieces.cs','ParkadeLayout.cs','ParkadePlan.cs'))
+        elif suite=='parkadestartspectators':sources.extend(BASE/'src'/name for name in ('DriftTrackLayout.cs','DriftTrackConstructionPlan.cs','DriftTrackPieces.cs','ParkadeLayout.cs','ParkadePlan.cs','ParkadeStartSpectatorPlan.cs'))
         elif suite=='parkade':sources.extend(BASE/'src'/name for name in ('DriftTrackLayout.cs','DriftTrackConstructionPlan.cs','DriftTrackPieces.cs','ParkadeLayout.cs','ParkadePlan.cs','ParkadeVenue.cs'))
         elif suite=='driftatmosphere':sources.extend(BASE/'src'/name for name in ('DriftTrackLayout.cs','DriftTrackConstructionPlan.cs','DriftCircuitLayout.cs','DriftCircuitPlan.cs','DriftCircuitAtmospherePlan.cs'))
         elif suite=='driftsession':

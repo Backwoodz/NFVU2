@@ -14,6 +14,7 @@ internal sealed class DriftRaceRun {
     internal int RecordRevision {get;private set;}
     internal float Elapsed {get;private set;}
     internal float Countdown {get;private set;}
+    internal float LaunchElapsed {get;private set;}
     internal float BestTime {get;private set;}
     internal bool NewRecord {get;private set;}
     int observedLaps;
@@ -23,13 +24,16 @@ internal sealed class DriftRaceRun {
     internal void LoadRecord(int best,float time) {Reset();BestScore=Math.Max(0,Math.Min(1000000000,best));BestTime=Finite(time)&&time>0?time:0;}
     internal void Preview(){if(Phase==DriftRacePhase.Practice)Phase=DriftRacePhase.Preview;}
     internal void Start(DriftScoreRoute route) {
-        if(Phase!=DriftRacePhase.Preview&&Phase!=DriftRacePhase.Finished)return;
-        Score=new DriftLapScore(route,preserveChainAcrossLaps:true);BankedScore=FinalScore=observedLaps=0;Elapsed=Countdown=0;NewRecord=false;Phase=DriftRacePhase.Loading;
+        if(Phase!=DriftRacePhase.Preview&&Phase!=DriftRacePhase.Finished&&Phase!=DriftRacePhase.Paused)return;
+        Score=new DriftLapScore(route,preserveChainAcrossLaps:true);BankedScore=FinalScore=observedLaps=0;Elapsed=Countdown=LaunchElapsed=0;NewRecord=false;Phase=DriftRacePhase.Loading;
     }
     internal void Ready(){if(Phase==DriftRacePhase.Loading){Countdown=3;Phase=DriftRacePhase.Countdown;}}
     internal void TickCountdown(float dt) {
         if(Phase!=DriftRacePhase.Countdown||!Finite(dt)||dt<=0||dt>.5f)return;
         Countdown=Math.Max(0,Countdown-dt);if(Countdown<=0)Phase=DriftRacePhase.Racing;
+    }
+    internal void TickLaunch(float dt) {
+        if(Phase==DriftRacePhase.Racing&&Finite(dt)&&dt>0&&dt<=.5f)LaunchElapsed=Math.Min(10,LaunchElapsed+dt);
     }
     internal void Step(DriftLapSample sample) {
         if(Phase!=DriftRacePhase.Racing||Score==null)return;
@@ -47,7 +51,7 @@ internal sealed class DriftRaceRun {
     internal void Pause(){if(Phase==DriftRacePhase.Racing){Score.Pause();Phase=DriftRacePhase.Paused;}}
     internal void Resume(){if(Phase==DriftRacePhase.Paused)Phase=DriftRacePhase.Racing;}
     internal void Return(){Score?.Interrupt();Phase=DriftRacePhase.Returning;}
-    internal void Practice(){Score=null;BankedScore=FinalScore=observedLaps=0;Countdown=Elapsed=0;NewRecord=false;Phase=DriftRacePhase.Practice;}
+    internal void Practice(){Score=null;BankedScore=FinalScore=observedLaps=0;Countdown=Elapsed=LaunchElapsed=0;NewRecord=false;Phase=DriftRacePhase.Practice;}
     internal void Reset(){Practice();BestScore=RecordRevision=0;BestTime=0;}
     static bool Finite(float n)=>!float.IsNaN(n)&&!float.IsInfinity(n);
 }

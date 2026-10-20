@@ -3,6 +3,7 @@ using UnityEngine;
 
 namespace Rachel350Z {
 public partial class Plugin {
+    bool DriftRaceMenuShortcutDown()=>menuKey.Value.IsDown()||PadDown("menu")||(pad!=null&&pad.startButton.wasPressedThisFrame);
     void TickDriftEventInput() {
         Vector2 direction=Vector2.zero;
         if(padActive&&pad!=null) {
@@ -15,16 +16,20 @@ public partial class Plugin {
             Input.GetKey(KeyCode.Return)||(pad!=null&&pad.buttonSouth.isPressed),
             Input.GetKey(KeyCode.Escape)||(pad!=null&&pad.buttonEast.isPressed),Time.unscaledTime);
     }
-    // Native Menu.Update runs before this plugin and consumes Escape. Reserve
-    // Show only while our own event panel owns this live seated driver's UI;
+    // Native Menu.Update can run before this plugin and consumes Escape. Queue
+    // a race pause instead of opening the overlapping native pause menu;
     // normal pause, garage, other worlds and teardown retain native behavior.
     internal bool CaptureDriftEventMenu() {
         var local=Player.m_localPlayer;
-        return driftRaceUi&&DriftSessionRules.Active&&!Multiplayer()
+        bool valid=DriftSessionRules.Active&&!Multiplayer()
             &&Game.instance!=null&&!Game.instance.IsShuttingDown()
             &&driftEventGame==Game.instance&&ZDOMan.instance!=null&&driftEventWorld==ZDOMan.instance
             &&local!=null&&!local.IsDead()&&!local.IsTeleporting()
             &&driving&&car!=null&&body!=null&&current==driftEventVehicle;
+        if(!valid)return false;
+        if(driftRaceUi)return true;
+        if(driftRace.Phase!=DriftRacePhase.Racing)return false;
+        driftPauseRequested=true;return true;
     }
 }
 [HarmonyPatch(typeof(Menu),"Show")]
