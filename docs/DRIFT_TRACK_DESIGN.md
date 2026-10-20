@@ -1,4 +1,42 @@
-# Driftstrecke: erster Fahrabschnitt
+# Driftstrecke: Wikinger-Rundkurs
+
+![Massstaeblicher Rundkurs aus implementierten Koordinaten](images/drift-circuit-plan.svg)
+
+Version 2 erweitert den gespeicherten Prototyp auf **1.490,96 m**. Die originale
+335,38-m-U-Strecke bleibt in Position, Breite und Abtastung identisch. Danach
+folgen 32-m-Boegen und eine 96-m-Nordgerade, vier wechselnde 55-Grad-Boegen
+mit Radius 32 m, die Aussenpassage und 48-/40-m-Rueckfuehrungen zum Start.
+Die Runde schliesst mit gleicher Position und Tangente. Neue Abschnitte sind
+18 m breit und gehen an den Anschluessen ueber 24 m weich auf 16 m ueber.
+
+Die Fahrbahn liegt auf nativem Pflaster; 928 neue Bauteile gestalten den
+Rennplatz mit Holzzaeunen, Bannern, bis zu zwoelf Fackeln, nummerierten
+Kurvenschildern, vier ueberdachten Boxen und einer dreistufigen Zuschauertribuene.
+Die Zaeune stehen grundsaetzlich 7 m hinter der Fahrbahnkante. Zufahrt und
+Boxenbereich erhalten breite Oeffnungen. Zwischen voneinander entfernten
+Rennabschnitten verbleiben mindestens rund 33,9 m zwischen den Fahrbahnkanten
+(gemessen fuer mindestens 60 m auseinanderliegende Stationen).
+
+Die native Garage nutzt vier 6-m-Boxen mit einer rund 6 m tiefen Pultdachflaeche.
+Bodenstaendige Pfosten und Waende tragen das Dach; die 26-Grad-Dachteile
+steigen gemaess nativen Snap-Punkten um 1 m je 2 m an. Stein-Terrassen und
+unterfuetterte Treppen tragen Tribuene und Sitzbaenke. Tragfaehigkeit,
+Fahrkontakt und Darstellung sind zusaetzlich in der Spielwelt abzunehmen.
+
+`DriftCircuitLayout.cs`, `DriftCircuitPlan.cs` und `DriftCircuitPieces.cs`
+enthalten die unveraenderliche v2-Geometrie und Baufolge. Eigene v2-ZDO-Schluessel
+verhindern ein Zuruecksetzen der v1-Baufortschritte. Erweiterungen dieser
+veroeffentlichten Baufolge brauchen spaeter wieder eine eigene Version.
+Der Bauadapter bearbeitet hoechstens zwei Operationen je Frame und nur bereits
+geladene, initialisierte Terrainteile im eigenen Besitz.
+
+Plan neu erzeugen: `python tools/test.py --skip-build --suite drifttrack`,
+danach `python tools/render_drift_circuit.py`. Der Plan ist kein Spiel-Screenshot.
+
+## Archiv: erster Fahrabschnitt (v1)
+
+Die folgenden Angaben dokumentieren den unveraendert erhaltenen Prototyp.
+Offene Enden und damalige Handlingparameter beziehen sich auf diesen alten Entwurf.
 
 ![Massstaeblicher Plan mit Weltstart und Nordrichtung](images/drift-track-plan.svg)
 

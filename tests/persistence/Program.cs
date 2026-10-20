@@ -5,6 +5,10 @@ using UnityEngine;
 // Exercise the actual world/restore coordinator with the native ZDO/scene doubles.
 // Asset construction is replaced with a completed load of the same storage record.
 namespace Rachel350Z {
+internal static class DriftSessionRules {
+    public static bool Active;
+    public static bool AllowsVehicle(bool drift,bool hummer)=>!drift||!hummer;
+}
 internal sealed class VehicleRuntime {
     public VehicleStorage storage;public TestFlight flight=new TestFlight();public TestTransformer transformer=new TestTransformer();public bool hasBeenDriven;
 }
@@ -93,6 +97,12 @@ class Program {
         Check(VehiclePersistence.Transformed(robot)&&VehiclePersistence.IsVehicle(robot),"shutdown preserves transformer form and original world record before disposal");
         plugin=new Plugin();plugin.Tick();
         Check(plugin.requested==robot&&VehiclePersistence.Transformed(plugin.requested),"world re-entry reuses the saved transformer record");
+        World();DriftSessionRules.Active=true;var storedHummer=Car(true);var storedZ=Car();
+        plugin=new Plugin();plugin.Tick();
+        Check(plugin.Count==2&&plugin.requested==storedZ,"drift world restores 350Z while saved H2 still counts toward capacity");
+        Check(VehiclePersistence.IsVehicle(storedHummer),"restricted H2 record remains intact");
+        plugin.Complete();plugin.Tick();Check(plugin.starts==1,"drift restriction does not schedule H2 load");
+        DriftSessionRules.Active=false;plugin.Tick();Check(plugin.requested==storedHummer,"other worlds allow H2 restoration normally");
         Console.WriteLine(checks+" persistence coordination checks passed; native save/load and Harmony runtime require a game test.");
     }
 }

@@ -9,6 +9,7 @@ public partial class Plugin {
     void InitializeGarage(){spawnModel=Config.Bind("Garage","SpawnModel","Nissan 350Z",new ConfigDescription("Vehicle created with F6 or the garage button.",new AcceptableValueList<string>("Nissan 350Z","Hummer H2")));}
     bool CanAccessCurrent(MonoBehaviour local) {
         if(car==null||local==null)return false;
+        if(!DriftSessionRules.AllowsVehicle(DriftSessionRules.Active,IsHummer))return false;
         var offset=local.transform.position-car.transform.position;
         if(Transforming)offset.y=0;
         return driving||offset.sqrMagnitude<25;
@@ -50,8 +51,10 @@ public partial class Plugin {
     }
     void DrawGarageMenu() {
         UiLabel(new Rect(25,145,510,30),"Fahrzeug spawnen",labelStyle);
-        int selected=spawnModel.Value=="Hummer H2"?1:0;
+        int selected=!DriftSessionRules.Active&&spawnModel.Value=="Hummer H2"?1:0;
+        GUI.enabled=!DriftSessionRules.Active;
         int next=UiToolbar(new Rect(25,185,510,40),selected,new[]{"Nissan 350Z","Hummer H2"});
+        GUI.enabled=true;
         if(next!=selected)spawnModel.Value=next==1?"Hummer H2":"Nissan 350Z";
         UiLabel(new Rect(25,240,510,65),next==1?"Gelber H2 · 26-Zoll-Spinner · eigener SUV-Sound\nOhne Motorraum- und Kofferraumausbau.":"350Z mit deinen bisherigen Funktionen und Einstellungen.",mutedStyle);
         GUI.enabled=!SpawnBusy&&!driving&&WorldVehicleCount<4;

@@ -26,7 +26,7 @@ public partial class Plugin {
         if(driving){status="Zum Spawnen bitte erst aussteigen.";return;}
         if(local is Player live&&live.IsDead())return;
         if(WorldVehicleCount>=VehicleFleet<VehicleRuntime>.Capacity){status="Maximal vier Fahrzeuge. Erst ein Fahrzeug entfernen.";return;}
-        bool hummer=spawnModel.Value=="Hummer H2";
+        bool hummer=!DriftSessionRules.Active&&spawnModel.Value=="Hummer H2";
         if(!FindSpawnPoint(local,hummer,out var origin)){status="Kein freier Platz vor dir. Bitte eine freie Stelle suchen.";return;}
         StartVehicleLoad(local,hummer,null);
     }
@@ -39,7 +39,7 @@ public partial class Plugin {
         LoadStage("Dateien im Hintergrund einlesen",0);
         var folder=Path.GetDirectoryName(Info.Location);
         var cache=spawnCache;var token=spawnCancellation.Token;
-        bool loadTransformer=transformerEnabled.Value||saved!=null&&VehiclePersistence.Transformed(saved);
+        bool loadTransformer=!DriftSessionRules.Active&&(transformerEnabled.Value||saved!=null&&VehiclePersistence.Transformed(saved));
         spawnCacheUsed=true;
         spawnRead=Task.Run(()=>SpawnAssets.Load(folder,hummer,cache,token,loadTransformer),token);
         // Observe failures even if the player cancels/leaves before the worker finishes.
@@ -99,7 +99,7 @@ public partial class Plugin {
         yield return StagedWork.NextFrame;
         while(!spawnRead.IsCompleted)yield return StagedWork.NextFrame;
         var assets=spawnRead.GetAwaiter().GetResult();
-        if(restoringVehicle!=null&&VehiclePersistence.Transformed(restoringVehicle)&&assets.Transformer==null)
+        if(!DriftSessionRules.Active&&restoringVehicle!=null&&VehiclePersistence.Transformed(restoringVehicle)&&assets.Transformer==null)
             throw new InvalidOperationException("Gespeicherter Transformer kann ohne seine Modelldaten nicht wiederhergestellt werden.");
         foreach(var warning in assets.Warnings)Logger.LogWarning(warning);
         var model=assets.Model;
@@ -138,8 +138,8 @@ public partial class Plugin {
                 var visual=GameObject.CreatePrimitive(PrimitiveType.Cylinder);Destroy(visual.GetComponent<Collider>());visual.transform.SetParent(car.transform,false);visual.transform.localScale=new Vector3(.68f,.12f,.68f);visual.GetComponent<Renderer>().sharedMaterial=dark;visuals[i]=visual.transform;
             }
         }
-        handling=new VehicleHandling(body,wheels,terrainMode.Value,message=>Logger.LogInfo(message));
-        if(driftMode.Value&&!IsHummer)handling.SetDriftMode();
+        handling=new VehicleHandling(body,wheels,EffectiveTerrain,message=>Logger.LogInfo(message));
+        if(EffectiveDrift&&!IsHummer)handling.SetDriftMode();
         if(IsHummer)HummerTuning.Configure(body,wheels);
         current.rideHeight=new VehicleRideHeight(body,wheels);
         current.rideHeight.Apply(lowering.Value);
@@ -233,9 +233,9 @@ public partial class Plugin {
         current.interior?.Tick(0,windowTint.Value,false);
         if(showroom!=null)showroom.Tick(0,false,doorStyle.Value,false,trunkNeonEnabled.Value,trunkNeonPulsing.Value,
             NeonColors[Math.Max(0,Array.IndexOf(ColorNames,trunkNeonColor.Value))]);
-        if(restoringVehicle!=null&&VehiclePersistence.Transformed(restoringVehicle)) {
+        if(!DriftSessionRules.Active&&restoringVehicle!=null&&VehiclePersistence.Transformed(restoringVehicle)) {
             if(!current.transformer.RestoreParked(out var reason))throw new InvalidOperationException("Transformer konnte nicht wiederhergestellt werden: "+reason);
-        } else if(restoringVehicle!=null&&VehiclePersistence.Flying(restoringVehicle))current.flight?.Fly();
+        } else if(!DriftSessionRules.Active&&restoringVehicle!=null&&VehiclePersistence.Flying(restoringVehicle))current.flight?.Fly();
         // Freeze until the saved terrain collider is available, even if this
         // staged load finishes after its zone has unloaded again.
         current.parkedStreaming=new VehicleWorldStreaming(body);

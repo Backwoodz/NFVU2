@@ -26,6 +26,7 @@ public partial class Plugin {
             ||hordeScene!=ZNetScene.instance||hordeManager!=ZDOMan.instance||Multiplayer())ClearHorde();
     }
     void TickHorde(MonoBehaviour local) {
+        if(DriftSessionRules.Active){if(hordeWave.Active||horde.Count>0)ClearHorde();return;}
         try {
             bool clear=Input.GetKeyDown(KeyCode.Keypad0)||(Keyboard.current?.numpad0Key.wasPressedThisFrame??false);
             bool start=Input.GetKeyDown(KeyCode.Keypad9)||(Keyboard.current?.numpad9Key.wasPressedThisFrame??false);
@@ -57,6 +58,7 @@ public partial class Plugin {
         }catch(Exception error){Logger.LogWarning("Test horde stopped: "+error);ClearHorde();ShowVehicleWarning("Horde konnte nicht erstellt werden. Siehe BepInEx-Log.");}
     }
     void StartHorde(Player local) {
+        if(DriftSessionRules.Active){ShowVehicleWarning("Driftwelt: Hordenmodus ist deaktiviert.");return;}
         if(local==null||local.IsDead()||local.IsTeleporting())return;
         if(Multiplayer()){ShowVehicleWarning("Nur in einer lokalen Einzelspieler-Testwelt verwenden.");return;}
         if(hordeWave.Active||CountHordeAlive()>0){ShowVehicleWarning("Eine Horde ist noch aktiv. Numpad 0 entfernt sie.");return;}

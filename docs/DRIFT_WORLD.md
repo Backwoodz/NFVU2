@@ -1,7 +1,7 @@
 # Drift-Bauwelt in NFVU2 (lokale Entwicklung)
 
 NFVU2 erzeugt beim exakten Seed **`drift`** eine ebene Wiesenwelt als Grundlage
-fuer unsere kuenftige Driftstrecke. Die Funktion steckt direkt in der vorhandenen
+mit einem 1.491 m langen Drift-Rundkurs. Die Funktion steckt direkt in der vorhandenen
 **Rachel350Z.dll**. FlatGrass oder ein zusaetzliches Weltplugin sind nicht erforderlich.
 Die eigene Fahrzeugphysik wird als `NFVU2.DriftPhysics.dll` mitgeliefert; siehe unten.
 
@@ -10,11 +10,11 @@ Die eigene Fahrzeugphysik wird als `NFVU2.DriftPhysics.dll` mitgeliefert; siehe 
 1. Den aktuellen lokalen NFVU2-Build installieren und Valheim starten.
 2. Eine neue Einzelspielerwelt anlegen. Der Weltname ist frei waehlbar.
 3. Im Feld **Seed** exakt `drift` eingeben. `DRIFT` funktioniert ebenfalls.
-4. Der erste Drift-Testabschnitt entsteht etwa 100 m oestlich vom Weltstart.
+4. Start und Ziel liegen etwa 100 m oestlich vom Weltstart.
    Folge dem Schild oder der Kartenmarkierung **NFVU2 Drift**. Beim ersten
    Besuch einige Sekunden fuer den Aufbau der nahen Abschnitte einplanen.
 
-Auch die bestehende `drift`-Welt erhaelt den Testabschnitt beim naechsten Laden.
+Auch die bestehende `drift`-Welt erhaelt die Erweiterung beim naechsten Laden.
 Der Bau arbeitet an gerade geladenen Bereichen weiter, waehrend du dich naeherst.
 
 Der Seed-Text wird bei exakt `drift` gruen (auch `DRIFT`). Bei anderen Eingaben
@@ -35,28 +35,109 @@ installiert bleiben; die Drift-Welt liest keine seiner Einstellungen.
 - Selbst gebaute Elemente und Terrainbearbeitungen verwenden die normale
   Weltspeicherung. NFVU2 setzt sie beim Betreten nicht zurueck.
 
-Der erste Fahrabschnitt besteht aus 108 m Gerade, einer weiten 180-Grad-Kehre
-mit 38 m Radius und 108 m Rueckgerade. Die Fahrbahn ist 16 m breit, in der Kurve
-20 m. Sie nutzt echtes Valheim-Pflaster auf dem bestehenden Terrain und laesst
-dessen Hoehe unveraendert. Der Streckenbau veraendert das Fahrzeughandling nicht.
-Niedrige Markierungssteine stehen etwa 4 m
-ausserhalb der Fahrbahnkante (bis Steinmitte, ca. 3,5 m freier Auslauf).
-Schilder und zwei Banner markieren Start/Ende. Der Verlauf steht im
-[massstaeblichen Entwurf](DRIFT_TRACK_DESIGN.md), die nativen Materialien in
-[der Bauteilrecherche](DRIFT_TRACK_MATERIALS.md).
+Der geschlossene Rundkurs ist **1.490,96 m** lang und 16 bis 20 m breit.
+Der vorhandene U-Abschnitt bleibt an seiner bisherigen Position: 108 m Gerade,
+38-m-Kehre und Rueckgerade. Neue 32-m-Kurven, eine doppelte S-Kombination,
+eine lange Aussenpassage und 48-/40-m-Boegen schliessen die Runde.
+Die Fahrbahn besteht durchgehend aus nativem Paved-Terrain auf Hoehe 32;
+es werden keine Fahrkraefte oder Gripwerte durch den Streckenbau geaendert.
 
-Die komplette Strecke nach dem Referenzbild und Checkpoints folgen nach dem
-Fahrtest dieses offenen Abschnitts. Abgeschlossene Abschnitte werden nicht bei
-jedem Laden neu gepflastert; absichtlich entfernte Streckenbauteile bleiben weg.
-NFVU2 fuer eine bebaute `drift`-Welt aktiv lassen, damit deren Grundgelaende beim
-erneuten Laden gleich bleibt.
+Der Wikinger-Rennplatz ergaenzt 928 native Bauteile: Holzzaeune hinter dem
+Auslauf, verschiedenfarbige Banner, nummerierte Kurvenschilder, vier
+ueberdachte Boxen mit Werkbaenken und Kisten sowie eine dreistufige Tribuene
+mit 18 Sitzbaenken und seitlichen Treppen. Bis zu zwoelf native Fackeln beginnen mit
+vollem Brennstoff; danach gelten Valheims Nachfuellen, Wetter und Verschleiss.
+Zufahrt und Boxenvorfeld werden ebenfalls gepflastert. Die Zufahrt kreuzt die
+Zielkurve als offene Einmuendung; vor dem Einfahren auf Verkehr achten.
+
+Der [massstaebliche Rundkursplan](images/drift-circuit-plan.svg) wird aus den
+implementierten C#-Koordinaten erzeugt. Er zeigt die geplante Geometrie und
+Einrichtung, keinen Screenshot einer bereits abgenommenen Spielwelt.
+
+Mini- und Weltkarte zeigen den Rundkurs automatisch als helle Linie mit dunklem
+Rand, das Boxenvorfeld/Zufahrt dezenter und Start/Ziel als tuerkisen Querstrich.
+Die Darstellung stammt aus denselben Pflasterkoordinaten wie der Streckenbau
+und folgt dem normalen Kartenzoom und Verschieben. Der geplante Kurs ist auch
+in noch nicht erkundeten Bereichen sichtbar; das uebrige Gelaende bleibt unter
+dem normalen Kartennebel. Der vorhandene Startpin und Fahrzeugmarker bleiben.
+Eigene Umbauten der Fahrbahn werden nicht aus dem gespeicherten Terrain erkannt.
+Die Ebene erscheint nur in Einzelspielerwelten mit Seed `drift`, veraendert keine
+Kartendateien und wird bei Weltwechsel/Plugin-Abbau wieder entfernt. Eine gemeinsame
+512x512-Textur wird einmal pro Welt erzeugt; es gibt keine Textur-Uploads pro Frame.
+
+Massstab und Archiv des ersten Abschnitts stehen im
+[Streckenentwurf](DRIFT_TRACK_DESIGN.md), native Teile in der
+[Bauteilrecherche](DRIFT_TRACK_MATERIALS.md).
+
+Version 2 hat separate gespeicherte Baufortschritte. Der alte Abschnitt wird
+nicht neu aufgestellt; die Erweiterung entsteht einmalig in geladenen Bereichen.
+Abgeschlossene Baubereiche werden nach dem Neuladen nicht erneut gebaut;
+absichtlich entfernte Teile bleiben entfernt. Bearbeitete oder verschobene
+Schilder bleiben erhalten. Nur unveraenderte alte Start-/Endschilder erhalten
+passende Rundkursbeschriftungen. Spielfremde Bauten werden nicht entfernt.
+NFVU2 fuer eine bebaute `drift`-Welt aktiv lassen, damit deren Grundgelaende
+beim erneuten Laden gleich bleibt.
+
+## Rennbetrieb in der Driftwelt
+
+In der `drift`-Einzelspielerwelt gilt ausschliesslich der Driftmodus des 350Z.
+Flug, Transformer und Hordenmodus sind gesperrt. H2-Fahrzeuge werden dort weder
+neu erstellt noch automatisch restauriert, ihre gespeicherten Weltobjekte
+bleiben erhalten und zaehlen weiter zum Fahrzeuglimit. Die normalen Einstellungen
+fuer andere Welten werden nicht ueberschrieben; dort bleibt Drift verfuegbar.
+
+Die Driftwelt bleibt nachts bei klarem Wetter. Nur die lokale Umgebungsdarstellung
+wird ueberschrieben; Weltalter und Netzwerkzeit laufen normal weiter. Zufallsspawns,
+Kreaturenspawner und Raids sind gesperrt. Vorhandene fremde Kreaturen und lose
+ItemDrop-Objekte werden in begrenzten Durchlaeufen entfernt, ohne Tod/Loot auszulösen.
+Das betrifft auch manuell auf den Boden geworfene Gegenstaende. Spielerinventar,
+Kisteninhalt, platzierte Dekoration und gezaehmte Tiere bleiben erhalten.
+
+34 animierte Greydwarf-Zuschauer stehen auf den Tribuenen und neben dem Kurs.
+Es sind lokale Kulissenmodelle ohne Kampf-KI, Kollisionen oder Loot, mit nativen
+Idle- und einzelnen Tanzanimationen. 46 warme Laternenpfosten ergaenzen die
+vorhandenen nativen Fackeln; maximal sechs nahe, schattenlose Punktlichter sind
+aktiv. Die Kulissen werden nur in der Driftwelt erzeugt und beim Verlassen entfernt.
+An Start/Ziel liegt eine flache zweireihige Schachbrettmarkierung ohne Collider.
+
+Die Runde beginnt beim Vorwaertsueberqueren der Startlinie. Punkte entstehen nur
+fuer neue vorwaerts gefahrene Kursmeter bei mindestens 4 m/s und 10 bis 75 Grad
+Driftwinkel, mit einem bis zu fuenffachen Multiplikator. Rueckwaerts fahren und
+denselben Abschnitt erneut driften erhoeht den Punktestand nicht. Nach vollstaendiger
+Runde durch die aufeinanderfolgenden 25-m-Kontrollabschnitte wird an Start/Ziel
+abgerechnet und die naechste Runde beginnt bei null. Beste Punktzahl und schnellste
+gueltige Rundenzeit werden im nativen Weltspeicher unter `nfvu2_drift_best_v1`
+gesichert. Auf der Wiese bleiben Runde und Punktestand erhalten; dort entstehen
+keine Punkte und die Combo endet. Auf der Strecke zaehlen neue Driftmeter wieder,
+ohne erneutes Ueberqueren der Startlinie. Auch auf der Wiese bleibt der bereits
+gefahrene Fortschritt gespeichert, damit Zurueckfahren und erneutes Driften keine
+doppelten Punkte bringen. Die Rundenzeit laeuft waehrend des Ausflugs weiter.
+Teleport, Tod oder Fahrzeugwechsel unterbrechen weiterhin die Runde;
+stehende Menuepausen bringen keine Punkte.
+
+Die Anzeige nutzt die originale `DRIFT_STYLE_POINTS_BACK`-Hintergrundgrafik aus
+dem lokal vorhandenen `GLOBAL/InGameDrift.bun` und die geladene Valheim-Schrift
+`Valheim-Norsebold`. Layout, Wertung und Beschriftung sind eigene NFVU2-Logik.
+`python tools/export_drift_hud.py` erzeugt die optionale Grafik im ignorierten
+Medienordner; ohne sie bleibt die Anzeige mit schlichtem Hintergrund verwendbar.
+Ein Publikumsklang aus NFSU2 wurde in den untersuchten lokalen Archiven nicht
+eindeutig identifiziert; deshalb wird kein unbestaetigter Klang als Publikum ausgegeben.
+
+Die Wertungs-/Sessiontests pruefen Regeln und native API-Vertraege ohne Spielwelt.
+Die separate Unity-Menueprobe rendert echte Greydwarf-Rigs und native Materialien,
+prueft laufende Animation, Fussausrichtung, Lichtlimit, Bodenmarkierung und Abbau.
+Die HUD-Probe bestaetigt Norsebold und Texte ohne Ueberlauf. Diese Proben laden
+keine gespeicherte Welt; Rundenfahren, Welt-Speichern/Neuladen, Nachtwirkung und
+Bildrate auf dem gesamten befahrenen Kurs bleiben als Spielabnahme offen.
 
 ## Entwicklung und Installation
 
 ```powershell
 python tools/build.py
 python tools/test.py --skip-build --suite driftworld
-python tools/test.py --skip-build --suite drifttrack
+python tools/test.py --skip-build --suite drifttrack --suite driftbuild
+python tools/test.py --skip-build --suite driftmap --suite vehiclemap
+python tools/test.py --skip-build --suite driftsession --suite driftscore --suite driftatmosphere
 python tools/install.py
 ```
 
@@ -80,6 +161,10 @@ als native Pruefungen offen. Mehrspieler ist nicht abgenommen.
 Der neue Streckenadapter wurde auf Geometrie, Bereichsgrenzen, gespeicherten
 Fortschritt und echte native Paint-Settings geprueft. Darstellung, Fahrkontakt,
 Schilderstuetzung und Speichern/Neuladen der neuen Strecke sind im Spiel offen.
+Die produktive Bauklasse ist zusaetzlich an Besitz-/Lade-Doubles getestet: neue
+und bestehende Welten, getrennte v1/v2-Marker, Zwei-Operationen-Budget, Neuladen,
+Spielerabbau, manuelle Schilder und unveraenderter Fackelbrennstoff. Das ersetzt
+keine native Fahr-, Grafik- oder Stabilitaetsabnahme der kompletten Anlage.
 
 ## Eigene Driftphysik
 

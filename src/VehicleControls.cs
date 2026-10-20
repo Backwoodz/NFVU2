@@ -66,6 +66,10 @@ public partial class Plugin {
     bool ControlsHeld()=>pad!=null&&(pad.rightTrigger.ReadValue()>.06f||pad.leftTrigger.ReadValue()>.06f||pad.buttonWest.isPressed||pad.buttonSouth.isPressed||pad.leftShoulder.isPressed||pad.rightShoulder.isPressed)||Input.GetKey(KeyCode.W)||Input.GetKey(KeyCode.S)||Input.GetKey(KeyCode.Space)||Input.GetKey(KeyCode.LeftShift)||Input.GetKey(KeyCode.RightShift)||Input.GetKey(KeyCode.LeftControl)||Input.GetMouseButton(0)||Input.GetMouseButton(1);
     void SelectControlMode(int mode) {
         if(Transforming)return;
+        if(DriftSessionRules.Active) {
+            if(!DriftSessionRules.AllowsMode(true,mode))ShowVehicleWarning("Driftwelt: nur Driftmodus verfuegbar.");
+            return; // Even selecting Drift again must not overwrite the normal-world preference.
+        }
         if(HordeVehicle){if(mode!=0)ShowVehicleWarning("Hordenmodus: nur Gelände verfügbar.");return;}
         if(driving&&!DriverInputReady||IsHummer&&mode==2)return;
         int previousMode=CurrentControlMode;
@@ -84,7 +88,7 @@ public partial class Plugin {
             MessageHud.instance.ShowMessage(MessageHud.MessageType.Center,Tr("Fahrmodus")+": '"+Tr(name)+"'",log:false);
         }
     }
-    int CurrentControlMode=>HordeVehicle?0:Flying&&!current.flight.State.Landing?3:!IsHummer&&driftMode.Value?2:terrainMode.Value?0:1;
+    int CurrentControlMode=>DriftSessionRules.Active?2:HordeVehicle?0:Flying&&!current.flight.State.Landing?3:!IsHummer&&driftMode.Value?2:terrainMode.Value?0:1;
     void TickControlActions(MonoBehaviour local) {
         if(VehicleAccessDown(local)) {
             if(driving){if(Flying){exitAfterLanding=true;current.flight.Land();status="Landung zum Aussteigen …";}else RequestExit();}

@@ -21,8 +21,8 @@ public partial class Plugin {
     string HordeAmmoName=>hordeRun.Pact==HordePact.Frost?"Eismunition":hordeRun.Pact==HordePact.Storm?"Blitzmunition":hordeRun.Explosive?"Explosiv":"Normal";
     Color HordeAmmoTint=>hordeRun.Pact==HordePact.Frost?new Color(.6f,.9f,1):hordeRun.Pact==HordePact.Storm?new Color(.65f,.65f,1):new Color(1,.72f,.22f);
     void OnHordeTurretHit(RaycastHit hit,Character driver)=>hordeElements?.Hit(hit,driver,hordeRun.Pact);
-    bool EffectiveTerrain=>HordeVehicle||terrainMode.Value;
-    bool EffectiveDrift=>!HordeVehicle&&driftMode.Value;
+    bool EffectiveTerrain=>!DriftSessionRules.Active&&(HordeVehicle||terrainMode.Value);
+    bool EffectiveDrift=>!HordeVehicle&&(DriftSessionRules.Active||driftMode.Value);
     bool HordeGameUsable=>hordeRun.Active&&hordeVehicle!=null&&hordeVehicle.car!=null&&hordeVehicle.driving&&hordeOwner!=null;
     void InitializeHordeGame() {
         hordeBestScore=Config.Bind("Horde","BestScoreV3",0,"Best score from the elemental-pact waves and dragon finale (v3 rules).");

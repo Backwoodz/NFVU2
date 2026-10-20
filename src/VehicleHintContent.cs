@@ -6,7 +6,7 @@ namespace Rachel350Z {
 // bindings. Sprite names match ZInput's xbox/ps5 sprite map.
 public static class VehicleHintContent {
     public static string Glyph(string xbox,string ps,bool playstation)=>"<sprite=\""+(playstation?"ps5":"xbox")+"\" name=\""+(playstation?ps:xbox)+"\">";
-    public static string[] Build(bool controller,bool ps,bool flight,bool menu,bool hummer,string menuKey,Func<string,string> tr) {
+    public static string[] Build(bool controller,bool ps,bool flight,bool menu,bool hummer,string menuKey,Func<string,string> tr,bool driftWorld=false) {
         var rows=new List<string>();
         Func<string,string,string> icon=(x,p)=>Glyph(x,p,ps);
         Action<string,string> row=(key,label)=>rows.Add(key+"  "+tr(label));
@@ -34,7 +34,7 @@ public static class VehicleHintContent {
         if(!hummer||flight)row(controller?icon("button_x","button_square"):"LMB / "+tr("Strg"),"Nitro");
         row(controller?icon("button_b","button_circle"):"E",flight?"Landen & aussteigen":"Aussteigen");
         row(controller?icon("dpad_left","dpad_left")+" / "+icon("dpad_right","dpad_right"):"← / →","Songs");
-        row(controller?icon("dpad_up","dpad_up")+" / "+icon("dpad_down","dpad_down"):"1–4","Fahrmodus");
+        if(!driftWorld)row(controller?icon("dpad_up","dpad_up")+" / "+icon("dpad_down","dpad_down"):"1–4","Fahrmodus");
         row(close,"Modmenü");
         row(controller?icon("button_rs","button_r3"):"H","Hupe");
         if(flight)row("", "Geschütz: automatisch");

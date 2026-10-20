@@ -73,6 +73,7 @@ public partial class Plugin : BaseUnityPlugin {
         if(!ready)return;
         SampleControls();
         var local=LocalPlayer();
+        TickDriftSession(local);
         TickDriftTrack(local);
         TickHordeWeather(local);
         CheckHordeContext(local);
@@ -129,6 +130,7 @@ public partial class Plugin : BaseUnityPlugin {
         return obj.transform;
     }
     void Enter(MonoBehaviour local) {
+        if(DriftSessionRules.Active&&IsHummer){ShowVehicleWarning("Driftwelt: nur der 350Z im Driftmodus ist verfuegbar.");return;}
         if(Multiplayer())return;
         if(SpawnBusy){status="Bitte den Ladevorgang abwarten oder mit F8 abbrechen.";return;}
         if(Flying){status="Bitte warten, bis das Fahrzeug gelandet ist.";return;}
@@ -222,6 +224,7 @@ public partial class Plugin : BaseUnityPlugin {
     void LateUpdate() {
         UpdateDriftSeedFeedback();
         ForEachVehicle(TickVehicle);
+        TickDriftCircuitScore();TickDriftCircuitHud();
         if(driving)VehicleDiscovery.Step(player as Player);
         TickVehicleMap();
         LateMenuCamera();TickNitroVisuals();UpdateGameCrosshair();UpdateVehicleHints();TickHordeRadar();
@@ -423,6 +426,6 @@ public partial class Plugin : BaseUnityPlugin {
         status=message;
         if(MessageHud.instance!=null)MessageHud.instance.ShowMessage(MessageHud.MessageType.Center,Tr(message),log:false);
     }
-    void OnDestroy(){driftTrack?.Clear();DriftSeedFeedback.Clear();ReleaseCameraRumble(gameCamera);ReleaseCameraRumble(menuCamera);controlsHarmony?.UnpatchSelf();TransformerFootstepGrass.Shutdown();if(ControlsOwner==this)ControlsOwner=null;ClearNitroVisuals();CleanupAll();DisposeVehicleMap();hordeWeather?.Dispose();hordeWeather=null;DisposeVehicleHints();fleetMusic?.Dispose();DisposeMenu();}
+    void OnDestroy(){ClearDriftCircuitHud();ClearDriftCircuitScore();ClearDriftSession();driftCircuitAtmosphere?.Clear();driftCircuitMap?.Clear();driftTrack?.Clear();DriftSeedFeedback.Clear();ReleaseCameraRumble(gameCamera);ReleaseCameraRumble(menuCamera);controlsHarmony?.UnpatchSelf();TransformerFootstepGrass.Shutdown();if(ControlsOwner==this)ControlsOwner=null;ClearNitroVisuals();CleanupAll();DisposeVehicleMap();hordeWeather?.Dispose();hordeWeather=null;DisposeVehicleHints();fleetMusic?.Dispose();DisposeMenu();}
 }
 }

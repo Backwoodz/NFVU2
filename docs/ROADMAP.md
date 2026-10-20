@@ -1,5 +1,64 @@
 # Nächste Aufgaben
 
+## Driftwelt: Rennbetrieb und Zuschauer (lokale Entwicklung)
+
+- Driftwelt beschraenkt Fahrzeugbetrieb auf den 350Z-Driftmodus, sperrt Flug,
+  Transformer/Horde, Zufallsspawns/Raids und beseitigt loses Bodenloot begrenzt.
+  Lokale Nacht-/Klarwetterdarstellung wird beim Verlassen zurueckgesetzt.
+- 34 animierte Greydwarf-Kulissen, physische Startmarkierung ohne Kollision und
+  46 warme Laternen; maximal sechs nahe, schattenlose Lichter. Gespeicherte
+  Streckenbauteile und normale Weltmodi bleiben erhalten.
+- Rundenwertung mit monotonem Kursfortschritt gegen Rueckwaerts-Farming,
+  aufeinanderfolgenden Kontrollabschnitten und nativen Weltrekorden fuer Punkte
+  und Zeit. HUD mit originalem Drift-Hintergrund und nativer Norse-Schrift.
+- Spielrueckmeldung: Grundfunktionen laufen, aber ein Ausflug auf die Wiese
+  sperrte die Wertung bis zur Startlinie. Korrigiert: nur Punkte/Combo pausieren,
+  Runde und Fortschritt bleiben erhalten; neue Driftmeter auf der Strecke
+  zaehlen wieder. Rundenzeit laeuft weiter, Teleport- und Rueckwaertsschutz bleiben.
+  103 Wertungspruefungen inklusive Wiesenrueckkehr und kompletter Runde bestanden;
+  Fahrabnahme der Korrektur bleibt offen.
+- Native HUD-Menueprobe bestaetigt Norsebold, gefuellte Texte ohne Ueberlauf
+  und Aufraeumen. 81 Wertungs-, 86 Session- und 72.070 Kulissenplan-Pruefungen
+  bestanden. 77 native Unity-Pruefungen bestaetigen kollisionsfreie Zuschauer,
+  fortlaufende Animation mit normaler Uhr, Fussausrichtung, Bodenlinie,
+  begrenzte Beleuchtung und Aufraeumen. Das initial angenommene Standard-Shader-
+  Material wurde durch eine tatsaechlich geladene native Vorlage ersetzt;
+  Kulissen-Rigs werden vor dem Culling einmal korrekt initialisiert.
+  Echte Fahrabnahme, Welt-Speichern/Neuladen und Lichtwirkung
+  im befahrenen Rundkurs bleiben offen. Kein eindeutig identifizierter
+  Publikumssound aus den untersuchten NFS-Archiven hinzugefuegt.
+
+## Driftstrecke: gestalteter Rundkurs (lokale Entwicklung)
+
+- Mini-/Weltkartenebene aus den echten Pflasterplaenen: heller Kurs, dezenter
+  Boxenbereich und tuerkises Start/Ziel. Native UV-Projektion fuer Zoom/Pan,
+  rechteckige UI-Beschneidung und eine gemeinsame 512x512-Textur. Kursplan auch
+  unter Kartennebel sichtbar, keine Freischaltung des restlichen Gelaendes.
+  73.966 Raster-/Projektionspruefungen bestanden; native Unity-UI-Probe fuer
+  zwei Widgets, Zoom/Pan, Weltwechsel und Aufraeumen gerendert und kontrolliert.
+  Sichtkontrolle waehrend einer Fahrt steht noch aus.
+
+- Offenen U-Prototyp auf 1.490,96 m geschlossenen Kurs erweitert. Doppelte
+  S-Kombination, 32-/48-/40-m-Boegen, lange Aussenpassage; v1-Positionen bleiben.
+- 928 neue native Bauteile: hinter dem Auslauf stehende Holzzaeune, Banner,
+  Kurvenschilder, vier ueberdachte Boxen mit Werkbaenken/Kisten und dreistufige
+  Tribuene mit 18 Baenken. Maximal zwoelf native Fackeln, normale Brennstofflogik.
+- Separate v2-Baufortschritte erweitern auch vorhandene Welten. Besitzer-,
+  Initialisierungs- und Ladepruefungen sowie Zwei-Operationen-Framebudget.
+  Spielerabbau, manuelle Schilder und vorhandener Brennstoff bleiben erhalten.
+- Build, 19.499 Geometrie-/Plan-/API-Pruefungen, 1.295 Pruefungen der produktiven
+  Bauklasse an Lade-/ZDO-/Ownership-Doubles sowie 124 Weltpruefungen bestanden.
+  Massstaeblicher Plan aus dem implementierten Layout erzeugt.
+- Zusaetzlich 926 native Box-Colliderhuellen offline transformiert: kleinster
+  gemessener Eckabstand zur Fahrbahnkante 5,5 m. Alle geprueften Bauteile haben
+  einen konservativen Kontaktpfad zum Boden; zwei Kisten mit MeshCollider
+  ausgenommen. Keine Messung der nativen Stuetzwertstaerke oder Fahrzeugkollision.
+- Bei geschlossenem Spiel mit Backup installiert; 113 Payload-Dateien per
+  SHA-256 geprueft. Nur Haupt-DLL geaendert, Physik/Medien/Konfiguration erhalten;
+  zwei datierte Installationsbackups verbleiben.
+- Offen: komplette Runde in Valheim abfahren; native Dach-/Treppenstuetzung,
+  Kollisionsfreiheit, Lichtwirkung, Bildrate sowie Speichern/Neuladen abnehmen.
+
 ## 350Z: Lastwechsel und Backfire-Sound (lokale Entwicklung)
 
 - Spielabnahme: Flammenknall hoerbar, Burble beim Ausrollen fehlt. Die erste

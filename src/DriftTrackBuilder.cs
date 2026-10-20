@@ -33,13 +33,15 @@ internal sealed class DriftTrackBuilder {
         public ZDO Data;
         public readonly List<DriftTrackStamp> Paint=new List<DriftTrackStamp>();
         public readonly List<DriftTrackPiece> Pieces=new List<DriftTrackPiece>();
+        public readonly List<DriftTrackStamp> CircuitPaint=new List<DriftTrackStamp>();
+        public readonly List<DriftTrackPiece> CircuitPieces=new List<DriftTrackPiece>();
     }
     internal void Tick() {
         if(world!=ZDOMan.instance||game!=Game.instance){Clear();world=ZDOMan.instance;game=Game.instance;}
         if(failed||world==null||game==null||game.IsShuttingDown()||Time.timeScale<=0||ZNetScene.instance==null||ZoneSystem.instance==null)return;
         try {
             UpdatePin();
-            if(Time.unscaledTime>=nextScan){CorrectLegacySigns();Discover();nextScan=Time.unscaledTime+.5f;}
+            if(Time.unscaledTime>=nextScan){CorrectLegacySigns();UpdateCircuitLabels();Discover();nextScan=Time.unscaledTime+.5f;}
             // Bounded main-thread work; never ask the terrain builder to load
             // remote zones or hold up the game's world-loading coroutines.
             int work=0;
@@ -64,7 +66,11 @@ internal sealed class DriftTrackBuilder {
                 if(DriftTrackConstructionPlan.IntersectsTile(stamp,position.x,position.z,half))tile.Paint.Add(stamp);
             foreach(var piece in DriftTrackPieces.Items)
                 if(piece.X>=position.x-half&&piece.X<position.x+half&&piece.Z>=position.z-half&&piece.Z<position.z+half)tile.Pieces.Add(piece);
-            if(tile.Paint.Count==0&&tile.Pieces.Count==0)continue;
+            foreach(var stamp in DriftCircuitPlan.PaintStamps)
+                if(DriftTrackConstructionPlan.IntersectsTile(stamp,position.x,position.z,half))tile.CircuitPaint.Add(stamp);
+            foreach(var piece in DriftCircuitPieces.Items)
+                if(piece.X>=position.x-half&&piece.X<position.x+half&&piece.Z>=position.z-half&&piece.Z<position.z+half)tile.CircuitPieces.Add(piece);
+            if(tile.Paint.Count==0&&tile.Pieces.Count==0&&tile.CircuitPaint.Count==0&&tile.CircuitPieces.Count==0)continue;
             if(!Ready(position))continue;
             tile.Compiler=heightmap.GetAndCreateTerrainCompiler();
             if(tile.Compiler==null||!tile.Compiler.IsOwner()||!(bool)initialized.GetValue(tile.Compiler))continue;
@@ -110,13 +116,22 @@ internal sealed class DriftTrackBuilder {
             SaveProgress(tile,PaintProgress,progress+1);
             return true;
         }
+        progress=DriftTrackConstructionPlan.ResumeIndex(tile.Data.GetInt(DriftCircuitPlan.PaintProgress),tile.CircuitPaint.Count);
+        if(progress<tile.CircuitPaint.Count) {
+            var stamp=tile.CircuitPaint[progress];
+            operation.Invoke(tile.Compiler,new object[]{new Vector3(stamp.X,DriftWorldRules.GroundHeight,stamp.Z),Vector3.zero,PaintSettings(stamp.Radius,paintCurve)});
+            SaveProgress(tile,DriftCircuitPlan.PaintProgress,progress+1);return true;
+        }
         progress=DriftTrackConstructionPlan.ResumeIndex(tile.Data.GetInt(PieceProgress),tile.Pieces.Count);
-        if(progress>=tile.Pieces.Count)return false;
-        if(!Place(tile.Pieces[progress]))return false;
-        // Placement progress lives even after a player deliberately dismantles
-        // the piece. A missing piece is not permission to respawn it next login.
-        SaveProgress(tile,PieceProgress,progress+1);
-        return true;
+        if(progress<tile.Pieces.Count) {
+            if(!Place(tile.Pieces[progress]))return false;
+            // Never reconstruct a piece a player deliberately dismantled.
+            SaveProgress(tile,PieceProgress,progress+1);return true;
+        }
+        progress=DriftTrackConstructionPlan.ResumeIndex(tile.Data.GetInt(DriftCircuitPlan.PieceProgress),tile.CircuitPieces.Count);
+        if(progress>=tile.CircuitPieces.Count)return false;
+        if(!Place(tile.CircuitPieces[progress],true))return false;
+        SaveProgress(tile,DriftCircuitPlan.PieceProgress,progress+1);return true;
     }
     static void SaveProgress(Tile tile,string key,int value) {
         tile.Data.Set(key,value);
@@ -130,7 +145,7 @@ internal sealed class DriftTrackBuilder {
         m_paintCleared=true,m_paintHeightCheck=false,m_paintRadius=radius,
         m_paintType=TerrainModifier.PaintType.Paved,m_paintStrength=1,m_paintExp=.1f,m_paintCurve=curve
     };
-    bool Place(DriftTrackPiece piece) {
+    bool Place(DriftTrackPiece piece,bool circuit=false) {
         var prefab=ZNetScene.instance.GetPrefab(piece.Prefab);
         if(prefab==null) {
             if(missing.Add(piece.Prefab))log?.Invoke("Drift test: native prefab not yet available: "+piece.Prefab);
@@ -143,7 +158,10 @@ internal sealed class DriftTrackBuilder {
         try {
             var view=root.GetComponent<ZNetView>();var data=view?.GetZDO();
             if(data==null)throw new InvalidOperationException("Track piece lacks native world data: "+piece.Prefab);
-            data.Persistent=true;data.Set(PieceTag,1);
+            data.Persistent=true;data.Set(circuit?DriftCircuitPlan.PieceTag:PieceTag,1);
+            // Only initialise a newly placed native lamp; subsequent refuelling
+            // and weather remain Valheim's normal Fireplace behaviour.
+            if(circuit&&root.GetComponent<Fireplace>() is Fireplace fire)data.Set(ZDOVars.s_fuel,fire.m_maxFuel);
             if(piece.Text!=null) {
                 var sign=root.GetComponent<Sign>();
                 if(sign==null)throw new InvalidOperationException("Track sign prefab lacks Sign");
@@ -157,10 +175,26 @@ internal sealed class DriftTrackBuilder {
         }
         return true;
     }
+    void UpdateCircuitLabels() {
+        foreach(var id in ZDOExtraData.GetAllZDOIDsWithHash(ZDOExtraData.Type.Int,PieceTag.GetStableHashCode())) {
+            var data=world.GetZDO(id);
+            if(data==null||data.GetPrefab()!="sign".GetStableHashCode()||data.GetInt(PieceTag)!=1)continue;
+            string text=data.GetString(ZDOVars.s_text),replacement=DriftCircuitLabels.Upgrade(text);
+            if(replacement==null)continue;
+            var root=ZNetScene.instance.FindInstance(id);
+            if(root==null||root.GetComponent<ZNetView>()?.IsOwner()!=true)continue;
+            var pos=data.GetPosition();
+            foreach(var planned in DriftTrackPieces.Items) {
+                if(!DriftCircuitLabels.Matches(planned,text,pos.x,pos.y-DriftWorldRules.GroundHeight,pos.z,data.GetRotation().eulerAngles.y))continue;
+                if(Quaternion.Angle(root.transform.rotation,Quaternion.Euler(0,planned.Yaw,0))>.5f)continue;
+                root.GetComponent<Sign>()?.SetText(replacement);break;
+            }
+        }
+    }
     void UpdatePin() {
         if(map==Minimap.instance)return;
         RemovePin();map=Minimap.instance;
-        if(map!=null)pin=map.AddPin(new Vector3(DriftTrackLayout.StartX,DriftWorldRules.GroundHeight,DriftTrackLayout.StartZ),Minimap.PinType.Icon3,"NFVU2 Drift",false,false);
+        if(map!=null)pin=map.AddPin(new Vector3(DriftTrackLayout.StartX,DriftWorldRules.GroundHeight,DriftTrackLayout.StartZ),Minimap.PinType.Icon3,"NFVU2 Drift | 1.49 km",false,false);
     }
     void RemovePin(){if(map!=null&&pin!=null)map.RemovePin(pin);map=null;pin=null;}
     internal void Clear(){RemovePin();tiles.Clear();missing.Clear();legacySigns.Clear();world=null;game=null;nextScan=0;cursor=0;failed=false;}

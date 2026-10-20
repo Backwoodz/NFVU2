@@ -40,6 +40,7 @@ public partial class Plugin {
         // Restore when Valheim loads the record's zone. Distant cars still count
         // toward the garage limit without loading distant terrain or assets.
         var saved=SavedVehicles.FirstOrDefault(d=>!deferredVehicles.Contains(d.m_uid)
+            &&DriftSessionRules.AllowsVehicle(DriftSessionRules.Active,VehiclePersistence.Hummer(d))
             &&!fleet.Any(v=>v.storage?.Data==d)&&ZNetScene.instance.FindInstance(d.m_uid)!=null);
         if(saved!=null)StartVehicleLoad(local,VehiclePersistence.Hummer(saved),saved);
     }

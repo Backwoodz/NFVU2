@@ -135,8 +135,8 @@ public partial class Plugin {
     void DrawCarMenu() {
         UiLabel(new Rect(25,145,510,30),"Fahrmodus",labelStyle);
         int flightIndex=IsHummer?2:3;
-        int selected=HordeVehicle?0:Flying&&!current.flight.State.Landing?flightIndex:!IsHummer&&driftMode.Value?2:terrainMode.Value?0:1;
-        GUI.enabled=!HordeVehicle;
+        int selected=DriftSessionRules.Active?2:HordeVehicle?0:Flying&&!current.flight.State.Landing?flightIndex:!IsHummer&&driftMode.Value?2:terrainMode.Value?0:1;
+        GUI.enabled=!HordeVehicle&&!DriftSessionRules.Active;
         int mode=UiToolbar(new Rect(25,180,510,30),selected,IsHummer?new[]{"Gelände","Straße","Fliegen"}:new[]{"Gelände","Straße","Drift","Fliegen"});
         if(mode!=selected)SelectControlMode(mode==flightIndex?3:mode);
         GUI.enabled=true;

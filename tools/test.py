@@ -8,6 +8,9 @@ def main():
     suites.append('transformercamera')
     suites.append('driftworld')
     suites.append('drifttrack')
+    suites.append('driftbuild')
+    suites.append('driftmap')
+    suites.extend(('driftscore','driftatmosphere','driftsession'))
     suites.extend(('driftphysics','driftadapter'))
     parser=argparse.ArgumentParser();parser.add_argument('--skip-build',action='store_true');parser.add_argument('--handling-only',action='store_true')
     parser.add_argument('--suite',action='append',choices=suites,help='Run only these C# suites; repeat to combine.')
@@ -24,6 +27,15 @@ def main():
         out=OUTPUT/'tests'/suite;out.mkdir(parents=True,exist_ok=True)
         sources=list((BASE/'tests'/suite).glob('*.cs'));refs=list(references);arguments=[]
         if suite=='handling':sources.extend(BASE/'src'/name for name in ('DrivingMath.cs','VehicleHandling.cs','VehicleDriftTuning.cs','HummerTuning.cs','VehicleRideHeight.cs'))
+        elif suite=='driftbuild':sources.extend(BASE/'src'/name for name in ('DriftTrackLayout.cs','DriftTrackConstructionPlan.cs','DriftTrackPieces.cs','DriftTrackSignCorrection.cs','DriftTrackBuilder.cs','DriftCircuitLayout.cs','DriftCircuitPlan.cs','DriftCircuitPieces.cs','DriftCircuitLabels.cs'))
+        elif suite=='driftmap':sources.extend(BASE/'src'/name for name in ('DriftCircuitMapDrawing.cs','DriftTrackLayout.cs','DriftTrackConstructionPlan.cs','DriftCircuitLayout.cs','DriftCircuitPlan.cs'))
+        elif suite=='driftscore':sources.extend(BASE/'src'/name for name in ('DriftLapScore.cs','DriftCircuitScore.cs','DriftTrackLayout.cs','DriftCircuitLayout.cs'))
+        elif suite=='driftatmosphere':sources.extend(BASE/'src'/name for name in ('DriftTrackLayout.cs','DriftTrackConstructionPlan.cs','DriftCircuitLayout.cs','DriftCircuitPlan.cs','DriftCircuitAtmospherePlan.cs'))
+        elif suite=='driftsession':
+            sources.extend(BASE/'src'/name for name in ('DriftWorldRules.cs','DriftSessionRules.cs','DriftSessionEnvironment.cs','DriftSessionCleanup.cs','DriftSessionPatches.cs'))
+            for name in ('0Harmony','Mono.Cecil'):
+                dependency=out/(name+'.dll');shutil.copy2(valheim_dir()/'BepInEx/core'/(name+'.dll'),dependency);refs.append(dependency)
+            arguments=[str(valheim_dir()),str(OUTPUT/'mod/Rachel350Z.dll')]
         elif suite=='driftphysics':sources.extend(sorted((BASE/'physics').glob('*.cs')))
         elif suite=='driftadapter':
             sources.extend(sorted((BASE/'physics').glob('*.cs')))
@@ -70,7 +82,7 @@ def main():
         elif suite=='blast':sources.extend(BASE/'src'/name for name in ('TurretDamage.cs','TurretState.cs'))
         elif suite in ('hotbar','rumble','hordehull','hordecorpses','hordeelements','driftworld','drifttrack'):
             if suite=='driftworld':sources.extend(BASE/'src'/name for name in ('DriftWorldRules.cs','DriftWorldPatches.cs','DriftSeedFeedback.cs'))
-            elif suite=='drifttrack':sources.extend(BASE/'src'/name for name in ('DriftTrackLayout.cs','DriftTrackConstructionPlan.cs','DriftTrackPieces.cs','DriftTrackSignCorrection.cs'))
+            elif suite=='drifttrack':sources.extend(BASE/'src'/name for name in ('DriftTrackLayout.cs','DriftTrackConstructionPlan.cs','DriftTrackPieces.cs','DriftTrackSignCorrection.cs','DriftCircuitLayout.cs','DriftCircuitPlan.cs','DriftCircuitPieces.cs','DriftCircuitLabels.cs'))
             elif suite=='hordeelements':sources.extend(BASE/'src'/name for name in ('HordeElementCombat.cs','HordeElementStatus.cs','HordeElementRules.cs','HordePact.cs'))
             elif suite=='hordehull':sources.extend(BASE/'src'/name for name in ('VehicleHordeHull.cs','VehicleImpactRules.cs'))
             elif suite=='hordecorpses':sources.extend(BASE/'src'/name for name in ('HordeCorpses.cs','HordeProjectiles.cs'))

@@ -81,10 +81,10 @@ public partial class Plugin {
             float scale=Mathf.Min(hintScale.Value,Mathf.Min((Screen.width-36)/550f,Screen.height/850f));
             float units=scale/Mathf.Max(.01f,vehicleHintCanvas.scaleFactor);
             string title=Transforming?"Transformer" :menuOpen?Tr("Modmenü"):Tr(DriveModeName);
-            string key=padActive+"|"+Playstation+"|"+Flying+"|"+menuOpen+"|"+IsHummer+"|"+uiLanguage.Value+"|"+menuKey.Value+"|"+title+"|"+units+"|"+transformerEnabled.Value+"|"+transformerKey.Value;
+            string key=padActive+"|"+Playstation+"|"+Flying+"|"+menuOpen+"|"+IsHummer+"|"+uiLanguage.Value+"|"+menuKey.Value+"|"+title+"|"+units+"|"+transformerEnabled.Value+"|"+transformerKey.Value+"|"+DriftSessionRules.Active;
             if(key!=vehicleHintKey) {
-                var rows=Transforming?TransformerHints():VehicleHintContent.Build(padActive,Playstation,Flying,menuOpen,IsHummer,menuKey.Value.ToString(),Tr);
-                if(!Transforming&&!Flying&&!menuOpen&&transformerEnabled.Value&&!IsHummer&&current.transformerAsset!=null)
+                var rows=Transforming?TransformerHints():VehicleHintContent.Build(padActive,Playstation,Flying,menuOpen,IsHummer,menuKey.Value.ToString(),Tr,DriftSessionRules.Active);
+                if(!DriftSessionRules.Active&&!Transforming&&!Flying&&!menuOpen&&transformerEnabled.Value&&!IsHummer&&current.transformerAsset!=null)
                     rows=rows.Concat(new[]{TransformerToggleHint+"  Verwandeln (im Stand)"}).ToArray();
                 vehicleHintRows=(rows.Length+1)/2;
                 vehicleHintTitle.text=title;

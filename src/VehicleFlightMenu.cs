@@ -15,6 +15,7 @@ public partial class Plugin {
         current.flightAudio=VehicleEffectsAudio.CreateThruster(car,message=>Logger.LogInfo(message),prepared);
     }
     void SelectFlightMode() {
+        if(DriftSessionRules.Active){ShowVehicleWarning("Driftwelt: nur Driftmodus verfuegbar.");return;}
         if(Transforming)return;
         if(HordeVehicle){ShowVehicleWarning("Hordenmodus: nur Gelände verfügbar.");return;}
         if(!driving||!DriverInputReady){status="Zum Fliegen zuerst einsteigen.";return;}

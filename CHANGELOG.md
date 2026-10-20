@@ -2,6 +2,37 @@
 
 ## Unreleased - Drift build world and own drift physics
 
+- Resume drift scoring after returning from grass. Off-road driving breaks
+  the combo and earns no points while retaining the lap, total score and
+  anti-farming progress. Lap time continues; teleport checks remain active.
+
+- Make the drift world a night circuit: 350Z drift driving only, no flight,
+  Transformer or horde, clear weather, no random creature spawns/raids and
+  bounded removal of loose ground loot. Other worlds and saved mode preferences
+  retain their normal behaviour.
+- Add 34 animated scenic Greydwarf spectators, a ground checker start line and
+  46 amber lantern posts with at most six nearby shadowless lights. Decorations
+  are local, noncombat and do not block cars or change saved construction.
+- Score forward drift distance per valid lap with combo multipliers, reverse
+  anti-farming and native world records for best points and fastest lap. Reset
+  at start/finish, suspend off-course points and reject teleports; display the score with
+  original drift backing artwork and Valheim's native Norse font.
+
+- Draw the drift circuit, pit apron and approach on the minimap and world map,
+  using the same pavement coordinates as construction. A turquoise stripe marks
+  start/finish. The supplied course plan remains visible in unexplored areas;
+  ordinary exploration, map pins and other worlds remain unchanged.
+
+- Extend the original U section into a 1,491 m closed drift circuit with broad
+  S transitions, outer straights and a return to start. Add a native Viking
+  paddock with four covered bays, workshop benches, chests, terraced spectator
+  seating, signs, banners, runoff fencing and up to twelve fuelled lamps.
+- Persist the extension under separate v2 tile markers, preserving original
+  construction progress, player dismantling and edited signs. Keep terrain
+  heights and handling intact; bound construction to loaded, owned areas and
+  two operations per frame. Add production-builder reload/ownership checks
+  and a scaled plan rendered directly from the C# layout.
+
 - Keep exhaust burble audible during falling-RPM coasting, beyond the initial
   short lift-off pops. Add a separate optional continuous exhaust texture,
   with RPM-driven pitch/level, a quiet loop seam and fade-out on renewed gas.

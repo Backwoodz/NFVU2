@@ -130,3 +130,20 @@ Die native Referenz liegt lokal in
 `.local/decompiled/game/TerrainModifier.cs`, `TerrainOp.cs`, `TerrainComp.cs`,
 `Heightmap.cs`, `WearNTear.cs`, `Fireplace.cs`, `Piece.cs` und `Sign.cs`.
 Originalbundles und extrahierte Daten werden nicht versioniert.
+
+## Erweiterung fuer den gestalteten Rundkurs (v2)
+
+Zusaetzlich im installierten nativen Pieces-Bundle geprueft: wood_roof
+(26 Grad, 2 m Breite, Snap-Punkte Z +/-1 mit 1 m Hoehendifferenz), woodwall
+(2 x 2 x 0,3 m), wood_wall_half (2 x 1 x 0,3 m), wood_stair (2 m Breite,
+1 m Anstieg nach lokal -Z), wood_floor (2 x 2 m), piece_bench01
+(ca. 2,41 x 0,55 x 0,65 m), piece_workbench (3,01 x 1,03 x 1,10 m) und
+piece_chest_wood mit nativem konvexen MeshCollider. Bestehende gepruefte
+stone_floor_2x2 und wood_pole unterfuettern Podeste und Dachpfosten.
+
+Die Pultdachreihen sind auf die echten Snap-Punkte abgestimmt; Dach und
+Sitzterrassen haben bodenstaendige Stuetzwertketten. Bounds-/Prefabnachweise
+liegen ignoriert in .local/circuit-pieces.json und circuit-prefab-bounds.log.
+Die optische und statische Abnahme im Spiel bleibt erforderlich. Die Fackeln
+werden beim Erstaufbau auf den nativen maximalen Brennstoff gefuellt, danach
+nicht automatisch nachgefuellt und nicht auf unendlichen Brennstoff umgestellt.

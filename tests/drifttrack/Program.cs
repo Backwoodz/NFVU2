@@ -26,6 +26,11 @@ static class Program {
             Check(owner.Methods.Single(m=>m.Name=="OnDestroy").Body.Instructions.Any(i=>i.Operand is MethodReference method&&method.DeclaringType.Name=="DriftTrackBuilder"&&method.Name=="Clear"),"plugin unload releases temporary track pins/state");
             var builder=assembly.MainModule.Types.Single(t=>t.Name=="DriftTrackBuilder");
             Check(builder.Methods.Single(m=>m.Name=="SaveProgress").Body.Instructions.Any(i=>i.Operand is MethodReference method&&method.Name=="SetValue"),"marker update synchronizes native compiler revision");
+            var discovery=builder.Methods.Single(m=>m.Name=="Discover").Body.Instructions;
+            Check(discovery.Any(i=>i.Operand is FieldReference field&&field.DeclaringType.Name=="DriftCircuitPlan"),"built plugin discovers extension paint");
+            Check(discovery.Any(i=>i.Operand is FieldReference field&&field.DeclaringType.Name=="DriftCircuitPieces"),"built plugin discovers venue pieces");
+            var step=builder.Methods.Single(m=>m.Name=="Step").Body.Instructions;
+            Check(step.Any(i=>i.Operand as string==DriftCircuitPlan.PaintProgress)&&step.Any(i=>i.Operand as string==DriftCircuitPlan.PieceProgress),"built plugin resumes independent circuit markers");
         }
         // Exercise the compiled production paint settings with Valheim's real
         // Settings class; no mock defaults and no Unity world are involved.
@@ -84,6 +89,7 @@ static class Program {
     }
     static void Main(string[] args) {
         checks+=LayoutTests.Run();checks+=PlanTests.Run();
+        checks+=CircuitTests.Run();
         Pieces();SignCorrection();Native(args[0],args[1]);
         Console.WriteLine(checks+" drift track checks passed (geometry, tile progress, native API/settings). No Unity driving/render/save-load test performed.");
     }

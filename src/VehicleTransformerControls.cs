@@ -21,6 +21,7 @@ public partial class Plugin {
         transformerMinigunAmmo=Config.Bind("TransformerPrototype","MinigunAmmo","Explosiv",new ConfigDescription("Robot minigun ammunition. Explosiv adds the existing impact blast and small terrain craters.",new AcceptableValueList<string>("Normal","Explosiv")));
     }
     void ToggleTransformer() {
+        if(DriftSessionRules.Active){ShowVehicleWarning("Driftwelt: Transformer ist deaktiviert.");return;}
         if(transformerEntryPending||transformerExitPending||cabinDriver!=null&&cabinDriver.RobotTransitionActive)return;
         if(Transforming) {
             if(!current.transformer.Return())ShowVehicleWarning("Zum Zurueckverwandeln anhalten und Platz fuer das Auto schaffen.");
