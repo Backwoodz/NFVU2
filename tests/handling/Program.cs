@@ -72,6 +72,23 @@ class HandlingTests {
             wheels[3].contact=true;controller.Step(true,0,0,0,true);controller.Step(false,0,0,0,true);
             Check(!controller.BurnoutActive&&wheels.All(w=>w.motorTorque==0&&w.brakeTorque>0),"exit cancels burnout and parks all wheels, terrain="+terrain);
         }
+        foreach(bool drift in new[]{false,true})foreach(bool controllerInput in new[]{false,true}) {
+            var body=new Rigidbody();var wheels=Wheels(true);var controller=new VehicleHandling(body,wheels,false);
+            if(drift)controller.SetDriftMode();
+            float gas=controllerInput?.95f:1,reverse=controllerInput?.9f:1;
+            for(int i=0;i<50;i++) {
+                ControlRules.Pedals(gas,reverse,0,out float throttle,out float brake);
+                bool request=ControlRules.ResolveBurnout(gas,reverse,0,controller.BurnoutActive,false,ref throttle,ref brake);
+                controller.Step(true,throttle,0,brake,request);
+            }
+            Check(controller.BurnoutActive&&wheels.Take(2).All(w=>w.motorTorque==0&&w.brakeTorque==6000)
+                &&wheels.Skip(2).All(w=>w.motorTorque>1500&&w.brakeTorque==0),"real pedal policy feeds front-held rear-drive burnout, drift="+drift+", controller="+controllerInput);
+            body.linearVelocity=new Vector3(0,0,5);
+            ControlRules.Pedals(gas,reverse,5,out float movingThrottle,out float movingBrake);
+            bool movingRequest=ControlRules.ResolveBurnout(gas,reverse,5,controller.BurnoutActive,false,ref movingThrottle,ref movingBrake);
+            controller.Step(true,movingThrottle,0,movingBrake,movingRequest);
+            Check(!controller.BurnoutActive&&wheels.All(w=>w.motorTorque==0&&w.brakeTorque>0),"paired pedals stop a moving car before burnout, drift="+drift+", controller="+controllerInput);
+        }
         Check(DrivingMath.LaunchTorqueFactor(0,1)==1.55f&&DrivingMath.LaunchTorqueFactor(5.5f,1)>1&&DrivingMath.LaunchTorqueFactor(7,1)==1,"forward launch assistance tapers out at seven metres per second");
         Check(DrivingMath.LaunchTorqueFactor(-2,-1)==1.7f&&DrivingMath.LaunchTorqueFactor(-5,-1)==1&&DrivingMath.LaunchTorqueFactor(0,0)==1,"reverse gets low-speed launch assistance while coasting gets none");
         foreach(bool terrain in new[]{false,true})foreach(float direction in new[]{-1f,1f}) {

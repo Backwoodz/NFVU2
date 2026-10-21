@@ -285,6 +285,7 @@ public static class InterfaceText {
         new KeyValuePair<string,string>("Wiedergabe","Playing"),
         new KeyValuePair<string,string>("Gas/Bremse","Throttle/brake"),
         new KeyValuePair<string,string>("Handbremse","Handbrake"),
+        new KeyValuePair<string,string>("Burnout im Stand","Stationary burnout"),
         new KeyValuePair<string,string>("einsteigen","enter"),
         new KeyValuePair<string,string>("aussteigen","exit"),
         new KeyValuePair<string,string>("vor/zur\u00fcck","forward/reverse"),

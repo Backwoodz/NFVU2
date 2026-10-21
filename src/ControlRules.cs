@@ -34,6 +34,20 @@ public static class ControlRules {
         brake=reverse>0&&DrivingMath.DirectionBrake(speed,-1)?reverse:gas>0&&DrivingMath.DirectionBrake(speed,1)?gas:0;
         throttle=brake>0?0:gas-reverse;
     }
+    // W+S / both triggers are a separate front-held burnout gesture. Do not
+    // subtract the pedals at rest or let ordinary brake priority kill its drive.
+    // The rear handbrake always keeps its own meaning, including under throttle.
+    public static bool ResolveBurnout(float gas,float reverse,float totalSpeed,bool active,bool handbrake,ref float throttle,ref float brake) {
+        bool requested=gas>.8f&&reverse>.8f&&!handbrake;
+        if(!requested)return false;
+        if(!float.IsNaN(totalSpeed)&&!float.IsInfinity(totalSpeed)&&totalSpeed>=0&&totalSpeed<(active?2f:.65f)) {
+            throttle=1;brake=0;
+        }else {
+            // Both pedals while moving stop the car before engaging rear drive.
+            throttle=0;brake=Math.Max(gas,reverse);
+        }
+        return true;
+    }
 }
 public struct MenuControlBounds {
     public float X,Y,Height;

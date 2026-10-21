@@ -82,7 +82,9 @@ internal sealed class DriftVehicleAdapter : IDisposable {
                 hubs[i]=anchors[i]-Vector3.up*extension;
             }
             float signedSpeed=Vector3.Dot(body.linearVelocity,forward);
-            BurnoutActive=driving&&burnout&&!handbrake&&brake<=0&&body.linearVelocity.magnitude<1;
+            BurnoutActive=driving&&burnout&&!handbrake&&brake<=0&&body.linearVelocity.magnitude<(BurnoutActive?2f:.65f)
+                &&(grounded[0]||grounded[1])&&grounded[2]&&grounded[3];
+            if(BurnoutActive)throttle=1;
             var drive=powertrain.Step(dt,throttle,signedSpeed,(tyres[2].AngularSpeed+tyres[3].AngularSpeed)*.5f,driving,handbrake,brake>0,BurnoutActive);
             float pedal=drive.DirectionBrake?1:brake;
             for(int i=0;i<4;i++) {
@@ -121,15 +123,25 @@ internal sealed class DriftVehicleAdapter : IDisposable {
         Vector3 velocity=inverse*body.linearVelocity,spin=inverse*body.angularVelocity;
         float speed=(float)Math.Sqrt(velocity.x*velocity.x+velocity.z*velocity.z);
         float target=input*45,rate=180;
-        if(speed>=3&&velocity.z>0) {
+        // At walking/donut speeds the driver owns the rack. A sudden assist
+        // switch at 3 m/s previously steered against the first rotation of a
+        // donut. Ease into the existing drift rack only as road speed builds;
+        // near a sideways pivot/reverse transition it must also fade out.
+        float roadBlend=Mathf.Clamp01((speed-4)/3);
+        roadBlend=roadBlend*roadBlend*(3-2*roadBlend);
+        float forwardBlend=Mathf.Clamp01((velocity.z-1)/3);
+        forwardBlend=forwardBlend*forwardBlend*(3-2*forwardBlend);
+        float assist=roadBlend*forwardBlend;
+        if(assist>0) {
             float beta=Mathf.Clamp((float)Math.Atan2(velocity.x,velocity.z),-70*Mathf.Deg2Rad,70*Mathf.Deg2Rad);
             float driftDemand=input/(.4f+.6f*Mathf.Abs(input));
             float desiredYaw=Mathf.Clamp(input*speed/28+(beta+driftDemand*40*Mathf.Deg2Rad)*4,-2.1f,2.1f);
             float lever=(anchors[0].z+anchors[1].z)*.5f-body.centerOfMass.z;
             float frontTravel=(float)Math.Atan2(velocity.x+spin.y*lever,Math.Max(3,velocity.z));
             float correction=Mathf.Clamp(.55f*(desiredYaw-spin.y),-22*Mathf.Deg2Rad,22*Mathf.Deg2Rad);
-            target=(frontTravel+correction)*Mathf.Rad2Deg;
-            if(input*beta>0&&Mathf.Abs(beta)>8*Mathf.Deg2Rad&&Mathf.Abs(input)>.1f)rate=350;
+            float assistedTarget=Mathf.Clamp((frontTravel+correction)*Mathf.Rad2Deg,-60,60);
+            target+=(assistedTarget-target)*assist;
+            if(input*beta>0&&Mathf.Abs(beta)>8*Mathf.Deg2Rad&&Mathf.Abs(input)>.1f)rate+=170*assist;
         }
         steerAngle+=Mathf.Clamp(Mathf.Clamp(target,-60,60)-steerAngle,-rate*dt,rate*dt);
     }
@@ -166,6 +178,7 @@ internal sealed class DriftVehicleAdapter : IDisposable {
     public bool Grounded(int index)=>grounded[index];
     public Vector3 ContactPoint(int index)=>contacts[index];
     public Vector3 ContactNormal(int index)=>normals[index];
+    public float ContactLoad(int index)=>loads[index];
     public float SidewaysSlip(int index)=>sideSlip[index];
     public float ForwardSlip(int index)=>slip[index];
     public float SkidVolume(int index)=>skid[index];

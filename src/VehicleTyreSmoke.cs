@@ -15,5 +15,10 @@ public partial class Plugin {
         }
         return VehicleBurnoutEffects.Create(car,model,wheels,visuals,message=>Logger.LogInfo(message));
     }
+    void TickTyreSmoke(bool burnout,bool blocked,bool drift) {
+        if(burnoutEffects==null)return;
+        try {burnoutEffects.Tick(burnout,blocked,drift,DriftPhysicsActive?driftSmokeContacts:null);}
+        catch(System.Exception e){burnoutEffects.Dispose();burnoutEffects=null;Logger.LogWarning("350Z tyre smoke disabled: "+e);}
+    }
 }
 }

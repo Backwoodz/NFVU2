@@ -28,7 +28,8 @@ public partial class Plugin {
         if(!DriftPhysicsActive)return new TyreSmokeContact();
         var physics=current.driftPhysics;
         if(!physics.TryGetWheelPose(index,out var hub,out var rotation))return new TyreSmokeContact();
-        return new TyreSmokeContact {Grounded=physics.Grounded(index),Point=physics.ContactPoint(index),Hub=hub,Rpm=physics.WheelRpm(index),Sliding=physics.SkidVolume(index)>.1f};
+        return new TyreSmokeContact {Grounded=physics.Grounded(index),Point=physics.ContactPoint(index),Hub=hub,
+            Normal=physics.ContactNormal(index),Load=physics.ContactLoad(index),Rpm=physics.WheelRpm(index),Sliding=physics.SkidVolume(index)>.1f};
     }
     bool StepDriftPhysics(bool handbrake) {
         bool eligible=driftPhysicsEnabled!=null&&driftPhysicsEnabled.Value&&EffectiveDrift&&!IsHummer&&!Flying&&!Transforming&&driving;

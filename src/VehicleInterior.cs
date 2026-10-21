@@ -57,7 +57,16 @@ internal sealed class VehicleInterior:IDisposable {
         foreach(var r in car.GetComponentsInChildren<MeshRenderer>(true))
             if(r.name.Contains("DOOR_RIGHT_A")&&r.sharedMaterial!=null&&r.sharedMaterial.name.StartsWith("350Z_471a1dca_"))
                 driverWindows.Add(Tuple.Create<Renderer,bool>(r,r.enabled));
-        // Keep the original window geometry, now with a transparent material.
+        // Glass is drawn before the particle pass, so an emitter's aggregate
+        // bounds cannot sort black tinted windows over smoke in front of them.
+        glass=CreateGlassMaterial(log);
+        if(glass!=null)foreach(var r in car.GetComponentsInChildren<MeshRenderer>(true))
+            if(r.sharedMaterial!=null&&r.sharedMaterial.name.StartsWith("350Z_471a1dca_")) {
+                glassOriginals.Add(Tuple.Create<Renderer,Material>(r,r.sharedMaterial));r.sharedMaterial=glass;
+            }
+        log("Cabin loaded: "+model.parts.Length+" meshes, separate steering and door trims.");
+    }
+    internal static Material CreateGlassMaterial(Action<string> log) {
         var template=Resources.FindObjectsOfTypeAll<Material>().FirstOrDefault(m=>m!=null&&m.shader!=null&&m.shader.isSupported&&
             m.name.IndexOf("glass",StringComparison.OrdinalIgnoreCase)>=0&&m.renderQueue>=2500&&m.HasColor("_Color")&&
             !m.name.StartsWith("350Z_"));
@@ -65,7 +74,7 @@ internal sealed class VehicleInterior:IDisposable {
         if(template!=null||shader!=null&&shader.isSupported) {
             // Loaded glass can be lavalanternglass_mat with red _EMISSION enabled.
             // Reuse its shader reference only, never its saved colours/maps/keywords.
-            glass=new Material(template!=null?template.shader:shader);glass.name="350Z_CabinGlass";glass.renderQueue=3000;
+            var glass=new Material(template!=null?template.shader:shader);glass.name="350Z_CabinGlass";glass.renderQueue=2990;
             if(glass.HasTexture("_MainTex"))glass.SetTexture("_MainTex",Texture2D.whiteTexture);
             glass.DisableKeyword("_EMISSION");
             foreach(var name in new[]{"_EmissionColor","_EmissiveColor"})if(glass.HasColor(name))glass.SetColor(name,Color.black);
@@ -82,12 +91,9 @@ internal sealed class VehicleInterior:IDisposable {
             glass.DisableKeyword("_ALPHATEST_ON");glass.DisableKeyword("_ALPHAPREMULTIPLY_ON");
             glass.EnableKeyword("_ALPHABLEND_ON");
             log("Cabin glass shader: "+glass.shader.name+"; reference: "+(template!=null?template.name:"Shader.Find")+"; fresh material, emission disabled");
-            foreach(var r in car.GetComponentsInChildren<MeshRenderer>(true))
-                if(r.sharedMaterial!=null&&r.sharedMaterial.name.StartsWith("350Z_471a1dca_")) {
-                    glassOriginals.Add(Tuple.Create<Renderer,Material>(r,r.sharedMaterial));r.sharedMaterial=glass;
-                }
-        } else log("Cabin: transparent window shader unavailable; original windows retained.");
-        log("Cabin loaded: "+model.parts.Length+" meshes, separate steering and door trims.");
+            return glass;
+        }
+        log("Cabin: transparent window shader unavailable; original windows retained.");return null;
     }
     public void Tick(float angle,float tint,bool occupied) {
         if(steering!=null)steering.localRotation=Quaternion.AngleAxis(CabinAppearance.SteeringDegrees(angle),WheelAxis);

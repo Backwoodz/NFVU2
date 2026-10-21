@@ -237,7 +237,7 @@ public partial class Plugin : BaseUnityPlugin {
     void TickVehicle() {
         if(car==null)return;
         TickTransformerFootstepEffects();
-        if(Transforming){try{TickTransformer();TickTransformerMinigun();TickVehicleStorage();TickExhaustSmoke();if(driving)VehicleWorldStreaming.Follow(player as Player);}catch(Exception e){Logger.LogError("Transformer stopped: "+e);if(driving)Exit();else current.transformer.Restore();TickTransformerMinigun();}return;}
+        if(Transforming){TickTyreSmoke(false,true,false);try{TickTransformer();TickTransformerMinigun();TickVehicleStorage();TickExhaustSmoke();if(driving)VehicleWorldStreaming.Follow(player as Player);}catch(Exception e){Logger.LogError("Transformer stopped: "+e);if(driving)Exit();else current.transformer.Restore();TickTransformerMinigun();}return;}
         TickTransformerMinigun();
         TickTransformerReturnTail();
         TickVehicleStorage();
@@ -295,8 +295,7 @@ public partial class Plugin : BaseUnityPlugin {
             vehicleAudio.Dispose();vehicleAudio=null;Logger.LogWarning("350Z sound disabled after audio error: "+e);
         }
         bool effectsBlocked=!driving||!DriverInputReady||audioBlocked||menuOpen||!Application.isFocused;
-        if(burnoutEffects!=null)try {burnoutEffects.Tick(burnout,Flying||effectsBlocked,EffectiveDrift&&body!=null&&body.linearVelocity.magnitude>3,DriftPhysicsActive?driftSmokeContacts:null);}
-        catch(Exception e){burnoutEffects.Dispose();burnoutEffects=null;Logger.LogWarning("350Z tyre smoke disabled: "+e);}
+        TickTyreSmoke(burnout,Flying||effectsBlocked,EffectiveDrift);
         bool backfire=backfireState.Step(Time.deltaTime,!Flying&&!effectsBlocked,
             vehicleAudio!=null?vehicleAudio.Rpm:950,throttle,
             body!=null?Vector3.Dot(body.linearVelocity,body.transform.forward):0,backfireEnabled.Value);

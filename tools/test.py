@@ -15,6 +15,7 @@ def main():
     suites.extend(('driftphysics','driftadapter'))
     suites.append('parkadefestival')
     suites.append('driftlandscape')
+    suites.append('tyresmoke')
     parser=argparse.ArgumentParser();parser.add_argument('--skip-build',action='store_true');parser.add_argument('--handling-only',action='store_true')
     parser.add_argument('--suite',action='append',choices=suites,help='Run only these C# suites; repeat to combine.')
     args=parser.parse_args()
@@ -29,7 +30,7 @@ def main():
     for suite in selected:
         out=OUTPUT/'tests'/suite;out.mkdir(parents=True,exist_ok=True)
         sources=list((BASE/'tests'/suite).glob('*.cs'));refs=list(references);arguments=[]
-        if suite=='handling':sources.extend(BASE/'src'/name for name in ('DrivingMath.cs','VehicleHandling.cs','VehicleDriftTuning.cs','HummerTuning.cs','VehicleRideHeight.cs'))
+        if suite=='handling':sources.extend(BASE/'src'/name for name in ('DrivingMath.cs','ControlRules.cs','VehicleHandling.cs','VehicleDriftTuning.cs','HummerTuning.cs','VehicleRideHeight.cs'))
         elif suite=='driftbuild':sources.extend(BASE/'src'/name for name in ('DriftTrackLayout.cs','DriftTrackConstructionPlan.cs','DriftTrackPieces.cs','DriftTrackSignCorrection.cs','DriftTrackBuilder.cs','DriftCircuitLayout.cs','DriftCircuitPlan.cs','DriftCircuitPieces.cs','DriftCircuitLabels.cs'))
         elif suite=='driftmap':sources.extend(BASE/'src'/name for name in ('DriftCircuitMapDrawing.cs','DriftTrackLayout.cs','DriftTrackConstructionPlan.cs','DriftCircuitLayout.cs','DriftCircuitPlan.cs'))
         elif suite=='driftscore':sources.extend(BASE/'src'/name for name in ('DriftLapScore.cs','DriftCircuitScore.cs','DriftTrackLayout.cs','DriftCircuitLayout.cs'))
@@ -39,6 +40,7 @@ def main():
             dependency=out/'Mono.Cecil.dll';shutil.copy2(valheim_dir()/'BepInEx/core/Mono.Cecil.dll',dependency);refs.append(dependency)
             arguments=[str(valheim_dir()),str(OUTPUT/'mod/Rachel350Z.dll')]
         elif suite=='tyresound':sources.append(BASE/'src/TyreSoundModel.cs')
+        elif suite=='tyresmoke':sources.append(BASE/'src/TyreSmokeModel.cs')
         elif suite=='parkadestarter':sources.extend(BASE/'src'/name for name in ('ParkadeStarterPose.cs','DriftTrackLayout.cs','DriftTrackConstructionPlan.cs','DriftTrackPieces.cs','ParkadeLayout.cs','ParkadePlan.cs'))
         elif suite=='parkadestartspectators':sources.extend(BASE/'src'/name for name in ('DriftTrackLayout.cs','DriftTrackConstructionPlan.cs','DriftTrackPieces.cs','ParkadeLayout.cs','ParkadePlan.cs','ParkadeStartSpectatorPlan.cs'))
         elif suite=='parkadefestival':sources.extend(BASE/'src'/name for name in ('DriftTrackLayout.cs','DriftTrackConstructionPlan.cs','DriftTrackPieces.cs','ParkadeLayout.cs','ParkadePlan.cs','ParkadeFestivalPlan.cs'))

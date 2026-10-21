@@ -47,6 +47,11 @@ namespace NFVU2.DriftPhysics
             else if (!directionBrake && Math.Abs(gas) > .02f && Math.Abs(signedSpeed) < 1.5f && Math.Sign(gear) != direction)
             { gear = direction; shiftTime = .16f; }
             else if (gear == 0) gear = direction;
+            // The adapter accepts burnout only near rest with front support and
+            // both rear contacts. Start it in first even after a higher-gear stop;
+            // suppressing automatic shifts alone can otherwise retain sixth.
+            if (driving && burnout && !handbrake && !footBrake && direction > 0 && !directionBrake)
+            { gear = 1; shiftTime = 0; }
 
             float throttle = directionBrake || footBrake ? 0 : Math.Abs(gas);
             // Shift scheduling follows longitudinal chassis motion, not driven wheelspin or

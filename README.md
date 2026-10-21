@@ -40,6 +40,11 @@ feature disabled; set it to `true` with the game closed to enable it after updat
 Drive with **WASD** or the **left stick + triggers**. On-screen hints show the rest.
 Customization and language settings are in **F9 / L3**.
 
+In the current local development build, hold **W+S** or **RT+LT / R2+L2**
+near standstill for a front-held burnout. **Space / A / Cross** remains the
+rear handbrake. Drift countersteering now fades in with speed so slow donut
+entries retain direct steering.
+
 To update or uninstall, run the installer again and select the same game.
 Installer 0.31.2 and newer download and verify ZIP updates automatically.
 Older installers can update through the identical compatibility EXE provided with
@@ -73,6 +78,11 @@ installation is required. The replacement passes core, adapter and actual
 Unity/PhysX checks, including separate-library loading; personal in-game
 handling acceptance remains open. See [local drift development](docs/DRIFT_WORLD.md).
 The download above remains the published release.
+
+Local development also replaces fixed-rate tyre smoke with wheel-following
+wisps, friction/heat-driven density and a detached, wind-driven trail using
+Valheim's lit smoke atlas. See [tyre smoke development and checks](docs/TYRE_SMOKE.md);
+final in-game visual and performance acceptance remains open.
 
 Local drift-world development also adds parking arrival in a seated 350Z, endless
 practice on the existing circuit, and a glowing event area for a separate

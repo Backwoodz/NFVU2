@@ -51,7 +51,7 @@ def main():
     source = out / 'NFVU2.DriftProbe.dll'
     compile_cs(source, [BASE / 'tests/driftunity/Probe.cs'] + physics +
                [BASE / 'src' / (n + '.cs') for n in (
-                   'DriftVehicleAdapter', 'VehicleHandling', 'VehicleDriftTuning', 'DrivingMath')], refs, library=True)
+                   'DriftVehicleAdapter', 'VehicleHandling', 'VehicleDriftTuning', 'DrivingMath', 'ControlRules')], refs, library=True)
     require_closed()
     installed = no_links(game / 'BepInEx/plugins/NFVU2.DriftProbe.dll')
     if installed.exists():

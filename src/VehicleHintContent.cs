@@ -29,6 +29,7 @@ public static class VehicleHintContent {
             row(controller?icon("button_lb","button_l1"):tr("Leertaste"),"Sinken");
         }else {
             row(controller?icon("button_a","button_cross"):tr("Leertaste"),"Handbremse");
+            row(controller?icon("button_rt","button_r2")+" + "+icon("button_lt","button_l2"):"W + S","Burnout im Stand");
             row(controller?icon("button_lb","button_l1"):"RMB","Geschütz feuern");
         }
         if(!hummer||flight)row(controller?icon("button_x","button_square"):"LMB / "+tr("Strg"),"Nitro");

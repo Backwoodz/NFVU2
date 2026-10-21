@@ -2,6 +2,54 @@
 
 ## Parkplatz und Parkade-Rennen (lokale Entwicklung)
 
+- Rauchmantel am Reifen weiter verdichtet: maximal 260 statt 90 Wispen pro
+  Sekunde je Hinterrad, groessere/dichtere kompakte Rauchfaeden und eigener
+  Anteil am bestehenden 1.400-Partikelbudget je Rad. Die abgeloeste Wolke
+  behaelt ihre Parameter; pro Rad maximal 1.050 Wolken- und 350 Wisp-Partikel.
+  Getrennte Zufallsfolgen halten Verteilungen bei Bildratenwechsel stabil.
+- Schwarze Scheiben vor dichtem Rauch reproduziert: Glas und Rauch wurden
+  beide in Queue 3000 nach Renderer-Gesamtgrenzen einsortiert; ein langer
+  Rauchschweif konnte Glas ueber Vordergrundrauch zeichnen. Glas jetzt in
+  Queue 2990 vor Rauch zeichnen, Toennung und transparente Tiefe erhalten.
+  2.444 native Pruefungen bestanden: echte 350Z-Karosserie/Scheiben aus drei
+  Blickwinkeln mit heller/dunkler Toennung; ohne Rauch pixelgleiches Bild.
+  30-/144-Hz-Vergleich jeweils 948 Partikel, Gesamtgrenze eingehalten.
+  Mit Backup lokal installiert und 127 Payload-Dateien SHA-256-geprueft;
+  nur Haupt-DLL geaendert, Physik/Konfiguration/Audio erhalten.
+
+- Reifenwirbel nach Spielrueckmeldung deutlicher: kleine Wispen ausserhalb
+  beider Reifenschultern folgen dem Rad ueber etwa 210–260 Grad und loesen
+  sich weich ab. Bisher lag ein grosser Teil der Bewegung hinter der
+  Reifensilhouette. 2.437 native Rauchpruefungen mit Bildkontrolle bestanden.
+- Stationaerer Burnout repariert: W+S lieferte an die eigene Driftphysik
+  Gas null, am Controller blockierten Pedaldifferenz/Bremsprioritaet den
+  gleichzeitigen Antrieb. W+S bzw. RT+LT/R2+L2 haelt jetzt nahe Stillstand
+  die Vorderachse und treibt hinten im ersten Gang an. Bei Fahrt zuerst
+  abbremsen; Leertaste/A/Kreuz bleibt Hinterrad-Handbremse.
+- Direkte Lenkung bis 4 m/s fuer langsame Donut-Einleitung; Gegenlenkhilfe
+  zwischen 4 und 7 m/s weich einblenden, seitwaerts/rueckwaerts ausblenden.
+  Bestehende Driftlinien und Richtungswechsel ab 8 m/s erhalten.
+  168 native Unity-/PhysX-Pruefungen sowie 31.026 Adapterpruefungen bestanden,
+  inklusive Burnoutstart/-freigabe/-neustart, Bremsen bei Fahrt, manuellem
+  Donut-Einstieg und bisherigen schnellen/langen/engen Driftlinien.
+  Mit Backup bei geschlossenem Spiel lokal installiert: 127 Payload-Dateien
+  SHA-256-geprueft, Haupt- und Physik-DLL aktualisiert. Konfiguration/Audio
+  erhalten, temporaere Pruefplugins entfernt, zwei datierte Backups verbleiben.
+
+- Reifenrauch neu aufgebaut: getrennte visuelle Waerme pro Hinterreifen aus
+  Schlupfgeschwindigkeit und Radlast; kurze drehzahlgerichtete Reifenwirbel,
+  danach abgeloeste, wachsende Rauchwolken mit kohärenten Wirbeln und Spielwind.
+  Natives beleuchtetes 64-Bild-Material; maximal
+  2.800 Partikel je Fahrzeug, keine Fahrphysik-/Audioaenderung. Keine echte
+  Volumenstroemung oder Wandkollision; finale Fahr-/Renderlastabnahme offen.
+  16.020 Waerme-/Emissionschecks und 2.432 native Unity-Pruefungen bestanden,
+  inklusive sichtbarer Reifenbogenbewegung, schlupffreiem Rollen, Rueckwaerts-
+  wirbeln, Weltspur, Pausenstillstand, Ablauf und 30/144-Hz-Vergleich.
+  Mit geschlossenem Spiel und Backup lokal installiert: 127 Payload-Dateien
+  SHA-256-geprueft, nur Haupt-DLL geaendert; bisherigen Rauch-Aus-Schalter
+  wieder aktiviert und alte Konfiguration gesichert. Physik/Audio unveraendert.
+  Vorgehen, Quellen und reproduzierbare Pruefungen: [Reifenrauch](TYRE_SMOKE.md).
+
 - Aussteigen in Drift-Einzelspielerwelten gesperrt: gemeinsame Sperre fuer
   Tastatur, Controller, Menue und manuellen Fahrzeugabbau; native und
   Ersatz-Fahrhinweise zeigen keinen Ausstieg. Andere Welten sowie notwendige

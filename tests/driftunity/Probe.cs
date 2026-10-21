@@ -101,8 +101,8 @@ public sealed class DriftUnityProbe : BaseUnityPlugin {
         var material=body.GetComponent<BoxCollider>().sharedMaterial;
         DestroyImmediate(body.gameObject);DestroyImmediate(material);Physics.SyncTransforms();
     }
-    static void Tick(DriftVehicleAdapter adapter,bool driving,float gas,float steer,float brake=0,bool handbrake=false) {
-        if(!adapter.Step(driving,gas,steer,brake,false,handbrake))throw new InvalidOperationException("Drift adapter step failed.");
+    static void Tick(DriftVehicleAdapter adapter,bool driving,float gas,float steer,float brake=0,bool handbrake=false,bool burnout=false) {
+        if(!adapter.Step(driving,gas,steer,brake,burnout,handbrake))throw new InvalidOperationException("Drift adapter step failed.");
         Physics.Simulate(Time.fixedDeltaTime);
     }
     void Run(string output) {
@@ -221,10 +221,70 @@ public sealed class DriftUnityProbe : BaseUnityPlugin {
                     Check(peak<65&&Enumerable.Range(0,4).All(adapter.Grounded),"drift direction change stays below a spin, initial="+direction);
                 }}finally{DestroyBody(body);}
             }
+            CheckBurnoutAndDonut(output);
             CheckDriftResponse(output);
             Check((Physics.gravity-worldGravity).sqrMagnitude==0,"all tests leave world gravity unchanged");
             results.WriteLine(checks+" real Unity checks, "+failures+" failures");
         }finally {DestroyImmediate(floor);Physics.simulationMode=oldSimulation;}
+    }
+    static void TickPedals(DriftVehicleAdapter adapter,Rigidbody body,float gas,float reverse,float steering=0,bool handbrake=false) {
+        float speed=Vector3.Dot(body.linearVelocity,body.rotation*Vector3.forward);
+        ControlRules.Pedals(gas,reverse,speed,out var throttle,out var brake);
+        bool request=ControlRules.ResolveBurnout(gas,reverse,body.linearVelocity.magnitude,adapter.BurnoutActive,handbrake,ref throttle,ref brake);
+        Tick(adapter,true,throttle,steering,brake,handbrake,request);
+    }
+    void CheckBurnoutAndDonut(string output) {
+        using(var samples=new StreamWriter(Path.Combine(output,"burnout-donut.csv"))) {
+            samples.WriteLine("scenario,seconds,speed,frontRpm,rearRpm,gear,rack,beta,active");
+            foreach(bool afterDrive in new[]{false,true}) {
+                var body=Body(out var wheels);
+                try {using(var adapter=DriftVehicleAdapter.Create(body,wheels)) {
+                    for(int i=0;i<200;i++)Tick(adapter,false,0,0);
+                    if(afterDrive) {
+                        int guard=0;while(body.linearVelocity.magnitude<16&&guard++<1200)Tick(adapter,true,1,0);
+                        Check(adapter.Gear>=2,"burnout restart fixture reaches a higher gear before stopping");
+                        for(int i=0;i<250;i++)TickPedals(adapter,body,1,1);
+                        for(int i=0;i<150;i++)Tick(adapter,true,0,0,1);
+                    }
+                    var origin=body.position;float maximumSpeed=0,maximumFront=0,minimumLateRear=float.MaxValue;int active=0;
+                    for(int i=0;i<200;i++) {
+                        TickPedals(adapter,body,1,1);
+                        maximumSpeed=Math.Max(maximumSpeed,body.linearVelocity.magnitude);
+                        maximumFront=Math.Max(maximumFront,Math.Abs(adapter.WheelRpm(0)));
+                        if(adapter.BurnoutActive)active++;
+                        if(i>100)minimumLateRear=Math.Min(minimumLateRear,Math.Abs(adapter.WheelRpm(2)));
+                        if(i%10==0)samples.WriteLine(string.Format(CultureInfo.InvariantCulture,"{0},{1},{2},{3},{4},{5},{6},{7},{8}",afterDrive?"burnout-restart":"burnout-rest",i*Time.fixedDeltaTime,body.linearVelocity.magnitude,adapter.WheelRpm(0),adapter.WheelRpm(2),adapter.Gear,adapter.SteeringAngle(0),Beta(body),adapter.BurnoutActive));
+                    }
+                    float travel=Vector3.ProjectOnPlane(body.position-origin,Vector3.up).magnitude;
+                    Check(active>180&&minimumLateRear>150,"dual-pedal input produces sustained physical rear-wheel burnout; afterDrive="+afterDrive+", rearMin="+minimumLateRear);
+                    Check(maximumSpeed<1&&maximumFront<55&&travel<1.5f,"front tyres hold a stationary burnout; afterDrive="+afterDrive+", maxSpeed="+maximumSpeed+", maxFront="+maximumFront+", travel="+travel);
+                    Check(adapter.Gear==1,"stationary burnout uses first gear after rest or a drive");
+                    float spinning=Math.Abs(adapter.WheelRpm(2));
+                    for(int i=0;i<10;i++)TickPedals(adapter,body,0,1);
+                    Check(!adapter.BurnoutActive&&Math.Abs(adapter.WheelRpm(2))<spinning,"releasing gas exits burnout and slows the spinning rear tyres before reversing");
+                    for(int i=0;i<150;i++)Tick(adapter,true,0,0,1);
+                    Check(Math.Abs(adapter.WheelRpm(2))<25,"ordinary foot braking stops the released rear tyres");
+                    int guard2=0;while(body.linearVelocity.magnitude<12&&guard2++<1200)Tick(adapter,true,1,0);
+                    float moving=body.linearVelocity.magnitude;
+                    for(int i=0;i<20;i++)TickPedals(adapter,body,1,1);
+                    Check(!adapter.BurnoutActive&&body.linearVelocity.magnitude<moving-1,"dual pedals brake normally at road speed");
+                }}finally{DestroyBody(body);}
+            }
+            foreach(float direction in new[]{-1f,1f}) {
+                var body=Body(out var wheels);
+                try {using(var adapter=DriftVehicleAdapter.Create(body,wheels)) {
+                    for(int i=0;i<200;i++)Tick(adapter,false,0,0);
+                    body.linearVelocity=new Vector3(-direction*3,0,2);body.angularVelocity=Vector3.up*(direction*.8f);
+                    for(int i=0;i<10;i++) {
+                        float speed=body.linearVelocity.magnitude;
+                        Tick(adapter,true,1,direction);
+                        samples.WriteLine(string.Format(CultureInfo.InvariantCulture,"donut-init,{0},{1},{2},{3},{4},{5},{6},{7}",i*Time.fixedDeltaTime,body.linearVelocity.magnitude,adapter.WheelRpm(0),adapter.WheelRpm(2),adapter.Gear,adapter.SteeringAngle(0),Beta(body),adapter.BurnoutActive));
+                        if(speed<=6)Check(adapter.SteeringAngle(0)*direction>0,"low-speed spinning/sliding donut entry retains the driver's steering direction");
+                    }
+                    Check(adapter.SteeringAngle(0)*direction>30,"donut entry develops useful manual front steering while rear rotates");
+                }}finally{DestroyBody(body);}
+            }
+        }
     }
     void CheckDriftResponse(string output) {
         using(var summary=new StreamWriter(Path.Combine(output,"response.csv"))) {

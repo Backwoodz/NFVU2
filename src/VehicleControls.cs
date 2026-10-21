@@ -127,24 +127,29 @@ public partial class Plugin {
         if(!controlsGate.Allow(ControlsHeld())){BlockDrivingInput();return;}
         if(padActive&&pad!=null) {
             float gas=ControlRules.Axis(pad.rightTrigger.ReadValue(),.05f),reverse=ControlRules.Axis(pad.leftTrigger.ReadValue(),.05f);
+            handbrakeHeld=!Flying&&pad.buttonSouth.isPressed;
             if(Flying){throttle=gas-reverse;brake=0;current.flightVertical=(pad.rightShoulder.isPressed?1:0)-(pad.leftShoulder.isPressed?1:0);}
             else {ControlRules.Pedals(gas,reverse,Vector3.Dot(body.linearVelocity,body.transform.forward),out float pedalThrottle,out float pedalBrake);throttle=pedalThrottle;brake=pedalBrake;current.flightVertical=0;}
             steer=ControlRules.Axis(pad.leftStick.ReadUnprocessedValue().x,stickDeadzone.Value);
-            handbrakeHeld=!Flying&&pad.buttonSouth.isPressed;
             if(handbrakeHeld&&!EffectiveDrift)brake=1;
-            burnoutHeld=!Flying&&gas>.8f&&reverse>.8f;
+            burnoutHeld=!Flying&&ResolveBurnoutInput(gas,reverse);
             nitroHeld=nitroEnabled.Value&&pad.buttonWest.isPressed;
             turretHeld=!Flying&&pad.leftShoulder.isPressed;honking=pad.rightStickButton.isPressed;
             var look=pad.rightStick.ReadUnprocessedValue();look=new Vector2(ControlRules.Axis(look.x,stickDeadzone.Value),ControlRules.Axis(look.y,stickDeadzone.Value));
             orbitCamera.ControllerFrame(look,controllerSensitivity.Value,controllerInvertY.Value);
         }else {
-            burnoutHeld=!Flying&&Input.GetKey(KeyCode.W)&&Input.GetKey(KeyCode.S);
-            throttle=(Input.GetKey(KeyCode.W)?1:0)-(Input.GetKey(KeyCode.S)?1:0);steer=(Input.GetKey(KeyCode.D)?1:0)-(Input.GetKey(KeyCode.A)?1:0);
+            float gas=Input.GetKey(KeyCode.W)?1:0,reverse=Input.GetKey(KeyCode.S)?1:0;
+            throttle=gas-reverse;steer=(Input.GetKey(KeyCode.D)?1:0)-(Input.GetKey(KeyCode.A)?1:0);
             brake=!Flying&&Input.GetKey(KeyCode.Space)?1:0;handbrakeHeld=!Flying&&Input.GetKey(KeyCode.Space);
+            burnoutHeld=!Flying&&ResolveBurnoutInput(gas,reverse);
             honking=Input.GetKey(KeyCode.H);turretHeld=!Flying&&Input.GetMouseButton(1);
             nitroHeld=ReadBoostInput();orbitCamera.InputFrame(true,mouseSensitivity.Value,invertMouseY.Value);
             current.flightVertical=FlightState.Axis(Input.GetKey(KeyCode.LeftShift)||Input.GetKey(KeyCode.RightShift),Input.GetKey(KeyCode.Space),Flying);
         }
+    }
+    bool ResolveBurnoutInput(float gas,float reverse) {
+        bool active=DriftPhysicsActive?current.driftPhysics.BurnoutActive:handling!=null&&handling.BurnoutActive;
+        return ControlRules.ResolveBurnout(gas,reverse,body.linearVelocity.magnitude,active,handbrakeHeld,ref current.throttle,ref current.brake);
     }
     internal bool CaptureHotbar(Player player)=>ready&&(driving||menuOpen)&&player!=null&&player==LocalPlayer()&&!Multiplayer();
     internal bool CaptureNative(PlayerController controller) {

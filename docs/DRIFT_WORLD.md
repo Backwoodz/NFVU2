@@ -6,6 +6,30 @@ Die Funktion steckt direkt in der vorhandenen
 **Rachel350Z.dll**. FlatGrass oder ein zusaetzliches Weltplugin sind nicht erforderlich.
 Die eigene Fahrzeugphysik wird als `NFVU2.DriftPhysics.dll` mitgeliefert; siehe unten.
 
+### Langsame Donuts und Burnout
+
+Bei sehr langsamer Fahrt bleibt die Lenkung direkt: bis 4 m/s (14,4 km/h)
+gibt der Fahrer den Lenkwinkel vor. Zwischen 4 und 7 m/s wird die bestehende
+Gegenlenkhilfe weich eingeblendet. Bei fast rein seitwaertiger Bewegung und
+Rueckwaertsfahrt wird sie ebenfalls weich ausgeblendet. Ab normalem Drifttempo
+bleibt die bewährte Regelung erhalten; das ist eine Abstimmung der eigenen
+NFVU2-Physik, keine uebernommene CarX-Bibliothek.
+
+Fuer einen Burnout im Stand **W+S** bzw. **RT+LT / R2+L2** halten. Die
+Vorderachse haelt, beide Hinterraeder bekommen Antrieb und freie Bremsen.
+Einstieg ist unter 0,65 m/s moeglich; ein aktiver Burnout toleriert Kriechen
+bis 2 m/s. Bei hoeherem Tempo bremst die Kombination zuerst. Der Burnout
+nutzt den ersten Gang, auch nach vorheriger Fahrt in hoeheren Gaengen.
+**Leertaste / A / Kreuz** bleibt die separate Hinterrad-Handbremse und
+aktiviert keinen frontgehaltenen Burnout. LT/S allein wechselt nach dem
+Abbremsen wie bisher in Rueckwaertsfahrt.
+
+Die native Menuepruefung verifiziert diese Pedalkette, die gehaltene
+Vorderachse mit durchdrehenden Hinterraedern, Freigabe/Neustart und langsame
+Donut-Einleitung sowie die bisherigen Zweitgang-, Lang-, Eng- und
+Richtungswechselpruefungen. Sie ersetzt keine persoenliche Fahrabnahme mit
+Controllerhardware in der gespeicherten Welt.
+
 ## Parkade bei Nacht
 
 Die 36 bereits vorhandenen rechteckigen Steindaecher dienen als kleine

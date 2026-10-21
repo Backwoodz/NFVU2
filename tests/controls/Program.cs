@@ -69,6 +69,30 @@ static class Program {
         Check(throttle==0&&brake==.8f,"both triggers while reversing preserve gas-trigger brake priority");
         ControlRules.Pedals(.8f,.3f,0,out throttle,out brake);
         Check(Math.Abs(throttle-.5f)<.001f&&brake==0,"both triggers at rest retain their analogue difference");
+        foreach(float speed in new[]{0f,.3f,.64f})foreach(bool keyboardInput in new[]{false,true}) {
+            float gas=keyboardInput?1:.95f,reverse=keyboardInput?1:.9f;
+            ControlRules.Pedals(gas,reverse,speed,out throttle,out brake);
+            Check(ControlRules.ResolveBurnout(gas,reverse,speed,false,false,ref throttle,ref brake)
+                &&throttle==1&&brake==0,"keyboard and controller brake plus gas retain rear drive for a stationary burnout, speed="+speed+", keyboard="+keyboardInput);
+        }
+        foreach(float direction in new[]{-1f,1f})foreach(float speed in new[]{.65f,1f,5f,20f}) {
+            ControlRules.Pedals(1,1,direction*speed,out throttle,out brake);
+            Check(ControlRules.ResolveBurnout(1,1,speed,false,false,ref throttle,ref brake)
+                &&throttle==0&&brake==1,"both pedals brake travel in either direction before entering burnout, speed="+speed+", direction="+direction);
+        }
+        ControlRules.Pedals(1,1,1.5f,out throttle,out brake);
+        Check(ControlRules.ResolveBurnout(1,1,1.5f,true,false,ref throttle,ref brake)&&throttle==1&&brake==0,"active burnout tolerates a little chassis creep without switching brake paths");
+        ControlRules.Pedals(1,1,2,out throttle,out brake);
+        Check(ControlRules.ResolveBurnout(1,1,2,true,false,ref throttle,ref brake)&&throttle==0&&brake==1,"active burnout stops beyond its creep-speed limit");
+        foreach(float gas in new[]{0f,.3f,.8f,1f})foreach(float reverse in new[]{0f,.3f,.8f}) {
+            ControlRules.Pedals(gas,reverse,0,out throttle,out brake);float beforeThrottle=throttle,beforeBrake=brake;
+            Check(!ControlRules.ResolveBurnout(gas,reverse,0,false,false,ref throttle,ref brake)&&throttle==beforeThrottle&&brake==beforeBrake,"ordinary partial pedal and reverse inputs retain their existing meaning, gas="+gas+", reverse="+reverse);
+        }
+        throttle=1;brake=0;
+        Check(!ControlRules.ResolveBurnout(1,1,0,true,true,ref throttle,ref brake)&&throttle==1&&brake==0,"explicit rear handbrake never becomes a front-held burnout under throttle");
+        Check(InterfaceText.Translate("Burnout im Stand",true)=="Stationary burnout","stationary burnout hint has an English translation");
+        Check(xbox.Contains("Burnout im Stand")&&xbox.Contains("name=\"button_rt\">")&&xbox.Contains("name=\"button_lt\">"),"controller advertises the paired-trigger stationary burnout");
+        Check(string.Join("\n",VehicleHintContent.Build(false,false,false,false,false,"F9",en)).Contains("W + S  Stationary burnout")&&!flying.Contains("Stationary burnout"),"keyboard burnout hint documents W+S only on the ground");
         var gate=new ReleaseGate();gate.Block();
         Check(!gate.Allow(true)&&!gate.Allow(true),"held gas/nitro cannot resume after a menu or focus interruption");
         Check(gate.Allow(false)&&gate.Allow(true),"release permits fresh control input");

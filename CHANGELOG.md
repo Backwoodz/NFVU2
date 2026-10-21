@@ -2,6 +2,25 @@
 
 ## Unreleased - Drift build world and own drift physics
 
+- Thicken the rotating tyre mantle with nearly three times the wisps, larger
+  compact puffs and reserved particle capacity, retaining the total smoke cap.
+- Draw cabin glass before tyre smoke so dark panes cannot be sorted over a
+  foreground cloud by the bounds of its distant trail. Preserve window tint.
+
+- Make tyre wisps visibly wrap around both outer shoulders and over the crown,
+  following the wheel frame during donuts before peeling into the cloud.
+- Fix W+S and dual-trigger stationary burnouts: preserve forward throttle,
+  hold the front axle, release rear brakes and select first gear. Brake before
+  engaging at road speed; retain the separate rear handbrake.
+- Keep direct drift steering below 4 m/s and blend countersteer assistance
+  smoothly between 4 and 7 m/s, retaining the existing assisted rack at speed.
+
+- Rebuild rear-tyre smoke with independent friction/heat-driven density,
+  short rotation-directed wisps around each tyre, and detached expanding
+  plumes carried by rolling eddies and Valheim's wind. Use the native lit
+  animated smoke material with a bounded particle budget; retain the smoke
+  opt-out. Driving physics and audio are unchanged.
+
 - Dress Parkade as a night drift festival: 108 animated Greydwarfs on the
   36 existing roof terraces, illuminated iron railings, two cheering Trolls
   on supported timber stages, nine sponsor billboards and 23 course lanterns.

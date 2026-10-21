@@ -21,7 +21,7 @@ static class DriftAdapterChecks {
     }
     static void Reset(){Physics.Override=null;Physics.queries=0;Time.fixedDeltaTime=.02f;Time.timeAsDouble=Time.fixedTimeAsDouble=0;}
     static void Main(){
-        Lifecycle();InvalidCreation();InvalidFrames();RayFiltering();Gravity();Logging();WheelPose();RenderedWheels();
+        Lifecycle();InvalidCreation();InvalidFrames();RayFiltering();Gravity();Logging();Steering();StationaryBurnout();WheelPose();RenderedWheels();
         Console.WriteLine(checks+" independent drift adapter checks passed (Unity boundary doubles; no Unity runtime simulation)");
     }
     static void Lifecycle(){
@@ -114,6 +114,98 @@ static class DriftAdapterChecks {
             Check(!adapter.TryGetWheelPose(-1,out after,out rotation)&&!adapter.TryGetWheelPose(4,out after,out rotation),"invalid wheel pose index is rejected");
             adapter.Dispose();Check(!adapter.TryGetWheelPose(0,out after,out rotation),"disposed adapter cannot provide a live wheel pose");
         }
+    }
+    static float SettledSteering(Vector3 velocity,float yaw,float input,float dt=.02f,float heading=0){
+        Reset();Time.fixedDeltaTime=dt;var f=new Fixture();
+        f.Body.rotation=Quaternion.Euler(0,heading,0);
+        // The boundary double does not propagate parent motion to children.
+        for(int i=0;i<4;i++)f.Wheels[i].transform.position=f.Body.transform.TransformPoint(new Vector3(i%2==0?-.8f:.8f,.34f,i<2?1.3f:-1.35f));
+        f.Body.linearVelocity=f.Body.rotation*velocity;
+        f.Body.angularVelocity=f.Body.rotation*new Vector3(0,yaw,0);
+        using(var adapter=f.Create()){
+            float previous=0;
+            for(int frame=0;frame<(int)Math.Round(1.2f/dt);frame++){
+                Check(adapter.Step(true,0,input,0),"steering fixture retains a valid force step");
+                float angle=adapter.SteeringAngle(0);
+                Check(Math.Abs(angle-previous)<=350*dt+.0001f,"steering rack is slew-limited across the whole assist blend");
+                previous=angle;
+            }
+            return adapter.SteeringAngle(0);
+        }
+    }
+    static void LoadedContact(Fixture f,Func<Vector3,bool> include=null){
+        float distance=f.Wheels[0].radius+f.Wheels[0].suspensionDistance-f.Body.mass*9.81f/(4*f.Wheels[0].suspensionSpring.spring);
+        Physics.Override=(origin,direction,maxDistance)=>include!=null&&!include(origin)?new RaycastHit[0]:new[]{Hit(Physics.Floor,origin,direction,distance,Vector3.up)};
+    }
+    static void StationaryBurnout(){
+        Reset();var f=new Fixture();LoadedContact(f);
+        using(var adapter=f.Create()){
+            // Explicit W+S can arrive with signed throttle zero. The accepted
+            // burnout owns forward drive and front-only holding brakes.
+            for(int frame=0;frame<200;frame++)Check(adapter.Step(true,0,0,0,true),"loaded stationary burnout advances without falling back");
+            Check(adapter.BurnoutActive&&adapter.Gear==1,"stationary burnout stays active in its launch gear");
+            Check(adapter.WheelRpm(2)>200&&adapter.WheelRpm(3)>200,"both rear tyres spin under load despite the original cancelling signed throttle");
+            Near(adapter.WheelRpm(0),0,.01f,"stationary burnout holds the left front tyre");
+            Near(adapter.WheelRpm(1),0,.01f,"stationary burnout holds the right front tyre");
+            f.Body.linearVelocity=new Vector3(0,0,1.5f);
+            Check(adapter.Step(true,1,0,0,true)&&adapter.BurnoutActive,"small creep does not repeatedly release/reacquire the burnout gate");
+            f.Body.linearVelocity=new Vector3(0,0,2.1f);
+            Check(adapter.Step(true,1,0,0,true)&&!adapter.BurnoutActive,"burnout holding brakes release after the creep limit");
+            f.Body.linearVelocity=new Vector3(0,0,1);
+            Check(adapter.Step(true,1,0,0,true)&&!adapter.BurnoutActive,"a moving vehicle cannot newly acquire stationary holding brakes");
+            f.Body.linearVelocity=Vector3.zero;
+            Check(adapter.Step(true,0,0,0,true)&&adapter.BurnoutActive,"fully stopped vehicle may start a new burnout");
+            Check(adapter.Step(true,0,0,0)&&!adapter.BurnoutActive,"releasing the burnout request immediately releases its front hold");
+        }
+        for(int variant=0;variant<6;variant++){
+            Reset();f=new Fixture();
+            if(variant==0)LoadedContact(f,o=>o.z<f.Body.position.z); // Rear wheels only.
+            if(variant==1)LoadedContact(f,o=>o.z>f.Body.position.z); // Front wheels only.
+            if(variant==2)LoadedContact(f,o=>o.x<f.Body.position.x||o.z>f.Body.position.z); // One driven tyre lifted.
+            if(variant>=4)LoadedContact(f); // Variant 3 is entirely airborne.
+            using(var adapter=f.Create()){
+                bool handbrake=variant==4;float footBrake=variant==5?1:0;
+                Check(adapter.Step(true,1,0,footBrake,true,handbrake)&&!adapter.BurnoutActive,"burnout requires usable front/rear support and never overrides a handbrake or foot brake, variant "+variant);
+            }
+        }
+        Reset();
+    }
+    static void Steering(){
+        // These are boundary/steering checks, not a simulated donut. High yaw
+        // and sideways travel reproduce the state that made the old 3 m/s
+        // switch take the rack away just as the player started a donut.
+        foreach(float speed in new[]{0f,2.9f,3f,3.1f,3.6f,4f})
+            foreach(float input in new[]{-1f,-.3f,0,.3f,1f})
+                foreach(float yaw in new[]{-2f,2f}){
+                    float angle=SettledSteering(new Vector3(-speed*.6f,0,speed*.8f),yaw,input);
+                    Near(angle,input*45,.0002f,"low-speed donut initiation follows the driver's requested direction, including the old 3 m/s boundary");
+                }
+        foreach(float speed in new[]{-2f,-8f,-20f}){
+            Near(SettledSteering(new Vector3(4,0,speed),2,.6f),27,.0002f,"reversing retains direct steering despite lateral speed and yaw");
+            Near(SettledSteering(new Vector3(15,0,.5f),2,-.6f),-27,.0002f,"near-sideways pivot keeps manual rack authority");
+        }
+        Near(SettledSteering(new Vector3(-8,0,16),.9f,0),-45.116424f,.001f,"existing full-speed countersteer target is preserved");
+        Near(SettledSteering(new Vector3(8,0,16),-.9f,0),45.116424f,.001f,"full-speed opposite drift preserves mirrored countersteer");
+        Near(SettledSteering(new Vector3(4,0,18),.5f,.35f),36.484734f,.001f,"existing full-speed manual-plus-assist target is preserved");
+        float previous=SettledSteering(new Vector3(-2.1f,0,2.8f),1.3f,.5f);
+        for(int sample=1;sample<=160;sample++){
+            float speed=3.5f+sample*.025f;
+            float angle=SettledSteering(new Vector3(-speed*.6f,0,speed*.8f),1.3f,.5f);
+            Check(Math.Abs(angle-previous)<1.2f,"slow acceleration crosses both speed thresholds without a rack target jump");
+            previous=angle;
+        }
+        foreach(float threshold in new[]{1f,4f}){
+            float before=SettledSteering(new Vector3(14,0,threshold-.001f),-.5f,-.4f);
+            float after=SettledSteering(new Vector3(14,0,threshold+.001f),-.5f,-.4f);
+            Check(Math.Abs(after-before)<.03f,"forward/pivot gate has a continuous target at both edges");
+        }
+        foreach(float dt in new[]{.005f,.02f,.05f}){
+            float angle=SettledSteering(new Vector3(-5.4f,0,7.2f),1.2f,.4f,dt);
+            Near(angle,SettledSteering(new Vector3(-5.4f,0,7.2f),1.2f,.4f),.001f,"steady blended steering does not depend on fixed timestep");
+            Near(angle,-SettledSteering(new Vector3(5.4f,0,7.2f),-1.2f,-.4f,dt),.001f,"blended steering has symmetric left/right authority");
+            Near(angle,SettledSteering(new Vector3(-5.4f,0,7.2f),1.2f,.4f,dt,87),.001f,"steering uses chassis-local motion at arbitrary world heading");
+        }
+        Reset();
     }
     static void RenderedWheels(){
         Reset();var f=new Fixture();f.Body.interpolation=RigidbodyInterpolation.Interpolate;
