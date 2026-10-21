@@ -34,6 +34,43 @@ Animationsereignisse. Alles wird beim Weltwechsel entfernt und beim naechsten
 Besuch neu aufgebaut. Gespeicherte Baufolgen, Strecke und Fahrzeugphysik bleiben
 unveraendert; auch bestehende Driftwelten erhalten diese lokale Dekoration.
 
+## Dichter Wald und Wartungshoefe
+
+Der Uebungsplatz erhaelt 3.850, Parkade Drift 1 weitere 1.745 native Tannen
+und Kiefern. Ein bis zu 130 m tiefer Waldguertel mit rund 7,5 m Stammabstand,
+kleinen Positionsabweichungen und ueberlappenden Kronen ersetzt die ersten
+luftigen Baumgruppen. Auch grosse freie Innenflaechen des Uebungskurses werden
+bewaldet. 600 niedrige Busch-/Felsgruppen ergaenzen die Waldraender. Die Kronen
+halten mindestens 14 m Abstand zur Fahrbahnkante, niedrige Details 11 m.
+Parkplatz, Zufahrten, Gebaeude, Zuschauer und Trollbuehnen bleiben ausgespart.
+
+Hinter drei aeusseren Parkade-Gebaeuden stehen kleine Wartungshoefe mit offenen
+Holzboeden, Zaeunen, abgestuetzten Pultdaechern, Kisten, Faessern und Holzstapeln.
+Ihre Grundflaechen haben mindestens 8 m Abstand zu allen Fahrbahnabschnitten;
+der Wald laesst diese Bereiche frei. Die Hoefe verwenden insgesamt 123 native
+Bauteilmodelle als reine lokale Kulisse.
+
+Es werden ausschliesslich native Meshes, Materialien und LOD-Gruppen in eigene
+Dekorationsobjekte uebernommen: keine Baum-/Kistenskripte, fallenden Staemme,
+Beute, Kollisionen, Netzwerkobjekte oder weiteren Lichter. Eine sortierte
+Bauwarteschlange wird nach 20 m Bewegung aktualisiert. Pro Frame entstehen
+maximal sechs Waldobjekte; nach einer Operation und rund zwei Millisekunden
+wird der Aufbau an den naechsten Frame abgegeben. Wartungshoefe bauen separat
+maximal ein Objekt pro Frame. Baeume werden bis 235 m, niedrige Details bis
+125 m und Hoefe bis 155 m dargestellt; eigene Echtzeitschatten sind aus.
+Vorlagen und Landschaft werden beim Weltwechsel entfernt. Vorhandene
+Driftwelten erhalten die Kulisse beim naechsten Laden, ohne neue gespeicherte
+Bauteile oder Terrainveraenderungen.
+
+80.163 Planpruefungen fuer Walddichte, Tiefe, Abstaende, Abdeckung und
+Wartungshoefe bestanden. 66.339 native Unity-Pruefungen bauen alle 6.195
+Landschaftsobjekte und die Wartungshoefe, pruefen echte Modellabmessungen,
+Detailstufen, Komponenten, Sichtweiten und Weltwechsel. Sieben Ansichten wurden
+gerendert und visuell kontrolliert. Diese isolierte
+Sichtprobe laedt keine gespeicherte Welt; Bildrate und Gesamtwirkung mit
+Fahrzeug, Rauch und der vollstaendigen Festival-Kulisse bleiben im Fahrbetrieb
+zu pruefen.
+
 ## Welt erstellen
 
 1. Den aktuellen lokalen NFVU2-Build installieren und Valheim starten.
@@ -169,7 +206,15 @@ Das Bild liegt optional unter `loading/background.png`; fehlt es, bleibt
 die bisherige Ladeanzeige verfuegbar. Der Bildschirm verkuerzt die Bauzeit nicht.
 Stick oder Steuerkreuz markieren Start/Fortsetzen/Wiederholen oder Zurueck;
 A/Kreuz bestaetigt die markierte Aktion, B/Kreis oder Esc bricht ab. Beim Laden
-steht nur Abbrechen zur Auswahl; der laufende Ruecktransfer ist nicht abbrechbar.
+sind sowohl Streckenaufbau als auch Ruecktransfer ohne Abbruchaktion: kein
+Abbrechen-Knopf und keine Wirkung von B/Esc oder Bestaetigung. Das gilt auch
+fuer die Ersatzanzeige ohne Hintergrundbild. Die Vorschau vor dem Laden und
+die Rennpause behalten ihre eigenen Zurueck-Aktionen.
+Native UI-Probe bestanden: Ladebild ohne Schaltflaeche, Ersatzanzeige ohne
+Bild, laufende Animation bei angehaltener Spielzeit und echter Plugin-
+Eingabeleser mit virtuellem Gamepad. Wiederholtes B/Bestaetigen und direkter
+Cancel-Aufruf lassen den Ladevorgang bestehen. Physischer Controller bleibt
+im Fahrbetrieb zu pruefen.
 Der Multiplikator und die laufende Driftkette bleiben an den beiden gueltigen
 Zwischenrunden erhalten. Eine neue Rennwiederholung beginnt wieder bei x1.
 

@@ -2,6 +2,31 @@
 
 ## Parkplatz und Parkade-Rennen (lokale Entwicklung)
 
+- Wald auf Spielrueckmeldung stark verdichtet: 3.850 Tannen/Kiefern am
+  Uebungsplatz und 1.745 bei Parkade, dazu 600 Busch-/Felsgruppen. Rund 7,5 m
+  Stammabstand, ueberlappende Kronen und bis zu 130 m Waldtiefe; auch freie
+  grosse Innenflaechen erhalten Wald. Mindestens 14 m Kronenabstand zur
+  Fahrbahn, Parkplatz/Zufahrten/Gebaeude/Buehnen ausgespart. Naehenbasierte
+  Bauwarteschlange mit bis zu sechs Objekten und rund 2 ms Aufbau pro Frame,
+  native LODs und Sichtweiten; keine Gameplay-/Netzwerkobjekte oder Kollisionen.
+- Drei Wartungshoefe hinter den aeusseren Parkade-Gebaeuden: 123 native
+  Bauteilmodelle mit Holzboeden, Zaeunen, abgestuetzten Daechern, Kisten,
+  Faessern und Holzstapeln. Reine lokale Darstellung ohne neue Lichter;
+  eigener begrenzter Aufbau, mindestens 8 m Fahrbahnabstand und Waldreserve.
+  80.163 Plan- und 66.339 native Modell-/Sichtpruefungen fuer alle 6.195
+  Landschaftsobjekte und Hoefe bestanden; sieben Ansichten visuell kontrolliert.
+  Gesamtwirkung und Bildrate beim Fahren offen.
+- Abbruch beim Streckenladen entfernt: keine Taste im Ladebild und keine
+  Abbruchaktion ueber B/Esc oder Bestaetigung. Auch die Ersatzanzeige ohne
+  Hintergrundbild bleibt ohne Abbruch. Vorschau, Countdown und Rennpause
+  behalten ihre bisherigen Aktionen, technische Fehler-/Stillstandsbehandlung
+  bleibt aktiv. 32.440 Renn-/Eingabepruefungen bestanden. Native UI-Probe
+  bestaetigt beide Anzeigen ohne Abbruch, Animation bei Zeitstopp und den
+  echten Plugin-Eingabeleser mit virtuellem Gamepad; direkter Cancel-Aufruf
+  bleibt ebenfalls ohne Wirkung beim Laden. Bei geschlossenem Spiel mit
+  Backup lokal installiert; 127 Payload-Dateien SHA-256-geprueft, nur
+  Rachel350Z.dll geaendert. Zwei datierte Backups verbleiben.
+
 - Parkade-Nachtkulisse: 108 Greydwarfs auf 36 vorhandenen Steindaechern,
   Gelaender/Leuchtkanten, zwei jubelnde Trolle auf Holzpodesten, neun Werbetafeln
   mit sechs optionalen Original-Sponsormarken und 23 Laternen. Maximal vier

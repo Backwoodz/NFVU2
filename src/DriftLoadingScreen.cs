@@ -10,18 +10,16 @@ namespace Rachel350Z {
 // real-time clock while course construction and the held car keep their limits.
 internal sealed class DriftLoadingScreen {
     readonly string directory;
-    readonly Action cancel;
     readonly Action<string> log;
     RectTransform root,design;
     Canvas canvas;
     Hud owner;
     Texture2D artwork;
-    TextMeshProUGUI progress,cancelText;
-    Button cancelButton;
+    TextMeshProUGUI progress;
     readonly DriftLoadingSegment[] segments=new DriftLoadingSegment[3];
     bool attempted;
-    internal DriftLoadingScreen(string directory,Action cancel,Action<string> log){this.directory=directory;this.cancel=cancel;this.log=log;}
-    internal bool Tick(Hud hud,bool visible,bool returning,int done,int planned,bool german,bool selected) {
+    internal DriftLoadingScreen(string directory,Action<string> log){this.directory=directory;this.log=log;}
+    internal bool Tick(Hud hud,bool visible,bool returning,int done,int planned,bool german) {
         if(owner!=hud){Clear();owner=hud;}
         if(!visible||hud==null){if(root!=null)root.gameObject.SetActive(false);return false;}
         if(root==null&&!Create(hud))return false;
@@ -31,9 +29,6 @@ internal sealed class DriftLoadingScreen {
         int percent=planned>0?Mathf.Clamp(Mathf.FloorToInt(100f*done/planned),0,100):0;
         progress.text=returning?(german?"ZURÜCK ZUM PARKPLATZ …":"RETURNING TO PARKING …"):
             (german?"STRECKE WIRD VORBEREITET":"PREPARING COURSE")+(planned>0?"  "+percent+" %":" …");
-        cancelButton.gameObject.SetActive(!returning);
-        cancelText.text=german?"B / Esc: Abbrechen":"B / Esc: Cancel";
-        cancelButton.targetGraphic.color=selected?new Color(.18f,.27f,.07f,.95f):new Color(.025f,.035f,.02f,.85f);
         for(int i=0;i<segments.Length;i++)segments[i].color=new Color(.72f,.94f,.32f,DriftLoadingAnimation.Brightness(Time.unscaledTime,i));
         return true;
     }
@@ -65,12 +60,6 @@ internal sealed class DriftLoadingScreen {
             }
             Box("Bottom shading",new Color(.005f,.01f,.008f,.85f),0,986,1920,94);
             progress=Label("Course progress",font,25,new Color(.9f,.93f,.83f),52,1010,1260,48);
-            cancelButton=Box("Cancel loading",new Color(.02f,.03f,.02f,.9f),1470,1006,398,48).gameObject.AddComponent<Button>();
-            cancelButton.targetGraphic=cancelButton.GetComponent<Image>();cancelButton.navigation=new Navigation{mode=Navigation.Mode.None};
-            cancelButton.targetGraphic.raycastTarget=true;
-            cancelButton.onClick.AddListener(()=>cancel());
-            cancelText=Label("Cancel hint",font,25,Color.white,1482,1009,374,45);cancelText.alignment=TextAlignmentOptions.Center;
-            cancelText.transform.SetParent(cancelButton.transform,false);Place(cancelText.rectTransform,12,3,374,45);
             return true;
         } catch(Exception error) {
             if(root!=null)UnityEngine.Object.Destroy(root.gameObject);root=null;

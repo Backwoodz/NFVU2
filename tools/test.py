@@ -14,6 +14,7 @@ def main():
     suites.extend(('driftrace','driftarrival','parkade','tyresound','parkadestarter','parkadestartspectators'))
     suites.extend(('driftphysics','driftadapter'))
     suites.append('parkadefestival')
+    suites.append('driftlandscape')
     parser=argparse.ArgumentParser();parser.add_argument('--skip-build',action='store_true');parser.add_argument('--handling-only',action='store_true')
     parser.add_argument('--suite',action='append',choices=suites,help='Run only these C# suites; repeat to combine.')
     args=parser.parse_args()
@@ -41,6 +42,7 @@ def main():
         elif suite=='parkadestarter':sources.extend(BASE/'src'/name for name in ('ParkadeStarterPose.cs','DriftTrackLayout.cs','DriftTrackConstructionPlan.cs','DriftTrackPieces.cs','ParkadeLayout.cs','ParkadePlan.cs'))
         elif suite=='parkadestartspectators':sources.extend(BASE/'src'/name for name in ('DriftTrackLayout.cs','DriftTrackConstructionPlan.cs','DriftTrackPieces.cs','ParkadeLayout.cs','ParkadePlan.cs','ParkadeStartSpectatorPlan.cs'))
         elif suite=='parkadefestival':sources.extend(BASE/'src'/name for name in ('DriftTrackLayout.cs','DriftTrackConstructionPlan.cs','DriftTrackPieces.cs','ParkadeLayout.cs','ParkadePlan.cs','ParkadeFestivalPlan.cs'))
+        elif suite=='driftlandscape':sources.extend(BASE/'src'/name for name in ('DriftTrackLayout.cs','DriftTrackConstructionPlan.cs','DriftTrackPieces.cs','DriftCircuitLayout.cs','DriftCircuitPlan.cs','DriftCircuitPieces.cs','ParkadeLayout.cs','ParkadePlan.cs','ParkadeFestivalPlan.cs','ParkadeServiceYardPlan.cs','DriftLandscapePlan.cs'))
         elif suite=='parkade':sources.extend(BASE/'src'/name for name in ('DriftTrackLayout.cs','DriftTrackConstructionPlan.cs','DriftTrackPieces.cs','ParkadeLayout.cs','ParkadePlan.cs','ParkadeVenue.cs'))
         elif suite=='driftatmosphere':sources.extend(BASE/'src'/name for name in ('DriftTrackLayout.cs','DriftTrackConstructionPlan.cs','DriftCircuitLayout.cs','DriftCircuitPlan.cs','DriftCircuitAtmospherePlan.cs'))
         elif suite=='driftsession':

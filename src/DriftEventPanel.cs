@@ -24,7 +24,7 @@ internal sealed class DriftEventPanel {
     internal DriftEventPanel(Action accept,Action cancel,string directory=null,Action<string> log=null):this(accept,cancel,directory,log,null){}
     internal DriftEventPanel(Action accept,Action cancel,string directory,Action<string> log,Action restartRace){
         this.accept=accept;this.cancel=cancel;this.restartRace=restartRace;
-        loading=new DriftLoadingScreen(directory??Path.GetDirectoryName(typeof(Plugin).Assembly.Location),cancel,log);
+        loading=new DriftLoadingScreen(directory??Path.GetDirectoryName(typeof(Plugin).Assembly.Location),log);
     }
     internal void Tick(Hud hud,DriftRaceRun run,int done,int planned,bool german) {
         if(hud==null){Clear();return;}
@@ -32,13 +32,16 @@ internal sealed class DriftEventPanel {
         if(root==null&&!Create(hud))return;
         paused=DriftEventMenuNavigation.IsPause(run.Phase);
         restart.gameObject.SetActive(paused);
+        // The fallback without artwork has the same non-interactive loading
+        // state as the fullscreen overlay, including mouse and UI navigation.
+        secondary.gameObject.SetActive(run.Phase!=DriftRacePhase.Loading&&run.Phase!=DriftRacePhase.Returning);
         Place(primary.GetComponent<RectTransform>(),28,477,paused?238:358,45);
         Place(secondary.GetComponent<RectTransform>(),paused?534:414,477,paused?238:358,45);
         Place(primaryText.rectTransform,12,5,paused?214:334,38);
         Place(secondaryText.rectTransform,12,5,paused?214:334,38);
         primaryText.fontSize=secondaryText.fontSize=paused?20:23;
         bool fullscreen=loading.Tick(hud,run.Phase==DriftRacePhase.Loading||run.Phase==DriftRacePhase.Returning,
-            run.Phase==DriftRacePhase.Returning,done,planned,german,navigation.Selected==1);
+            run.Phase==DriftRacePhase.Returning,done,planned,german);
         startCue.Tick(hud,run,german);
         root.gameObject.SetActive(run.BlocksDriving&&!fullscreen&&run.Phase!=DriftRacePhase.Countdown);
         if(!run.BlocksDriving)return;
@@ -55,7 +58,7 @@ internal sealed class DriftEventPanel {
         switch(run.Phase) {
             case DriftRacePhase.Loading:
                 message.text=(german?"STRECKE WIRD VORBEREITET":"PREPARING COURSE")+(planned>0?"  "+Mathf.Clamp(Mathf.RoundToInt(100f*done/planned),0,100)+" %":" …");
-                primary.interactable=false;primaryText.text=german?"LADEN …":"LOADING …";secondaryText.text=german?"ABBRECHEN":"CANCEL";break;
+                primary.interactable=secondary.interactable=false;primaryText.text=german?"LADEN …":"LOADING …";secondaryText.text="";break;
             case DriftRacePhase.Returning:
                 message.text=german?"ZURÜCK ZUM PARKPLATZ …":"RETURNING TO PARKING …";primary.interactable=secondary.interactable=false;break;
             case DriftRacePhase.Countdown:

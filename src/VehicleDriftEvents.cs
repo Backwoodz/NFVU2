@@ -14,6 +14,7 @@ public partial class Plugin {
     ParkadeStartSpectators parkadeStartSpectators;
     ParkadeNeonSign parkadeNeonSign;
     ParkadeFestival parkadeFestival;
+    ParkadeServiceYards parkadeServiceYards;
     Minimap driftEventMap;
     Minimap.PinData eventPadPin,parkadePin;
     ZDOMan driftEventWorld;
@@ -57,6 +58,8 @@ public partial class Plugin {
             parkadeNeonSign.Tick(viewer,driftEventWorld);
             if(parkadeFestival==null)parkadeFestival=new ParkadeFestival(System.IO.Path.GetDirectoryName(typeof(Plugin).Assembly.Location),message=>Logger.LogWarning(message));
             parkadeFestival.Tick(viewer,driftEventWorld);
+            if(parkadeServiceYards==null)parkadeServiceYards=new ParkadeServiceYards(message=>Logger.LogWarning(message));
+            parkadeServiceYards.Tick(viewer,driftEventWorld);
             if(driftEventPad==null)driftEventPad=new DriftEventPad();
             driftEventPad.Tick(driftRace.Phase==DriftRacePhase.Practice||driftRace.Phase==DriftRacePhase.Preview);
             bool validCar=driving&&car!=null&&body!=null&&!IsHummer&&!Flying&&!Transforming&&current!=null;
@@ -186,6 +189,7 @@ public partial class Plugin {
     }
     void CancelDriftEvent() {
         if(!driftRaceUi)return;
+        if(driftRace.Phase==DriftRacePhase.Loading||driftRace.Phase==DriftRacePhase.Returning)return;
         if(driftRace.Phase==DriftRacePhase.Preview){ReleaseDriftRaceHold();driftRace.Practice();CloseDriftEventUI();return;}
         if(driftRace.Phase!=DriftRacePhase.Returning)ReturnFromDriftRace();
     }
@@ -241,6 +245,7 @@ public partial class Plugin {
         parkadeRaceStarter?.Clear();parkadeRaceStarter=null;
         parkadeStartSpectators?.Clear();parkadeStartSpectators=null;parkadeNeonSign?.Clear();parkadeNeonSign=null;
         parkadeFestival?.Clear();parkadeFestival=null;
+        parkadeServiceYards?.Clear();parkadeServiceYards=null;
         parkadeMiniMap?.Clear();parkadeMiniMap=null;parkadeStartLine?.Clear();parkadeStartLine=null;RemoveDriftEventPins();
         parkadeVenue?.Clear();parkadeVenue=null;driftRace.Reset();driftEventWorld=null;driftEventGame=null;driftEventVehicle=null;
         driftPadLatched=driftEventFailed=false;driftRecordSaved=0;driftRecordRetry=0;

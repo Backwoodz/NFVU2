@@ -145,9 +145,13 @@ static class Program {
         Check(step(preview,0,0,false,true)==DriftEventMenuAction.Cancel,"Controller B cancels independently of focused action");
         var loading=DriftRacePhase.Loading;
         Check(step(loading,0,0,false,true)==DriftEventMenuAction.None,"Held B across a transition cannot cancel a second screen");
-        Check(nav.Selected==1,"Loading selects the only enabled Cancel action");
+        Check(nav.Selected==-1,"Loading has no selectable actions");
         step(loading,0,0,false,false);
-        Check(step(loading,0,0,true,false)==DriftEventMenuAction.Cancel,"Loading confirm activates Cancel, never Start");
+        Check(step(loading,0,0,true,false)==DriftEventMenuAction.None,"Loading confirm cannot cancel or start");
+        for(int i=0;i<20;i++) {
+            step(loading,0,0,false,false);
+            Check(step(loading,i%2==0?1:-1,1,true,true)==DriftEventMenuAction.None&&nav.Selected==-1,"Loading ignores fresh Back/Escape, confirm and navigation");
+        }
         step(DriftRacePhase.Countdown,0,0,false,false);
         Check(step(DriftRacePhase.Countdown,0,0,true,false)==DriftEventMenuAction.None,"Countdown handbrake/confirm cannot activate a hidden cancel button");
         step(DriftRacePhase.Countdown,0,0,false,false);

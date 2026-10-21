@@ -6,9 +6,10 @@ public partial class Plugin {
     DriftTrackBuilder driftTrack;
     DriftCircuitMap driftCircuitMap;
     DriftCircuitAtmosphere driftCircuitAtmosphere;
+    DriftLandscape driftLandscape;
     void TickDriftTrack(MonoBehaviour local) {
         if(local==null||!DriftWorldRules.Current||Multiplayer()||Game.instance==null||Game.instance.IsShuttingDown()) {
-            driftCircuitAtmosphere?.Clear();ClearDriftCircuitHud();driftCircuitMap?.Clear();driftTrack?.Clear();return;
+            driftLandscape?.Clear();driftCircuitAtmosphere?.Clear();ClearDriftCircuitHud();driftCircuitMap?.Clear();driftTrack?.Clear();return;
         }
         if(driftCircuitMap==null)driftCircuitMap=new DriftCircuitMap(message=>Logger.LogWarning(message));
         driftCircuitMap.Tick(Minimap.instance,ZDOMan.instance,true);
@@ -16,6 +17,8 @@ public partial class Plugin {
         driftTrack.Tick();
         if(driftCircuitAtmosphere==null)driftCircuitAtmosphere=new DriftCircuitAtmosphere(message=>Logger.LogWarning(message));
         driftCircuitAtmosphere.Tick(local.transform.position,ZDOMan.instance);
+        if(driftLandscape==null)driftLandscape=new DriftLandscape(message=>Logger.LogWarning(message));
+        driftLandscape.Tick(local.transform.position,ZDOMan.instance);
     }
     void UpdateDriftSeedFeedback() {
         var startup=FejdStartup.instance;

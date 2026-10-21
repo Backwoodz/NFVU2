@@ -13,12 +13,12 @@ internal sealed class DriftEventMenuNavigation {
     DriftRacePhase phase;
     internal static bool IsPause(DriftRacePhase phase)=>phase==DriftRacePhase.Paused||phase==DriftRacePhase.PracticePaused;
     internal static bool PrimaryEnabled(DriftRacePhase phase)=>phase==DriftRacePhase.Preview||IsPause(phase)||phase==DriftRacePhase.Finished;
-    internal static bool SecondaryEnabled(DriftRacePhase phase)=>PrimaryEnabled(phase)||phase==DriftRacePhase.Loading||phase==DriftRacePhase.Countdown;
+    internal static bool SecondaryEnabled(DriftRacePhase phase)=>PrimaryEnabled(phase)||phase==DriftRacePhase.Countdown;
     internal void Reset(){initialized=false;Selected=0;}
     internal DriftEventMenuAction Step(DriftRacePhase current,float x,float y,bool confirm,bool back,double now) {
         bool primary=PrimaryEnabled(current),secondary=SecondaryEnabled(current);
         if(!initialized||phase!=current) {
-            initialized=true;phase=current;Selected=primary?0:1;
+            initialized=true;phase=current;Selected=primary?0:secondary?1:-1;
             confirmHeld=confirm;backHeld=back;waitNeutral=true;lastDirection=0;
             return DriftEventMenuAction.None;
         }
