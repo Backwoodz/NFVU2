@@ -2,6 +2,23 @@
 
 ## Parkplatz und Parkade-Rennen (lokale Entwicklung)
 
+- Aussteigen in Drift-Einzelspielerwelten gesperrt: gemeinsame Sperre fuer
+  Tastatur, Controller, Menue und manuellen Fahrzeugabbau; native und
+  Ersatz-Fahrhinweise zeigen keinen Ausstieg. Andere Welten sowie notwendige
+  Tod-/Fehler-/Weltwechselbereinigung behalten ihr Verhalten. 115 Session-
+  und die relevanten Steuerungs-/Hinweispruefungen bestanden.
+- Trolljubel auf Spielrueckmeldung deutlicher gemacht: statt nur 18 cm
+  Hub jetzt grosse abwechselnde Armwellen und schwenkende Handgelenke.
+  Eigene Schulterseiten, Blickrichtung und Standposition bleiben erhalten;
+  normale Spielzeit mit Pausenstillstand. 3.045 Festival-Geometrie-/Lichtchecks
+  und 32.440 Renn-/Eingabepruefungen bestanden.
+  1.284 native Pruefungen bestaetigen die installierten Ausstiegs-/Entfernen-
+  Sperren, beide Jubelzyklen und das Culling. Beide Trolle erreichen etwa
+  92 cm Handweg; verschiedene Renderframes, Pausenstillstand und Rueckkehr
+  in Sichtweite geprueft. Bei geschlossenem Spiel mit Backup installiert:
+  127 Payload-Dateien SHA-256-geprueft, nur Rachel350Z.dll geaendert;
+  Physik/Konfiguration erhalten, zwei datierte Backups verbleiben.
+
 - Wald auf Spielrueckmeldung stark verdichtet: 3.850 Tannen/Kiefern am
   Uebungsplatz und 1.745 bei Parkade, dazu 600 Busch-/Felsgruppen. Rund 7,5 m
   Stammabstand, ueberlappende Kronen und bis zu 130 m Waldtiefe; auch freie

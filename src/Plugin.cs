@@ -330,6 +330,7 @@ public partial class Plugin : BaseUnityPlugin {
         position=Vector3.zero;return false;
     }
     void RequestExit() {
+        if(RejectDriftExit())return;
         if(Transforming){RequestRobotExit();return;}
         if(Flying){status="Zum Aussteigen unter F9 einen Bodenmodus wählen und landen.";return;}
         if(cabinDriver==null){Exit();return;}
@@ -379,6 +380,7 @@ public partial class Plugin : BaseUnityPlugin {
         player=null;gameCamera=null;status="F6: Fahrzeug erstellen | E: einsteigen | F9: Garage";
     }
     void Cleanup(){
+        if(RejectDriftExit())return;
         bool cargoLeft=current.storage!=null&&current.storage.Count!=0;
         if(driving)Exit();
         RestoreGameCrosshair();

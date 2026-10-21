@@ -145,12 +145,13 @@ public partial class Plugin {
             (!driving?"Für den Flugmodus zuerst einsteigen.\n":"")+(mode==2&&!IsHummer?"Drift: Heckantrieb · Leertaste: Handbremse":mode==0?"Geländemodus mit Allradhilfe.":"Straßenmodus mit Heckantrieb.");
         if(padActive)description=Flying?(current.flight.State.Landing?"Landet automatisch und klappt die Räder aus.":ButtonName("RT/LT","R2/L2")+": vor/zurück · LS: drehen · "+ButtonName("RB/LB","R1/L1")+": hoch/runter")+"\nBodenmodus wählen zum Landen.":ButtonName("RT/LT","R2/L2")+": Gas/Bremse · LS: lenken · "+ButtonName("A","Kreuz")+": Handbremse";
         UiLabel(new Rect(25,218,510,52),description,mutedStyle);
-        GUI.enabled=!Flying&&(!driving||DriverInputReady);
+        GUI.enabled=!DriftDriverLocked&&!Flying&&(!driving||DriverInputReady);
         if(MenuButton(new Rect(25,280,245,38),driving?"Aussteigen":"Einsteigen")){
             var local=LocalPlayer();CloseVehicleMenu();if(driving)RequestExit();else if(CanAccessCurrent(local))Enter(local);return;
         }
-        GUI.enabled=true;
+        GUI.enabled=!DriftDriverLocked;
         if(MenuButton(new Rect(285,280,245,38),"Fahrzeug entfernen")){Cleanup();return;}
+        GUI.enabled=true;
         keepRunning.Value=UiToggle(new Rect(25,340,510,32),keepRunning.Value," Beim Aussteigen weiterlaufen lassen");
         UiLabel(new Rect(25,378,510,60),"Motor im Leerlauf, aktiviertes Neon und gedämpfte Musik. Auch neben dem Auto ein-/ausschaltbar.\nBeim Entfernen bleibt Inhalt als Kiste zurück.",mutedStyle);
         if(MenuButton(new Rect(25,445,245,38),"Türen und Motorhaube"))ChangeMenuTab(6);

@@ -122,6 +122,11 @@ static class Program {
         }
         using(var built=AssemblyDefinition.ReadAssembly(plugin)) {
             var type=built.MainModule.Types.Single(t=>t.Name=="Plugin");
+            foreach(var method in new[]{"RequestExit","RequestRobotExit","Cleanup"}) {
+                var code=type.Methods.Single(m=>m.Name==method).Body.Instructions;
+                Check(code.Any(i=>i.Operand is MethodReference called&&called.Name=="RejectDriftExit"),"manual exit/removal entry is guarded: "+method);
+            }
+            Check(!type.Methods.Single(m=>m.Name=="Exit").Body.Instructions.Any(i=>i.Operand is MethodReference called&&called.Name=="RejectDriftExit"),"death and lifecycle exit remains available");
             foreach(var method in new[]{"SelectControlMode","SelectFlightMode","ToggleTransformer","StartHorde","DrawHordeEntryHint","Enter"}) {
                 var instructions=type.Methods.Single(m=>m.Name==method).Body.Instructions;
                 Check(instructions.Any(i=>i.Operand is MethodReference called&&called.DeclaringType.Name=="DriftSessionRules"&&called.Name=="get_Active"),"built control entry point checks drift-world restrictions: "+method);

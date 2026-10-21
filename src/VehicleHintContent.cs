@@ -32,7 +32,7 @@ public static class VehicleHintContent {
             row(controller?icon("button_lb","button_l1"):"RMB","Geschütz feuern");
         }
         if(!hummer||flight)row(controller?icon("button_x","button_square"):"LMB / "+tr("Strg"),"Nitro");
-        row(controller?icon("button_b","button_circle"):"E",flight?"Landen & aussteigen":"Aussteigen");
+        if(!driftWorld)row(controller?icon("button_b","button_circle"):"E",flight?"Landen & aussteigen":"Aussteigen");
         row(controller?icon("dpad_left","dpad_left")+" / "+icon("dpad_right","dpad_right"):"← / →","Songs");
         if(!driftWorld)row(controller?icon("dpad_up","dpad_up")+" / "+icon("dpad_down","dpad_down"):"1–4","Fahrmodus");
         row(close,"Modmenü");

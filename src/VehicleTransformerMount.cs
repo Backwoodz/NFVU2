@@ -16,6 +16,7 @@ public partial class Plugin {
         return local!=null&&current.interior!=null&&current.transformer!=null;
     }
     void RequestRobotExit() {
+        if(RejectDriftExit())return;
         if(!driving||!Transforming)return;
         if(cabinDriver!=null&&cabinDriver.RobotTransitionActive&&!cabinDriver.RobotTransitionEntering)return;
         var t=current.transformer;

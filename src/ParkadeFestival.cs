@@ -336,7 +336,11 @@ internal sealed class ParkadeFestival {
             var tr=Holder.transform;
             float a=Vector3.Distance(upper.position,lower.position),b=Vector3.Distance(lower.position,hand.position);
             float reach=a+b;
-            var target=upper.position+tr.up*(reach*.84f+wave*.18f)+tr.right*(side*reach*.33f)+tr.forward*(reach*.08f);
+            // Large alternating overhead waves remain readable from a moving
+            // car. The old 18 cm lift looked almost stationary at road distance.
+            // Keep each target on its own shoulder side through the full cycle.
+            var target=upper.position+tr.up*(reach*(.80f+wave*.08f))
+                +tr.right*(side*reach*(.28f+wave*.12f))+tr.forward*(reach*.10f);
             var delta=target-upper.position;var direction=delta.normalized;
             float distance=Math.Max(Math.Abs(a-b)+.01f,Math.Min(a+b-.01f,delta.magnitude));
             var bend=(tr.forward*.7f+tr.right*side*.75f);bend=(bend-direction*Vector3.Dot(direction,bend)).normalized;
@@ -345,6 +349,7 @@ internal sealed class ParkadeFestival {
             var end=upper.position+direction*distance;
             upper.rotation=Quaternion.FromToRotation(lower.position-upper.position,elbow-upper.position)*upper.rotation;
             lower.rotation=Quaternion.FromToRotation(hand.position-lower.position,end-lower.position)*lower.rotation;
+            hand.rotation=Quaternion.AngleAxis(wave*side*12,tr.forward)*hand.rotation;
         }
     }
     internal void Clear() {

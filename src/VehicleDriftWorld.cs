@@ -7,6 +7,11 @@ public partial class Plugin {
     DriftCircuitMap driftCircuitMap;
     DriftCircuitAtmosphere driftCircuitAtmosphere;
     DriftLandscape driftLandscape;
+    bool DriftDriverLocked=>driving&&DriftSessionRules.Active;
+    bool RejectDriftExit() {
+        if(!DriftDriverLocked)return false;
+        ShowVehicleWarning("Driftwelt: Aussteigen ist hier nicht moeglich.");return true;
+    }
     void TickDriftTrack(MonoBehaviour local) {
         if(local==null||!DriftWorldRules.Current||Multiplayer()||Game.instance==null||Game.instance.IsShuttingDown()) {
             driftLandscape?.Clear();driftCircuitAtmosphere?.Clear();ClearDriftCircuitHud();driftCircuitMap?.Clear();driftTrack?.Clear();return;

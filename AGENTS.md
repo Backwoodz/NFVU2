@@ -20,6 +20,8 @@
   and visual changes separate from handling changes when possible.
 - Build with `python tools/build.py`; run relevant checks with
   `python tools/test.py --skip-build`. These are not Unity runtime tests.
+- Launch native visual, UI and state probes with `-noaudio` so repeated game
+  starts do not play the intro. Keep saved player audio settings unchanged.
 - Game installation paths belong in ignored config.local.json. Do not commit
   user-specific absolute paths, logs, credentials or personal identifiers.
 - Do not overwrite the installed mod while Valheim is running. Keep a backup

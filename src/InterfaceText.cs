@@ -3,6 +3,7 @@ using System.Linq;
 namespace Rachel350Z {
 public static class InterfaceText {
     static readonly KeyValuePair<string,string>[] English={
+        new KeyValuePair<string,string>("Driftwelt: Aussteigen ist hier nicht moeglich.","Drift world: you cannot leave the vehicle here."),
         new KeyValuePair<string,string>("Driftkamera","Drift camera"),
         new KeyValuePair<string,string>("Welt wird geladen. Fahrzeug wartet kurz.","Loading world. Vehicle is waiting briefly."),
         new KeyValuePair<string,string>("Der Inhalt bleibt als Kiste am Fahrzeugstandort.","Cargo remains in a chest at the vehicle's location."),

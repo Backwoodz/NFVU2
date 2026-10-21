@@ -16,6 +16,12 @@ Holzbuehnen am aeusseren Streckenrand. Ihre gesamte Standflaeche haelt Abstand
 zu allen Fahrbahnabschnitten. Die acht Zuschauer an der Startlinie bleiben.
 Die Blickrichtung wird am nativen Gesichts-Rig zur Strecke ausgerichtet;
 jeder Arm bleibt auf der Seite seiner eigenen Schulter, ohne Ueberkreuzen.
+Die Arme schwenken abwechselnd deutlich nach aussen und oben; auch die
+Handgelenke bewegen sich mit. Der fruehere Hub von nur 18 cm wirkte aus der
+Fahrperspektive fast starr. Die Jubeluhr folgt der normalen Spielzeit und haelt
+bei angehaltener Spielzeit an. Beim Wiederannaehern setzt die Bewegung fort.
+Die native Bewegungsprobe bestaetigt bei beiden Trollen etwa 92 cm Handweg,
+sichtbar veraenderte Renderbilder, Pausenstillstand und Wiederannaeherung.
 
 Neun beleuchtete Werbetafeln zeigen HKS, A'PEXi, Injen, Falken, BBS und NFSU2.
 Die Originalgrafiken stammen aus dem lokal vorhandenen `FRONTEND/FrontB.lzc`;
@@ -92,6 +98,14 @@ installiert bleiben; die Drift-Welt liest keine seiner Einstellungen.
 
 ## Umfang
 
+- In der Drift-Einzelspielerwelt bleibt der Fahrer im Fahrzeug: Aussteigen
+  ueber E, F7, B/Kreis oder das Fahrzeugmenue ist gesperrt. Das manuelle
+  Entfernen des gefahrenen Wagens ist dort ebenfalls gesperrt; Fahrhinweise
+  bieten keinen Ausstieg mehr an. Andere Welten behalten ihre Ausstiegsregeln.
+  Tod, Fehlerbereinigung und Weltwechsel koennen die Fahrzeugbindung weiterhin
+  regulaer aufraeumen.
+  Native Probe der installierten Ausstiegs-/Entfernen-Funktionen bestanden;
+  normale, Menue-, Netzwerk- und unbesetzte Kontexte bleiben freigegeben.
 - Wiesenbiom im Weltinneren, sonst Hoehe 32, zwei Meter ueber dem Meeresspiegel.
   Nur der separate Parkade-Bereich erhaelt sein gemessenes Hoehenprofil.
   Valheims urspruengliches Verhalten am aeusseren Weltrand bleibt erhalten.

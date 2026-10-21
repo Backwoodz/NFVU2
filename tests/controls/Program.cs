@@ -38,6 +38,11 @@ static class Program {
         Check(!keyboard.Contains("<sprite")&&keyboard.Contains("F10  Mod menu")&&keyboard.Contains("Shift  Ascend")&&keyboard.Contains("Space  Descend"),"keyboard flight hints use actual keys and configured menu shortcut");
         Check(!string.Join("\n",VehicleHintContent.Build(true,false,false,false,true,"F9",de)).Contains("Nitro"),"H2 ground hints omit unavailable nitro");
         Check(string.Join("\n",VehicleHintContent.Build(true,true,true,false,true,"F9",de)).Contains("Nitro"),"H2 flight hints retain available nitro");
+        foreach(bool controller in new[]{false,true}) {
+            var drift=string.Join("\n",VehicleHintContent.Build(controller,false,false,false,false,"F9",de,true));
+            Check(!drift.Contains("Aussteigen")&&!drift.Contains("Fahrmodus")&&drift.Contains("Handbremse")&&drift.Contains("Modmenü"),"drift driving hints omit exit and mode selection while retaining driving/menu controls");
+            Check(string.Join("\n",VehicleHintContent.Build(controller,false,false,false,false,"F9",de)).Contains("Aussteigen"),"other worlds keep their exit hint");
+        }
         Check(ControlRules.Axis(.1f,.16f)==0&&ControlRules.Axis(-.1f,.16f)==0,"stick drift is neutral in both directions");
         Check(ControlRules.Axis(1,.16f)==1&&ControlRules.Axis(-1,.16f)==-1,"full stick retains full steering range");
         Check(ControlRules.Axis(.58f,.16f)>.49f&&ControlRules.Axis(.58f,.16f)<.51f,"partial stick remains analog");

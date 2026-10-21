@@ -13,7 +13,8 @@ public partial class Plugin {
             if(driving)text=DriveModeName+" | "+pedals+": Gas/Bremse | LS: lenken · RS: Kamera\n"+(Flying?ButtonName("RB/LB","R1/L1")+": hoch/runter · "+exit+": landen & aussteigen":ButtonName("A","Kreuz")+": Handbremse · "+ButtonName("LB","L1")+": Geschütz · "+exit+": aussteigen")+" · "+nitro+": Nitro\nSteuerkreuz ←/→: Songs · ↑/↓: Fahrmodus · L3: Menü";
             else text="L3: Garage / Modmenü"+(CanAccessCurrent(LocalPlayer())?" · "+exit+": einsteigen":"")+"\nFahrzeug erstellen: Garage → Fahrzeug spawnen";
         }else text=driving?DriveModeName+" | "+(Flying?"W/S: vor/zurück · A/D: drehen · Shift/Leertaste: hoch/runter":"WASD: fahren · Leertaste: Handbremse/Bremse · RMB: Geschütz")+"\nE: "+(Flying?"landen & aussteigen":"aussteigen")+" · 1–4: Fahrmodus · ←/→: Songs · LMB/Strg: Nitro · "+menuKey.Value+": Menü":"F6: Fahrzeug erstellen · E: einsteigen · "+menuKey.Value+": Garage";
-        if(DriftSessionRules.Active)text=text.Replace(" · 1–4: Fahrmodus","").Replace(" · ↑/↓: Fahrmodus","");
+        if(DriftSessionRules.Active)text=text.Replace(" · 1–4: Fahrmodus","").Replace(" · ↑/↓: Fahrmodus","")
+            .Replace(" · "+ButtonName("B","Kreis")+": aussteigen","").Replace("\nE: aussteigen · ","\n");
         if(!DriftSessionRules.Active&&!Transforming&&driving&&!Flying&&transformerEnabled.Value&&!IsHummer&&current.transformerAsset!=null)
             text+="\n"+TransformerToggleHint+": Verwandeln (im Stand)";
         if(Transforming)text=driving?"Transformer | "+string.Join(" | ",TransformerHints()):
