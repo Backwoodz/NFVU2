@@ -10,7 +10,7 @@ using UnityEngine;
 using Rachel350Z;
 
 [BepInPlugin("local.nfvu2.smokeprobe","NFVU2 temporary tyre smoke probe","0.0.1")]
-public sealed class SmokeProbe:BaseUnityPlugin {
+public sealed partial class SmokeProbe:BaseUnityPlugin {
  const BindingFlags F=BindingFlags.Instance|BindingFlags.NonPublic|BindingFlags.Public;
  string folder;GameObject car;Rigidbody body;WheelCollider[] wheels=new WheelCollider[4];Transform[] visuals=new Transform[4];
  VehicleBurnoutEffects effect;Camera camera;RenderTexture rt;Light light;int checks;float rpm=850;bool rightGround=true;
@@ -30,10 +30,22 @@ public sealed class SmokeProbe:BaseUnityPlugin {
   return new TyreSmokeContact{Grounded=index==2||rightGround,Hub=hub,Point=hub-Vector3.up*.34f,Normal=Vector3.up,Rpm=rpm,Load=3500};
  }
  ParticleSystem[] Systems=>car.GetComponentsInChildren<ParticleSystem>();
- ParticleSystem.Particle[] Particles(int wheel) {var ps=Systems[wheel];var p=new ParticleSystem.Particle[ps.particleCount];ps.GetParticles(p);return p;}
+ int PlumeCount(VehicleBurnoutEffects smoke,int wheel) {
+  var plumes=(Array)typeof(VehicleBurnoutEffects).GetField("plumes",F).GetValue(smoke);var plume=plumes.GetValue(wheel);
+  return (int)plume.GetType().GetField("Count",F).GetValue(plume);
+ }
+ ParticleSystem.Particle[] Particles(int wheel)=>Particles(effect,wheel);
+ ParticleSystem.Particle[] Particles(VehicleBurnoutEffects smoke,int wheel) {
+  // Read the native upload, not the simulator arrays, so the shared-buffer
+  // regression also detects a missing wheel or a stale upload after clearing.
+  var root=(GameObject)typeof(VehicleBurnoutEffects).GetField("root",F).GetValue(smoke);
+  var ps=root.GetComponentInChildren<ParticleSystem>();var all=new ParticleSystem.Particle[ps.particleCount];ps.GetParticles(all);
+  int offset=wheel==0?0:PlumeCount(smoke,0);return all.Skip(offset).Take(PlumeCount(smoke,wheel)).ToArray();
+ }
  void Step(float dt=1f/60,bool enabled=true,bool allowed=true){effect.Advance(dt,enabled,allowed,Contact,new Vector3(.15f,0,.05f));}
  void Reset(){effect?.Dispose();if(car!=null)foreach(var ps in car.GetComponentsInChildren<ParticleSystem>())ps.gameObject.SetActive(false);effect=VehicleBurnoutEffects.Create(car,null,wheels,visuals,s=>report.Add(s));Check(effect!=null,"effect initializes with native lit material");}
  void Run() {
+  if(Environment.GetCommandLineArgs().Contains("-nfvu2-wheel-occlusion-only")){CheckWheelOcclusion();return;}
   car.SetActive(false);Reset();car.SetActive(true);
   Check((bool)typeof(VehicleBurnoutEffects).GetField("animated",F).GetValue(effect),"native lit 64-frame material selected, including inactive spawn initialization");
   var material=Systems[0].GetComponent<ParticleSystemRenderer>().sharedMaterial;
@@ -44,9 +56,12 @@ public sealed class SmokeProbe:BaseUnityPlugin {
    if(frame==11||frame==59||frame==179||frame==479)Capture("burnout-"+(frame+1)+".png",new Vector3(-4,2.1f,-5.5f),new Vector3(0,.5f,-.8f));
   }
   report.Add("8s startup CPU total ms="+timing.Elapsed.TotalMilliseconds);
-  Check(Systems.Length==2,"exactly two rear plume renderers");
+  Check(Systems.Length==1,"one globally sorted renderer for both rear plumes");
+  Check(Systems[0].main.maxParticles==2800,"shared native renderer retains the total particle budget");
+  Check(Systems[0].GetComponent<ParticleSystemRenderer>().sortMode==ParticleSystemSortMode.Distance,"both plumes sort together by particle distance");
+  for(int wheel=0;wheel<2;wheel++)Check(Particles(wheel).Length>700&&Particles(wheel).Length<=1400,"each rear tyre independently builds bounded dense smoke");
   foreach(var ps in Systems) {
-   Check(ps.particleCount>700&&ps.particleCount<=1400,"sustained burnout builds bounded dense smoke");
+   Check(ps.particleCount==PlumeCount(effect,0)+PlumeCount(effect,1),"shared native upload contains both independent plume buffers");
    Check(ps.isPaused,"native integration stays paused; particles are not moved twice");
   }
   var dense=Particles(0);report.Add("Dense per wheel="+dense.Length);
@@ -55,7 +70,7 @@ public sealed class SmokeProbe:BaseUnityPlugin {
   var wisps=dense.Where(p=>p.startLifetime<1.1f).ToArray();
   Check(wisps.Count(p=>p.startLifetime-p.remainingLifetime<.30f)>40,"dense circulating tyre mantle contains substantially more than a sparse handful of wisps");
   var wheelHub=visuals[2].position;
-  Check(wisps.Count(p=>p.startLifetime-p.remainingLifetime<.30f&&Math.Abs(p.position.x-wheelHub.x)>.16f)>10,"boundary wisps sit outside both tyre shoulders instead of inside the rubber silhouette");
+  Check(wisps.Count(p=>p.startLifetime-p.remainingLifetime<.30f&&Math.Abs(p.position.x-wheelHub.x)>.135f)>10,"boundary wisps hug both tyre shoulders instead of hiding inside the rubber silhouette");
   Check(wisps.Any(p=>p.position.y>wheelHub.y+.25f&&p.position.z>wheelHub.z+.05f),"smoke wraps beyond the tyre crown into the upper forward quadrant");
   CaptureWisps("wheel-wrap-shoulders.png",new Vector3(-2.7f,.8f,-2.8f),wheelHub);
   var tracked=dense.First(p=>p.startLifetime<1.1f&&p.startLifetime-p.remainingLifetime<.022f);
@@ -94,8 +109,8 @@ public sealed class SmokeProbe:BaseUnityPlugin {
   var at=car.transform.position;Capture("moving-drift-trail.png",at+new Vector3(-7,3,-11),at+new Vector3(-2,0,-5));
   var trail=Particles(0);Check(trail.Count(p=>p.position.z<at.z-7)>100,"moving drift leaves a continuous detached trail behind the car");
   car.transform.position=Vector3.zero;body.linearVelocity=Vector3.zero;Reset();
-  timing.Restart();for(int i=0;i<2400;i++) {Step(1f/30);Check(Systems.All(ps=>ps.particleCount<=1400),"long-run particle cap");}
-  report.Add("80s steady CPU total ms="+timing.Elapsed.TotalMilliseconds+"; particles="+string.Join(",",Systems.Select(ps=>ps.particleCount)));
+  timing.Restart();for(int i=0;i<2400;i++) {Step(1f/30);Check(PlumeCount(effect,0)<=1400&&PlumeCount(effect,1)<=1400&&Systems[0].particleCount==PlumeCount(effect,0)+PlumeCount(effect,1),"long-run per-wheel caps and complete shared native upload");}
+  report.Add("80s steady CPU total ms="+timing.Elapsed.TotalMilliseconds+"; particles="+PlumeCount(effect,0)+","+PlumeCount(effect,1));
   for(int i=0;i<400;i++)Step(enabled:false);
   Check(Systems.All(ps=>ps.particleCount==0),"all particles expire and no persistent native smoke exists");
   Reset();for(int i=0;i<180;i++)Step();
@@ -113,9 +128,29 @@ public sealed class SmokeProbe:BaseUnityPlugin {
   report.Add("30/144Hz particle counts="+string.Join(",",counts));
   Check(Math.Abs(counts[0]-counts[1])<15,"particle source/lifetimes stay consistent at 30 and 144 Hz");
   CheckRenderCadence();
+  CheckFullWheelWrap();
+  CheckContactPatchSmoke();
+  CheckDetachedCloudFlow();
+  CheckDetachedBaseline();
+  CheckWheelOcclusion();
+  CheckSharedBufferClearing();
+  CheckAtlasDepth();
+  CheckSmokeSorting();
+  CheckContactSourceInterpolation();
   CheckGlassSmoke();
   Check(car.GetComponentsInChildren<Smoke>(true).Length==0,"no game Smoke MonoBehaviours");
   Check(car.GetComponentsInChildren<AudioSource>(true).Length==0,"smoke creates no audio");
+ }
+ void CheckSharedBufferClearing() {
+  Reset();for(int i=0;i<180;i++)Step();
+  Check(Particles(0).Length>100&&Particles(1).Length>100,"both tyre buffers populated before single-source reset");
+  Func<int,TyreSmokeContact> invalidLeft=index=>{var c=Contact(index);if(index==2)c.Hub=new Vector3(float.NaN,0,0);return c;};
+  effect.Advance(1f/60,true,true,invalidLeft,Vector3.zero);
+  Check(Particles(0).Length==0&&Particles(1).Length>100&&Systems[0].particleCount==PlumeCount(effect,1),"invalid left source removes its stale native particles and preserves the right plume");
+  effect.Advance(float.NaN,true,true,Contact,Vector3.zero);
+  Check(Systems[0].particleCount==0&&PlumeCount(effect,0)==0&&PlumeCount(effect,1)==0,"invalid clock clears both native and simulated buffers");
+  Step();Check(Particles(0).Length==PlumeCount(effect,0)&&Particles(1).Length==PlumeCount(effect,1),"shared upload recovers after source and clock reset");
+  Reset();for(int i=0;i<180;i++)Step();
  }
  void CheckRenderCadence() {
   foreach(int hz in new[]{30,60,144}) {
@@ -209,9 +244,9 @@ public sealed class SmokeProbe:BaseUnityPlugin {
   var image=new Texture2D(rt.width,rt.height,TextureFormat.RGB24,false);image.ReadPixels(new Rect(0,0,rt.width,rt.height),0,0);image.Apply();File.WriteAllBytes(Path.Combine(folder,name),image.EncodeToPNG());Destroy(image);RenderTexture.active=previous;
  }
  void CaptureWisps(string name,Vector3 position,Vector3 target) {
-  var particles=new[]{Particles(0),Particles(1)};
-  for(int i=0;i<2;i++){var wisps=particles[i].Where(p=>p.startLifetime<1.1f).ToArray();Systems[i].SetParticles(wisps,wisps.Length);}
+  var particles=Particles(0).Concat(Particles(1)).ToArray();
+  var wisps=particles.Where(p=>p.startLifetime<1.1f).ToArray();Systems[0].SetParticles(wisps,wisps.Length);
   Capture(name,position,target);
-  for(int i=0;i<2;i++)Systems[i].SetParticles(particles[i],particles[i].Length);
+  Systems[0].SetParticles(particles,particles.Length);
  }
 }

@@ -75,7 +75,13 @@ static class DriftAdapterChecks {
         for(int i=0;i<4;i++){
             Near(adapter.ContactPoint(i).y,.04f,.0001f,"nearest eligible road contact wins over self, children, characters and walls");
             Near(adapter.ContactNormal(i).y,1,.0001f,"contact normal is an upward unit vector");
+            Near(adapter.ContactHub(i).y-adapter.ContactPoint(i).y,f.Wheels[i].radius,.0001f,"contact hub belongs to the same raw road sample");
         }
+        var sampledHubs=Enumerable.Range(0,4).Select(adapter.ContactHub).ToArray();
+        var sampledPoints=Enumerable.Range(0,4).Select(adapter.ContactPoint).ToArray();
+        f.Body.transform.position+=new Vector3(3,0,2);
+        Check(Enumerable.Range(0,4).All(i=>(adapter.ContactHub(i)-sampledHubs[i]).sqrMagnitude==0&&(adapter.ContactPoint(i)-sampledPoints[i]).sqrMagnitude==0),
+            "rendered chassis movement does not mix the stored contact pair with a newer pose");
         int points=f.Body.pointCalls;Physics.Override=(o,d,dist)=>new RaycastHit[0];
         Check(adapter.Step(true,0,0,0)&&f.Body.pointCalls==points,"missing road applies no stale contact impulses");
         Check(Enumerable.Range(0,4).All(i=>!adapter.Grounded(i)&&adapter.ContactPoint(i).sqrMagnitude==0&&adapter.ContactNormal(i).sqrMagnitude==0),"missing road clears all preceding contact telemetry");

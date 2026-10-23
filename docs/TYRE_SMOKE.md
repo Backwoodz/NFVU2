@@ -14,16 +14,37 @@ open; isolated native rendering checks do not establish long-session GPU stabili
   Sustained friction builds density over several seconds; recovered grip stops
   new emission while the existing cloud continues to disperse. Heat is a
   normalized visual proxy, not a tyre temperature or a change to grip.
-- New wisps follow the tyre's rotation on the outside of both shoulders, where
-  rubber does not hide the movement. Under strong wheelspin the wispy boundary
-  layer follows a roughly 210–260-degree arc, over the crown, and gradually
-  spreads outward before shedding. It follows the current wheel frame through
+- New wisps closely follow both tyre shoulders, with smaller billboards and
+  limited sideways peeling so the mantle does not protrude as a separate ring
+  when viewed from above. Centres start 14–16 cm from the wheel midplane;
+  axial peeling adds at most 1.2 cm. Under strong wheelspin the wispy boundary
+  layer follows roughly one full turn (about 360–380 degrees), gradually
+  spreading outward during the latter part of the turn before shedding.
+  The randomized attachment time is capped at 0.50–0.56 seconds, so slower
+  wheelspin releases the smoke before completing a full circle. The earlier
+  210–260-degree limit left a visible open quarter in the mantle.
+  It follows the current wheel frame through
   turning motion; loss of the source releases it immediately. Angular
   entrainment is capped; the whole cloud never spins at wheel RPM and there is
   no closed, rigid smoke ring. Small wisps live 0.65–1.05 seconds. Larger puffs
   detach after 0.10–0.22 seconds,
   retain some wake momentum, approach Valheim's wind and expand over 3.6–6.2
-  seconds. A continuous, divergence-free velocity field creates rolling eddies.
+  seconds. Free clouds retain directed circulation in their stored birth frame:
+  the wake moves along the old world trail, its rolling radius expands, and
+  circulation fades over the following seconds. Slow/zero wheel rotation scales
+  that directed component down. A smooth local eddy field adds smaller billows.
+  Released smoke never uses the current wheel as its circulation centre.
+- One in three cloud births starts directly across the tyre's contact patch,
+  instead of orbiting first. These puffs become visible quickly, spread near
+  the road and feed the detached cloud. The source uses the same friction/load
+  gating, sampled/rendered contact pair and existing cloud rate/budget; no
+  additional renderer or particle allocation is needed. A released contact puff
+  remains in world space rather than being pulled along by the wheel.
+- Free clouds use stable birth variation in size, growth, opacity, lateral
+  spread and sub-frame position. This breaks uniform rows without frame-wise
+  random jitter. Stronger overlap and slower dilution make the cloud denser;
+  source rates and lifetimes are unchanged, avoiding starvation at the existing
+  cloud cap. The accepted narrow tyre mantle and its random stream are unchanged.
 - Positions stay in world space. Births are distributed along the travelled
   contact path, with simulation steps no longer than 25 ms. Pauses freeze age,
   flow and heat. Menus, flight, dismounting and transformation stop the source;
@@ -33,7 +54,11 @@ open; isolated native rendering checks do not establish long-session GPU stabili
   ages and the native particle buffer. At 144 Hz that means approximately
   6.94 ms between updates. There is no former-neon-style 60 ms hold to remove.
 - Current drift-physics contacts supply normal and load through read-only
-  adapter accessors. Ordinary driving/burnouts use WheelCollider contact data.
+  adapter accessors. Contact point and hub are cached from the same physics
+  sample, then shifted together to the rendered wheel. Previously the drift
+  provider mixed a sampled contact point with an interpolated hub, cancelling
+  that shift and holding the source between physics ticks. Ordinary
+  driving/burnouts use WheelCollider contact data.
   The force integration and separate physics library are unchanged.
 
 ## Rendering and bounds
@@ -45,18 +70,25 @@ network objects, colliders, lights or audio sources. Native textures remain owne
 by the game. If that material is unavailable, the existing original NFS atlas
 uses an alpha-blended fallback; there is no additive/glow fallback.
 
-There are two particle renderers, with a hard limit of 1,400 particles each.
+Both tyres share one native particle renderer, sorted by individual particle
+distance with a hard limit of 2,800 particles. Simulation, heat, random streams
+and the 1,400-particle budget remain independent for each tyre. Separate
+renderers previously sorted whole overlapping plumes against one another;
+crossing their sorting boundary could abruptly reverse their alpha blend order.
+The shared upload uses a reused buffer and includes both plumes every update.
 Source rates never exceed 210 cloud puffs plus 260 wisps per second per wheel.
-The tyre mantle has nearly three times the earlier wisp rate, larger compact
-puffs and greater opacity. Each wheel reserves up to 350 slots for wisps and
+The tyre mantle keeps its high wisp rate with smaller puffs close to the rubber.
+Each wheel reserves up to 350 slots for wisps and
 1,050 for detached clouds so a lingering trail cannot starve the rotating layer.
 Independent random streams per wheel/layer keep lifetime distributions stable
 when rendering frame rate changes.
 Cloud diameter is capped at 3.8 m and renderer screen size at 0.35. Arrays and
 materials are reused. There are no smoke raycasts per particle. A contact-plane
 guard within 6 m of each birth contact prevents nearby flow from sinking into
-the road. It does not resolve walls, ceilings or arbitrary terrain beyond that
-local plane. Billboards have no volumetric self-shadowing or fluid pressure
+the road. Free clouds also damp downward velocity near their stored birth plane,
+so a fast rolling wake does not dive below it after leaving that short position
+guard. These rules do not resolve walls, ceilings or arbitrary terrain beyond
+the birth plane. Billboards have no volumetric self-shadowing or fluid pressure
 solver; overlapping tyre plumes share a flow field but do not exchange mass.
 
 `[Effects] TyreSmokeEnabled=false` still avoids all smoke renderer/material/texture
@@ -114,12 +146,101 @@ shoulder placement, travel beyond the tyre crown, wheel-frame following and
 immediate release when the source is disabled, independent
 ground contact, expansion, world-space persistence, source release, particle
 expiry, teleport reset, pause delta and the particle cap over 80 simulated
-seconds. It also compares source counts at 30 and 144 Hz. The fixture uses a
-simple reference chassis and synthetic contacts; it does not validate real
-driving, all lighting conditions, wall collisions or sustained GPU performance.
+seconds. It also compares source counts at 30 and 144 Hz and checks independent
+source clearing in the shared renderer. Most flow checks use a simple reference
+chassis and synthetic contacts. They do not validate real driving, all lighting
+conditions, wall collisions or sustained GPU performance.
 
 An additional cadence regression tracks the same moving particle for ten
 successive updates at 30, 60 and 144 Hz, checking age and position each time.
-All three runs have zero held frames; 2,511 native smoke checks pass. This
-rules out that specific refresh-timer hypothesis in the exercised path; it
-does not establish the cause of any flicker seen in a driving recording.
+All three runs have zero held particle frames. This rules out that specific
+refresh-timer hypothesis in the exercised path. The original synthetic provider
+did not exercise the drift adapter's mixed physics/render poses.
+
+The added native contact fixture uses the current drift adapter, real PhysX
+road contacts and held physics samples with a moving render pose at 112 km/h.
+At 144 Hz the old provider holds the source for 94 frames in one second, with
+up to 0.622 m wheel offset. The corrected pair has no held frames at 30/60/144 Hz
+and stays within 0.00025 m of the rendered tyre in this fixture.
+
+Frozen-particle rendering checks separate atlas animation, depth fading and
+transparent sorting. Native UV/animation streams blend adjacent atlas frames;
+5 mm road-depth increments produce smooth fading, so neither setting is changed.
+Mature stationary and donut plumes retain their production colours, random atlas
+starts, ages and positions while the camera moves only 4 mm across the old
+renderer boundary. In the donut case, separate renderers change 14,982 pixels
+strongly, versus 182 with global particle sorting; the stationary case drops
+from 832 to 24. These figures describe isolated fixture views, not a guarantee
+for every driving scene. CSV reports and comparison PNGs preserve the old
+split-renderer reference alongside the corrected shared rendering.
+
+The combined correction passes 3,832 native checks, plus 31,031 portable adapter
+and 16,020 heat/emission checks. Production uploads match the globally sorted
+frozen reference in the startup, mature stationary and donut scenes, with zero
+strongly changed pixels. The contact fixture controls physics/render timing;
+uneven saved-world terrain and final driving appearance still require acceptance.
+
+The subsequent full-turn mantle adjustment passes 4,053 native checks and the
+16,020 portable heat/emission checks. A tracked visible wisp reaches roughly
+355–360 degrees in sampled frames at 60/144 Hz, forward and reverse, while the
+vehicle translates and turns. The test checks outward peeling, visibility in
+the closing quarter, road clearance and detachment after the turn. Separate
+images isolate the wheel wisps. The shared sorting/contact-source regressions
+still pass; the emission counts and per-wheel particle caps are unchanged.
+
+The tighter mantle and direct contact source pass 5,151 native checks and
+16,020 portable heat/emission checks. At 30/60/144 Hz, fresh contact puffs remain
+within 16 cm of their sampled birth footprint in the stationary fixture, above
+the road, and are visibly rendered in isolation. Attached mantle centres plus
+half their billboard size reach about 27 cm from the wheel midplane. Overhead
+and side images document the appearance; full-turn, world-trail, source timing,
+global sorting, expiry and budget regressions also pass. This remains an
+isolated rendering fixture rather than saved-world visual acceptance.
+
+The first detached rolling-cloud comparison passes 8,699 native checks and the 16,020
+portable heat/emission checks. Directed circulation is exercised at 1–2 s,
+including reverse/slow/zero wheel rotation, smooth dissipation, rotated birth
+frames, local continuity and bounded velocities. Sixteen real native particles
+are tracked for 20 updates while their source moves 12 m and turns 240 degrees;
+their trajectories match a stationary-source control, with no held frames.
+
+A comparison compiles the new source alongside the installed previous build
+using an assembly alias. Its SHA-256 is recorded in `baseline-sha256.txt`.
+Stationary and curved moving scenes use the same clock, wheel inputs and camera;
+tyre wisps retain identical seeds, positions, sizes and colours, and live particle
+counts match. The dense-pixel area in these two isolated views increases from
+58,901 to 97,546 and 66,103 to 103,214. These image metrics describe coverage in
+the fixture, not physical smoke density or parity with another game's renderer.
+Before/after/background PNGs preserve the visual comparison. Self-shadowed
+volumetric fluid simulation remains outside this particle effect.
+
+The final version adds smooth descent damping near the birth contact plane and
+passes 11,402 native checks. A further 20 m/s fixture emits for six seconds and
+then releases for three seconds: 954 distinct clouds travel outside the 6 m
+position guard, with at least 0.1799 m centre clearance there and no held updates
+or trajectory jumps. The broader comparison covers 241,156 native cloud samples.
+The descent adjustment leaves the denser image coverage within one percent of
+the first rolling-cloud version and again preserves the installed mantle exactly.
+
+The subsequent rim-occlusion fixture loads the original stock wheel mesh and
+measures transmitted rim contrast through frozen production smoke. It inverts
+two opaque measurement materials and calibrates against a smoke-free capture
+at the same pose; a depth-tested ID mask excludes the surrounding cloud.
+It exercises 20 m/s forward plus both signs of 10 m/s lateral velocity, at
+950 and 650 RPM after eight-second warmups, from four viewpoints. Cold,
+source-off and ordinary-rolling controls distinguish real rim occlusion from
+merely rendering a bright wake. Comparison PNGs and `wheel-occlusion.csv`
+retain the installed baseline; its SHA-256 identifies the exact comparison.
+The targeted run is available via
+`python tools/test_tyre_smoke_unity.py --wheel-occlusion-only`.
+An experimental dense source passed 12,108 native checks and reduced hot
+side-on rim contrast to 1–7 percent, but the player rejected its actual
+overhead appearance: large, broad overlapping sources formed two bright,
+uniform tubes. That experiment was reverted, including its extra attachment,
+source-following volume and initial velocity carry. The restored build is
+SHA-256-identical to the saved pre-experiment DLL and again passes the 16,020
+portable checks. Earlier flicker fixes, the narrow mantle, contact source and
+detached rolling flow remain intact. The contrast fixture is retained for
+diagnosis; forced minimum occlusion is no longer a visual acceptance condition.
+Future appearance checks must also assess overhead shape and actual gameplay,
+rather than infer realism from the amount of hidden rim contrast.

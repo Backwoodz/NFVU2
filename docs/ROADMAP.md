@@ -2,6 +2,93 @@
 
 ## Parkplatz und Parkade-Rennen (lokale Entwicklung)
 
+- Versuch zur erzwungenen Felgenverdeckung nach Spielrueckmeldung verworfen:
+  breite, grosse und stark ueberlappende Quellwolken verdeckten die Felge in
+  der nativen Probe, wirkten in der echten erhoehten Spielansicht jedoch wie
+  zwei gleichmaessige helle Schlaeuche. Die bestandenen 12.108 technischen
+  Pruefungen waren keine visuelle Abnahme. Letzte Quellverdichtung inklusive
+  langer Mitnahme vollstaendig zurueckgenommen; vorherigen Stand mit freier
+  rollender Wolke, engem Mantel, Bodenquelle und Flackerkorrekturen restauriert.
+  Neu gebautes Haupt-DLL ist SHA-256-identisch mit dem gesicherten Stand vor
+  diesem Versuch; 16.020 portable Rauchpruefungen erneut bestanden.
+  Felgenkontrastprobe bleibt als Diagnose erhalten, ihre erzwungenen
+  Verdeckungsgrenzen gelten nicht mehr als Qualitaetskriterium.
+  Vorherigen Stand bei geschlossenem Spiel mit neuem Backup wieder lokal
+  installiert; alle 127 Payload-Dateien SHA-256-geprueft. Konfiguration,
+  Physik und Audio unveraendert.
+
+- Freie Rauchwolke auf Assetto-Bildreferenzen weiter abgestimmt: nach Ablosung
+  bleibt ein gerichteter Wirbel in der gespeicherten Rad-/Fahrtrichtung erhalten,
+  mit groesser werdendem Radius, weich abnehmender Rotation, Wake und Wind.
+  Weltspur bleibt vom aktuellen Auto unabhaengig. Feste Variation von Groesse,
+  Wachstum, Alpha, seitlicher Streuung und Unterbild-Geburtsposition bricht
+  gleichfoermige Wolkenreihen; hoehere Ueberlappung und langsamere Verduennung
+  verdichten die Wolke bei gleicher Emissionsrate, Lebensdauer und Partikelgrenze.
+  Akzeptierter Reifenmantel unveraendert: native Gegenprobe zur zuvor installierten
+  DLL bestaetigt identische Wisp-Positionen, -Groessen, -Farben, Seeds und Anzahl.
+  Build, 16.020 portable und 11.402 native Rauchpruefungen bestanden. Gerichteter
+  Curl nach 1--2 s, Abklingen, Rotation des gespeicherten Frames und echte
+  Welttrajektorien nach Quellverlust geprueft; alle bisherigen Flacker-, Kontakt-,
+  Glas- und Budgetpruefungen erfolgreich. Bildvergleich stationaer/bei Kurvenfahrt
+  zeigt deutlich dichtere Flaechen; endgueltige Spielansicht/Lastabnahme offen.
+  Zusaetzliche 72-km/h-Probe mit sechs Sekunden Emission und drei Sekunden
+  Auslauf: 954 verschiedene Wolken ausserhalb des bisherigen 6-m-Positions-
+  guards bleiben ueber der Geburtsebene. Freie Abwaertsbewegung wird dort
+  weich gedaempft; Reifenmantel, Bodenquelle und sichtbare Verdichtung erhalten.
+  Finalen Build bei geschlossenem Spiel mit Backup lokal installiert, alle
+  127 Payload-Dateien SHA-256-geprueft; nur Haupt-DLL geaendert, Konfiguration,
+  Physikbibliothek und Audio erhalten.
+
+- Rauchmantel nach erhoehter Spielansicht enger am Reifen: kleinere Wispen,
+  seitliche Zentren 14--16 statt 16,5--21,5 cm, seitliche Ablosung maximal
+  1,2 statt 3,5 cm; auch radialer Abstand reduziert. Der volle Umlauf bleibt
+  erhalten. Jede dritte Wolkengeburt entsteht jetzt direkt am Bodenkontakt,
+  wird schneller sichtbar und stroemt von dort in die abgeloeste Weltwolke.
+  Bestehende Reibungs-/Lastbedingungen, Emissionsrate, 1.400er Radbudget und
+  gemeinsamer Renderer bleiben erhalten.
+  Build, 16.020 portable und 5.151 native Rauchpruefungen bestanden, mit
+  Aufsichts-/Seitenbildern, sichtbarer isolierter Kontaktquelle und 30/60/144-Hz-
+  Vergleich. Voller Umlauf, Quelleninterpolation, Sortierung, Glas, Ablauf und
+  Langzeitbudget bleiben erfolgreich; finale Spielansicht auf der Strecke offen.
+  Mit Backup bei geschlossenem Spiel lokal installiert: 127 Payload-Dateien
+  SHA-256-geprueft, nur Haupt-DLL geaendert, Konfiguration und Physik erhalten.
+
+- Rauchmantel auf weitere Spielrueckmeldung geschlossen: bisherige Begrenzung
+  auf etwa 210--260 Grad liess das letzte Viertel des Reifens offen. Kleine
+  Schulterwispen folgen bei starkem Durchdrehen jetzt etwa einer vollen
+  Umdrehung (360--380 Grad), mit variierender Ablosung und weichem Auswaerts-
+  Verlauf im letzten Abschnitt. Zeitgrenze 0,50--0,56 s laesst langsamen Rauch
+  weiterhin frueher los; Emissionsrate, Lebensdauer und Partikelbudget erhalten.
+  Build, 16.020 portable und 4.053 native Rauchpruefungen bestanden. Verfolgte
+  sichtbare Wispen legen vorwaerts/rueckwaerts bei 60/144 Hz auch am bewegten,
+  gedrehten Fahrzeug etwa eine volle Runde zurueck und loesen sich danach ab;
+  native Bildproben zeigen das bisher fehlende Viertel. Quelleninterpolation,
+  gemeinsame Sortierung, Glas und Langzeitbudgets bleiben erfolgreich.
+  Mit Backup bei geschlossenem Spiel lokal installiert; 127 Payload-Dateien
+  SHA-256-geprueft, nur Haupt-DLL geaendert, Konfiguration und Physik erhalten.
+
+- Reifenrauch nach Flacker-Rueckfrage weiter untersucht und zwei Ursachen
+  nativ reproduziert: Driftkontakt mischte rohe Physikposition mit geglaettetem
+  Radzentrum; jetzt zusammengehoeriges Kontakt-/Hub-Paar bis zum Renderbild
+  verschieben. Bei 112 km/h und 144 Hz vorher 94 gehaltene Quellbilder pro
+  Sekunde und bis 0,622 m Versatz; jetzt bei 30/60/144 Hz keine Haltebilder,
+  unter 0,25 mm Versatz in der isolierten Kontaktprobe.
+  Ueberlappende linke/rechte Rauchfahnen konnten ausserdem ihre gesamte
+  Zeichenreihenfolge abrupt tauschen. Jetzt ein gemeinsamer entfernungs-
+  sortierter Renderer fuer maximal 2.800 Partikel; Simulation, Waerme,
+  Zufallsfolgen und Budgets bleiben pro Reifen getrennt. Donut-Bildvergleich
+  mit eingefrorenen echten Produktionspartikeln und 4 mm Kamerabewegung:
+  14.982 stark veraenderte Pixel vorher, 182 mit gemeinsamer Sortierung.
+  Atlasueberblendung und Bodenausblendung laufen in den isolierten Proben weich;
+  deren Parameter bleiben erhalten. Build, 31.031 Adapter-, 16.020 portable
+  Rauch- und 3.832 native Rauchpruefungen bestanden, einschliesslich echter
+  Uploaddaten, einseitiger Quellbereinigung, Pausen, Langzeitbudget und Glas.
+  Bei geschlossenem Spiel mit Backup lokal installiert, alle 127 Payload-
+  Dateien SHA-256-geprueft; nur Rachel350Z.dll geaendert, Konfiguration erhalten.
+  Fahrkraefte, separate Physikbibliothek und Audio unveraendert; abschliessende
+  Sicht-/Lastabnahme beim Fahren auf der Strecke offen. Details:
+  [Reifenrauch](TYRE_SMOKE.md).
+
 - Neon auf weitere Bildrueckmeldung weicher auslaufend: originale vier
   Lichtbereiche einmalig in lineare Lichtabdeckung umgerechnet, mit engem
   Kern und breitem schwachem Saum geglaettet; RGB/Alpha multiplizieren den

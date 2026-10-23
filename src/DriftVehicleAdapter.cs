@@ -11,7 +11,7 @@ internal sealed class DriftVehicleAdapter : IDisposable {
     readonly Action<string> log;
     readonly DriftPowertrain powertrain=new DriftPowertrain();
     readonly DriftTyre[] tyres={new DriftTyre(),new DriftTyre(),new DriftTyre(),new DriftTyre()};
-    readonly Vector3[] anchors=new Vector3[4],contacts=new Vector3[4],normals=new Vector3[4],hubs=new Vector3[4],previousHubs=new Vector3[4],forces=new Vector3[4];
+    readonly Vector3[] anchors=new Vector3[4],contacts=new Vector3[4],normals=new Vector3[4],contactHubs=new Vector3[4],hubs=new Vector3[4],previousHubs=new Vector3[4],forces=new Vector3[4];
     readonly float[] loads=new float[4],spinAngles=new float[4],spinAdvances=new float[4],slip=new float[4],sideSlip=new float[4],skid=new float[4];
     readonly bool[] grounded=new bool[4],previousEnabled=new bool[4];
     bool disposed,gravity;
@@ -32,6 +32,7 @@ internal sealed class DriftVehicleAdapter : IDisposable {
         for(int i=0;i<4;i++) {
             anchors[i]=body.transform.InverseTransformPoint(wheels[i].transform.position);
             hubs[i]=previousHubs[i]=anchors[i];previousEnabled[i]=wheels[i].enabled;
+            contactHubs[i]=body.position+body.rotation*anchors[i];
             tyres[i].AngularSpeed=Vector3.Dot(body.GetPointVelocity(wheels[i].transform.position),body.rotation*Vector3.forward)/wheels[i].radius;
         }
         for(int i=0;i<4;i++){wheels[i].motorTorque=0;wheels[i].brakeTorque=0;wheels[i].enabled=false;}
@@ -80,6 +81,10 @@ internal sealed class DriftVehicleAdapter : IDisposable {
                     if(grounded[i]){contacts[i]=selected.point;normals[i]=normal;contactCount++;}
                 }
                 hubs[i]=anchors[i]-Vector3.up*extension;
+                // Keep contact point and hub in the same sampled physics pose.
+                // Effects shift this pair together to the interpolated wheel;
+                // a rendered hub here would cancel that between-tick motion.
+                contactHubs[i]=origin-up*extension;
             }
             float signedSpeed=Vector3.Dot(body.linearVelocity,forward);
             BurnoutActive=driving&&burnout&&!handbrake&&brake<=0&&body.linearVelocity.magnitude<(BurnoutActive?2f:.65f)
@@ -177,6 +182,7 @@ internal sealed class DriftVehicleAdapter : IDisposable {
     public float WheelRpm(int index)=>tyres[index].AngularSpeed*60/(2*Mathf.PI);
     public bool Grounded(int index)=>grounded[index];
     public Vector3 ContactPoint(int index)=>contacts[index];
+    public Vector3 ContactHub(int index)=>contactHubs[index];
     public Vector3 ContactNormal(int index)=>normals[index];
     public float ContactLoad(int index)=>loads[index];
     public float SidewaysSlip(int index)=>sideSlip[index];
