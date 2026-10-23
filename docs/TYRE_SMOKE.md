@@ -28,6 +28,10 @@ open; isolated native rendering checks do not establish long-session GPU stabili
   contact path, with simulation steps no longer than 25 ms. Pauses freeze age,
   flow and heat. Menus, flight, dismounting and transformation stop the source;
   existing smoke ages out. Teleports clear the plume and heat state.
+  The 25 ms value is a maximum integration step, not a refresh timer: every
+  rendered `LateUpdate` with positive game delta updates particle positions,
+  ages and the native particle buffer. At 144 Hz that means approximately
+  6.94 ms between updates. There is no former-neon-style 60 ms hold to remove.
 - Current drift-physics contacts supply normal and load through read-only
   adapter accessors. Ordinary driving/burnouts use WheelCollider contact data.
   The force integration and separate physics library are unchanged.
@@ -113,3 +117,9 @@ expiry, teleport reset, pause delta and the particle cap over 80 simulated
 seconds. It also compares source counts at 30 and 144 Hz. The fixture uses a
 simple reference chassis and synthetic contacts; it does not validate real
 driving, all lighting conditions, wall collisions or sustained GPU performance.
+
+An additional cadence regression tracks the same moving particle for ten
+successive updates at 30, 60 and 144 Hz, checking age and position each time.
+All three runs have zero held frames; 2,511 native smoke checks pass. This
+rules out that specific refresh-timer hypothesis in the exercised path; it
+does not establish the cause of any flicker seen in a driving recording.

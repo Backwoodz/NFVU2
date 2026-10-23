@@ -112,9 +112,27 @@ public sealed class SmokeProbe:BaseUnityPlugin {
   foreach(int hz in new[]{30,144}) {Reset();for(int i=0;i<hz*6;i++)Step(1f/hz);counts.Add(Particles(0).Length);}
   report.Add("30/144Hz particle counts="+string.Join(",",counts));
   Check(Math.Abs(counts[0]-counts[1])<15,"particle source/lifetimes stay consistent at 30 and 144 Hz");
+  CheckRenderCadence();
   CheckGlassSmoke();
   Check(car.GetComponentsInChildren<Smoke>(true).Length==0,"no game Smoke MonoBehaviours");
   Check(car.GetComponentsInChildren<AudioSource>(true).Length==0,"smoke creates no audio");
+ }
+ void CheckRenderCadence() {
+  foreach(int hz in new[]{30,60,144}) {
+   car.transform.position=Vector3.zero;car.transform.rotation=Quaternion.identity;body.linearVelocity=Vector3.zero;rpm=850;rightGround=true;Reset();
+   for(int i=0;i<hz*3;i++)Step(1f/hz);
+   var tracked=Particles(0).First(p=>p.startLifetime<1.1f&&p.startLifetime-p.remainingLifetime<.04f);int held=0;
+   for(int frame=0;frame<10;frame++) {
+    var before=tracked;body.linearVelocity=new Vector3(8,0,20);car.transform.position+=body.linearVelocity/hz;Step(1f/hz);
+    tracked=Particles(0).Single(p=>p.randomSeed==before.randomSeed);
+    if(Vector3.Distance(tracked.position,before.position)<.00001f)held++;
+    Check(Math.Abs((before.remainingLifetime-tracked.remainingLifetime)-1f/hz)<.00001f,"smoke age advances on every render call at "+hz+" Hz");
+    Check(Vector3.Distance(tracked.position,before.position)<body.linearVelocity.magnitude/hz+1,"tracked moving smoke has no multi-frame position jump at "+hz+" Hz");
+   }
+   report.Add("Smoke render cadence "+hz+"Hz: held particle frames="+held+" / 10");
+   Check(held==0,"moving smoke positions update every render call at "+hz+" Hz, without a 60 ms hold");
+  }
+  car.transform.position=Vector3.zero;body.linearVelocity=Vector3.zero;Reset();for(int i=0;i<180;i++)Step();
  }
  void CheckGlassSmoke() {
   foreach(var ps in Systems)ps.GetComponent<ParticleSystemRenderer>().enabled=false;

@@ -2,6 +2,67 @@
 
 ## Parkplatz und Parkade-Rennen (lokale Entwicklung)
 
+- Neon auf weitere Bildrueckmeldung weicher auslaufend: originale vier
+  Lichtbereiche einmalig in lineare Lichtabdeckung umgerechnet, mit engem
+  Kern und breitem schwachem Saum geglaettet; RGB/Alpha multiplizieren den
+  Verlauf nicht erneut. Groessere 3,7 x 6,2 m Projektionsflaeche, weicher
+  Nullrand und Mipmaps; 15x25 Bodenpunkte erhalten den bisherigen Punktabstand.
+  Native Bildprobe: rund 98 % der bisherigen Gesamtlichtmenge, 43 % Spitzenwert,
+  fast dreimal so viele schwache Saumpixel und sechsmal sanftere steilste Kante.
+  HDR-/Bloom- und Bodentests bleiben erfolgreich; rund 0,32 ms Projektion je
+  Bild in der isolierten Probe. 1.612 native Neonpruefungen bestanden.
+- Rauch-Taktung auf Rueckfrage nativ geprueft: bereits pro Renderbild, ohne
+  60-ms-Halteintervall. Die 25 ms begrenzen nur interne Integrationsschritte.
+  Verfolgter bewegter Partikel bei 30/60/144 Hz jeweils ohne gehaltene Bilder,
+  Alter laeuft bei jedem Aufruf weiter. 2.511 native und 16.020 portable
+  Rauchpruefungen bestanden; Rauchdarstellung und -taktung nicht veraendert.
+  Mit Backup lokal installiert, 127 Payload-Dateien SHA-256-geprueft;
+  nur Rachel350Z.dll geaendert, Physik/Konfiguration/Audio erhalten.
+
+- Neon-Helligkeit nach weiterer Bildrueckmeldung abgestimmt: Nach Entfernen
+  der bodennahen Ausblendung war die additive Projektion zu stark. Eigene
+  Projektionshelligkeit jetzt 18 % der bisherigen linearen Lichtstaerke;
+  sRGB-/Linear-Umrechnung bewahrt die gewaehlte Farbe. Bodenraster/-abstand,
+  Tiefenpruefung, Zusatzlichter und Pulsmodus erhalten. Native Nachtprobe
+  um echtes `ingame`-HDR-/Bloomprofil, dunkles Pflaster, Karosseriehuelle und
+  Gruen/Blau/Weiss erweitert: sichtbare Bildhelligkeit gegenueber der hellen
+  Fassung auf 21--28 % gesenkt, keine gesaettigten Pixel in diesen Proben.
+  1.200 native Pruefungen und 25 Lichtchecks bestanden; die vorherigen
+  Boden-/Bewegungspruefungen bleiben erfolgreich. Mit Backup lokal installiert,
+  127 Payload-Dateien SHA-256-geprueft; nur Rachel350Z.dll geaendert,
+  Konfiguration und Physik erhalten. Endgueltige Helligkeitsabnahme im Spiel offen.
+
+- Zweite Neon-Rueckmeldung mit Bodenbildern: Grobe 7x13-Projektion schnitt
+  zwischen den Strahlen durch kleine Terrainknicke; zusaetzlich blendete der
+  additive Partikelshader das bodennahe Licht mit seinem global aktivierten
+  Soft-Particle-Pfad stark aus. Jetzt 11x21 Punkte, 6 cm senkrechter Abstand
+  und nur am eigenen Neonmaterial eine auf 1 mm begrenzte Tiefenausblendung.
+  Native Probe mit echtem Pflastermaterial/-texturen und Tiefenpuffer erweitert;
+  auf bewegten/gedrehten Positionen in unebenem 1-m-Terrain vorher 262 verdeckte
+  Dreiecksproben, jetzt keine. 1.193 native Pruefungen und 25 Lichtchecks
+  bestanden; echte Pflasterdarstellung und Verdeckung durch eine Karosserie-
+  huelle gerendert. Rund 0,20 ms Projektion je Bild in der isolierten Probe.
+  Mit Backup lokal installiert, 127 Payload-Dateien SHA-256-geprueft; nur
+  Rachel350Z.dll geaendert. Die allgemeine Partikeleinstellung, andere
+  Effektmaterialien, Konfiguration, Handling und Audio bleiben erhalten.
+  Abschliessender Vergleich derselben Stellen in der Spielwelt bleibt offen.
+
+- Unterboden-Neon nach TikTok-Rueckmeldung: Die Weltprojektion wurde nur alle
+  60 ms aktualisiert und blieb bei Fahrt mehrere Renderbilder am alten Ort.
+  Native Vergleichsprobe bei 30/60/144 Hz und rund 112 km/h reproduziert
+  bis zu 1,72 m Versatz. Jetzt in jedem LateUpdate neu auf den Boden projiziert;
+  im gleichen Vergleich unter 0,002 mm horizontaler Versatz und stabiler
+  Neonfleck in der mitfahrenden Kamera. 800 native Pruefungen bestanden,
+  einschliesslich Hang, Fahrbahnrand, hoher Stufe, Triggern und eigener
+  Fahrzeugkollision. Projektion in der isolierten Probe rund 0,086 ms je Bild.
+  Pulsmodus und Bodenkontaktregeln
+  erhalten; keine Aenderung an Handling oder Audio. Reproduzierbare native
+  Probe: `python tools/test_neon_unity.py` (Spiel geschlossen, ohne Audio,
+  temporaeres Pruefplugin, keine gespeicherte Welt). Bei geschlossenem Spiel
+  mit Backup lokal installiert, 127 Payload-Dateien SHA-256-geprueft.
+  Abschliessende
+  Sicht-/Lastabnahme auf der voll aufgebauten Strecke bleibt offen.
+
 - Rauchmantel am Reifen weiter verdichtet: maximal 260 statt 90 Wispen pro
   Sekunde je Hinterrad, groessere/dichtere kompakte Rauchfaeden und eigener
   Anteil am bestehenden 1.400-Partikelbudget je Rad. Die abgeloeste Wolke

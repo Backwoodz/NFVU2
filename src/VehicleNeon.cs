@@ -5,7 +5,10 @@ using UnityEngine.Rendering;
 
 namespace Rachel350Z {
 public sealed class VehicleNeon : IDisposable {
-    const int Columns = 7, Rows = 13;
+    // Smaller cells follow terrain creases instead of cutting through them.
+    const int Columns = 15, Rows = 25;
+    const float GroundClearance = .06f;
+    const float ProjectionIntensity = .18f;
     static readonly string[] TintProperties = { "_Color", "_TintColor", "_BaseColor" };
     readonly Transform car;
     readonly List<Light> lights = new List<Light>();
@@ -19,7 +22,7 @@ public sealed class VehicleNeon : IDisposable {
     MeshRenderer renderer;
     Material material;
     Texture2D texture;
-    float phase, sampleIn;
+    float phase;
     bool disposed;
     public bool Enabled { get; set; } = true;
     public bool Pulsing { get; set; }
@@ -33,10 +36,17 @@ public sealed class VehicleNeon : IDisposable {
         var result = new VehicleNeon(car.transform);
         try {
             if (model.neonTexture >= 0) {
-                result.texture = VehicleMaterials.CreateEffectTexture(model.textures[model.neonTexture]);
+                result.texture = NeonGlowMask.Create(model.textures[model.neonTexture]);
                 try { result.material = VehicleMaterials.CreateGlowMaterial(result.texture); }
                 catch (InvalidOperationException e) { log?.Invoke("350Z neon projection unavailable: " + e.Message + "; ground lights remain active"); }
                 if (result.material != null) {
+                    // This is a ground decal, not a smoke particle. The legacy
+                    // additive shader follows Unity's global soft-particle
+                    // keyword even on a fresh material: its default 1 m fade
+                    // nearly erases a pool only centimetres above the road.
+                    // Keep normal depth occlusion, but reduce that fade band
+                    // to 1 mm on this owned material only.
+                    if (result.material.HasFloat("_InvFade")) result.material.SetFloat("_InvFade", 1000);
                     result.projection = new GameObject("350Z_GroundedNeonMask");
                     result.mesh = new Mesh { name = "350Z_TerrainNeon" }; result.mesh.MarkDynamic();
                     var uv = new Vector2[Columns * Rows]; var colors = new Color[uv.Length]; var normals = new Vector3[uv.Length];
@@ -69,21 +79,30 @@ public sealed class VehicleNeon : IDisposable {
         foreach (var light in lights) { light.enabled = active; light.color = Color; light.intensity = intensity * 1.3f; }
         if (renderer == null) return;
         renderer.enabled = active;
-        if (!active) { sampleIn = 0; return; }
-        var tint = new Color(Color.r * intensity, Color.g * intensity, Color.b * intensity, .8f);
+        if (!active) return;
+        // Soft-particle fading used to hide most of this additive mask. Now
+        // that it stays visible, give the decal its own lower radiance so HDR
+        // bloom does not turn the coloured pool into a white hot strip.
+        // Material colour properties are converted to linear light by Unity.
+        // Scale in that space so 18% radiance does not become a much darker
+        // 18% sRGB value, while retaining the selected neon hue.
+        var projectionColor = QualitySettings.activeColorSpace == ColorSpace.Linear
+            ? (Color.linear * ProjectionIntensity).gamma : Color * ProjectionIntensity;
+        var tint = new Color(projectionColor.r * intensity, projectionColor.g * intensity, projectionColor.b * intensity, .8f);
         foreach (var property in TintProperties) if (material.HasColor(property)) material.SetColor(property, tint);
-        sampleIn -= Mathf.Max(0, deltaTime);
-        if (sampleIn > 0) return;
-        sampleIn = .06f;
+        // Tick runs in LateUpdate, after the interpolated vehicle pose. Holding
+        // a world-space pool for 60 ms made it lag by metres at race speed and
+        // jump across the ground. Reproject that small grid for every render
+        // pose, including turning, teleports and reactivation at zero delta.
         UpdateGround();
     }
     void UpdateGround() {
-        // Independent world transform keeps the pool on the sampled ground
-        // between updates, instead of making the terrain rotate with the car.
+        // Keep the projection independent of car pitch/roll so each vertex
+        // stays on its sampled surface, including slopes and road edges.
         projection.transform.position = car.position;
         for (int row = 0; row < Rows; row++) for (int col = 0; col < Columns; col++) {
             int index = row * Columns + col;
-            var point = car.TransformPoint(new Vector3(((float)col / (Columns - 1) - .5f) * 2.7f, 0, ((float)row / (Rows - 1) - .5f) * 5.2f));
+            var point = car.TransformPoint(new Vector3(((float)col / (Columns - 1) - .5f) * NeonGlowMask.Width, 0, ((float)row / (Rows - 1) - .5f) * NeonGlowMask.Length));
             var origin = point + Vector3.up * .9f;
             int count = Physics.RaycastNonAlloc(origin, Vector3.down, hits, 2.4f, groundMask, QueryTriggerInteraction.Ignore);
             float distance = float.MaxValue; int best = -1;
@@ -93,7 +112,10 @@ public sealed class VehicleNeon : IDisposable {
                 best = j; distance = hit.distance;
             }
             grounded[index] = best >= 0;
-            vertices[index] = best >= 0 ? hits[best].point + hits[best].normal * .025f - car.position : point - car.position;
+            // Leave a small, stable vertical clearance for the rendered road
+            // and interpolation between ray hits. Vertical lift keeps the UV
+            // footprint under the car when neighbouring surface normals differ.
+            vertices[index] = best >= 0 ? hits[best].point + Vector3.up * GroundClearance - car.position : point - car.position;
         }
         triangles.Clear();
         for (int row = 0; row < Rows - 1; row++) for (int col = 0; col < Columns - 1; col++) {
