@@ -1,221 +1,45 @@
 # Changelog
 
-## 0.32.0 - Local installer, 2026-10-25
+## 0.32.0 - Drift worlds, Parkade racing and smoke improvements
 
-- Separate local build from commit `0b1cbb8`, including the accepted tyre-smoke
-  and neon improvements, own drift physics, practice course and Parkade Drift 1.
-- Exclude the subsequent Parkade Drift 2 spiral venue and its blue entrance
-  circle. The subsequent spiral-map development was discarded.
-- Allow the packaged tyre audio, loading artwork and first-Parkade sponsor
-  images through the installer, including normal install and removal checks.
-- Mod and setup in this isolated build both use 0.32.0. This is a local package;
-  public downloads remain unchanged. Unity gameplay acceptance remains separate
-  from automated build, logic, installer and checksum verification.
+- Add the `drift` world seed, an endless native paved practice course and a
+  separate Parkade Drift 1 venue with a measured 503 m route and gradual
+  elevation changes. Keep ordinary worlds on their native generation path.
+- Arrive at the practice parking area seated in the 350Z. Enter the glowing
+  event circle for a three-lap Parkade race with preview, checkpoints, separate
+  records, loading progress, countdown, controller navigation and return to
+  parking. Add custom pause/resume/restart controls inside the race venue.
+- Dress the first Parkade with supported native structures, forest scenery,
+  maintenance yards, sponsor signs, a Greydwarf starter and spectators, cheering
+  Trolls and limited nearby lighting. Persist terrain construction progress.
+- Add NFVU2's own `NFVU2.DriftPhysics.dll` drivetrain and tyre model for 350Z
+  drift mode, integrated through raycast suspension and Unity chassis contacts.
+  Keep Hummer and other drive modes on their existing handling paths.
+- Improve drift camera follow, wheel-pose interpolation, gear/RPM telemetry,
+  tyre audio, exhaust smoke and sustained engine/exhaust sound response.
+- Support stationary W+S / dual-trigger burnouts with a held front axle;
+  preserve rear handbrake input and direct low-speed drift steering.
+- Replace fixed-rate tyre smoke with friction/heat-driven, wheel-following
+  wisps, a ground-contact source and detached rolling plumes. Smooth emissions
+  across frame rates, tighten the tyre mantle, vary free clouds and fix their
+  sorting against cabin glass. Preserve the bounded particle budget.
+- Stabilize neon projection over uneven paved terrain, reduce overexposure and
+  soften the light's outer falloff.
+- Include the separate drift physics library, tyre audio, loading artwork and
+  venue images in the Windows installer. Preserve existing settings and other
+  mods during verified installation and removal.
+- Synchronize the setup's ownership checksums after local developer installs;
+  back up and roll back both installation records with the files. Cover the
+  installer/local-update/uninstall/reinstall handoff with filesystem tests.
+- Add `/nexus` for a separate, directly extractable manual mod ZIP with a
+  BepInEx prerequisite, bilingual instructions and per-file/ZIP checksums.
+  Keep Nexus uploads independent from the GitHub installer and its updater.
+- Retain the existing plugin identity, DLL filename and 27 radio tracks.
+  The discarded second spiral venue is not included.
 
-## Unreleased - Drift build world and own drift physics
-
-- Keep the Windows setup's ownership checksums synchronized after local
-  developer installs. Back up and roll back its record together with the mod
-  files so later wizard uninstall/reinstall accepts the verified local build.
-
-- Thicken the rotating tyre mantle with nearly three times the wisps, larger
-  compact puffs and reserved particle capacity, retaining the total smoke cap.
-- Draw cabin glass before tyre smoke so dark panes cannot be sorted over a
-  foreground cloud by the bounds of its distant trail. Preserve window tint.
-
-- Make tyre wisps visibly wrap around both outer shoulders and over the crown,
-  following the wheel frame during donuts before peeling into the cloud.
-- Fix W+S and dual-trigger stationary burnouts: preserve forward throttle,
-  hold the front axle, release rear brakes and select first gear. Brake before
-  engaging at road speed; retain the separate rear handbrake.
-- Keep direct drift steering below 4 m/s and blend countersteer assistance
-  smoothly between 4 and 7 m/s, retaining the existing assisted rack at speed.
-
-- Rebuild rear-tyre smoke with independent friction/heat-driven density,
-  short rotation-directed wisps around each tyre, and detached expanding
-  plumes carried by rolling eddies and Valheim's wind. Use the native lit
-  animated smoke material with a bounded particle budget; retain the smoke
-  opt-out. Driving physics and audio are unchanged.
-
-- Dress Parkade as a night drift festival: 108 animated Greydwarfs on the
-  36 existing roof terraces, illuminated iron railings, two cheering Trolls
-  on supported timber stages, nine sponsor billboards and 23 course lanterns.
-  Use six original locally imported sponsor marks; fall back to native text
-  when the optional images are absent. Limit additional lights to four nearby
-  shadowless sources, combine static decoration and cull distant crowds.
-
-- Fix both Troll fans facing away from the road and crossing their arms:
-  calibrate the native face toward the track and raise each arm on its own
-  shoulder side. Suppress story ravens only in drift worlds without marking
-  tutorials read or changing the player's global tutorial setting.
-- Use custom Escape/Start/Options pause at Parkade, including free drive there.
-  Preserve native pause on the practice course and parking; active races retain
-  custom pause even when off track. Keep F9/L3 assigned to the garage.
-- Open the race pause menu with Escape or the controller menu button.
-  Resume, restart the three-lap event or return to the practice parking area
-  in the same car. Back/Escape resumes a paused race; restarting discards only
-  the unfinished attempt and retains saved records.
-
-- Add a native Greydwarf race starter: raised arms, a crouch/drop start signal,
-  then a lateral run to the verge. Hold the car until the signal and keep the
-  start view clear with a small countdown instead of the modal event panel.
-- Flank the Parkade start with eight animated Greydwarf spectators on raised
-  grey viewing plinths. Add a continuously scrolling green RIP McRib marquee.
-
-- Show the approved NFVU2 loading artwork during course preparation and return,
-  with three animated green segments and separate real construction progress.
-- Navigate the event menu with stick/D-pad and confirm the selected action;
-  reject held-button repeats across screen transitions.
-- Preserve the drift chain and multiplier across intermediate race laps while
-  banking each lap once. New races and normal chain breaks still reset them.
-
-- Keep wide drift lines scoring through Parkade navigation corners without
-  treating projection jumps as teleports. Preserve physical-distance scoring,
-  ordered gates and reverse protection.
-- Replace the event cone with a labelled native-font ground ring; hide native
-  eye/stealth and stamina widgets while seated and restore them on exit.
-  Block build selection, direct menu opening and local hammer placement only
-  in drift single-player worlds.
-- Add two distinct original NFS drift tyre recordings, with NFVU2's own
-  slip/speed/contact-dependent timbre blend, pitch and smooth attack/release.
-  Keep the embedded tyre sample as fallback and leave vehicle forces unchanged.
-
-- Enter drift worlds at the parking area in a seated 350Z, reusing an existing
-  saved car and retaining its cargo/customization where possible. Keep the
-  existing 1,491 m circuit as unlimited practice.
-- Fix venue preparation waiting indefinitely for distant native areas: prepare
-  pending tiles in sequence, retain their saved progress through unloading and
-  return the held car to the ready start before countdown. Synchronize the
-  driver's native sector and rigidbody before remote streaming transfers.
-- Add a glowing parking event area with a native-font course-preview menu and
-  separate event high score. Stage the car at a separate Parkade Drift 1 venue,
-  wait for native area/terrain construction readiness, count down, then score
-  exactly three complete laps. Support pause, retry and return to parking.
-- Reconstruct the measured 503.381 m navigation route and approximately 7.10 m
-  road grade from the locally configured original disc data. Adapt the width
-  to 18 m, raise the venue above Valheim water, and build 724 native stone,
-  banner, torch and sign pieces with independent saved construction markers.
-  Add a collision-free checker start line and a separate mini-/world-map layer.
-  No original road/building meshes or source-game controller are required at
-  runtime. A disposable native world passed seated arrival, complete 1080/1080
-  construction, driver transfer and countdown readiness. Actual race driving,
-  existing-world reload, terrain persistence and long-run stability remain pending.
-
-- Resume drift scoring after returning from grass. Off-road driving breaks
-  the combo and earns no points while retaining the lap, total score and
-  anti-farming progress. Lap time continues; teleport checks remain active.
-
-- Make the drift world a night circuit: 350Z drift driving only, no flight,
-  Transformer or horde, clear weather, no random creature spawns/raids and
-  bounded removal of loose ground loot. Other worlds and saved mode preferences
-  retain their normal behaviour.
-- Add 34 animated scenic Greydwarf spectators, a ground checker start line and
-  46 amber lantern posts with at most six nearby shadowless lights. Decorations
-  are local, noncombat and do not block cars or change saved construction.
-- Score forward drift distance per valid lap with combo multipliers, reverse
-  anti-farming and native world records for best points and fastest lap. Reset
-  at start/finish, suspend off-course points and reject teleports; display the score with
-  original drift backing artwork and Valheim's native Norse font.
-
-- Draw the drift circuit, pit apron and approach on the minimap and world map,
-  using the same pavement coordinates as construction. A turquoise stripe marks
-  start/finish. The supplied course plan remains visible in unexplored areas;
-  ordinary exploration, map pins and other worlds remain unchanged.
-
-- Extend the original U section into a 1,491 m closed drift circuit with broad
-  S transitions, outer straights and a return to start. Add a native Viking
-  paddock with four covered bays, workshop benches, chests, terraced spectator
-  seating, signs, banners, runoff fencing and up to twelve fuelled lamps.
-- Persist the extension under separate v2 tile markers, preserving original
-  construction progress, player dismantling and edited signs. Keep terrain
-  heights and handling intact; bound construction to loaded, owned areas and
-  two operations per frame. Add production-builder reload/ownership checks
-  and a scaled plan rendered directly from the C# layout.
-
-- Keep exhaust burble audible during falling-RPM coasting, beyond the initial
-  short lift-off pops. Add a separate optional continuous exhaust texture,
-  with RPM-driven pitch/level, a quiet loop seam and fade-out on renewed gas.
-  Preserve the existing flame bang and the current blow-off mix.
-- Add optional short exhaust recordings: a decaying lift-off burble and a
-  stronger one-shot tied to the existing backfire flame request. Use NFVU2's
-  own trigger/timing model, rear emitters and normal vehicle sound volume;
-  stop on throttle return, menu/focus blocking, flight and exit. Prepare three
-  neutral-named PCM clips locally; no source-game library is shipped or loaded.
-  Raise blow-off by 2.3 dB relative to the previous softened mix.
-- Fix the 350Z front/rear engine loops crowding out tyre, turbo and release
-  voices at Valheim's 32-real-voice limit. Let silent RPM bands yield to audible
-  effects through normal loop priority; keep the global audio settings intact.
-- Fix the new front/rear sound emitters' initialization order: create each
-  AudioSource before adding its native filter. The reversed order rejected
-  the filter and aborted vehicle audio loading, silencing all vehicle sounds.
-- Refine 350Z audio using the existing NFSU2 recordings: soften blow-off and
-  shift releases, ignore throttle feathering, and
-  fade long release tails to silence within 550 ms. Keep boost/RPM/handling
-  controls separate from these acoustic changes.
-- Place filtered engine and exhaust voices at the front and rear, sharing the
-  decoded engine clips and starting on the same DSP time. Smoothly emphasize
-  engine/turbo when listening from the front and exhaust from behind. This is
-  NFVU2's own mix, not a recovered NFS/Forza implementation; Hummer stays on
-  its existing audio path. Add an offline front/rear listening illustration.
-- Add `Effects.TyreSmokeEnabled` (default true) to skip rear-tyre smoke creation
-  entirely when disabled, allowing a controlled rendering comparison after
-  repeated GPU hangs. Restart required; this is not a confirmed crash fix.
-- Add a separately enabled 350Z drift chase camera: follow 95% of the bounded
-  travel angle with softer heading response and a little more road look-ahead.
-  Show more of the car's side through a slide while preserving mouse/right-stick
-  inspection and reverse protection. Enable through Camera.DriftFollow even when
-  ordinary DynamicFollow is disabled; expose the toggle in the driving display menu.
-- Fix jittering drift wheels by attaching their poses to the interpolated
-  rendered chassis. Blend suspension, steering and signed wheel rotation
-  between fixed ticks; keep brake calipers and cockpit steering synchronized.
-  Preserve full wheel revolutions at high RPM instead of interpolating backward
-  through the shortest quaternion path. Driving forces and tyre tuning are unchanged.
-- Replace the private native backend experiment with `NFVU2.DriftPhysics.dll`,
-  an independent C# library built from the repository's `physics/` sources.
-  Implement an own engine/clutch/automatic gearbox and combined-slip tyres;
-  require no original racing-game binary or external game installation.
-- Connect the library to Valheim through raycast suspension and an own steering
-  adapter. Let Unity integrate chassis forces and resolve collisions; disable
-  duplicate WheelCollider forces and per-body Unity gravity while active.
-  Use 9.81 m/s2 vehicle gravity without changing the world's gravity.
-- Restore previous physics state on mode changes, flight, transformation, exit
-  and cleanup. Keep other drive modes and Hummer handling on their existing path.
-- Feed own wheel poses, RPM, gear and contact telemetry into gauges, sound,
-  tyre smoke and NFVU2 nitro. Enable the new backend for 350Z drift mode through
-  `[DriftPhysics] Enabled`; retain the previous drift controller when disabled.
-- Build the portable library separately and include it in the regular payload.
-  Preserve the existing plugin ID and `Rachel350Z.dll` name. Validate the new
-  dependency in installer payloads while retaining older package compatibility.
-- Provide portable-library and adapter test suites plus an explicit menu-only
-  Unity/PhysX probe. Pass 52 core checks, 187 adapter checks and 134 actual Unity
-  checks with the separately installed physics library. Personal gameplay
-  acceptance remains open.
-- Retain the former CarX Playtest experiment and its provenance only in ignored
-  local archives. Its original native library is no longer a runtime dependency.
-
-- Add NFVU2's own world generation for the exact seed `drift` (case insensitive),
-  built into the existing `Rachel350Z.dll`. FlatGrass is not required.
-- Generate flat Meadows at height 32 without native structures, vegetation or
-  ore deposits, and supply a world-centre start point. Keep native world-edge
-  behavior and normal-world generation.
-- Keep the existing NFVU2 plugin identity and regular build/install workflow.
-  No extra world plugin, separate installer or FlatGrass bridge is needed.
-- Highlight the exact `drift` seed in green in the new-world menu, using the
-  same predicate as world generation. Restore the previous text color on edits,
-  panel changes and plugin shutdown, preserving feedback supplied by other mods.
-- Rewind the native generation-result buffer before its caller reads it. This
-  fixes an `EndOfStreamException` that left drift worlds stuck at "Generating".
-  The regression test now uses Valheim's actual ZPackage implementation.
-- Add the first 335 m drift test section east of the spawn: two 108 m straights
-  joined by a 38 m radius hairpin, 16–20 m wide. Use native paved terrain,
-  sparse grounded stone guides, supported signs/start banners and a map pin.
-- Build loaded tiles incrementally after native readiness and save progress
-  alongside native terrain data. Resume unfinished tiles; completed construction
-  does not repaint or respawn deliberately dismantled guides on each login.
-  Keep terrain height and vehicle handling unchanged.
-- Turn generated sign faces away from their supporting posts. Correct saved
-  NFVU2 signs when their original position, text and rotation are unchanged;
-  preserve player edits and do not reconstruct dismantled signs.
+Automated build, portable logic, filesystem and packaging checks are separate
+from Unity gameplay acceptance. Final saved-world driving, visual/performance
+and compatibility checks remain documented in `docs/ROADMAP.md`.
 
 ## 0.31.2 — ZIP updates and older installer compatibility
 

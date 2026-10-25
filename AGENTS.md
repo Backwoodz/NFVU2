@@ -1,5 +1,9 @@
 # NFVU2 development notes
 
+- For `/nexus`, `$nexus`, or a Nexus Mods upload-package request,
+  read and follow `.agents/skills/nexus/SKILL.md`. Build a directly extractable
+  mod ZIP separately from GitHub setup releases; do not include the installer.
+
 - For `/installer`, `$installer`, or a request to build a local installer,
   read and follow `.agents/skills/installer/SKILL.md`.
 - For `/release`, `$release`, or an explicit GitHub publication request,

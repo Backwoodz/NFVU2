@@ -91,6 +91,19 @@ The supported build entry point remains `tools/build.py`.
 
 ## Build the player installer
 
+### Separate Nexus Mods package
+
+`/nexus` or `$nexus` uses `.agents/skills/nexus/SKILL.md` to build a manual
+mod ZIP independently of GitHub releases and the Windows setup. After building
+and testing the mod, run `python tools/build_nexus.py`. Each run creates a new
+timestamped folder in `artifacts/nexus/` with the ZIP, SHA-256 sidecar and its
+ready-to-copy `package/` folder. The ZIP contains `BepInEx/plugins/Rachel350Z/`,
+an English/German installation guide and a file-hash manifest. BepInEx must be
+installed separately. No setup EXE, updater, loader binaries or nested archives
+are packaged. The command performs no upload, release or game installation.
+
+### Windows setup
+
 The project skills separate local builds from GitHub publication:
 `/installer` (or `$installer`) builds and verifies a local setup, then removes
 older local installers after success. `/release` (or `$release`) prepares a new
@@ -116,7 +129,7 @@ Run `python tools/extract_music.py` and rebuild the mod to supply it.
 The installer embeds the same user-provided logo as the README from
 `docs/images/nfvu2-logo.png`. Its `LICENSE` window has a Close button and supports
 Escape and Enter.
-Mod and installer share one Major.Minor.Patch version, currently 0.31.2.
+Mod and installer share one Major.Minor.Patch version, currently 0.32.0.
 Use minor versions for features and patch versions for fixes, including installer fixes.
 There is no separate setup revision. Update both `src/NFVU2.csproj` and the
 `BepInPlugin` attribute together; the builder checks that they match. Existing

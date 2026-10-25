@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace Rachel350Z {
 // Rendered vehicles are local; metadata/cargo use persistent vanilla world ZDOs.
-[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.31.2")]
+[BepInPlugin("local.rachel350z.prototype", "350Z vehicle prototype", "0.32.0")]
 [DefaultExecutionOrder(10000)]
 public partial class Plugin : BaseUnityPlugin {
     VehicleOrbitCamera orbitCamera;
