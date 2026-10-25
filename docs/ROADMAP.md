@@ -2,9 +2,15 @@
 
 ## Parkplatz und Parkade-Rennen (lokale Entwicklung)
 
-- GitHub-Release 0.32.0 wird aus dem aktuellen Stand mit eigenstaendigem
-  Nexus-Paket und Installer vorbereitet. Die zweite Driftstrecke ist entfernt.
-  Automatische Release-Pruefungen ersetzen keine weitere Spielabnahme.
+- GitHub-Release 0.32.0 ist veroeffentlicht: Installer-ZIP als Hauptdownload,
+  identische EXE fuer alte Updater und beide SHA-256-Dateien. Alle vier Uploads
+  erneut heruntergeladen und gehasht; Release-Seite und Downloads oeffentlich
+  erreichbar. Alter Updater erkennt die EXE, aktueller Updater bevorzugt die ZIP
+  und liefert nach echtem Download die gepruefte EXE, ohne Setup zu starten.
+  162 Python-Tests (zehn uebersprungen) und alle angeforderten C#-Pruefungen
+  bestanden; 149 Nutzlastdateien und alle 27 Radiosongs verifiziert.
+  Eigenstaendiges Nexus-Paket separat lokal vorhanden. Die zweite Driftstrecke
+  ist entfernt. Automatische Release-Pruefungen ersetzen keine Spielabnahme.
 
 - Blockierte Deinstallation nach lokalem DLL-Rollback behoben: Der lokale
   Installationshelfer aktualisiert ein vorhandenes `.nfvu2/install.json`

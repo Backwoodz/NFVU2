@@ -20,9 +20,9 @@ Windows 10/11, 64-bit. **Single-player only**; cars and cargo are saved with the
 
 Remove cars through **F9 → Vehicle → Remove vehicle**.
 
-**[Download the Windows installer (ZIP)](https://github.com/Backwoodz/NFVU2/releases/download/v0.31.2/NFVU2-Setup-0.31.2.zip)** — v0.31.2, 154 MiB
+**[Download the Windows installer (ZIP)](https://github.com/Backwoodz/NFVU2/releases/download/v0.32.0/NFVU2-Setup-0.32.0.zip)** — v0.32.0, 157 MiB
 
-1. Download and **extract the ZIP**, close Valheim, then run **NFVU2-Setup-0.31.2.exe** and select **valheim.exe**.
+1. Download and **extract the ZIP**, close Valheim, then run **NFVU2-Setup-0.32.0.exe** and select **valheim.exe**.
 2. Click **Install / Update**. Music is included; BepInEx is installed if needed.
 3. Launch Valheim, enter a single-player world and press **F9 / L3 → Garage** to spawn a car.
 
@@ -40,7 +40,7 @@ feature disabled; set it to `true` with the game closed to enable it after updat
 Drive with **WASD** or the **left stick + triggers**. On-screen hints show the rest.
 Customization and language settings are in **F9 / L3**.
 
-In the current local development build, hold **W+S** or **RT+LT / R2+L2**
+Hold **W+S** or **RT+LT / R2+L2**
 near standstill for a front-held burnout. **Space / A / Cross** remains the
 rear handbrake. Drift countersteering now fades in with speed so slow donut
 entries retain direct steering.
@@ -71,20 +71,19 @@ The ZIP contains the Windows setup EXE; it is not a manual-install mod package.
 
 Experimental fan mod with its own driving physics.
 
-The current development source builds a separate `NFVU2.DriftPhysics.dll` for
+Version 0.32.0 includes a separate `NFVU2.DriftPhysics.dll` for
 350Z drift mode, with its own drivetrain and tyre model. It ships beside
 `Rachel350Z.dll` through the normal build; no original racing-game library or
 installation is required. The replacement passes core, adapter and actual
 Unity/PhysX checks, including separate-library loading; personal in-game
 handling acceptance remains open. See [local drift development](docs/DRIFT_WORLD.md).
-The download above remains the published release.
 
-Local development also replaces fixed-rate tyre smoke with wheel-following
+Version 0.32.0 also replaces fixed-rate tyre smoke with wheel-following
 wisps, friction/heat-driven density and a detached, wind-driven trail using
 Valheim's lit smoke atlas. See [tyre smoke development and checks](docs/TYRE_SMOKE.md);
 final in-game visual and performance acceptance remains open.
 
-Local drift-world development also adds parking arrival in a seated 350Z, endless
+Create a world with the seed **drift** for parking arrival in a seated 350Z, endless
 practice on the existing circuit, and a glowing event area for a separate
 three-lap **Parkade Drift 1** race. Its 503 m route and gradual 7.1 m elevation
 change were measured from the locally available original game data; the venue
