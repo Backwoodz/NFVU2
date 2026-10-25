@@ -2,6 +2,28 @@
 
 ## Parkplatz und Parkade-Rennen (lokale Entwicklung)
 
+- Blockierte Deinstallation nach lokalem DLL-Rollback behoben: Der lokale
+  Installationshelfer aktualisiert ein vorhandenes `.nfvu2/install.json`
+  jetzt zusammen mit den geprueften Dateien und sichert dessen Vorzustand.
+  Loader-Zuordnung bleibt erhalten; Fehler rollen Dateien und beide Manifeste
+  zurueck. Offene Wizard-Transaktionen blockieren lokale Aenderungen.
+  15 lokale Installationstests und sieben Wizard-Tests bestanden, einschliesslich
+  echtem Ablauf Installer -> lokales Update -> Deinstallation -> Neuinstallation
+  in temporaeren Ordnern. Reale Installation ueber den vorhandenen 0.32.0-
+  Installer repariert; alle 127 gespeicherten Mod-Pruefsummen stimmen ueberein,
+  gespeicherte Plugin-Konfigurationen unveraendert.
+
+- Lokaler Installer 0.32.0 getrennt aus `0b1cbb8` gebaut und geprueft: akzeptierter
+  Rauch-/Neon-Stand mit Uebungsplatz und Parkade 1, ohne zweite Spiralkarte
+  und deren blauen Zugang. Die zweite Strecke wurde verworfen.
+  Installer-Freigaben fuer Reifen-Audio, Ladebild und Venue-Logos korrigiert;
+  echte Installations-/Entfernungspruefungen in temporaeren Spielordnern.
+  Vollstaendige Mod-Pruefungen und ergaenzte Installer-Tests bestanden;
+  alle 149 Payload-Eintraege, 27 Radiosongs, Haupt-DLL und eingebettete
+  Installer-Ressource gegen ihre SHA-256-Werte geprueft. Zweite Strecke
+  und blauer Zugang auch in den fertigen DLL-Metadaten ausgeschlossen.
+  Spielabnahme bleibt getrennt von automatischen Pruefungen.
+
 - Versuch zur erzwungenen Felgenverdeckung nach Spielrueckmeldung verworfen:
   breite, grosse und stark ueberlappende Quellwolken verdeckten die Felge in
   der nativen Probe, wirkten in der echten erhoehten Spielansicht jedoch wie

@@ -15,6 +15,24 @@ from project import BASE, OUTPUT
 
 
 class WizardTests(unittest.TestCase):
+    def test_local_update_then_real_wizard_uninstall_and_reinstall(self):
+        import install
+        executable = OUTPUT/'tests/installer/LocalHandoffTests.exe'
+        compile_installer(executable, [BASE/'installer/InstallerCore.cs', BASE/'tests/installer/Program.cs'])
+        with tempfile.TemporaryDirectory() as temp:
+            root=Path(temp);game=root/'game';game.mkdir()
+            (game/'valheim.exe').write_bytes(b'fake game');(game/'valheim_Data').mkdir()
+            subprocess.run([str(executable),'handoff-install',str(game)],check=True)
+            (game/'BepInEx/config').mkdir(exist_ok=True)
+            (game/'BepInEx/config/personal.cfg').write_text('keep settings')
+            (game/'BepInEx/plugins/personal.dll').write_text('keep other mod')
+            source=root/'mod';source.mkdir()
+            for name in install.REQUIRED:(source/name).write_bytes(b'local developer update')
+            install.install_payload(source,game/'BepInEx/plugins/Rachel350Z',root/'backup',lambda:None)
+            subprocess.run([str(executable),'handoff-uninstall-reinstall',str(game)],check=True)
+            state=json.loads((game/'.nfvu2/install.json').read_text())
+            self.assertTrue(all(install.checksum(game/name)==digest for name,digest in state['Mod'].items()))
+
     def test_packaging_allowlist_includes_music(self):
         with tempfile.TemporaryDirectory() as temp:
             root = Path(temp)

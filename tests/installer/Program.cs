@@ -16,7 +16,7 @@ static class Tests {
     static void Put(string root, string name, string data) { string p = Path.Combine(root, name); Directory.CreateDirectory(Path.GetDirectoryName(p)); File.WriteAllText(p, data); }
     static string Read(string root, string name) { return File.ReadAllText(Path.Combine(root, name)); }
     static MemoryStream Payload(string dll = "new", bool stale = false, bool corrupt = false, bool ogg = false, bool robot = false,
-        bool ownPhysics = false, byte[] managedPlugin = null) {
+        bool ownPhysics = false, byte[] managedPlugin = null, bool driftAssets = false) {
         var stream = new MemoryStream();
         var files = new Dictionary<string, string> {
             {InstallerCore.ModRoot+"Rachel350Z.dll", dll}, {InstallerCore.ModRoot+"body.json", "model"},
@@ -24,6 +24,14 @@ static class Tests {
             {"BepInEx/core/BepInEx.dll", "test-loader"}, {"doorstop_config.ini", "config"}
         };
         if (ownPhysics) files.Add(InstallerCore.ModRoot+"NFVU2.DriftPhysics.dll", "own physics");
+        if (driftAssets) {
+            files.Add(InstallerCore.ModRoot+"audio/tyres/skid.ogg", "tyre audio");
+            files.Add(InstallerCore.ModRoot+"audio/tyres/manifest.json", "{}");
+            files.Add(InstallerCore.ModRoot+"venue/sponsor.png", "sponsor artwork");
+            files.Add(InstallerCore.ModRoot+"venue/manifest.json", "{}");
+            files.Add(InstallerCore.ModRoot+"loading/background.png", "loading artwork");
+            files.Add(InstallerCore.ModRoot+"loading/manifest.json", "{}");
+        }
         if (stale) files.Add(InstallerCore.ModRoot+"menu/old.json", "old");
         if (robot) {
             files.Add(InstallerCore.ModRoot+"transformer/transformer.json", "robot manifest");
@@ -82,6 +90,21 @@ static class Tests {
         Put(root, InstallerCore.StateFile, Json.Serialize(state));
     }
     static void Main(string[] args) {
+        // Separate process entry points let the Python developer installer
+        // run between two operations of the actual Windows setup engine.
+        if (args.Length == 2 && args[0] == "handoff-install") {
+            using (var zip = Payload(ownPhysics: true)) Core(args[1]).Install(zip);
+            CompleteLoader(args[1]); return;
+        }
+        if (args.Length == 2 && args[0] == "handoff-uninstall-reinstall") {
+            Core(args[1]).Uninstall(false);
+            Check(!File.Exists(Path.Combine(args[1], InstallerCore.ModRoot+"Rachel350Z.dll")), "locally updated mod uninstalls through the wizard");
+            Check(Read(args[1], "BepInEx/config/personal.cfg") == "keep settings", "handoff uninstall preserves settings");
+            Check(Read(args[1], "BepInEx/plugins/personal.dll") == "keep other mod", "handoff uninstall preserves other mods");
+            using (var zip = Payload(ownPhysics: true)) Core(args[1]).Install(zip);
+            Check(Read(args[1], InstallerCore.ModRoot+"Rachel350Z.dll") == "new", "wizard reinstall succeeds after local handoff");
+            return;
+        }
         string parent = Path.Combine(Path.GetTempPath(), "NFVU2-tests-"+Guid.NewGuid().ToString("N")); Directory.CreateDirectory(parent);
         try {
             string root = Fixture(parent, "fresh spaces ü");
@@ -140,6 +163,21 @@ static class Tests {
             Check(InstallerCore.ModName(InstallerCore.ModRoot+"transformer/transformer.json"), "robot manifest allowed");
             Check(InstallerCore.ModName(InstallerCore.ModRoot+"transformer/transformer.bin"), "robot animation binary allowed");
             Check(InstallerCore.ModName(InstallerCore.ModRoot+"NFVU2.DriftPhysics.dll"), "own physics assembly allowed");
+            Check(InstallerCore.ModName(InstallerCore.ModRoot+"audio/tyres/skid.ogg"), "prepared tyre audio allowed");
+            Check(InstallerCore.ModName(InstallerCore.ModRoot+"audio/tyres/manifest.json"), "tyre audio manifest allowed");
+            Check(InstallerCore.ModName(InstallerCore.ModRoot+"loading/background.png"), "native loading artwork allowed");
+            Check(InstallerCore.ModName(InstallerCore.ModRoot+"venue/sponsor.png"), "first Parkade sponsor artwork allowed");
+            Check(InstallerCore.ModName(InstallerCore.ModRoot+"venue/manifest.json"), "venue artwork manifest allowed");
+            Check(!InstallerCore.ModName(InstallerCore.ModRoot+"venue/source.bun"), "original venue archive excluded");
+            Check(!InstallerCore.ModName(InstallerCore.ModRoot+"loading/private.dll"), "loading artwork cannot import a plugin");
+            Check(!InstallerCore.ModName(InstallerCore.ModRoot+"audio/tyres/source.bank"), "original tyre audio bank excluded");
+            root = Fixture(parent, "first-parkade-assets");
+            using (var zip = Payload(driftAssets: true)) Core(root).Install(zip);
+            Check(Read(root, InstallerCore.ModRoot+"audio/tyres/skid.ogg") == "tyre audio", "tyre audio installs through the actual engine");
+            Check(Read(root, InstallerCore.ModRoot+"venue/sponsor.png") == "sponsor artwork", "first Parkade artwork installs through the actual engine");
+            Check(Read(root, InstallerCore.ModRoot+"loading/background.png") == "loading artwork", "loading artwork installs through the actual engine");
+            Core(root).Uninstall(true);
+            Check(!Directory.Exists(Path.Combine(root, InstallerCore.ModRoot+"venue")) || !Directory.EnumerateFiles(Path.Combine(root, InstallerCore.ModRoot+"venue")).Any(), "uninstall removes managed venue artwork");
             Check(!InstallerCore.ModName(InstallerCore.ModRoot+"NFVU2.OtherPhysics.dll"), "unrelated physics assembly rejected");
             Check(!InstallerCore.ModName(InstallerCore.ModRoot+"transformer/private.bin"), "unrelated robot binary excluded");
             Check(!InstallerCore.ModName(InstallerCore.ModRoot+"minigun/private.bin"), "binary extension remains excluded elsewhere");

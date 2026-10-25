@@ -9,6 +9,50 @@ import install
 from mod_files import sync_optional_assets
 
 class InstallTests(unittest.TestCase):
+    def wizard_fixture(self,root):
+        source,dest,backup=self.fixture(root)
+        game=root/'game';target=game/'BepInEx/plugins/Rachel350Z';target.parent.mkdir(parents=True);dest.rename(target)
+        state=game/'.nfvu2/install.json';state.parent.mkdir()
+        data={'Schema':1,'Mod':{'BepInEx/plugins/Rachel350Z/Rachel350Z.dll':install.checksum(target/'Rachel350Z.dll')},'Loader':{'winhttp.dll':'a'*64}}
+        state.write_text(json.dumps(data));return source,target,backup,state,data
+
+    def test_local_update_synchronizes_setup_checksums_and_preserves_loader_ownership(self):
+        with tempfile.TemporaryDirectory() as temp:
+            source,dest,backup,state,data=self.wizard_fixture(Path(temp))
+            stale=dest/'menu/old.json';stale.parent.mkdir();stale.write_bytes(b'old menu')
+            data['Mod']['BepInEx/plugins/Rachel350Z/menu/old.json']=install.checksum(stale)
+            state.write_text(json.dumps(data));before=state.read_bytes()
+            install.install_payload(source,dest,backup,lambda:None)
+            saved=json.loads(state.read_text())
+            self.assertEqual(saved['Loader'],data['Loader'])
+            self.assertEqual(saved['Mod'],{'BepInEx/plugins/Rachel350Z/'+p.as_posix():install.checksum(dest/p) for p in install.payload_files(source)})
+            self.assertFalse(stale.exists())
+            self.assertEqual((backup/'menu/old.json').read_bytes(),b'old menu')
+            self.assertEqual((backup/'wizard-install-state.json').read_bytes(),before)
+
+    def test_failed_setup_state_write_rolls_back_files_and_both_manifests(self):
+        with tempfile.TemporaryDirectory() as temp:
+            source,dest,backup,state,data=self.wizard_fixture(Path(temp));before=state.read_bytes()
+            write=Path.write_text
+            def fail_after_write(path,*args,**kwargs):
+                result=write(path,*args,**kwargs)
+                if path==state:raise OSError('simulated state failure')
+                return result
+            with patch.object(Path,'write_text',fail_after_write):
+                with self.assertRaises(OSError):install.install_payload(source,dest,backup,lambda:None)
+            self.assertEqual(state.read_bytes(),before)
+            self.assertEqual((dest/'Rachel350Z.dll').read_bytes(),b'old')
+            self.assertFalse((dest/'radio/song.wav').exists())
+            self.assertFalse((dest/install.MANIFEST).exists())
+
+    def test_pending_wizard_transaction_blocks_local_changes(self):
+        with tempfile.TemporaryDirectory() as temp:
+            source,dest,backup,state,data=self.wizard_fixture(Path(temp))
+            (state.parent/'pending.json').write_text('{}')
+            with self.assertRaisesRegex(ValueError,'pending setup'):install.install_payload(source,dest,backup,lambda:None)
+            self.assertFalse(backup.exists())
+            self.assertEqual((dest/'Rachel350Z.dll').read_bytes(),b'old')
+
     def test_optional_loading_image_is_packaged_and_checksum_verified(self):
         with tempfile.TemporaryDirectory() as temp:
             root=Path(temp);source,dest,backup=self.fixture(root)

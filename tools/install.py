@@ -24,6 +24,23 @@ def checksum(path):return hashlib.sha256(path.read_bytes()).hexdigest()
 
 MANIFEST='nfvu2-installed-files.json'
 
+def wizard_state(destination):
+    """Keep an existing setup's ownership/checksum record in the same transaction."""
+    destination=Path(destination)
+    if tuple(p.lower() for p in destination.parts[-3:])!=('bepinex','plugins','rachel350z'):return None,None
+    game=destination.parents[2]
+    state=contained(game,'.nfvu2/install.json')
+    if not state.exists():return None,None
+    if contained(game,'.nfvu2/pending.json').exists():raise ValueError('Complete the pending setup transaction before installing locally')
+    data=json.loads(state.read_text(encoding='utf-8-sig'))
+    if data.get('Schema')!=1 or not isinstance(data.get('Mod'),dict) or not isinstance(data.get('Loader'),dict):
+        raise ValueError('Invalid wizard installation state')
+    prefix='BepInEx/plugins/Rachel350Z/'
+    for name,digest in data['Mod'].items():
+        if not name.startswith(prefix) or not allowed_name(name[len(prefix):]) or not isinstance(digest,str) or not re.fullmatch('[a-f0-9]{64}',digest):
+            raise ValueError('Invalid wizard mod ownership entry')
+    return state,data
+
 def allowed_name(value):
     path=Path(value)
     if path.is_absolute() or '..' in path.parts:return False
@@ -64,6 +81,8 @@ def install_payload(source,destination,backup,guard=require_closed):
     guard()
     source,destination,backup=Path(source),Path(destination),Path(backup)
     names=list(payload_files(source))
+    state,state_data=wizard_state(destination)
+    state_backup=contained(backup,'wizard-install-state.json')
     old=[]
     manifest=contained(destination,MANIFEST)
     if manifest.exists():
@@ -71,10 +90,13 @@ def install_payload(source,destination,backup,guard=require_closed):
         if not isinstance(saved,list) or not all(isinstance(n,str) and allowed_name(n) for n in saved):
             raise ValueError('Invalid installed file manifest')
         old=[Path(n) for n in saved]
+    if state_data is not None:
+        old=list(set(old)|{Path(n.removeprefix('BepInEx/plugins/Rachel350Z/')) for n in state_data['Mod']})
     touched=set(names)|set(old)|{Path(MANIFEST)}
     for name in touched:
         contained(destination,name);contained(backup,name)
     backup.mkdir(parents=True,exist_ok=False)
+    if state is not None:shutil.copy2(state,state_backup)
     destination.mkdir(parents=True,exist_ok=True)
     for name in touched:
         installed=destination/name
@@ -94,12 +116,18 @@ def install_payload(source,destination,backup,guard=require_closed):
             if path.exists():path.unlink()
         guard()
         manifest.write_text(json.dumps([p.as_posix() for p in names],indent=2),encoding='utf-8')
+        if state is not None:
+            guard()
+            state_data['Mod']={'BepInEx/plugins/Rachel350Z/'+p.as_posix():checksum(destination/p) for p in names}
+            state.write_text(json.dumps(state_data,indent=2),encoding='utf-8')
+            if json.loads(state.read_text(encoding='utf-8'))!=state_data:raise RuntimeError('Wizard state verification failed')
     except Exception:
         guard()
         for name in touched:
             installed=destination/name
             if (backup/name).exists():shutil.copy2(backup/name,installed)
             elif installed.exists():installed.unlink()
+        if state is not None:shutil.copy2(state_backup,state)
         raise
     if re.fullmatch(r'\d{8}-\d{6}-\d{6}',backup.name):prune_backups(backup.parent)
     return len(names)

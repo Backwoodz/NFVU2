@@ -82,7 +82,8 @@ public sealed class InstallerCore {
         string n = name.Substring(ModRoot.Length);
         if (n == "Rachel350Z.dll" || n == "NFVU2.DriftPhysics.dll" || n == "body.json") return true;
         if (n == "transformer/transformer.json" || n == "transformer/transformer.bin") return true;
-        return Regex.IsMatch(n, @"^(radio|menu|audio/turbo|audio/effects|audio/exhaust|audio/hummer|audio/transformer|hud|hummer|interior|turret|minigun)/[A-Za-z0-9_ .-]+\.(json|wav|ogg)$");
+        if (Regex.IsMatch(n, @"^(venue|loading)/[A-Za-z0-9_ .-]+\.(json|png)$")) return true;
+        return Regex.IsMatch(n, @"^(radio|menu|audio/turbo|audio/tyres|audio/effects|audio/exhaust|audio/hummer|audio/transformer|hud|hummer|interior|turret|minigun)/[A-Za-z0-9_ .-]+\.(json|wav|ogg)$");
     }
     public static bool LoaderName(string n) {
         return n == "winhttp.dll" || n == "doorstop_config.ini" || n == ".doorstop_version"

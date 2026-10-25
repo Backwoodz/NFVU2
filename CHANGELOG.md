@@ -1,6 +1,22 @@
 # Changelog
 
+## 0.32.0 - Local installer, 2026-10-25
+
+- Separate local build from commit `0b1cbb8`, including the accepted tyre-smoke
+  and neon improvements, own drift physics, practice course and Parkade Drift 1.
+- Exclude the subsequent Parkade Drift 2 spiral venue and its blue entrance
+  circle. The subsequent spiral-map development was discarded.
+- Allow the packaged tyre audio, loading artwork and first-Parkade sponsor
+  images through the installer, including normal install and removal checks.
+- Mod and setup in this isolated build both use 0.32.0. This is a local package;
+  public downloads remain unchanged. Unity gameplay acceptance remains separate
+  from automated build, logic, installer and checksum verification.
+
 ## Unreleased - Drift build world and own drift physics
+
+- Keep the Windows setup's ownership checksums synchronized after local
+  developer installs. Back up and roll back its record together with the mod
+  files so later wizard uninstall/reinstall accepts the verified local build.
 
 - Thicken the rotating tyre mantle with nearly three times the wisps, larger
   compact puffs and reserved particle capacity, retaining the total smoke cap.
