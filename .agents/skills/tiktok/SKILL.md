@@ -91,6 +91,18 @@ python .local/tiktok/render_preview.py --settings settings-flying.json --start 3
 - Aktualisiere `.local/tiktok/NOTES.md` mit Abschnitt, Settings, Dateiname und
   Prüfergebnis. Liefere einen klickbaren Dateipfad und den eindeutigen Dateinamen.
 
+## Englische Beschreibung und Hashtags
+
+- Liefere zu jedem fertigen TikTok-Clip immer eine kurze englische Beschreibung
+  und genau **fünf passende Hashtags**, direkt kopierbar in der Abschlussantwort.
+- Die Beschreibung soll in einem kurzen Satz die konkrete Szene aufgreifen.
+  Bei Valheim passt gern augenzwinkernder Odin-/Wikinger-Humor, wenn er zur
+  Szene passt; nicht jeden Clip auf denselben Odin-Spruch festlegen.
+- Wähle die fünf Hashtags passend zu Spiel, Mod/Projekt und gezeigter Aktion
+  oder Fahrzeug. Keine zusätzlichen generischen Tags nur zum Auffüllen.
+- Beschreibung und Hashtags sind Begleittext für den Post. Nicht automatisch
+  ins Video einbrennen oder veröffentlichen.
+
 ## Bisherige Clips
 
 | Quelle | Gewählter Zeitraum | Titel | Export |
